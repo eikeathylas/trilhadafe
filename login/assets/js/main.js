@@ -181,10 +181,10 @@
             title: "Acesso liberado! Redirecionando..."
         });
 
-        // setTimeout(() => {
-        //     // Caminho para o módulo principal
-        //     window.location.href = "../modules/index.php"; 
-        // }, 1000);
+        setTimeout(() => {
+            // Caminho para o módulo principal
+            window.location.href = "../modules/index.php"; 
+        }, 200);
 
       } else {
         Swal.fire({
