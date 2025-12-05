@@ -4,15 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="./assets/img/favicon.png" type="image/x-icon">
+    <link rel="shortcut icon" href="assets/img/favicon.png" type="image/x-icon">
     <title>Dashboard - Trilha da Fé</title>
 
     <?php include "./assets/components/Head.php"; ?>
+    
+    <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
 <body>
 
-    <div id="div-loader" class="div-loader d-none"><span class="loader"></span></div>
+    <div id="div-loader" class="div-loader" style="display: none;"><span class="loader"></span></div>
 
     <div id="sidebar-only" class="sidebar-only">
         <div class="menu-btn-only">
@@ -32,7 +34,7 @@
             </nav>
 
             <div class="list-commanded">
-
+                
                 <div class="row">
 
                     <div class="col-sm-12 col-md-6 col-xxl-3 mb-3">
@@ -59,7 +61,7 @@
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
                                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                            Turmas de Catequese
+                                            Turmas Ativas
                                         </div>
                                         <div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-turmas-ativas">...</div>
                                     </div>
@@ -89,7 +91,7 @@
                         </div>
                     </div>
 
-                    <div class="col-sm-12 col-md-6 col-xxl-3 mb-3 permission-finance d-none">
+                    <div class="col-sm-12 col-md-6 col-xxl-3 mb-3 permission-finance" style="display:none;">
                         <div class="card card-stats border-left-danger shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -112,7 +114,6 @@
                 <hr class="my-4">
 
                 <div class="row">
-
                     <div class="col-lg-6 mb-4">
                         <div class="card shadow mb-4">
                             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
@@ -143,14 +144,10 @@
                                     <a href="meus-diarios.php" class="btn btn-outline-success mb-2 text-start">
                                         <i class="fas fa-clipboard-check mr-2"></i> Fazer Chamada
                                     </a>
-                                    <a href="liturgia.php" class="btn btn-outline-warning mb-2 text-start">
-                                        <i class="fas fa-calendar-plus mr-2"></i> Agendar Missa
-                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
 
             </div>
@@ -167,5 +164,4 @@
     <script src="assets/js/dashboard.js?v=<?php echo time(); ?>"></script>
 
 </body>
-
 </html>

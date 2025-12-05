@@ -1,5 +1,7 @@
 <?php
 
+define('TOKEN_SECRET_KEY', 'TrilhaDaFe_SecureKey_2025_$#@!'); // 32 caracteres
+
 function executeSQL($dados, $idConexao = "local")
 {
     $conect = $GLOBALS[$idConexao];

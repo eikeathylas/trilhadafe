@@ -8,7 +8,7 @@ header('Access-Control-Allow-Origin: *');
 
 // 1. Dependências Essenciais
 include "../tools/tools.php";       // Ferramentas (success, failure, getIp)
-include "../database/tenant.php";   // [IMPORTANTE] Conector do Banco da Cidade
+include "../database/database.php";   // [IMPORTANTE] Conector do Banco da Cidade
 
 // 2. Controllers (Adicionaremos mais conforme criarmos os módulos)
 include "../controller/dashboard-controller.php";

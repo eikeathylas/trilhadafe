@@ -4,30 +4,34 @@ include "../functions/dashboard-functions.php";
 
 function getDashboardStats()
 {
-    // 1. Validação de Segurança
+    // 1. Validação de presença do Token
     if (!isset($_POST["token"])) {
-        echo json_encode(failure("Sessão inválida."));
+        echo json_encode(failure("Token não informado.", null, false, 401));
         return;
     }
 
-    // 2. Conecta no Banco da Cidade (Tenant)
-    // A função getTenantConnection está no tenant.php (incluído pelo validation.php)
-    $connection = getTenantConnection($_POST["token"]);
+    // 2. Decodificação do Token
+    $decoded = decodeAccessToken($_POST["token"]);
 
-    if ($connection['status'] === false) {
-        echo json_encode(failure("Erro de conexão: " . $connection['message']));
+    // 3. Validação da integridade do Token
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Token inválido ou expirado.", null, false, 401));
         return;
     }
 
-    $pdo = $connection['pdo'];
+    // 4. Conexão com o Banco Local (Tenant)
+    // Usa os dados que estavam criptografados no token
+    getLocal($decoded["conexao"]);
 
-    // 3. Busca os dados
-    // Passamos a conexão PDO para a função SQL
-    $data = fetchDashboardStats($pdo);
+    // 5. Preparação dos dados para a função
+    $data = [
+        "id_user" => $decoded["id_user"]
+    ];
 
-    if ($data) {
-        echo json_encode(success("Dados carregados", $data));
-    } else {
-        echo json_encode(failure("Erro ao calcular estatísticas."));
-    }
+    var_dump($data);
+    exit;
+
+    // 6. Chamada da Função e Retorno JSON
+    // A função getDashboardStatsData está no dashboard-functions.php
+    echo json_encode(getDashboardStatsData($data));
 }
