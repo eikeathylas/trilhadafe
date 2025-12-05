@@ -1276,6 +1276,7 @@ CREATE TABLE communication.banners (
 COMMENT ON TABLE communication.banners IS 'Gestão de publicidade interna. Controla os slides da página inicial do App/Site.';
 COMMENT ON COLUMN communication.banners.target_link IS 'Deep link para área do app (ex: /app/doacao) ou URL externa.';
 
+
 -- ==========================================================
 -- SCRIPT DE POPULAÇÃO (SEED) - ARQUITETURA V2.0
 -- ==========================================================
@@ -1322,7 +1323,13 @@ INSERT INTO people.persons (person_id, org_id_origin, full_name, religious_name,
 -- 6. A Aluna PCD
 (6, 1, 'Valentina Santos', NULL, 'F', '2014-11-05', 'mae.valentina@gmail.com', TRUE, 'Deficiência Auditiva Leve'),
 -- 7. O Barraqueiro
-(7, 1, 'Carlos do Pastel', NULL, 'M', '1970-06-20', NULL, FALSE, NULL);
+(7, 1, 'Carlos do Pastel', NULL, 'M', '1970-06-20', NULL, FALSE, NULL),
+-- Aniversariantes do Mês (Extras para Dashboard)
+(8, 'Maria das Dores (Aniversariante)', 'maria.dores@email.com', (CURRENT_DATE - INTERVAL '40 years'), 'F'),
+-- Ajuste a data para que o aniversário seja daqui a 2 dias
+(9, 'Pedro Henrique (Aniversariante)', 'pedro.h@email.com', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), 'M'),
+-- Ajuste a data para que o aniversário seja daqui a 5 dias
+(10, 'Irmã Lúcia (Aniversariante)', 'lucia@convento.com', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), 'F');
 
 -- Vínculos de Função
 INSERT INTO people.person_roles (person_id, org_id, role_id) VALUES
@@ -1332,7 +1339,11 @@ INSERT INTO people.person_roles (person_id, org_id, role_id) VALUES
 (4, 1, 5), -- José é Pai
 (5, 1, 4), -- Enzo é Aluno
 (6, 1, 4), -- Valentina é Aluna
-(7, 1, 6); -- Carlos é Barraqueiro
+(7, 1, 6), -- Carlos é Barraqueiro
+(8, 1, 5), -- Doador
+(9, 1, 4), -- Aluno
+(10, 1, 3); -- Catequista
+
 
 -- Vínculos Familiares (NOVO!)
 INSERT INTO people.family_ties (person_id, relative_id, relationship_type, is_legal_guardian) VALUES
@@ -1377,6 +1388,12 @@ INSERT INTO education.attendance (session_id, student_id, is_present) VALUES
 (1, 5, TRUE),  -- Enzo veio
 (1, 6, FALSE); -- Valentina faltou
 
+INSERT INTO education.registration_requests 
+(org_id, candidate_name, candidate_birth_date, parent_name, parent_phone, desired_course_id, status) 
+VALUES 
+(1, 'Lucas da Silva (Site)', '2015-03-10', 'Mãe do Lucas', '1199999999', 1, 'PENDING'),
+(1, 'Júlia Roberta (Site)', '2014-07-20', 'Pai da Júlia', '1188888888', 1, 'PENDING');
+
 
 -- ----------------------------------------------------------
 -- 4. SACRAMENTS (CARTÓRIO)
@@ -1417,7 +1434,11 @@ INSERT INTO finance.categories (category_id, org_id, name, type) VALUES
 
 -- Transação: Dízimo do José
 INSERT INTO finance.transactions (org_id, account_id, category_id, person_id, description, amount, transaction_type, due_date, payment_date) VALUES 
-(1, 1, 1, 4, 'Dízimo Março', 100.00, 'CREDIT', CURRENT_DATE, CURRENT_DATE);
+(1, 1, 1, 4, 'Dízimo Março', 100.00, 'CREDIT', CURRENT_DATE, CURRENT_DATE),
+(1, 1, 2, 1, 'Compra de Velas (Altar)', 150.00, 'DEBIT', CURRENT_DATE, CURRENT_DATE),
+(1, 1, 3, 1, 'Conta de Água', 89.90, 'DEBIT', CURRENT_DATE, CURRENT_DATE),
+(1, 1, 1, 1, 'Oferta Missa Domingo', 345.50, 'CREDIT', CURRENT_DATE, CURRENT_DATE);
+
 
 
 -- ----------------------------------------------------------
@@ -1453,6 +1474,3 @@ UPDATE events_commerce.cards SET current_balance = 40.00 WHERE card_id = 1;
 -- ----------------------------------------------------------
 INSERT INTO communication.categories (category_id, org_id, name, slug) VALUES 
 (1, 1, 'Avisos', 'avisos');
-
-INSERT INTO communication.posts (org_id, author_id, category_id, title, slug, summary, content_html, is_published) VALUES 
-(1, 1, 1, 'Bem-vindos ao Trilha da Fé', 'bem-vindos', 'Lançamento do sistema.', '<p>Olá mundo!</p>', TRUE);
