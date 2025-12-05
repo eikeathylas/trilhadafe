@@ -1,7 +1,6 @@
 <?php
 // Configurações de Erro
 error_reporting(1);
-// ini_set('display_errors', 1);
 
 // Headers
 header('Access-Control-Allow-Origin: *');
@@ -12,8 +11,7 @@ include "../database/database.php";   // [IMPORTANTE] Conector do Banco da Cidad
 
 // 2. Controllers (Adicionaremos mais conforme criarmos os módulos)
 include "../controller/dashboard-controller.php";
-// include "../controller/turmas-controller.php"; // Futuro
-// include "../controller/pessoas-controller.php"; // Futuro
+include "../controller/session-controller.php";
 
 // 3. Captura da Ação
 $validator = $_POST["validator"] ?? null;
@@ -26,16 +24,16 @@ switch ($validator) {
 		getDashboardStats();
 		break;
 
-	// --- Futuros Módulos (Exemplos) ---
-	/*
-    case "createTurma":
-        createTurma();
-        break;
-    case "getAlunos":
-        getAlunos();
-        break;
-    */
+	// --- Módulo Sessão (Ping / Validação) ---
+	// Chamado pelo app.js para verificar se deve deslogar
+	case "token":
+		validateSessionToken();
+		break;
 
+	// Chamado pelo app.js para renovar o tempo de vida
+	case "confirm":
+		confirmSessionToken();
+		break;
 
 
 

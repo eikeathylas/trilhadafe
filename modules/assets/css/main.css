@@ -36,9 +36,9 @@
   --padrao2: #ffd966;
 
   /* Neutros Invertidos */
-  --white: #1f2937; /* Fundo de inputs/botões (Cinza Escuro) */
+  --white: #ffffff; /* Fundo de inputs/botões (Cinza Escuro) */
   --borda: #374151; /* Bordas visíveis */
-  --black: #f3f4f6; /* Texto Principal (Branco Gelo) */
+  --black: #d8d8d8; /* Texto Principal (Branco Gelo) */
   --fundo: #1f2937; /* Cards (Cinza Azulado) */
   --body: #0f172a; /* Fundo (Azul Noite Profundo) */
   --descricao: #9ca3af; /* Texto Secundário (Cinza Claro) */
@@ -830,7 +830,7 @@ body.dark-mode .toast-pedido-2 .btn {
     left: 40px;
     opacity: 1;
     visibility: visible;
-    color: var(--padrao);
+    color: var(--white);
   }
 
   .sidebar-only.active-only-all .menu-only ul li.active-only > a,
