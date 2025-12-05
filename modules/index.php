@@ -8,7 +8,7 @@
     <title>Dashboard - Trilha da Fé</title>
 
     <?php include "./assets/components/Head.php"; ?>
-    
+
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
@@ -34,7 +34,7 @@
             </nav>
 
             <div class="list-commanded">
-                
+
                 <div class="row">
 
                     <div class="col-sm-12 col-md-6 col-xxl-3 mb-3">
@@ -138,12 +138,18 @@
                             </div>
                             <div class="card-body">
                                 <div class="d-grid gap-2">
-                                    <a href="matriculas.php" class="btn btn-outline-primary mb-2 text-start">
+                                    <a href="matriculas.php" class="btn btn-outline-primary mb-2 text-start btn-shortcut" data-permission="matriculas">
                                         <i class="fas fa-user-plus mr-2"></i> Nova Matrícula
                                     </a>
-                                    <a href="meus-diarios.php" class="btn btn-outline-success mb-2 text-start">
+
+                                    <a href="meus-diarios.php" class="btn btn-outline-success mb-2 text-start btn-shortcut" data-permission="meus-diarios">
                                         <i class="fas fa-clipboard-check mr-2"></i> Fazer Chamada
                                     </a>
+
+                                    <a href="liturgia.php" class="btn btn-outline-warning mb-2 text-start btn-shortcut" data-permission="liturgia">
+                                        <i class="fas fa-calendar-plus mr-2"></i> Agendar Missa
+                                    </a>
+
                                 </div>
                             </div>
                         </div>
@@ -164,4 +170,5 @@
     <script src="assets/js/dashboard.js?v=<?php echo time(); ?>"></script>
 
 </body>
+
 </html>

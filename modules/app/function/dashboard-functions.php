@@ -4,13 +4,11 @@ function getDashboardStatsData($data)
 {
     try {
         $conect = $GLOBALS["local"];
-        // Dashboard é apenas leitura, não precisa de transaction necessariamente, 
-        // mas se quiser manter o padrão rígido, pode abrir.
-        // $conect->beginTransaction(); 
 
         $stats = [];
-        
+
         // 1. Total de Pessoas
+        // Conta todos que não estão marcados como falecidos
         $sql = <<<'SQL'
             SELECT COUNT(*) as total 
             FROM people.persons 
@@ -21,6 +19,7 @@ function getDashboardStatsData($data)
         $stats['total_pessoas'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
         // 2. Turmas Ativas
+        // Conta turmas ativas do ano corrente
         $sql = <<<'SQL'
             SELECT COUNT(*) as total 
             FROM education.classes 
@@ -32,8 +31,9 @@ function getDashboardStatsData($data)
         $stats['total_turmas'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
         // 3. Próxima Missa
+        // Pega a próxima celebração agendada
         $sql = <<<'SQL'
-            SELECT date_time, liturgical_feast 
+            SELECT date_time 
             FROM pastoral.celebrations 
             WHERE date_time >= CURRENT_TIMESTAMP 
             AND status = 'SCHEDULED' 
@@ -67,35 +67,32 @@ function getDashboardStatsData($data)
         $totalFinanceiro = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         $stats['financeiro_mes'] = "R$ " . number_format($totalFinanceiro ?? 0, 2, ',', '.');
 
-        // 5. Avisos
+        // 5. Avisos (CORRIGIDO)
+        // Ajustado para usar a coluna 'status' em vez de 'is_published'
         $sql = <<<'SQL'
             SELECT title, summary, TO_CHAR(published_at, 'DD/MM') as date_fmt 
             FROM communication.posts 
-            WHERE is_published IS TRUE 
+            WHERE status = 'PUBLISHED' 
             ORDER BY published_at DESC 
             LIMIT 3
         SQL;
         $stmt = $conect->prepare($sql);
         $stmt->execute();
         $avisos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $stats['avisos'] = [];
-        foreach($avisos as $aviso) {
-            $stats['avisos'][] = [
-                'date' => $aviso['date_fmt'],
-                'title' => $aviso['title'],
-                'summary' => mb_strimwidth($aviso['summary'], 0, 50, "...")
-            ];
+        if ($avisos) {
+            foreach ($avisos as $aviso) {
+                $stats['avisos'][] = [
+                    'date' => $aviso['date_fmt'],
+                    'title' => $aviso['title'],
+                    'summary' => mb_strimwidth($aviso['summary'], 0, 50, "...")
+                ];
+            }
         }
 
-        // Se abriu transaction, commita
-        // $conect->commit();
-
         return success("Dados do dashboard carregados.", $stats);
-
     } catch (Exception $e) {
-        // Se abriu transaction, rollback
-        // $conect->rollBack();
         logSystemError("painel", "dashboard", "getDashboardStatsData", "sql", $e->getMessage(), $data);
         return failure("Erro ao buscar dados do dashboard.", null, false, 500);
     }

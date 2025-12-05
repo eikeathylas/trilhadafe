@@ -1,6 +1,6 @@
 <?php
 
-include "../functions/dashboard-functions.php";
+include "../function/dashboard-functions.php";
 
 function getDashboardStats()
 {
@@ -27,10 +27,7 @@ function getDashboardStats()
     $data = [
         "id_user" => $decoded["id_user"]
     ];
-
-    var_dump($data);
-    exit;
-
+    
     // 6. Chamada da Função e Retorno JSON
     // A função getDashboardStatsData está no dashboard-functions.php
     echo json_encode(getDashboardStatsData($data));

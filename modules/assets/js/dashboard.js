@@ -12,28 +12,37 @@ const dashboardConfig = {
 function checkDashboardPermissions() {
   let permissions = [];
 
-  // Leitura segura das permissões salvas no login
   try {
     const rawAccess = localStorage.getItem("tf_access");
     permissions = rawAccess ? JSON.parse(rawAccess) : [];
-
-    // Garante que seja um Array
     if (!Array.isArray(permissions)) {
       permissions = typeof permissions === "object" ? Object.values(permissions) : [];
     }
   } catch (e) {
-    console.warn("Erro ao ler permissões para o dashboard.");
+    console.warn("Erro ao ler permissões.");
   }
 
-  // Verifica se o usuário tem permissão para ver Financeiro
-  // Procura pelo slug do módulo 'financeiro' ou ação específica 'dashboard.view_finance_stats'
-  const canViewFinance = permissions.some((p) => p.slug === "financeiro" || p.slug === "dashboard.view_finance_stats");
+  // Cria um array simples só com os slugs permitidos (ex: ['dashboard', 'financeiro'])
+  const allowedSlugs = permissions.map((p) => p.slug);
 
+  // 1. Card Financeiro
+  const canViewFinance = allowedSlugs.includes("financeiro") || allowedSlugs.includes("dashboard.view_finance_stats");
   if (canViewFinance) {
     $(".permission-finance").removeClass("d-none").fadeIn();
   } else {
     $(".permission-finance").addClass("d-none");
   }
+
+  // 2. Botões de Acesso Rápido (Lógica Genérica)
+  $(".btn-shortcut").each(function () {
+    const requiredPermission = $(this).data("permission");
+
+    // Se o slug do botão não estiver na lista de permitidos, esconde
+    if (requiredPermission && !allowedSlugs.includes(requiredPermission)) {
+      $(this).parent().hide(); // Esconde o wrapper do botão se necessário, ou use $(this).hide()
+      $(this).hide();
+    }
+  });
 }
 
 // =========================================================
