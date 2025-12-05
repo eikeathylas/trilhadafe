@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="assets/img/favicon.png" type="image/x-icon">
-    <title>Trilho da Fé - Login</title>
+    <title>Trilha da Fé - Login</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="assets/css/selectize.bootstrap4.css" rel="stylesheet">
@@ -18,11 +18,11 @@
         <div class="login-div">
             <div class="row justify-content-md-center align-items-center">
                 <div class="col-12 col-lg-6 pt-lg-0 pl-0 pr-0">
-                    <div id="form-login" class="pt-lg-0 pl-lg-0 pl-xl-5">
+                    <div id="form-login" class="pt-lg-0 pl-lg-0 pl-xl-4">
                          <div class="text-center">
-                             <img class="p-0 logo" src="assets/img/trilhodafe.png" alt="Logo" />
+                             <img class="p-0 logo" src="assets/img/trilhadafe.png" alt="Logo" />
                          </div>
-                        <h5 class="mb-3">Faça login para acessar o Trilho da Fé!</h5>
+                        <h5 class="mb-3 text-center">Faça login e acesse o Sistema de Gestão Paroquial</h5>
 
                         <div class="mt-2 form-login">
                             <div class="mb-4">
@@ -36,9 +36,9 @@
                                 <small id="passwordError" class="form-text text-danger d-none">Senha obrigatória</small>
                                 <i toggle="#password" class="fa fa-fw fa-eye toggle-password field-icon"></i>
                             </div>
-                            <!-- <div class="mb-4 float-right txt-theme forgot-password" style="cursor: pointer;">
+                            <div class="mb-4 float-right txt-theme forgot-password" style="cursor: pointer;">
                                 Esqueci minha senha.
-                            </div> -->
+                            </div>
                             <div class="mb-4">
                                 <button class="btn btn-theme w-100 btn-login"> Entrar </button>
                             </div>
@@ -71,7 +71,7 @@
                 <div class="col-12 col-lg-6 pt-2 pt-lg-0 pl-0 pr-0">
                     <div id="form-resetPassword" class="pt-2 pt-lg-0 pl-lg-0 pl-xl-5">
                         <div class="text-center">
-                             <img class="p-0 logo" src="assets/img/trilhodafe.png" alt="Logo" />
+                             <img class="p-0 logo" src="assets/img/trilhadafe.png" alt="Logo" />
                          </div>
                         <h6 class="mb-5">Estaremos lhe enviando um código para o e-mail cadastrado para redefinir sua senha. Após informar um email válido, clique em <b class="txt-theme">Enviar</b>.</h6>
                         <div class="mt-5">
