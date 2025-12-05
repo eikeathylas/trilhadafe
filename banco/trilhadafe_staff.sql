@@ -221,11 +221,11 @@ CREATE TABLE IF NOT EXISTS public.users_token (
 -- ==========================================================
 
 -- 3.1 Configurações Básicas
-INSERT INTO public.settings (name, email, contact, city) VALUES ('Trilha da Fé', 'admin@trilha.com', '000', 'Sede Tecnologia');
+INSERT INTO public.settings (name, email, contact, city) VALUES ('Trilha da Fé', 'contato@trilhadafe.com', '000', 'Sede Tecnologia');
 
 -- 3.2 Usuário Admin (DEV)
 -- Nota: Senha '123' apenas para teste inicial.
-INSERT INTO public.users (name, email, password, img, staff) VALUES ('Admin', 'admin@trilhadafe.com', '123', 'avatar.jpg', TRUE);
+INSERT INTO public.users (name, email, password, img, staff) VALUES ('Eike Benízio', 'eike@dev', 'eikebenizio', 'avatar.jpg', TRUE);
 
 -- 3.3 Cliente Inicial
 INSERT INTO public.clients (name, description) VALUES ('Paróquia Nossa Senhora da Assunção - Caruaru', 'Matriz');
@@ -246,18 +246,20 @@ INSERT INTO public.profiles (title, description, staff) VALUES
 -- Dashboard (ID 1)
 INSERT INTO public.actions (id, slug, name, is_menu, icon_class, controller) 
 VALUES (1, 'dashboard', 'Painel Principal', TRUE, 'icon-home', 'DashboardController');
-    -- Filhos do Dashboard (2, 3)
-    INSERT INTO public.actions (id, parent_id, slug, name, is_menu) VALUES 
-    (2, 1, 'dashboard.view_students_stats', 'Ver Gráfico de Alunos', FALSE),
-    (3, 1, 'dashboard.view_finance_stats', 'Ver Gráfico Financeiro', FALSE);
+
+-- Filhos do Dashboard (2, 3)
+INSERT INTO public.actions (id, parent_id, slug, name, is_menu) VALUES 
+(2, 1, 'dashboard.view_students_stats', 'Ver Gráfico de Alunos', FALSE),
+(3, 1, 'dashboard.view_finance_stats', 'Ver Gráfico Financeiro', FALSE);
 
 -- Acadêmico (ID 4)
 INSERT INTO public.actions (id, slug, name, is_menu, icon_class, controller) 
 VALUES (4, 'academico', 'Secretaria Escolar', TRUE, 'icon-book', 'AcademicController');
-    -- Filhos do Acadêmico (5, 6)
-    INSERT INTO public.actions (id, parent_id, slug, name, is_menu) VALUES 
-    (5, 4, 'academico.create_student', 'Cadastrar Aluno', FALSE),
-    (6, 4, 'academico.approve_registration', 'Aprovar Matrícula Web', FALSE);
+
+-- Filhos do Acadêmico (5, 6)
+INSERT INTO public.actions (id, parent_id, slug, name, is_menu) VALUES 
+(5, 4, 'academico.create_student', 'Cadastrar Aluno', FALSE),
+(6, 4, 'academico.approve_registration', 'Aprovar Matrícula Web', FALSE);
 
 -- Financeiro (ID 7)
 INSERT INTO public.actions (id, slug, name, is_menu, icon_class, controller) 
