@@ -1,0 +1,256 @@
+#page-container *,
+#page-container *:before,
+#page-container *:after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+#page-container h1,
+#page-container h3 {
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: normal;
+}
+#page-container h1 {
+  font-size: 50px;
+  font-weight: 900;
+}
+#page-container h3 {
+  font-weight: bold;
+  font-size: 24px;
+}
+#page-container p {
+  /* Allow whitespace */
+  white-space: pre-line;
+  line-height: 32px;
+}
+
+#page-container {
+  font-family: "Open Sans", sans-serif;
+  color: #25204c;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#page-container {
+  text-align: center;
+  overflow-y: auto;
+  height: 100%;
+}
+#page-container section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 64px;
+  text-align: left;
+}
+#page-container section > #changelogs {
+  max-width: 1088px;
+  width: 100%;
+}
+#page-container section > #changelogs > #items > .item {
+  display: flex;
+  justify-content: flex-end;
+}
+#page-container section > #changelogs > #items > .item .timeline {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 16px;
+  max-width: 448px;
+}
+#page-container section > #changelogs > #items > .item .timeline > div {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+#page-container section > #changelogs > #items > .item .timeline > div .meta {
+  text-align: center;
+}
+#page-container section > #changelogs > #items > .item .timeline > div .meta .version,
+#page-container section > #changelogs > #items > .item .timeline > div .meta .release-date {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#page-container section > #changelogs > #items > .item .timeline > div .meta .version {
+  font-weight: bold;
+}
+#page-container section > #changelogs > #items > .item .timeline > div .meta .release-date {
+  margin-top: 8px;
+  font-size: 12px;
+}
+#page-container section > #changelogs > #items > .item .timeline > div .connector {
+  position: relative;
+  height: 100%;
+}
+#page-container section > #changelogs > #items > .item .timeline > div .connector > div {
+  position: absolute;
+  margin-top: 16px;
+  width: 2px;
+  background: #25204c;
+  height: calc(100% + 24px);
+}
+#page-container section > #changelogs > #items > .item .timeline > div .connector > div:before,
+#page-container section > #changelogs > #items > .item .timeline > div .connector > div:after {
+  content: "";
+  position: absolute;
+  right: -3px;
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: #25204c;
+  border-radius: 100%;
+}
+#page-container section > #changelogs > #items > .item .timeline > div .connector > div:before {
+  top: -4px;
+}
+#page-container section > #changelogs > #items > .item .timeline > div .connector > div:after {
+  bottom: -4px;
+}
+#page-container section > #changelogs > #items > .item .content {
+  padding: 0 16px;
+  width: 100%;
+}
+#page-container section > #changelogs > #items > .item .content .feature {
+  display: flex;
+}
+#page-container section > #changelogs > #items > .item .content .feature .tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  /* Stop tag from strinking or stretching */
+  min-width: 80px;
+  max-width: 80px;
+  border-radius: 12px;
+  color: white;
+  font-size: 9px;
+  margin-top: 4px;
+}
+#page-container section > #changelogs > #items > .item .content .feature .tag.new {
+  background: #3dc372;
+}
+#page-container section > #changelogs > #items > .item .content .feature .tag.enhancements {
+  background: #ffb24e;
+}
+#page-container section > #changelogs > #items > .item .content .feature .tag.fixes {
+  background: #ff7a86;
+}
+#page-container section > #changelogs > #items > .item .content .feature p {
+  margin-left: 16px;
+}
+#page-container section > #changelogs > #items > .item .content > *:not(:last-child) {
+  margin-bottom: 16px;
+}
+#page-container section > #changelogs > #items > .item:last-child .timeline .connector {
+  opacity: 0;
+}
+#page-container section > #changelogs > #items > .item > * {
+  margin-bottom: 64px;
+}
+#page-container section > #changelogs > #pagination {
+  padding: 0 16px;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+  opacity: 0.25;
+  transition: opacity 0.2s ease-in-out;
+  margin-bottom: 64px;
+  outline: none;
+  margin-left: 448px;
+}
+#page-container section > #changelogs > #pagination:hover,
+#page-container section > #changelogs > #pagination:focus {
+  opacity: 1;
+}
+#page-container section > #subscribe {
+  max-width: 448px;
+  width: 100%;
+  margin-bottom: 64px;
+  position: sticky;
+  display: table;
+  top: 0;
+}
+#page-container section > #subscribe > div {
+  margin: 0 16px;
+  background: #f2f2f2;
+  border-radius: 12px;
+  padding: 32px;
+}
+#page-container section > #subscribe > div > *:not(:last-child) {
+  margin-bottom: 16px;
+}
+#page-container footer {
+  font-size: 14px;
+  margin-top: auto;
+  padding: 0 16px;
+}
+@media only screen and (max-width: 1536px) {
+  #page-container > section {
+    flex-direction: column;
+    align-items: center;
+  }
+  #page-container > section .timeline {
+    max-width: none !important;
+    width: auto !important;
+  }
+  #page-container > section #pagination {
+    margin-left: 0 !important;
+  }
+}
+@media only screen and (max-width: 768px) {
+  h1 {
+    font-size: 40px;
+  }
+  #changelogs .item {
+    flex-direction: column;
+  }
+  #changelogs .item .timeline {
+    justify-content: flex-start !important;
+    margin-bottom: 16px !important;
+  }
+  #changelogs .item .timeline .meta {
+    display: flex;
+    align-items: center;
+  }
+  #changelogs .item .timeline .meta .release-date {
+    margin-top: 0 !important;
+    margin-left: 8px;
+  }
+  #changelogs .item .timeline .meta .version,
+  #changelogs .item .timeline .meta .release-date {
+    font-size: 14px !important;
+  }
+  #changelogs .item .timeline .connector {
+    display: none;
+  }
+  #changelogs .item .content .meta {
+    display: flex !important;
+  }
+}
+@media only screen and (max-width: 384px) {
+  #changelogs .item .content .feature {
+    flex-direction: column;
+  }
+  #changelogs .item .content .feature .tag {
+    margin-top: 0 !important;
+    margin-bottom: 8px;
+  }
+  #changelogs .item .content .feature p {
+    margin: 0 !important;
+  }
+}
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
