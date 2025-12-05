@@ -1325,11 +1325,11 @@ INSERT INTO people.persons (person_id, org_id_origin, full_name, religious_name,
 -- 7. O Barraqueiro
 (7, 1, 'Carlos do Pastel', NULL, 'M', '1970-06-20', NULL, FALSE, NULL),
 -- Aniversariantes do Mês (Extras para Dashboard)
-(8, 'Maria das Dores (Aniversariante)', 'maria.dores@email.com', (CURRENT_DATE - INTERVAL '40 years'), 'F'),
+(8, 1, 'Maria das Dores (Aniversariante)', NULL, 'F', (CURRENT_DATE - INTERVAL '40 years'), NULL, FALSE, NULL),
 -- Ajuste a data para que o aniversário seja daqui a 2 dias
-(9, 'Pedro Henrique (Aniversariante)', 'pedro.h@email.com', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), 'M'),
+(9, 1, 'Pedro Henrique (Aniversariante)', NULL, 'M', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), NULL, FALSE, NULL),
 -- Ajuste a data para que o aniversário seja daqui a 5 dias
-(10, 'Irmã Lúcia (Aniversariante)', 'lucia@convento.com', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), 'F');
+(10, 1, 'Irmã Lúcia (Aniversariante)', NULL, 'F', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), NULL, FALSE, NULL);
 
 -- Vínculos de Função
 INSERT INTO people.person_roles (person_id, org_id, role_id) VALUES
@@ -1389,7 +1389,7 @@ INSERT INTO education.attendance (session_id, student_id, is_present) VALUES
 (1, 6, FALSE); -- Valentina faltou
 
 INSERT INTO education.registration_requests 
-(org_id, candidate_name, candidate_birth_date, parent_name, parent_phone, desired_course_id, status) 
+(org_id, candidate_name, candidate_birth_date, parent_name, parent_contact, desired_course_id, status) 
 VALUES 
 (1, 'Lucas da Silva (Site)', '2015-03-10', 'Mãe do Lucas', '1199999999', 1, 'PENDING'),
 (1, 'Júlia Roberta (Site)', '2014-07-20', 'Pai da Júlia', '1188888888', 1, 'PENDING');
