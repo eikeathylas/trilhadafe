@@ -12,6 +12,7 @@ let currentFamilyList = [];
 
 const getPessoas = async () => {
   try {
+    // Garante que a página nunca seja menor que 0 para o backend
     const page = Math.max(0, defaultPeople.currentPage - 1);
     const search = $("#busca-texto").val();
     const role = $("#filtro-role").val();
@@ -29,6 +30,7 @@ const getPessoas = async () => {
 
     if (result.status) {
       const total = result.data[0]?.total_registros || 0;
+      // Calcula total de páginas (mínimo 1)
       defaultPeople.totalPages = Math.max(1, Math.ceil(total / defaultPeople.rowsPerPage));
       renderTablePeople(result.data || []);
     } else {
@@ -65,12 +67,12 @@ const renderTablePeople = (data) => {
       }
 
       let rolesHtml = "";
-      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "dark", PARENT: "success", DONOR: "info" };
-      const roleNames = { STUDENT: "Aluno", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista" };
+      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "dark", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
+      const roleNames = { STUDENT: "Aluno", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
 
       if (item.roles_array) {
         item.roles_array.forEach((r) => {
-          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "secondary"} me-1">${roleNames[r] || r}</span>`;
+          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-dark border"} me-1">${roleNames[r] || r}</span>`;
         });
       }
 
@@ -105,7 +107,9 @@ const renderTablePeople = (data) => {
     .join("");
 
   container.html(`<table class="table-custom"><thead><tr><th colspan="2">Pessoa</th><th>Vínculos</th><th>Contato</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
-  _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "getPessoas", defaultPeople);
+
+  // CORREÇÃO: Passamos 'changePage' para atualizar o estado antes de buscar
+  _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "changePage", defaultPeople);
 };
 
 // =========================================================
@@ -115,26 +119,23 @@ const renderTablePeople = (data) => {
 window.modalPessoa = (id = null) => {
   const modal = $("#modalPessoa");
 
-  // Reseta Form
   $("#person_id").val("");
   modal.find("input[type=text], input[type=email], input[type=date], select").val("");
   modal.find("input[type=checkbox]").prop("checked", false);
 
-  // Reseta Foto
   $("#img-preview").attr("src", "").hide();
   $("#placeholder-foto").show();
   $("#btn-remove-foto").addClass("d-none");
   $("#person_photo").val("");
 
-  // Reseta Família
   currentFamilyList = [];
   renderFamilyTable();
   if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
 
-  // Reset Abas
-  $("#pessoaTab button:first").tab("show");
   $("#pcd_details").addClass("d-none");
   $("#baptism_details").addClass("d-none");
+
+  $("#pessoaTab button:first").tab("show");
 
   if (id) {
     loadPersonData(id);
@@ -152,6 +153,7 @@ const loadPersonData = async (id) => {
 
     if (result.status) {
       const d = result.data;
+
       $("#person_id").val(d.person_id);
       $("#full_name").val(d.full_name);
       $("#religious_name").val(d.religious_name);
@@ -173,14 +175,12 @@ const loadPersonData = async (id) => {
       $("#is_pcd").prop("checked", d.is_pcd);
       if (d.is_pcd) $("#pcd_details").removeClass("d-none").val(d.pcd_details);
 
-      // Foto
       if (d.profile_photo_url) {
         $("#img-preview").attr("src", d.profile_photo_url).show();
         $("#placeholder-foto").hide();
         $("#btn-remove-foto").removeClass("d-none");
       }
 
-      // Roles
       if (d.roles) {
         if (d.roles.includes("STUDENT")) $("#role_student").prop("checked", true);
         if (d.roles.includes("CATECHIST")) $("#role_catechist").prop("checked", true);
@@ -188,16 +188,16 @@ const loadPersonData = async (id) => {
         if (d.roles.includes("PARENT")) $("#role_parent").prop("checked", true);
       }
 
-      // Sacramentos (Lógica Nova)
       const sac = d.sacraments_info || {};
-      $("#has_baptism").prop("checked", sac.baptism).trigger("change");
+      $("#has_baptism")
+        .prop("checked", sac.baptism === true || sac.baptism === "true")
+        .trigger("change");
       $("#baptism_date").val(sac.baptism_date);
       $("#baptism_place").val(sac.baptism_place);
-      $("#has_eucharist").prop("checked", sac.eucharist);
-      $("#has_confirmation").prop("checked", sac.confirmation);
-      $("#has_marriage").prop("checked", sac.marriage);
+      $("#has_eucharist").prop("checked", sac.eucharist === true || sac.eucharist === "true");
+      $("#has_confirmation").prop("checked", sac.confirmation === true || sac.confirmation === "true");
+      $("#has_marriage").prop("checked", sac.marriage === true || sac.marriage === "true");
 
-      // Família
       currentFamilyList = d.family || [];
       renderFamilyTable();
       initSelectRelatives();
@@ -219,13 +219,16 @@ const loadPersonData = async (id) => {
 $("#image-upload-container")
   .off("click")
   .on("click", function (e) {
-    if (e.target.id !== "person_photo") {
-      $("#person_photo").trigger("click");
-    }
+    if ($(e.target).is("#person_photo")) return;
+    $("#person_photo")[0].click();
   });
-$("#person_photo").on("click", function (e) {
-  e.stopPropagation();
-});
+
+$("#person_photo")
+  .off("click")
+  .on("click", function (e) {
+    e.stopPropagation();
+  });
+
 $("#person_photo").change(function () {
   if (this.files && this.files[0]) {
     const reader = new FileReader();
@@ -237,6 +240,7 @@ $("#person_photo").change(function () {
     reader.readAsDataURL(this.files[0]);
   }
 });
+
 window.removeFoto = () => {
   $("#person_photo").val("");
   $("#img-preview").attr("src", "").hide();
@@ -248,11 +252,12 @@ window.removeFoto = () => {
 const initSelectRelatives = () => {
   const $select = $("#search_relative");
   if ($select[0]?.selectize) $select[0].selectize.destroy();
+
   $select.selectize({
     valueField: "id",
     labelField: "title",
     searchField: ["title", "tax_id"],
-    placeholder: "Busque o parente...",
+    placeholder: "Busque o parente pelo nome...",
     create: false,
     load: function (query, callback) {
       if (!query.length) return callback();
@@ -270,7 +275,10 @@ const initSelectRelatives = () => {
       });
     },
     onChange: function (value) {
-      if (value && this.options[value]) promptAddRelative(value, this.options[value].title);
+      if (value && this.options[value]) {
+        const text = this.options[value].title;
+        promptAddRelative(value, text);
+      }
     },
   });
 };
@@ -278,13 +286,24 @@ const initSelectRelatives = () => {
 const promptAddRelative = (id, name) => {
   Swal.fire({
     title: `Vincular ${name}`,
-    html: `<select id="swal-rel-type" class="form-control mb-3">
-                <option value="FATHER">Pai</option><option value="MOTHER">Mãe</option>
-                <option value="SIBLING">Irmão(ã)</option><option value="GRANDPARENT">Avô(ó)</option>
-                <option value="SPOUSE">Esposo(a)</option><option value="GUARDIAN">Tutor Legal</option>
+    html: `
+            <select id="swal-rel-type" class="form-control mb-3">
+                <option value="FATHER">Pai</option>
+                <option value="MOTHER">Mãe</option>
+                <option value="SIBLING">Irmão(ã)</option>
+                <option value="GRANDPARENT">Avô(ó)</option>
+                <option value="SPOUSE">Esposo(a)</option>
+                <option value="GUARDIAN">Tutor Legal</option>
             </select>
-            <div class="form-check text-start mb-2"><input class="form-check-input" type="checkbox" id="swal-fin"><label class="form-check-label">Responsável Financeiro?</label></div>
-            <div class="form-check text-start"><input class="form-check-input" type="checkbox" id="swal-legal"><label class="form-check-label">Responsável Legal?</label></div>`,
+            <div class="form-check text-start mb-2">
+                <input class="form-check-input" type="checkbox" id="swal-fin">
+                <label class="form-check-label">Responsável Financeiro?</label>
+            </div>
+            <div class="form-check text-start">
+                <input class="form-check-input" type="checkbox" id="swal-legal">
+                <label class="form-check-label">Responsável Legal (Retira aluno)?</label>
+            </div>
+        `,
     showCancelButton: true,
     confirmButtonText: "Adicionar",
     preConfirm: () => ({
@@ -295,13 +314,15 @@ const promptAddRelative = (id, name) => {
   }).then((result) => {
     if (result.isConfirmed) {
       addRelativeToList(id, name, result.value);
+      if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
+    } else {
+      if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
     }
-    $("#search_relative")[0].selectize.clear();
   });
 };
 
 const addRelativeToList = (id, name, details) => {
-  if (currentFamilyList.some((f) => f.relative_id == id)) return window.alertDefault("Já vinculado.", "warning");
+  if (currentFamilyList.some((f) => f.relative_id == id)) return window.alertDefault("Essa pessoa já está vinculada.", "warning");
   currentFamilyList.push({
     relative_id: id,
     relative_name: name,
@@ -325,7 +346,7 @@ const renderFamilyTable = () => {
   const typeMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
   currentFamilyList.forEach((fam, index) => {
     let badges = "";
-    if (fam.is_financial_responsible) badges += '<span class="badge bg-success me-1">$</span>';
+    if (fam.is_financial_responsible) badges += '<span class="badge bg-success me-1">$ Finan</span>';
     if (fam.is_legal_guardian) badges += '<span class="badge bg-primary">Legal</span>';
     container.append(
       `<tr><td>${fam.relative_name}</td><td>${
@@ -338,7 +359,8 @@ const renderFamilyTable = () => {
 // --- SALVAR TUDO ---
 window.salvarPessoa = async () => {
   const name = $("#full_name").val();
-  if (!name) return window.alertDefault("Nome Completo obrigatório.", "warning");
+  if (!name) return window.alertDefault("Nome Completo é obrigatório.", "warning");
+
   const btn = $(".btn-save-person");
   window.setButton(true, btn, "Salvando...");
 
@@ -347,44 +369,29 @@ window.salvarPessoa = async () => {
   formData.append("token", defaultApp.userInfo.token);
   formData.append("id_client", defaultApp.userInfo.id_client);
 
-  formData.append("person_id", $("#person_id").val());
+  // Mapeamento de campos
+  const fields = ["person_id", "religious_name", "birth_date", "tax_id", "national_id", "gender", "email", "phone_mobile", "phone_landline", "zip_code", "address_street", "address_number", "address_district", "address_city", "address_state", "pcd_details"];
   formData.append("full_name", name);
-  formData.append("religious_name", $("#religious_name").val());
-  formData.append("birth_date", $("#birth_date").val());
-  formData.append("tax_id", $("#tax_id").val());
-  formData.append("national_id", $("#national_id").val());
-  formData.append("gender", $("#gender").val());
-  formData.append("email", $("#email").val());
-  formData.append("phone_mobile", $("#phone_mobile").val());
-  formData.append("phone_landline", $("#phone_landline").val());
+  fields.forEach((f) => formData.append(f, $(`#${f}`).val()));
 
-  formData.append("zip_code", $("#zip_code").val());
-  formData.append("address_street", $("#address_street").val());
-  formData.append("address_number", $("#address_number").val());
-  formData.append("address_district", $("#address_district").val());
-  formData.append("address_city", $("#address_city").val());
-  formData.append("address_state", $("#address_state").val());
-
+  // Checkboxes
   formData.append("is_pcd", $("#is_pcd").is(":checked"));
-  formData.append("pcd_details", $("#pcd_details").val());
+  const roles = ["student", "catechist", "parent", "priest"];
+  roles.forEach((r) => formData.append(`role_${r}`, $(`#role_${r}`).is(":checked")));
 
-  formData.append("role_student", $("#role_student").is(":checked"));
-  formData.append("role_catechist", $("#role_catechist").is(":checked"));
-  formData.append("role_parent", $("#role_parent").is(":checked"));
-  formData.append("role_priest", $("#role_priest").is(":checked"));
-
+  // JSONs
   formData.append("family_json", JSON.stringify(currentFamilyList));
-
-  // Sacramentos
-  const sacraments = {
-    baptism: $("#has_baptism").is(":checked"),
-    baptism_date: $("#baptism_date").val(),
-    baptism_place: $("#baptism_place").val(),
-    eucharist: $("#has_eucharist").is(":checked"),
-    confirmation: $("#has_confirmation").is(":checked"),
-    marriage: $("#has_marriage").is(":checked"),
-  };
-  formData.append("sacraments_info", JSON.stringify(sacraments));
+  formData.append(
+    "sacraments_info",
+    JSON.stringify({
+      baptism: $("#has_baptism").is(":checked"),
+      baptism_date: $("#baptism_date").val(),
+      baptism_place: $("#baptism_place").val(),
+      eucharist: $("#has_eucharist").is(":checked"),
+      confirmation: $("#has_confirmation").is(":checked"),
+      marriage: $("#has_marriage").is(":checked"),
+    })
+  );
 
   const fileInput = $("#person_photo")[0];
   if (fileInput.files && fileInput.files[0]) formData.append("profile_photo", fileInput.files[0]);
@@ -402,7 +409,7 @@ window.salvarPessoa = async () => {
         }));
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
-      window.alertDefault("Salvo com sucesso!", "success");
+      window.alertDefault("Cadastro salvo com sucesso!", "success");
       $("#modalPessoa").modal("hide");
       getPessoas();
     } else {
@@ -478,19 +485,25 @@ $("#filtro-role, #busca-texto").on("change keyup", function () {
   }, 500);
 });
 
+// GLOBALIZAÇÃO E CONTROLE DE PAGINAÇÃO
 window.changePage = (page) => {
   defaultPeople.currentPage = page;
   getPessoas();
 };
-window.getPessoas = getPessoas;
-const _generatePaginationButtons = (c, k, t, f, o) => {
-  let ct = $(`.${c}`).empty();
-  let tot = o[t],
-    cur = o[k];
-  let h = `<button onclick="${f}(1)" class="btn btn-sm btn-secondary">Primeira</button>`;
-  for (let p = Math.max(1, cur - 1); p <= Math.min(tot, cur + 3); p++) h += `<button onclick="${f}(${p})" class="btn btn-sm ${p === cur ? "btn-primary" : "btn-secondary"}">${p}</button>`;
-  h += `<button onclick="${f}(${tot})" class="btn btn-sm btn-secondary">Última</button>`;
-  ct.html(h);
+window.getPessoas = getPessoas; // Torna acessível caso botões usem
+
+const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
+  let container = $(`.${containerClass}`);
+  container.empty();
+  let total = contextObj[totalPagesKey];
+  let current = contextObj[currentPageKey];
+
+  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary">Primeira</button>`;
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
+    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"}">${p}</button>`;
+  }
+  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary">Última</button>`;
+  container.html(html);
 };
 
 $(document).ready(() => {

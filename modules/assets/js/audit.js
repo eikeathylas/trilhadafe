@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - CORRIGIDO V3
+// MÓDULO DE AUDITORIA (LOGIC) - V5 (Format Date)
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -89,7 +89,6 @@ const renderTimeline = (logs, container) => {
         const vOld = oldVal[key];
         const vNew = newVal[key];
 
-        // Comparação profunda para objetos (JSON resources)
         if (JSON.stringify(vOld) !== JSON.stringify(vNew)) {
           rows += `
                         <tr>
@@ -125,7 +124,9 @@ const renderTimeline = (logs, container) => {
                 <div class="audit-content">
                     <div class="audit-header">
                         <span class="audit-user">
-                            <i class="fas fa-user-circle m-2"></i> ${log.user_name || "Sistema"}
+                            <img src="../login/assets/img/user.jpg" class="rounded-circle mr-2" style="width: 20px; height: 20px;" 
+                                 onerror="this.src='../login/assets/img/favicon.png'">
+                            ${log.user_name || "Sistema"}
                         </span>
                         <span class="audit-date text-muted small">${log.date_fmt}</span>
                     </div>
@@ -141,7 +142,6 @@ const renderTimeline = (logs, container) => {
   container.html(html);
 };
 
-// Dicionário de Tradução (CORRIGIDO)
 const formatKey = (key) => {
   const map = {
     display_name: "Nome Fantasia",
@@ -149,6 +149,7 @@ const formatKey = (key) => {
     phone_main: "Telefone",
     phone_secondary: "Tel. Secundário",
     email_contact: "E-mail",
+    website_url: "Site/Rede Social",
     address_street: "Rua",
     address_number: "Número",
     address_district: "Bairro",
@@ -157,10 +158,13 @@ const formatKey = (key) => {
     zip_code: "CEP",
     org_type: "Tipo",
     tax_id: "CNPJ",
+    patron_saint: "Padroeiro",
+    diocese_name: "Diocese",
+    decree_number: "Decreto",
+    foundation_date: "Fundação",
+
     name: "Nome",
     capacity: "Capacidade",
-
-    // CORREÇÃO AQUI: Tradução dos campos booleanos e JSON
     has_ac: "Ar-Condicionado",
     has_ceiling_fan: "Ventilador Teto",
     is_accessible: "Acessibilidade",
@@ -170,6 +174,16 @@ const formatKey = (key) => {
     resources_detail: "Recursos Extras",
     responsible_id: "Responsável",
 
+    full_name: "Nome Completo",
+    religious_name: "Nome Religioso",
+    birth_date: "Nascimento",
+    gender: "Gênero",
+    national_id: "RG",
+    is_pcd: "PCD",
+    pcd_details: "Detalhes PCD",
+    profile_photo_url: "Foto Perfil",
+    sacraments_info: "Sacramentos",
+
     is_active: "Ativo",
     deleted: "Excluído",
   };
@@ -178,16 +192,25 @@ const formatKey = (key) => {
   return key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
-// Formatador Inteligente de Valores (CORREÇÃO DO [object Object])
+// Formatador Inteligente (CORRIGIDO PARA DATA)
 const formatValue = (val) => {
   if (val === null || val === undefined || val === "") return '<em class="text-muted">vazio</em>';
+
+  // Booleanos
   if (val === true || val === "t" || val === "true") return "Sim";
   if (val === false || val === "f" || val === "false") return "Não";
 
-  // Se for objeto (JSON), formata bonito
+  // Detecção de Data (YYYY-MM-DD)
+  if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+    const parts = val.split("-");
+    return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+  }
+
+  // Objetos e JSONs
   if (typeof val === "object" && val !== null) {
     let str = "";
-    const resourceMap = {
+
+    const jsonMap = {
       whiteboard: "Quadro",
       projector: "Projetor",
       sound: "Som",
@@ -197,37 +220,61 @@ const formatValue = (val) => {
       fan: "Ventilador",
       water: "Bebedouro",
       computer: "Computadores",
+
+      baptism: "Batismo",
+      baptism_date: "Data Batismo",
+      baptism_place: "Local Batismo",
+      eucharist: "Eucaristia",
+      confirmation: "Crisma",
+      marriage: "Matrimônio",
     };
 
     for (const [k, v] of Object.entries(val)) {
-      // Pula falso para limpar a view (opcional, se quiser ver o que foi removido, tire esse if)
-      // if (v === false || v === 'false') continue;
+      if (v === false || v === "false" || v === "") continue;
 
-      let label = resourceMap[k] || k;
-      let status = v === true || v === "true" ? '<i class="fas fa-check text-success ms-1"></i>' : '<i class="fas fa-times text-danger ms-1"></i>';
+      let label = jsonMap[k] || k;
+      let displayVal = v;
 
-      str += `<div class="d-inline-block me-2 border rounded px-1 mb-1 small bg-light text-dark">${label} ${status}</div>`;
+      if (v === true || v === "true") {
+        displayVal = '<i class="fas fa-check text-success"></i>';
+      } else if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
+        // Formata data dentro do JSON também
+        const p = v.split("-");
+        displayVal = `${p[2]}/${p[1]}/${p[0]}`;
+      }
+
+      str += `<div class="d-inline-block me-2 border rounded px-2 mb-1 small bg-light text-dark">
+                <strong>${label}:</strong> ${displayVal}
+            </div>`;
     }
-    return str || '<em class="text-muted">Sem recursos</em>';
+    return str || '<em class="text-muted">Sem dados</em>';
   }
 
   return val;
 };
 
-// Função Rollback (Mantida)
 window.doRollback = (logId) => {
   Swal.fire({
-    title: "Restaurar dados antigos?",
-    text: "Os dados atuais serão substituídos por esta versão antiga. Uma nova auditoria será gerada.",
+    title: "Restaurar dados?",
+    text: "Os dados serão revertidos para esta versão.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#f6c23e",
-    cancelButtonColor: "#d33",
     confirmButtonText: "Sim, restaurar",
     cancelButtonText: "Cancelar",
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
+        // Feedback visual de processamento
+        Swal.fire({
+          title: "Restaurando...",
+          text: "Aguarde um momento.",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
         const res = await ajaxValidator({
           validator: "rollbackAuditLog",
           token: defaultApp.userInfo.token,
@@ -235,15 +282,18 @@ window.doRollback = (logId) => {
         });
 
         if (res.status) {
-          alertDefault("Dados restaurados com sucesso!", "success");
-          $("#modalAudit").modal("hide");
-          if (typeof getOrganizacoes === "function") getOrganizacoes();
-          if (typeof getLocais === "function") getLocais();
+          Swal.fire("Sucesso", "Dados restaurados!", "success").then(() => {
+            $("#modalAudit").modal("hide");
+            // Recarrega listagens
+            if (typeof getOrganizacoes === "function") getOrganizacoes();
+            if (typeof getLocais === "function") getLocais();
+            if (typeof getPessoas === "function") getPessoas();
+          });
         } else {
-          alertDefault(res.alert, "error");
+          Swal.fire("Erro", res.alert, "error");
         }
       } catch (e) {
-        alertDefault("Erro ao restaurar.", "error");
+        Swal.fire("Erro", "Falha técnica ao restaurar.", "error");
       }
     }
   });

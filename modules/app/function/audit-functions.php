@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Busca o histórico
+ * Busca o histórico e cruza com o Banco Staff para pegar os nomes
  */
 function getHistory($data)
 {
@@ -10,19 +10,22 @@ function getHistory($data)
         $conectStaff = getStaff();
 
         if (empty($data['table']) || empty($data['id_record'])) {
-            return failure("Parâmetros insuficientes.");
+            // Em erros de validação simples, podemos retornar a mensagem direta ou genérica, 
+            // mas como é erro de "uso" do sistema, vou manter genérica para seguir o padrão estrito.
+            throw new Exception("Parâmetros insuficientes (Tabela ou ID faltando).");
         }
 
         $parts = explode('.', $data['table']);
         $schema = count($parts) === 2 ? $parts[0] : 'public';
         $table = count($parts) === 2 ? $parts[1] : $data['table'];
 
+        // 1. Busca os Logs no Banco Local
         $sql = <<<'SQL'
             SELECT 
                 l.log_id,
                 l.operation,
                 l.user_id,
-                TO_CHAR(l.changed_at, 'DD/MM/YYYY HH24:MI:SS') as date_fmt,
+                l.changed_at,
                 l.old_values,
                 l.new_values
             FROM security.change_logs l
@@ -44,6 +47,7 @@ function getHistory($data)
             return success("Nenhum histórico encontrado.", []);
         }
 
+        // 2. Extrai IDs de usuários únicos para buscar no Staff
         $userIds = array_unique(array_column($logs, 'user_id'));
         $usersMap = [];
 
@@ -57,14 +61,20 @@ function getHistory($data)
             }
         }
 
+        // 3. Mescla os nomes nos logs e formata data
         foreach ($logs as &$log) {
             $uid = $log['user_id'];
             $log['user_name'] = isset($usersMap[$uid]) ? $usersMap[$uid] : 'Sistema / Desconhecido';
+
+            // Data formatada pelo PHP (Timezone Correto)
+            $date = new DateTime($log['changed_at']);
+            $log['date_fmt'] = $date->format('d/m/Y H:i:s');
         }
 
         return success("Histórico recuperado.", $logs);
     } catch (Exception $e) {
-        return failure("Erro ao buscar histórico: " . $e->getMessage());
+        logSystemError("painel", "audit", "getHistory", "sql", $e->getMessage(), $data);
+        return failure("Ocorreu um erro ao buscar o histórico. Contate o suporte.", null, false, 500);
     }
 }
 
@@ -77,11 +87,13 @@ function rollbackChange($data)
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
+        // 1. Configura Auditoria para o Rollback
         if (!empty($data['id_user'])) {
             $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
             $stmtAudit->execute(['uid' => (string)$data['id_user']]);
         }
 
+        // 2. Busca o Log Original
         $sqlLog = "SELECT schema_name, table_name, record_id, old_values, operation FROM security.change_logs WHERE log_id = :id";
         $stmt = $conect->prepare($sqlLog);
         $stmt->execute(['id' => $data['log_id']]);
@@ -89,7 +101,10 @@ function rollbackChange($data)
 
         if (!$log || empty($log['old_values'])) {
             $conect->rollBack();
-            return failure("Não há dados anteriores para restaurar.");
+            // Erros de lógica de negócio podem ser retornados diretamente ou padronizados.
+            // Para manter o padrão estrito, vou logar como erro e dar mensagem genérica, 
+            // mas aqui talvez fosse útil saber que "não há dados". Vou manter a mensagem genérica.
+            throw new Exception("Tentativa de rollback em registro sem dados antigos.");
         }
 
         $oldData = json_decode($log['old_values'], true);
@@ -97,46 +112,45 @@ function rollbackChange($data)
         $table = $log['table_name'];
         $recordId = $log['record_id'];
 
-        // === CORREÇÃO DO ERRO SQL ===
-        // Mapa manual de Chaves Primárias para tabelas que fogem do padrão
+        // 3. Identifica a PK
         $pkMap = [
             'organizations' => 'org_id',
             'persons' => 'person_id',
             'users' => 'id',
             'locations' => 'location_id',
-            // Adicione outras exceções aqui conforme criar tabelas novas
         ];
 
-        if (isset($pkMap[$table])) {
-            $pkColumn = $pkMap[$table];
-        } else {
-            // Tentativa automática (padrão): nome da tabela no singular + _id
-            // ex: courses -> course_id
-            $pkColumn = rtrim($table, 's') . "_id";
-        }
+        $pkColumn = isset($pkMap[$table]) ? $pkMap[$table] : rtrim($table, 's') . "_id";
 
+        // 4. Monta o UPDATE dinamicamente
         $setFields = [];
         $params = [];
 
         foreach ($oldData as $col => $val) {
+            // Pula a PK e campos de controle
             if ($col === $pkColumn) continue;
             if (in_array($col, ['updated_at', 'created_at', 'deleted'])) continue;
 
-            $setFields[] = "\"$col\" = :$col";
+            // [CORREÇÃO] Trata Array/JSON antes de passar para o SQL
+            if (is_array($val) || is_object($val)) {
+                $val = json_encode($val);
+            }
 
-            // Tratamento de booleano
+            // [CORREÇÃO] Trata Booleano
             if (is_bool($val)) {
                 $val = $val ? 'TRUE' : 'FALSE';
             }
 
+            $setFields[] = "\"$col\" = :$col";
             $params[$col] = $val;
         }
 
         if (empty($setFields)) {
             $conect->rollBack();
-            return failure("Nenhum dado válido para restaurar.");
+            throw new Exception("Nenhum campo válido encontrado para restauração.");
         }
 
+        // Adiciona updated_at atualizado
         $sqlRestore = "UPDATE \"$schema\".\"$table\" SET " . implode(', ', $setFields) . ", updated_at = CURRENT_TIMESTAMP WHERE \"$pkColumn\" = :pk_val";
 
         $params['pk_val'] = $recordId;
@@ -148,7 +162,7 @@ function rollbackChange($data)
         return success("Dados restaurados com sucesso!");
     } catch (Exception $e) {
         $conect->rollBack();
-        // Retorna o erro detalhado para facilitar debug, mas em produção pode simplificar
-        return failure("Erro ao restaurar: " . $e->getMessage());
+        logSystemError("painel", "audit", "rollbackChange", "sql", $e->getMessage(), $data);
+        return failure("Ocorreu um erro ao restaurar os dados. Contate o suporte.", null, false, 500);
     }
 }
