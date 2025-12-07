@@ -1698,50 +1698,96 @@ canvas {
   font-family: monospace;
 }
 
+/* ============================================================
+   CORREÇÃO: MODAL AUDITORIA (DARK MODE)
+   ============================================================ */
+
+/* 1. Fundo do Corpo do Modal */
+/* Remove o bg-light padrão do Bootstrap e aplica o fundo escuro do tema */
+[data-theme="escuro"] #modalAudit .modal-body {
+  background-color: var(--body) !important;
+}
+
+/* 2. Linha Vertical da Timeline */
 [data-theme="escuro"] .timeline-audit::before {
   background-color: var(--borda);
 }
 
-/* Card do Item de Auditoria */
+/* 3. Card do Evento (Caixa Branca vira Escura) */
 [data-theme="escuro"] .audit-content {
   background-color: var(--fundo); /* Cinza Azulado */
   border-color: var(--borda);
   color: var(--black);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Header do Card */
+/* 3. Card do Evento (Caixa Branca vira Escura) */
+[data-theme="escuro"] .modal-footer {
+  background-color: var(--fundo); /* Cinza Azulado */
+  border-color: var(--borda);
+  color: var(--black);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 4. Cabeçalho do Card (Quem e Quando) */
 [data-theme="escuro"] .audit-header {
   border-bottom-color: var(--borda);
 }
 
 [data-theme="escuro"] .audit-user {
-  color: var(--white); /* Nome do usuário em branco */
+  color: var(--white); /* Nome do usuário em branco/gelo */
 }
 
 [data-theme="escuro"] .audit-date {
-  color: var(--descricao);
+  color: var(--descricao); /* Data em cinza médio */
 }
 
-/* Tabela de Diferenças */
+/* 5. Tabela de Diferenças (Antes -> Depois) */
 [data-theme="escuro"] .audit-diff-table td {
   border-bottom-color: var(--borda);
 }
 
+/* Nome do Campo (Ex: Address District) */
 [data-theme="escuro"] .diff-field {
-  color: var(--padrao2); /* Dourado para o nome do campo */
+  color: var(--padrao2); /* Dourado para destacar o que mudou */
+  font-weight: 700;
 }
 
+/* Valor Antigo (Riscado) */
 [data-theme="escuro"] .diff-old {
-  color: #ef4444; /* Vermelho claro */
-  opacity: 0.8;
+  color: #ef4444; /* Vermelho claro (mais legível no escuro que o padrão) */
+  opacity: 0.7;
 }
 
+/* Valor Novo (Verde) */
 [data-theme="escuro"] .diff-new {
-  color: #10b981; /* Verde claro */
+  color: #10b981; /* Verde esmeralda claro */
 }
 
-/* Bolinha do Marcador */
-[data-theme="escuro"] .audit-marker {
-  background-color: var(--padrao1);
-  border-color: var(--borda);
+/* Seta (->) */
+[data-theme="escuro"] .fa-arrow-right {
+  color: var(--descricao) !important;
 }
+
+/* 6. Bolinhas (Marcadores da Timeline) */
+[data-theme="escuro"] .audit-marker {
+  background-color: var(--padrao1); /* Fundo da bolinha escuro */
+  border-color: var(--borda);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Ajuste das cores dos ícones dentro das bolinhas para brilharem no escuro */
+[data-theme="escuro"] .audit-marker.UPDATE {
+  color: #facc15;
+  border-color: #facc15;
+} /* Amarelo */
+[data-theme="escuro"] .audit-marker.INSERT {
+  color: #4ade80;
+  border-color: #4ade80;
+} /* Verde */
+[data-theme="escuro"] .audit-marker.DELETE {
+  color: #f87171;
+  border-color: #f87171;
+} /* Vermelho */
+
+

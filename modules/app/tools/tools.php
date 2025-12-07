@@ -1,6 +1,10 @@
 <?php
 
-define('TOKEN_SECRET_KEY', 'TrilhaDaFe_SecureKey_2025_$#@!'); // 32 caracteres
+// CONFIGURAÇÃO DE FUSO HORÁRIO E IDIOMA
+date_default_timezone_set('America/Recife');
+setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
+
+define('TOKEN_SECRET_KEY', 'TrilhaDaFe_SecureKey_2025_$#@!');
 
 function executeSQL($dados, $idConexao = "local")
 {
@@ -15,6 +19,7 @@ function executeSQL($dados, $idConexao = "local")
     }
     return true;
 }
+
 
 function success($alert, $data = null, $access = null, $encod = false)
 {

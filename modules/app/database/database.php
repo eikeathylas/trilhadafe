@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set('America/Recife');
+
 function getStaff()
 {
     if (isset($GLOBALS["staff"]) && $GLOBALS["staff"] instanceof PDO) {
@@ -18,6 +20,9 @@ function getStaff()
     $pdo = new PDO($dsn, $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
+
+
+    $pdo->exec("SET TIME ZONE 'America/Recife'");
 
     $GLOBALS["staff"] = $pdo;
     return $pdo;
@@ -44,6 +49,8 @@ function getLocal($conexao)
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ]);
     }
+
+    $pdo->exec("SET TIME ZONE 'America/Recife'");
 
     $GLOBALS["local"] = $pdo;
     return $pdo;
