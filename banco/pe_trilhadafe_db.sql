@@ -213,59 +213,6 @@ COMMENT ON TABLE people.status_history IS 'Linha do tempo de ocorrências (Féri
 -- Responsabilidade: Estrutura Física e Jurídica
 -- ==========================================================
 
-
--- Enum: Define a natureza canônica e jurídica da unidade
--- CREATE TYPE organization.org_type_enum AS ENUM (
---     'PARISH',         -- Paróquia (Pública, com território definido)
---     'CHAPEL',         -- Capela / Comunidade (Vinculada a uma Paróquia)
---     'CONVENT',        -- Convento (Residencial, vida religiosa)
---     'MONASTERY',      -- Mosteiro (Vida contemplativa)
---     'SEMINARY',       -- Seminário (Formação de padres)
---     'CURIA',          -- Cúria / Sede Administrativa da Diocese
---     'RETREAT_HOUSE'   -- Casa de Retiro (Hospedagem temporária)
--- );
-
--- Tabela Principal: As Entidades
--- CREATE TABLE organization.organizations (
---     org_id SERIAL PRIMARY KEY,
---     parent_org_id INT REFERENCES organization.organizations(org_id), -- Auto-relacionamento (Ex: Capela X pertence à Paróquia Y)
-    
---     -- Classificação
---     org_type organization.org_type_enum NOT NULL DEFAULT 'PARISH',
-    
---     -- Identificação Jurídica e Civil
---     legal_name VARCHAR(255) NOT NULL,    -- Razão Social (Ex: Mitra Arquidiocesana...)
---     display_name VARCHAR(255) NOT NULL,  -- Nome Fantasia (Ex: Paróquia São José)
---     tax_id VARCHAR(20),                  -- CNPJ
-    
---     -- Identificação Eclesiástica (Canônica)
---     diocese_name VARCHAR(200),           -- Diocese a que pertence
---     patron_saint VARCHAR(150),           -- Padroeiro (Define datas festivas)
---     decree_number VARCHAR(50),           -- Nº do Decreto de Criação/Ereção Canônica
---     foundation_date DATE,                -- Data de fundação
---     closure_date DATE,                   -- Se preenchido, a unidade foi suprimida (fechada)
-    
---     -- Contatos Oficiais
---     phone_main VARCHAR(20),
---     phone_secondary VARCHAR(20),
---     email_contact VARCHAR(150),
---     website_url VARCHAR(255),
-    
---     -- Endereço Físico
---     address_street VARCHAR(255),
---     address_number VARCHAR(20),
---     address_district VARCHAR(100),       -- Bairro
---     address_city VARCHAR(100),
---     address_state CHAR(2),
---     zip_code VARCHAR(20),                -- CEP
---     geo_coordinates VARCHAR(50),         -- Latitude/Longitude (Para mapas no App)
-    
---     -- Controle
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     is_active BOOLEAN DEFAULT TRUE       -- Soft Delete
--- );
-
 -- Documentação Tabela Organizations
 COMMENT ON TABLE organization.organizations IS 'Cadastro das unidades eclesiásticas (Paróquias, Capelas, Conventos).';
 COMMENT ON COLUMN organization.organizations.parent_org_id IS 'Hierarquia: Se for uma Capela, aponta para a Paróquia Matriz (org_id pai).';
@@ -425,17 +372,16 @@ COMMENT ON COLUMN education.classes.max_capacity IS 'Limite de vagas. Se NULL, �
 -- Ex: "Todo Sábado, das 08h às 09h, Aula de Bíblia na Sala 1"
 CREATE TABLE education.class_schedules (
     schedule_id SERIAL PRIMARY KEY,
-    class_id INT NOT NULL REFERENCES education.classes(class_id),
-    
-    week_day INT NOT NULL,           -- 0=Domingo, 1=Segunda... 6=Sábado
+    class_id INT NOT NULL REFERENCES education.classes(class_id) ON DELETE CASCADE,
+    week_day INT NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
+    subject_id INT REFERENCES education.subjects(subject_id),
+    location_id INT REFERENCES organization.locations(location_id),
+    instructor_id INT REFERENCES people.persons(person_id),
     
-    subject_id INT REFERENCES education.subjects(subject_id),    -- Qual matéria é dada neste horário?
-    location_id INT REFERENCES organization.locations(location_id), -- Sala específica (pode ser diferente da padrão)
-    instructor_id INT REFERENCES people.persons(person_id),      -- Professor específico deste horário
-    
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Documentação Tabela Class Schedules
@@ -447,21 +393,20 @@ COMMENT ON COLUMN education.class_schedules.subject_id IS 'Permite que a turma t
 CREATE TABLE education.registration_requests (
     request_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
-    
-    -- Dados "Sujos" (Digitados pelo usuário no site)
     candidate_name VARCHAR(200) NOT NULL,
     candidate_birth_date DATE,
     parent_name VARCHAR(200),
     parent_contact VARCHAR(100),
-    
     desired_course_id INT REFERENCES education.courses(course_id),
     
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'PENDING', -- PENDING, APPROVED, REJECTED, WAITLIST
+    status VARCHAR(20) DEFAULT 'PENDING',
     rejection_reason TEXT,
+    processed_by_user_id INT,
+    created_student_id INT REFERENCES people.persons(person_id),
     
-    processed_by_user_id INT,             -- Quem analisou (Staff)
-    created_student_id INT REFERENCES people.persons(person_id) -- Se aprovado, vira ID real
+    deleted BOOLEAN DEFAULT FALSE, -- [NOVO]
+    updated_at TIMESTAMP
 );
 
 -- Documentação Tabela Registration Requests
@@ -476,12 +421,14 @@ CREATE TABLE education.enrollments (
     student_id INT NOT NULL REFERENCES people.persons(person_id),
     
     enrollment_date DATE DEFAULT CURRENT_DATE,
-    status VARCHAR(20) DEFAULT 'ACTIVE', -- ACTIVE, DROPPED (Desistiu), COMPLETED, TRANSFERRED
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    final_grade NUMERIC(5,2),
+    final_result VARCHAR(20),
+    notes TEXT,
     
-    final_grade NUMERIC(5,2),            -- Média Final
-    final_result VARCHAR(20),            -- APPROVED, REPROVED
-    
-    notes TEXT                           -- Observações pedagógicas do aluno nesta turma
+    deleted BOOLEAN DEFAULT FALSE, -- [NOVO] Corrigido o erro do SQL
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 -- Documentação Tabela Enrollments
@@ -489,19 +436,48 @@ COMMENT ON TABLE education.enrollments IS 'Registro oficial do aluno na turma.';
 COMMENT ON COLUMN education.enrollments.status IS 'Estado atual do aluno (Ativo, Desistente, etc).';
 
 
+CREATE TABLE education.enrollment_history (
+    history_id BIGSERIAL PRIMARY KEY,
+    
+    -- Vínculo com a Matrícula (Não com o aluno direto, para saber de qual turma foi)
+    enrollment_id INT NOT NULL REFERENCES education.enrollments(enrollment_id) ON DELETE CASCADE,
+    
+    -- O que aconteceu? (MATRICULADO, SUSPENSO, TRANSFERIDO, REATIVADO, CANCELADO)
+    action_type VARCHAR(50) NOT NULL,
+    
+    -- Quando aconteceu? (Pode ser retroativo)
+    action_date DATE DEFAULT CURRENT_DATE,
+    
+    -- Detalhes (Ex: "Suspenso por 15 dias - Motivo X")
+    observation TEXT,
+    
+    -- Quem registrou?
+    created_by_user_id INT, 
+    
+    -- Controle Padrão (Lixeira e Auditoria)
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- 2. Documentação
+COMMENT ON TABLE education.enrollment_history IS 'Log de ocorrências da vida acadêmica do aluno (Entradas, Saídas, Suspensões).';
+COMMENT ON COLUMN education.enrollment_history.action_type IS 'Tipo do movimento: ENROLLED, SUSPENDED, TRANSFERRED, CANCELED, COMPLETED.';
+
+
 -- 8. Diário de Classe (Sessões/Aulas)
 -- O registro do "Dia Letivo".
 CREATE TABLE education.class_sessions (
     session_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id),
+    date_held DATE NOT NULL,
+    topic_taught TEXT,
+    session_type VARCHAR(20) DEFAULT 'REGULAR',
+    observations TEXT,
+    recorded_by_user_id INT,
     
-    date_held DATE NOT NULL,             -- Data da aula
-    topic_taught TEXT,                   -- Conteúdo ministrado
-    
-    session_type VARCHAR(20) DEFAULT 'REGULAR', -- REGULAR, MAKEUP (Reposição), EXTRA_CLASS
-    observations TEXT,                   -- Ocorrências gerais do dia
-    
-    recorded_by_user_id INT              -- Quem preencheu o diário?
+    deleted BOOLEAN DEFAULT FALSE, -- [NOVO]
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Documentação Tabela Class Sessions
@@ -513,10 +489,10 @@ CREATE TABLE education.attendance (
     attendance_id BIGSERIAL PRIMARY KEY,
     session_id INT NOT NULL REFERENCES education.class_sessions(session_id) ON DELETE CASCADE,
     student_id INT NOT NULL REFERENCES people.persons(person_id),
-    
-    is_present BOOLEAN DEFAULT FALSE,    -- Veio ou não?
-    is_excused BOOLEAN DEFAULT FALSE,    -- Falta abonada/justificada?
-    justification TEXT                   -- Motivo (Ex: Atestado Médico)
+    is_present BOOLEAN DEFAULT FALSE,
+    is_excused BOOLEAN DEFAULT FALSE,
+    justification TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Documentação Tabela Attendance
@@ -527,21 +503,22 @@ COMMENT ON TABLE education.attendance IS 'Registro individual de presença por a
 CREATE TABLE education.assessments (
     assessment_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id),
-    subject_id INT REFERENCES education.subjects(subject_id), -- Prova de qual matéria?
-    
-    title VARCHAR(150) NOT NULL,         -- Ex: "Prova Bimestral", "Trabalho sobre Santos"
+    subject_id INT REFERENCES education.subjects(subject_id),
+    title VARCHAR(150) NOT NULL,
     max_score NUMERIC(5,2) DEFAULT 10.00,
-    weight INT DEFAULT 1,                -- Peso na média
-    due_date DATE
+    weight INT DEFAULT 1,
+    due_date DATE,
+    
+    deleted BOOLEAN DEFAULT FALSE, -- [NOVO]
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE education.student_grades (
     grade_id SERIAL PRIMARY KEY,
-    assessment_id INT NOT NULL REFERENCES education.assessments(assessment_id),
+    assessment_id INT NOT NULL REFERENCES education.assessments(assessment_id) ON DELETE CASCADE,
     student_id INT NOT NULL REFERENCES people.persons(person_id),
-    
-    score_obtained NUMERIC(5,2),         -- Nota tirada
-    comments TEXT,                       -- Feedback do professor
+    score_obtained NUMERIC(5,2),
+    comments TEXT,
     graded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -1268,9 +1245,6 @@ INSERT INTO people.persons (person_id, org_id_origin, full_name, religious_name,
 (9, 1, 'Pedro Henrique (Aniversariante)', NULL, 'M', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), NULL, FALSE, NULL),
 (10, 1, 'Irmã Lúcia (Aniversariante)', NULL, 'F', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), NULL, FALSE, NULL);
 
--- Correção de Sequência (Para evitar erro de ID duplicado)
---SELECT setval('people.persons_person_id_seq', (SELECT MAX(person_id) FROM people.persons));
-
 -- Vínculos de Função
 INSERT INTO people.person_roles (person_id, org_id, role_id) VALUES
 (1, 1, 1), -- Pe. Beto é Pároco
@@ -1303,10 +1277,11 @@ INSERT INTO education.courses (org_id, name, min_age, max_age) VALUES
 (1, 'Primeira Eucaristia', 9, 12),
 (1, 'Crisma (Jovens)', 14, 18);
 
--- Grade (O curso tem essas matérias)
+-- Grade
 INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES 
-(1, 1, 20),
-(1, 3, 10);
+(1, 1, 30), (1, 3, 30); -- Eucaristia
+INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES 
+(2, 1, 40), (2, 2, 40); -- Crisma
 
 -- Turma
 INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, year_cycle, status) VALUES 
@@ -1416,6 +1391,10 @@ UPDATE events_commerce.cards SET current_balance = 40.00 WHERE card_id = 1;
 -- ----------------------------------------------------------
 INSERT INTO communication.categories (category_id, org_id, name, slug) VALUES 
 (1, 1, 'Avisos', 'avisos');
+
+
+-- Correção de Sequência (Para evitar erro de ID duplicado)
+--SELECT setval('people.persons_person_id_seq', (SELECT MAX(person_id) FROM people.persons));
 
 
 
@@ -1591,6 +1570,21 @@ CREATE TRIGGER audit_trigger_classes
 AFTER INSERT OR UPDATE OR DELETE ON education.classes
 FOR EACH ROW EXECUTE FUNCTION security.log_changes('class_id');
 
+CREATE TRIGGER audit_trigger_class_schedules AFTER INSERT OR UPDATE OR DELETE ON education.class_schedules
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('schedule_id');
+
+CREATE TRIGGER audit_trigger_enrollments AFTER INSERT OR UPDATE OR DELETE ON education.enrollments
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('enrollment_id');
+
+CREATE TRIGGER audit_trigger_class_sessions AFTER INSERT OR UPDATE OR DELETE ON education.class_sessions
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('session_id');
+
+CREATE TRIGGER audit_trigger_assessments AFTER INSERT OR UPDATE OR DELETE ON education.assessments
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('assessment_id');
+
+CREATE TRIGGER audit_trigger_enrollment_history
+AFTER INSERT OR UPDATE OR DELETE ON education.enrollment_history
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('history_id');
 
 -- Documentação Função
 COMMENT ON FUNCTION security.log_changes IS 'Gatilho genérico. Deve ser acionado passando o nome da PK como argumento.';

@@ -17,6 +17,7 @@ include "../controller/organization-controller.php";  // Organização e Salas
 include "../controller/people-controller.php";  // Pessoas
 include "../controller/academic-controller.php"; // Disciplinas
 include "../controller/course-controller.php";  // Cursos
+include "../controller/turmas-controller.php";	 // Turmas
 
 // 3. Captura da Ação
 $validator = $_POST["validator"] ?? null;
@@ -88,6 +89,9 @@ switch ($validator) {
 	case "getResponsiblesList":
 		getResponsiblesList(); // Preenche select de responsáveis
 		break;
+	case "getCatechistsList":
+		getCatechistsList();
+		break; // NOVO
 
 	// =========================================================
 	// MÓDULO: PESSOAS (Secretaria)
@@ -150,6 +154,47 @@ switch ($validator) {
 		break;
 	case "getCoursesList": // Para selects simples
 		getCoursesList();
+		break;
+
+	// =========================================================
+	// MÓDULO: TURMAS (turmas)
+	// =========================================================
+	case "getClasses":
+		getClasses();
+		break;
+	case "getClassById":
+		getClassById();
+		break;
+	case "saveClass":
+		saveClass();
+		break;
+	case "deleteClass":
+		deleteClass();
+		break;
+	case "toggleClass":
+		toggleClass();
+		break;
+
+	// Sub-rotas de Alunos da Turma
+	case "getClassStudents":
+		getClassStudents();
+		break;
+	case "enrollStudent":
+		enrollStudent();
+		break;
+	case "deleteEnrollment":
+		deleteEnrollment();
+		break;
+
+	// Histórico de Matrícula
+	case "getEnrollmentHistory":
+		getEnrollmentHistory();
+		break;
+	case "addEnrollmentHistory":
+		addEnrollmentHistory();
+		break;
+	case "deleteEnrollmentHistory":
+		deleteEnrollmentHistory();
 		break;
 
 	// =========================================================

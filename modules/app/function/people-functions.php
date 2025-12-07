@@ -358,3 +358,88 @@ function searchPeopleForSelect($search)
         return failure("Erro na busca de pessoas.", null, false, 500);
     }
 }
+
+function getStudentsForSelect($search)
+{
+    try {
+        $conect = $GLOBALS["local"];
+
+        $params = [];
+        // Filtra por Role STUDENT
+        $where = "WHERE p.deleted IS FALSE AND p.is_active IS TRUE 
+                  AND EXISTS (
+                      SELECT 1 FROM people.person_roles pr 
+                      JOIN people.roles r ON pr.role_id = r.role_id 
+                      WHERE pr.person_id = p.person_id 
+                      AND pr.deleted IS FALSE 
+                      AND pr.is_active IS TRUE
+                      AND r.role_name = 'STUDENT'
+                  )";
+
+        if (!empty($search)) {
+            $where .= " AND (p.full_name ILIKE :search OR p.tax_id ILIKE :search)";
+            $params['search'] = "%" . $search . "%";
+        }
+
+        $sql = <<<SQL
+            SELECT 
+                p.person_id as id, 
+                p.full_name as title,
+                p.tax_id 
+            FROM people.persons p 
+            $where
+            ORDER BY p.full_name ASC 
+            LIMIT 20
+        SQL;
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute($params);
+
+        return success("Busca realizada.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (Exception $e) {
+        logSystemError("painel", "people", "getStudentsForSelect", "sql", $e->getMessage(), ['search' => $search]);
+        return failure("Erro na busca de alunos.");
+    }
+}
+
+// [NOVO] Função para buscar apenas catequistas (usada no modal de Turmas)
+function getCatechistsForSelect($search = "")
+{
+    try {
+        $conect = $GLOBALS["local"];
+
+        $params = [];
+        $where = "WHERE p.deleted IS FALSE AND p.is_active IS TRUE 
+                  AND EXISTS (
+                      SELECT 1 FROM people.person_roles pr 
+                      JOIN people.roles r ON pr.role_id = r.role_id 
+                      WHERE pr.person_id = p.person_id 
+                      AND pr.deleted IS FALSE 
+                      AND pr.is_active IS TRUE
+                      AND r.role_name = 'CATECHIST'
+                  )";
+
+        if (!empty($search)) {
+            $where .= " AND p.full_name ILIKE :search";
+            $params['search'] = "%" . $search . "%";
+        }
+
+        $sql = <<<SQL
+            SELECT 
+                p.person_id as id, 
+                p.full_name as title
+            FROM people.persons p 
+            $where
+            ORDER BY p.full_name ASC 
+            LIMIT 20
+        SQL;
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute($params);
+
+        return success("Busca realizada.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (Exception $e) {
+        logSystemError("painel", "people", "getCatechistsForSelect", "sql", $e->getMessage(), ['search' => $search]);
+        return failure("Erro na busca de catequistas.");
+    }
+}

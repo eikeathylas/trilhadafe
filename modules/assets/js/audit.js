@@ -198,17 +198,23 @@ const formatKey = (key) => {
     civil_status: "Estado Civil",
 
     // --- 4. ACADÊMICO (CURSOS E DISCIPLINAS) [NOVO] ---
-    description: "Descrição",
+    subject_id: "ID Disciplina",
+    syllabus_summary: "Ementa / Conteúdo",
+    course_id: "ID Curso",
     min_age: "Idade Mínima",
     max_age: "Idade Máxima",
-    total_workload_hours: "Carga Horária Total",
-    syllabus_summary: "Ementa",
-    subject_id: "--",
-    course_id: "--",
-    disciplina: "Disciplina", // Campo Virtual que criamos no PHP
-    course: "Curso", // Campo Virtual que criamos no PHP
-    workload_hours: "Carga Horária",
+    total_workload_hours: "Carga Horária Total (h)",
+    class_id: "ID Turma",
+    year_cycle: "Ano Letivo",
+    semester: "Semestre",
+    start_date: "Data Início",
+    end_date: "Data Término",
+    max_capacity: "Vagas Totais",
+    status: "Status",
     is_mandatory: "Obrigatória",
+    workload_hours: "Carga Horária",
+    curriculum_id: "ID Grade",
+    disciplina: "Disciplina", // Campo virtual criado no PHP
 
     // Controle
     is_active: "Ativo",
@@ -314,6 +320,7 @@ window.doRollback = (logId) => {
             if (typeof getPessoas === "function") getPessoas();
             if (typeof getDisciplinas === "function") getDisciplinas();
             if (typeof getCursos === "function") getCursos();
+            if (typeof getTurmas === "function") getTurmas();
           });
         } else {
           Swal.fire("Erro", res.alert, "error");

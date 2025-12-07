@@ -78,20 +78,20 @@ function savePerson()
     // Recebe os dados do formulário
     // Nota: Como tem upload de arquivo, os dados vêm no $_POST direto, não em $_POST['data']
     $data = $_POST;
-    
+
     // Injeta ID do usuário logado para Auditoria
     $data['user_id'] = $decoded['id_user'];
 
     // --- LÓGICA DE UPLOAD DE FOTO ---
     if (isset($_FILES["profile_photo"]) && $_FILES["profile_photo"]["error"] === UPLOAD_ERR_OK) {
-        
+
         // Valida se o ID do cliente foi enviado para criar a pasta correta
         $id_client = isset($_POST["id_client"]) ? intval($_POST["id_client"]) : 0;
-        
+
         if ($id_client > 0) {
             // Define diretório: modules/assets/img/{id_client}/people/
             $targetDir = __DIR__ . "/../../assets/img/" . $id_client . "/people/";
-            
+
             // Cria a pasta se não existir
             if (!is_dir($targetDir)) {
                 mkdir($targetDir, 0755, true);
@@ -187,8 +187,41 @@ function getRelativesList()
     }
 
     getLocal($decoded["conexao"]);
-    
+
     $search = $_POST['search'] ?? '';
 
     echo json_encode(searchPeopleForSelect($search));
+}
+
+
+function getStudentsList()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token inválido.", null, false, 401));
+        return;
+    }
+    $decoded = decodeAccessToken($_POST["token"]);
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Acesso negado.", null, false, 401));
+        return;
+    }
+    getLocal($decoded["conexao"]);
+
+    echo json_encode(getStudentsForSelect($_POST['search'] ?? ''));
+}
+
+function getCatechistsList()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token inválido.", null, false, 401));
+        return;
+    }
+    $decoded = decodeAccessToken($_POST["token"]);
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Acesso negado.", null, false, 401));
+        return;
+    }
+    getLocal($decoded["conexao"]);
+
+    echo json_encode(getCatechistsForSelect($_POST['search'] ?? ''));
 }
