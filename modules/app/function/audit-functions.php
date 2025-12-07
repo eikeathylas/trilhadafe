@@ -64,7 +64,7 @@ function getHistory($data)
         // 3. Mescla os nomes nos logs e formata data
         foreach ($logs as &$log) {
             $uid = $log['user_id'];
-            $log['user_name'] = isset($usersMap[$uid]) ? $usersMap[$uid] : 'Sistema / Desconhecido';
+            $log['user_name'] = isset($usersMap[$uid]) ? $usersMap[$uid] : 'Sistema';
 
             // Data formatada pelo PHP (Timezone Correto)
             $date = new DateTime($log['changed_at']);

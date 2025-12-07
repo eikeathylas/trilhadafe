@@ -128,8 +128,12 @@ const renderTimeline = (logs, container) => {
                 <div class="audit-content">
                     <div class="audit-header">
                         <span class="audit-user">
-                            <img src="../login/assets/img/user.jpg" class="rounded-circle mr-2" style="width: 20px; height: 20px;" 
-                                 onerror="this.src='../login/assets/img/favicon.png'">
+                            
+                            ${
+                              log.user_name !== "Sistema"
+                                ? `<span class="d-inline-flex align-items-center justify-content-center bg-light border rounded-circle me-2" style="width: 24px; height: 24px;"><i class="fas fa-user text-secondary" style="font-size: 12px;"></i></span>`
+                                : `<img src="./assets/img/favicon.png" class="rounded-circle m-2" style="width: 20px; height: 20px;" onerror="this.src='./assets/img/favicon.png'">`
+                            }
                             ${log.user_name || "Sistema"}
                         </span>
                         <span class="audit-date text-muted small">${log.date_fmt}</span>
