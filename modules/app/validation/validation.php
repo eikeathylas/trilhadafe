@@ -15,6 +15,7 @@ include "../controller/dashboard-controller.php";     // Tela Inicial
 include "../controller/audit-controller.php";         // Auditoria (Raio)
 include "../controller/organization-controller.php";  // Organização e Salas
 include "../controller/people-controller.php";  // Pessoas
+include "../controller/academic-controller.php";
 
 // 3. Captura da Ação
 $validator = $_POST["validator"] ?? null;
@@ -107,6 +108,25 @@ switch ($validator) {
 		break;
 	case "getRelativesList":
 		getRelativesList();
+		break;
+
+	// =========================================================
+	// MÓDULO: ORGANIZAÇÃO - LOCAIS/SALAS (organizacao.js)
+	// =========================================================
+	case "getSubjects":
+		getSubjects();
+		break;
+	case "getSubjectById":
+		getSubjectById();
+		break;
+	case "saveSubject":
+		saveSubject();
+		break;
+	case "deleteSubject":
+		deleteSubject();
+		break;
+	case "toggleSubject":
+		toggleSubject();
 		break;
 
 	// =========================================================

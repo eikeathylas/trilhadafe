@@ -197,6 +197,10 @@ const formatKey = (key) => {
     sacraments_info: "Sacramentos",
     civil_status: "Estado Civil",
 
+    // Disciplinas
+    syllabus_summary: "Ementa / Resumo",
+    subject_id: "ID Disciplina",
+
     // Controle
     is_active: "Ativo",
     deleted: "Excluído",
@@ -299,6 +303,7 @@ window.doRollback = (logId) => {
             if (typeof getOrganizacoes === "function") getOrganizacoes();
             if (typeof getLocais === "function") getLocais();
             if (typeof getPessoas === "function") getPessoas();
+            if (typeof getDisciplinas === "function") getDisciplinas();
           });
         } else {
           Swal.fire("Erro", res.alert, "error");

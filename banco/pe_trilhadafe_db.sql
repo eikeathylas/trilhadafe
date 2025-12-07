@@ -333,8 +333,13 @@ CREATE TABLE education.subjects (
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     
     name VARCHAR(150) NOT NULL,
-    syllabus_summary TEXT,           -- Ementa (Resumo do que é ensinado)
-    is_active BOOLEAN DEFAULT TRUE
+    syllabus_summary TEXT,           -- Ementa
+    
+    -- Controle e Auditoria
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,   -- [NOVO] Para Soft Delete
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 -- Documentação Tabela Subjects
@@ -350,11 +355,15 @@ CREATE TABLE education.courses (
     name VARCHAR(150) NOT NULL,
     description TEXT,
     
-    min_age INT,                     -- Trava de sistema: Idade mínima
-    max_age INT,                     -- Trava de sistema: Idade máxima
-    total_workload_hours INT,        -- Carga horária total exigida
+    min_age INT,
+    max_age INT,
+    total_workload_hours INT,
     
-    is_active BOOLEAN DEFAULT TRUE
+    -- Controle e Auditoria
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,   -- [NOVO]
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 -- Documentação Tabela Courses
@@ -366,11 +375,15 @@ COMMENT ON COLUMN education.courses.min_age IS 'Idade mínima do aluno para matr
 -- Define: O Curso "Crisma" é composto por "Bíblia" (20h) e "Moral" (10h).
 CREATE TABLE education.curriculum (
     curriculum_id SERIAL PRIMARY KEY,
-    course_id INT NOT NULL REFERENCES education.courses(course_id),
+    course_id INT NOT NULL REFERENCES education.courses(course_id) ON DELETE CASCADE,
     subject_id INT NOT NULL REFERENCES education.subjects(subject_id),
     
-    workload_hours INT DEFAULT 0,    -- Quantas horas dessa matéria neste curso?
-    is_mandatory BOOLEAN DEFAULT TRUE -- É obrigatória para se formar?
+    workload_hours INT DEFAULT 0,
+    is_mandatory BOOLEAN DEFAULT TRUE,
+    
+    -- Controle (Sem deleted pois é vínculo direto, deleta físico)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 -- Documentação Tabela Curriculum
@@ -384,18 +397,23 @@ CREATE TABLE education.classes (
     course_id INT NOT NULL REFERENCES education.courses(course_id),
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     
-    main_location_id INT REFERENCES organization.locations(location_id), -- Sala padrão
-    coordinator_id INT REFERENCES people.persons(person_id),             -- Catequista Responsável
+    main_location_id INT REFERENCES organization.locations(location_id),
+    coordinator_id INT REFERENCES people.persons(person_id),
     
     name VARCHAR(100) NOT NULL,
-    year_cycle INT NOT NULL,         -- Ano Letivo (Ex: 2025)
-    semester INT,                    -- Semestre (1 ou 2, opcional)
+    year_cycle INT NOT NULL,
+    semester INT,
     
     start_date DATE,
     end_date DATE,
+    max_capacity INT,
     
-    max_capacity INT,                -- Vagas limitadas nesta turma
-    status VARCHAR(20) DEFAULT 'PLANNED' -- PLANNED, ACTIVE, FINISHED, CANCELLED
+    status VARCHAR(20) DEFAULT 'PLANNED', -- PLANNED, ACTIVE, FINISHED, CANCELLED
+    
+    -- Controle e Auditoria
+    deleted BOOLEAN DEFAULT FALSE,   -- [NOVO]
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 -- Documentação Tabela Classes
@@ -1275,17 +1293,20 @@ INSERT INTO people.family_ties (person_id, relative_id, relationship_type, is_le
 -- 3. EDUCATION (ESCOLA)
 -- ----------------------------------------------------------
 -- Disciplinas
-INSERT INTO education.subjects (subject_id, org_id, name) VALUES 
-(1, 1, 'Novo Testamento'),
-(2, 1, 'Orações e Ritos');
+INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES 
+(1, 'Novo Testamento', 'Estudo dos Evangelhos e Atos dos Apóstolos.'),
+(1, 'Antigo Testamento', 'História da Salvação e Profetas.'),
+(1, 'Liturgia Básica', 'Cores litúrgicas, tempos e ritos da Missa.');
 
 -- Curso
-INSERT INTO education.courses (course_id, org_id, name, min_age, max_age) VALUES 
-(1, 1, 'Eucaristia I', 9, 12);
+INSERT INTO education.courses (org_id, name, min_age, max_age) VALUES 
+(1, 'Primeira Eucaristia', 9, 12),
+(1, 'Crisma (Jovens)', 14, 18);
 
 -- Grade (O curso tem essas matérias)
 INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES 
-(1, 1, 20), (1, 2, 10);
+(1, 1, 20),
+(1, 3, 10);
 
 -- Turma
 INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, year_cycle, status) VALUES 
@@ -1554,6 +1575,21 @@ CREATE TRIGGER audit_trigger_family_ties
 AFTER INSERT OR UPDATE OR DELETE ON people.family_ties
 FOR EACH ROW EXECUTE FUNCTION security.log_changes('tie_id');
 
+CREATE TRIGGER audit_trigger_subjects
+AFTER INSERT OR UPDATE OR DELETE ON education.subjects
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('subject_id');
+
+CREATE TRIGGER audit_trigger_courses
+AFTER INSERT OR UPDATE OR DELETE ON education.courses
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('course_id');
+
+CREATE TRIGGER audit_trigger_curriculum
+AFTER INSERT OR UPDATE OR DELETE ON education.curriculum
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('curriculum_id');
+
+CREATE TRIGGER audit_trigger_classes
+AFTER INSERT OR UPDATE OR DELETE ON education.classes
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('class_id');
 
 
 -- Documentação Função
