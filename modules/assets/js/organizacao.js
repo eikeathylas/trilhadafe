@@ -1,9 +1,9 @@
 const defaultOrg = {
   orgCurrentPage: 1,
-  orgRowsPerPage: 10,
+  orgRowsPerPage: 20,
   orgTotalPages: 1,
   locCurrentPage: 1,
-  locRowsPerPage: 2,
+  locRowsPerPage: 20,
   locTotalPages: 1,
 };
 
