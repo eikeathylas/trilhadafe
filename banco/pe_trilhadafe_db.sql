@@ -91,50 +91,86 @@ CREATE TABLE organization.organizations (
 -- 1. Tabela Mestra de Pessoas (Prontuário Único)
 CREATE TABLE people.persons (
     person_id SERIAL PRIMARY KEY,
-    org_id_origin INT REFERENCES organization.organizations(org_id), -- Onde nasceu o cadastro
+    org_id_origin INT REFERENCES organization.organizations(org_id),
     
-    -- Identificação
     full_name VARCHAR(200) NOT NULL,
-    religious_name VARCHAR(150),         -- Nome Social ou Religioso (Ex: Irmã Dulce)
-    
-    -- Dados Civis
+    religious_name VARCHAR(150),
     birth_date DATE,
-    gender CHAR(1),                      -- 'M', 'F'
-    tax_id VARCHAR(20),                  -- CPF
-    national_id VARCHAR(20),             -- RG ou Passaporte
+    gender CHAR(1), -- 'M', 'F'
+    
+    tax_id VARCHAR(20),       -- CPF
+    national_id VARCHAR(20),  -- RG
+    
     nationality VARCHAR(50) DEFAULT 'Brasileira',
-    place_of_birth VARCHAR(100),         -- Naturalidade (Cidade/Estado)
-    civil_status VARCHAR(20),            -- Solteiro, Casado, Viúvo, Religioso
+    place_of_birth VARCHAR(100),
+    civil_status VARCHAR(20),
     
-    -- Filiação (Texto legado para documentos rápidos)
-    father_name VARCHAR(200),
-    mother_name VARCHAR(200),
-    
-    -- Contatos
     email VARCHAR(150),
-    phone_mobile VARCHAR(20),            -- Celular (Principal)
-    phone_landline VARCHAR(20),          -- Fixo
+    phone_mobile VARCHAR(20),
+    phone_landline VARCHAR(20),
     
-    -- Endereço Residencial
+    zip_code VARCHAR(20),
     address_street VARCHAR(255),
     address_number VARCHAR(20),
     address_district VARCHAR(100),
     address_city VARCHAR(100),
     address_state CHAR(2),
-    zip_code VARCHAR(20),
     
-    -- Perfil e Inclusão
     profile_photo_url VARCHAR(255),
-    is_pcd BOOLEAN DEFAULT FALSE,        -- Pessoa com Deficiência?
-    pcd_details TEXT,                    -- Ex: "Cadeirante", "Autismo Nível 1"
-    dietary_restrictions TEXT,           -- Ex: "Alergia a Glúten" (Importante para merenda/retiros)
+    is_pcd BOOLEAN DEFAULT FALSE,
+    pcd_details TEXT,
+    dietary_restrictions TEXT,
     
-    -- Status Vital
     deceased BOOLEAN DEFAULT FALSE,
-    death_date DATE,                     -- Se falecido, data do óbito
+    death_date DATE,
     
+    -- Controle do Sistema
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP
+);
+
+-- 2.2 CARGOS (Catálogo)
+CREATE TABLE people.roles (
+    role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(50) NOT NULL UNIQUE,
+    description_pt VARCHAR(100) NOT NULL,
+    is_clergy BOOLEAN DEFAULT FALSE,
+    is_administrative BOOLEAN DEFAULT FALSE,
+    is_student BOOLEAN DEFAULT FALSE
+);
+
+-- 2.3 VÍNCULOS (Quem é o quê)
+CREATE TABLE people.person_roles (
+    link_id SERIAL PRIMARY KEY,
+    person_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
+    org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
+    role_id INT NOT NULL REFERENCES people.roles(role_id),
+    
+    start_date DATE DEFAULT CURRENT_DATE,
+    end_date DATE,
+    notes TEXT,
+    
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- 2.4 FAMÍLIA (Parentesco)
+CREATE TABLE people.family_ties (
+    tie_id SERIAL PRIMARY KEY,
+    person_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
+    relative_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
+    
+    relationship_type VARCHAR(50) NOT NULL, -- FATHER, MOTHER, SIBLING
+    is_financial_responsible BOOLEAN DEFAULT FALSE,
+    is_legal_guardian BOOLEAN DEFAULT FALSE,
+    
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 -- Documentação Tabela Persons
@@ -143,55 +179,10 @@ COMMENT ON COLUMN people.persons.religious_name IS 'Nome utilizado no dia a dia 
 COMMENT ON COLUMN people.persons.org_id_origin IS 'Organização que realizou o cadastro inicial (Proprietária do dado).';
 COMMENT ON COLUMN people.persons.dietary_restrictions IS 'Alergias ou restrições alimentares. Vital para gestão de eventos e escola.';
 
-
--- 2. Catálogo de Cargos (Roles)
-CREATE TABLE people.roles (
-    role_id SERIAL PRIMARY KEY,
-    role_name VARCHAR(50) NOT NULL UNIQUE, -- Identificador (PRIEST, STUDENT, PARENT)
-    description_pt VARCHAR(100) NOT NULL,  -- Exibição (Pároco, Catequizando, Responsável)
-    
-    -- Flags de Permissão e Natureza
-    is_clergy BOOLEAN DEFAULT FALSE,       -- É membro do clero? (Habilita funções litúrgicas)
-    is_administrative BOOLEAN DEFAULT FALSE, -- Tem acesso ao painel admin?
-    is_student BOOLEAN DEFAULT FALSE       -- É estudante? (Aparece em diários)
-);
-
--- Documentação Tabela Roles
 COMMENT ON TABLE people.roles IS 'Tipos de vínculos possíveis (Padre, Aluno, Funcionário).';
 
-
--- 3. Vínculos Pessoa <-> Organização (Quem é o quê e Onde)
-CREATE TABLE people.person_roles (
-    link_id SERIAL PRIMARY KEY,
-    person_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
-    org_id INT NOT NULL REFERENCES organization.organizations(org_id),
-    role_id INT NOT NULL REFERENCES people.roles(role_id),
-    
-    start_date DATE DEFAULT CURRENT_DATE, -- Data de início (Posse/Matrícula)
-    end_date DATE,                        -- Data de fim (Desligamento/Formatura)
-    is_active BOOLEAN DEFAULT TRUE,
-    
-    notes TEXT                            -- Ex: "Transferido da Paróquia X"
-);
-
--- Documentação Tabela Person Roles
 COMMENT ON TABLE people.person_roles IS 'Histórico de funções. Permite que uma pessoa seja Aluno em 2020 e Catequista em 2025.';
 
-
--- 4. Vínculos Familiares (Family Ties) - NOVO!
-CREATE TABLE people.family_ties (
-    tie_id SERIAL PRIMARY KEY,
-    person_id INT NOT NULL REFERENCES people.persons(person_id),        -- O indivíduo principal (Ex: O Aluno)
-    relative_id INT NOT NULL REFERENCES people.persons(person_id),      -- O Parente (Ex: O Pai)
-    
-    relationship_type VARCHAR(50) NOT NULL, -- FATHER, MOTHER, SIBLING, SPOUSE, GRANDPARENT, GUARDIAN (Tutor)
-    is_financial_responsible BOOLEAN DEFAULT FALSE, -- É quem paga o boleto?
-    is_legal_guardian BOOLEAN DEFAULT FALSE,        -- É quem assina documentos/autoriza saída?
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Documentação Tabela Family Ties
 COMMENT ON TABLE people.family_ties IS 'Grafo de relacionamentos familiares. Essencial para lógica escolar (quem busca, quem paga).';
 COMMENT ON COLUMN people.family_ties.is_legal_guardian IS 'Se TRUE, esta pessoa pode autorizar passeios e retirar o aluno da escola.';
 
@@ -326,132 +317,6 @@ COMMENT ON COLUMN organization.locations.is_consecrated IS 'Define se o local é
 COMMENT ON COLUMN organization.locations.is_lodging IS 'Define se o local serve para dormir (Celas de monjas, quartos de retiro).';
 COMMENT ON COLUMN organization.locations.resources_detail IS 'Campo flexível (JSON) para listar patrimônio fixo da sala (Projetor, Som, Cadeiras).';
 
--- ==========================================================
--- SCHEMA: SECURITY
--- Responsabilidade: Auditoria, Logs de Erro e Rastreabilidade
--- ==========================================================
-
-
--- 1. Tabela de Auditoria (Audit Trail / Change Data Capture)
--- Registra O QUE mudou, QUEM mudou e QUANDO mudou.
-CREATE TABLE security.change_logs (
-    log_id BIGSERIAL PRIMARY KEY,
-    
-    schema_name TEXT NOT NULL,           -- Ex: 'people'
-    table_name TEXT NOT NULL,            -- Ex: 'persons'
-    operation TEXT NOT NULL,             -- 'INSERT', 'UPDATE', 'DELETE'
-    
-    record_id TEXT,                      -- O ID do registro afetado (convertido para texto)
-    user_id INT,                         -- O ID do usuário que fez a ação (se disponível na sessão)
-    ip_address VARCHAR(45),              -- IP de origem (IPv4 ou IPv6)
-    
-    old_values JSONB,                    -- Como era antes (NULL no INSERT)
-    new_values JSONB,                    -- Como ficou depois (NULL no DELETE)
-    
-    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Documentação Tabela Change Logs
-COMMENT ON TABLE security.change_logs IS 'Log de Auditoria Central. Grava snapshot dos dados antes e depois de alterações.';
-COMMENT ON COLUMN security.change_logs.record_id IS 'ID da linha afetada. Armazenado como texto para aceitar qualquer tipo de PK.';
-COMMENT ON COLUMN security.change_logs.old_values IS 'Dados originais (Snapshot JSON). Útil para desfazer (rollback) erros manuais.';
-
-
--- 2. Tabela de Logs de Erro do Sistema (Exceptions)
--- Útil para você (desenvolvedor) saber quando o PHP/Front quebrou.
-CREATE TABLE security.error_logs (
-    error_id BIGSERIAL PRIMARY KEY,
-    org_id INT,                          -- Em qual paróquia deu erro?
-    user_id INT,                         -- Quem estava usando?
-    
-    error_code VARCHAR(50),              -- Ex: '500', 'SQL_STATE_23505'
-    error_message TEXT,                  -- "Duplicate key value violates unique constraint"
-    stack_trace TEXT,                    -- Caminho do arquivo/linha onde o erro ocorreu
-    
-    request_uri VARCHAR(255),            -- Qual página/API estava sendo acessada
-    occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Documentação Tabela Error Logs
-COMMENT ON TABLE security.error_logs IS 'Registro de falhas técnicas e exceções do sistema para debug.';
-
-
--- 3. Tabela de Acesso (Login History)
--- Para segurança: saber quem logou e de onde.
-CREATE TABLE security.access_logs (
-    access_id BIGSERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    org_id INT NOT NULL,
-    
-    login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    logout_time TIMESTAMP,
-    
-    ip_address VARCHAR(45),
-    user_agent TEXT,                     -- Navegador/Dispositivo (Chrome, iPhone)
-    status VARCHAR(20) DEFAULT 'SUCCESS' -- SUCCESS, FAILED_PASSWORD, BLOCKED
-);
-
--- Documentação Tabela Access Logs
-COMMENT ON TABLE security.access_logs IS 'Histórico de sessões de usuários. Importante para investigação forense.';
-
-
--- ==========================================================
--- 4. FUNÇÃO GATILHO (TRIGGER) PARA AUDITORIA AUTOMÁTICA
--- ==========================================================
--- Esta função é o motor que preenche a tabela 'change_logs' sozinha.
-
-CREATE OR REPLACE FUNCTION security.log_changes() RETURNS TRIGGER AS $$
-DECLARE
-    v_record_id TEXT;
-    v_pk_column TEXT;
-BEGIN
-    -- Argumento 0: Nome da coluna Primary Key da tabela alvo
-    v_pk_column := TG_ARGV[0];
-
-    -- Captura o ID baseado na operação
-    IF (TG_OP = 'DELETE') THEN
-        IF v_pk_column IS NOT NULL THEN
-            v_record_id := row_to_json(OLD)->>v_pk_column;
-        ELSE
-            v_record_id := 'UNKNOWN';
-        END IF;
-        
-        INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, old_values)
-        VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'DELETE', v_record_id, row_to_json(OLD)::jsonb);
-        RETURN OLD;
-        
-    ELSIF (TG_OP = 'UPDATE') THEN
-        IF v_pk_column IS NOT NULL THEN
-            v_record_id := row_to_json(NEW)->>v_pk_column;
-        ELSE
-            v_record_id := 'UNKNOWN';
-        END IF;
-        
-        -- Só grava se houve mudança real nos dados (Ignora updates falsos)
-        IF row_to_json(OLD)::jsonb IS DISTINCT FROM row_to_json(NEW)::jsonb THEN
-            INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, old_values, new_values)
-            VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'UPDATE', v_record_id, row_to_json(OLD)::jsonb, row_to_json(NEW)::jsonb);
-        END IF;
-        RETURN NEW;
-        
-    ELSIF (TG_OP = 'INSERT') THEN
-        IF v_pk_column IS NOT NULL THEN
-            v_record_id := row_to_json(NEW)->>v_pk_column;
-        ELSE
-            v_record_id := 'UNKNOWN';
-        END IF;
-        
-        INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, new_values)
-        VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'INSERT', v_record_id, row_to_json(NEW)::jsonb);
-        RETURN NEW;
-    END IF;
-
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
--- Documentação Função
-COMMENT ON FUNCTION security.log_changes IS 'Gatilho genérico. Deve ser acionado passando o nome da PK como argumento.';
 
 -- ==========================================================
 -- SCHEMA: EDUCATION
@@ -1363,35 +1228,28 @@ VALUES
 -- ----------------------------------------------------------
 -- Cargos
 INSERT INTO people.roles (role_id, role_name, description_pt, is_clergy, is_administrative, is_student) VALUES
-(1, 'PRIEST', 'Pároco', TRUE, TRUE, FALSE),
+(1, 'PRIEST', 'Clero (Padre/Diácono)', TRUE, TRUE, FALSE),
 (2, 'SECRETARY', 'Secretária(o)', FALSE, TRUE, FALSE),
 (3, 'CATECHIST', 'Catequista', FALSE, TRUE, FALSE),
-(4, 'STUDENT', 'Catequizando', FALSE, FALSE, TRUE),
-(5, 'PARENT', 'Responsável/Pai', FALSE, FALSE, FALSE),
+(4, 'STUDENT', 'Catequizando (Aluno)', FALSE, FALSE, TRUE),
+(5, 'PARENT', 'Responsável / Familiar', FALSE, FALSE, FALSE),
 (6, 'VENDOR', 'Barraqueiro', FALSE, FALSE, FALSE);
 
--- Pessoas
+-- Pessoas (Do seu exemplo)
 INSERT INTO people.persons (person_id, org_id_origin, full_name, religious_name, gender, birth_date, email, is_pcd, pcd_details) VALUES
--- 1. O Padre
 (1, 1, 'Roberto Ferreira', 'Pe. Beto', 'M', '1975-05-20', 'padre.beto@trilha.com', FALSE, NULL),
--- 2. A Secretária
 (2, 1, 'Maria de Lurdes', NULL, 'F', '1980-03-10', 'sec.maria@trilha.com', FALSE, NULL),
--- 3. A Catequista
 (3, 1, 'Ana Clara Silva', NULL, 'F', '1995-08-15', 'ana.catequese@trilha.com', FALSE, NULL),
--- 4. O Pai (Doador)
 (4, 1, 'José da Silva', NULL, 'M', '1982-01-01', 'jose.pai@gmail.com', FALSE, NULL),
--- 5. O Aluno (Filho do José)
 (5, 1, 'Enzo Gabriel Silva', NULL, 'M', '2015-02-10', NULL, FALSE, NULL),
--- 6. A Aluna PCD
 (6, 1, 'Valentina Santos', NULL, 'F', '2014-11-05', 'mae.valentina@gmail.com', TRUE, 'Deficiência Auditiva Leve'),
--- 7. O Barraqueiro
 (7, 1, 'Carlos do Pastel', NULL, 'M', '1970-06-20', NULL, FALSE, NULL),
--- Aniversariantes do Mês (Extras para Dashboard)
 (8, 1, 'Maria das Dores (Aniversariante)', NULL, 'F', (CURRENT_DATE - INTERVAL '40 years'), NULL, FALSE, NULL),
--- Ajuste a data para que o aniversário seja daqui a 2 dias
 (9, 1, 'Pedro Henrique (Aniversariante)', NULL, 'M', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), NULL, FALSE, NULL),
--- Ajuste a data para que o aniversário seja daqui a 5 dias
 (10, 1, 'Irmã Lúcia (Aniversariante)', NULL, 'F', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), NULL, FALSE, NULL);
+
+-- Correção de Sequência (Para evitar erro de ID duplicado)
+--SELECT setval('people.persons_person_id_seq', (SELECT MAX(person_id) FROM people.persons));
 
 -- Vínculos de Função
 INSERT INTO people.person_roles (person_id, org_id, role_id) VALUES
@@ -1406,8 +1264,7 @@ INSERT INTO people.person_roles (person_id, org_id, role_id) VALUES
 (9, 1, 4), -- Aluno
 (10, 1, 3); -- Catequista
 
-
--- Vínculos Familiares (NOVO!)
+-- Vínculos Familiares
 INSERT INTO people.family_ties (person_id, relative_id, relationship_type, is_legal_guardian) VALUES
 (5, 4, 'FATHER', TRUE); -- José é pai do Enzo
 
@@ -1536,3 +1393,166 @@ UPDATE events_commerce.cards SET current_balance = 40.00 WHERE card_id = 1;
 -- ----------------------------------------------------------
 INSERT INTO communication.categories (category_id, org_id, name, slug) VALUES 
 (1, 1, 'Avisos', 'avisos');
+
+
+
+-- ==========================================================
+-- SCHEMA: SECURITY
+-- Responsabilidade: Auditoria, Logs de Erro e Rastreabilidade
+-- ==========================================================
+
+
+-- 1. Tabela de Auditoria (Audit Trail / Change Data Capture)
+-- Registra O QUE mudou, QUEM mudou e QUANDO mudou.
+CREATE TABLE security.change_logs (
+    log_id BIGSERIAL PRIMARY KEY,
+    
+    schema_name TEXT NOT NULL,           -- Ex: 'people'
+    table_name TEXT NOT NULL,            -- Ex: 'persons'
+    operation TEXT NOT NULL,             -- 'INSERT', 'UPDATE', 'DELETE'
+    
+    record_id TEXT,                      -- O ID do registro afetado (convertido para texto)
+    user_id INT,                         -- O ID do usuário que fez a ação (se disponível na sessão)
+    ip_address VARCHAR(45),              -- IP de origem (IPv4 ou IPv6)
+    
+    old_values JSONB,                    -- Como era antes (NULL no INSERT)
+    new_values JSONB,                    -- Como ficou depois (NULL no DELETE)
+    
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Documentação Tabela Change Logs
+COMMENT ON TABLE security.change_logs IS 'Log de Auditoria Central. Grava snapshot dos dados antes e depois de alterações.';
+COMMENT ON COLUMN security.change_logs.record_id IS 'ID da linha afetada. Armazenado como texto para aceitar qualquer tipo de PK.';
+COMMENT ON COLUMN security.change_logs.old_values IS 'Dados originais (Snapshot JSON). Útil para desfazer (rollback) erros manuais.';
+
+
+-- 2. Tabela de Logs de Erro do Sistema (Exceptions)
+-- Útil para você (desenvolvedor) saber quando o PHP/Front quebrou.
+CREATE TABLE security.error_logs (
+    error_id BIGSERIAL PRIMARY KEY,
+    org_id INT,                          -- Em qual paróquia deu erro?
+    user_id INT,                         -- Quem estava usando?
+    
+    error_code VARCHAR(50),              -- Ex: '500', 'SQL_STATE_23505'
+    error_message TEXT,                  -- "Duplicate key value violates unique constraint"
+    stack_trace TEXT,                    -- Caminho do arquivo/linha onde o erro ocorreu
+    
+    request_uri VARCHAR(255),            -- Qual página/API estava sendo acessada
+    occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Documentação Tabela Error Logs
+COMMENT ON TABLE security.error_logs IS 'Registro de falhas técnicas e exceções do sistema para debug.';
+
+
+-- 3. Tabela de Acesso (Login History)
+-- Para segurança: saber quem logou e de onde.
+CREATE TABLE security.access_logs (
+    access_id BIGSERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    org_id INT NOT NULL,
+    
+    login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    logout_time TIMESTAMP,
+    
+    ip_address VARCHAR(45),
+    user_agent TEXT,                     -- Navegador/Dispositivo (Chrome, iPhone)
+    status VARCHAR(20) DEFAULT 'SUCCESS' -- SUCCESS, FAILED_PASSWORD, BLOCKED
+);
+
+-- Documentação Tabela Access Logs
+COMMENT ON TABLE security.access_logs IS 'Histórico de sessões de usuários. Importante para investigação forense.';
+
+
+-- ==========================================================
+-- 4. FUNÇÃO GATILHO (TRIGGER) PARA AUDITORIA AUTOMÁTICA
+-- ==========================================================
+-- Esta função é o motor que preenche a tabela 'change_logs' sozinha.
+CREATE OR REPLACE FUNCTION security.log_changes() RETURNS TRIGGER AS $$
+DECLARE
+    v_record_id TEXT;
+    v_pk_column TEXT;
+    v_user_id INT;
+BEGIN
+    -- Tenta pegar o ID do usuário da sessão (enviado pelo PHP)
+    BEGIN
+        v_user_id := current_setting('app.current_user_id')::INT;
+    EXCEPTION WHEN OTHERS THEN
+        v_user_id := NULL;
+    END;
+
+    v_pk_column := TG_ARGV[0];
+
+    IF (TG_OP = 'DELETE') THEN
+        IF v_pk_column IS NOT NULL THEN
+            EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING OLD;
+        ELSE
+            v_record_id := 'UNKNOWN';
+        END IF;
+        INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, old_values)
+        VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'DELETE', v_record_id, v_user_id, row_to_json(OLD)::jsonb);
+        RETURN OLD;
+        
+    ELSIF (TG_OP = 'UPDATE') THEN
+        IF v_pk_column IS NOT NULL THEN
+            EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING NEW;
+        ELSE
+            v_record_id := 'UNKNOWN';
+        END IF;
+        
+        -- Só grava se mudou algo
+        IF row_to_json(OLD)::jsonb IS DISTINCT FROM row_to_json(NEW)::jsonb THEN
+            INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, old_values, new_values)
+            VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'UPDATE', v_record_id, v_user_id, row_to_json(OLD)::jsonb, row_to_json(NEW)::jsonb);
+        END IF;
+        RETURN NEW;
+        
+    ELSIF (TG_OP = 'INSERT') THEN
+        IF v_pk_column IS NOT NULL THEN
+            EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING NEW;
+        ELSE
+            v_record_id := 'UNKNOWN';
+        END IF;
+        INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, new_values)
+        VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'INSERT', v_record_id, v_user_id, row_to_json(NEW)::jsonb);
+        RETURN NEW;
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5. Reativa os Gatilhos nas tabelas existentes
+DROP TRIGGER IF EXISTS audit_trigger_organizations ON organization.organizations;
+CREATE TRIGGER audit_trigger_organizations
+AFTER INSERT OR UPDATE OR DELETE ON organization.organizations
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('org_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_locations ON organization.locations;
+CREATE TRIGGER audit_trigger_locations
+AFTER INSERT OR UPDATE OR DELETE ON organization.locations
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('location_id');
+
+-- Trigger para Pessoas
+DROP TRIGGER IF EXISTS audit_trigger_persons ON people.persons;
+CREATE TRIGGER audit_trigger_persons
+AFTER INSERT OR UPDATE OR DELETE ON people.persons
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('person_id');
+
+-- Trigger para Vínculos
+DROP TRIGGER IF EXISTS audit_trigger_person_roles ON people.person_roles;
+CREATE TRIGGER audit_trigger_person_roles
+AFTER INSERT OR UPDATE OR DELETE ON people.person_roles
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('link_id');
+
+-- Trigger para Família
+DROP TRIGGER IF EXISTS audit_trigger_family_ties ON people.family_ties;
+CREATE TRIGGER audit_trigger_family_ties
+AFTER INSERT OR UPDATE OR DELETE ON people.family_ties
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('tie_id');
+
+
+
+-- Documentação Função
+COMMENT ON FUNCTION security.log_changes IS 'Gatilho genérico. Deve ser acionado passando o nome da PK como argumento.';
