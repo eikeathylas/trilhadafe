@@ -1,7 +1,6 @@
 <?php
 // Configurações de Erro (Útil para debug)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+error_reporting(0);
 
 // Headers
 header('Access-Control-Allow-Origin: *');
@@ -15,6 +14,7 @@ include "../controller/session-controller.php";       // Sessão e Login
 include "../controller/dashboard-controller.php";     // Tela Inicial
 include "../controller/audit-controller.php";         // Auditoria (Raio)
 include "../controller/organization-controller.php";  // Organização e Salas
+include "../controller/people-controller.php";  // Pessoas
 
 // 3. Captura da Ação
 $validator = $_POST["validator"] ?? null;
@@ -85,6 +85,28 @@ switch ($validator) {
 		break;
 	case "getResponsiblesList":
 		getResponsiblesList(); // Preenche select de responsáveis
+		break;
+
+	// =========================================================
+	// MÓDULO: ORGANIZAÇÃO - LOCAIS/SALAS (organizacao.js)
+	// =========================================================
+	case "getPeople":
+		getPeople();
+		break;
+	case "getPerson":
+		getPerson();
+		break;
+	case "savePerson":
+		savePerson();
+		break;
+	case "deletePerson":
+		deletePerson();
+		break;
+	case "togglePerson":
+		togglePerson();
+		break;
+	case "getRelativesList":
+		getRelativesList();
 		break;
 
 	// =========================================================

@@ -87,7 +87,6 @@ CREATE TABLE organization.organizations (
 -- Responsabilidade: Gestão de Pessoas, Vínculos e Famílias
 -- ==========================================================
 
-
 -- 1. Tabela Mestra de Pessoas (Prontuário Único)
 CREATE TABLE people.persons (
     person_id SERIAL PRIMARY KEY,
@@ -120,6 +119,8 @@ CREATE TABLE people.persons (
     is_pcd BOOLEAN DEFAULT FALSE,
     pcd_details TEXT,
     dietary_restrictions TEXT,
+
+    sacraments_info JSONB, -- Armazena dados sobre Batismo, Crisma, etc.
     
     deceased BOOLEAN DEFAULT FALSE,
     death_date DATE,
@@ -178,6 +179,7 @@ COMMENT ON TABLE people.persons IS 'Cadastro central de indivíduos (CRM). Base 
 COMMENT ON COLUMN people.persons.religious_name IS 'Nome utilizado no dia a dia religioso (Freis, Freiras) ou Nome Social.';
 COMMENT ON COLUMN people.persons.org_id_origin IS 'Organização que realizou o cadastro inicial (Proprietária do dado).';
 COMMENT ON COLUMN people.persons.dietary_restrictions IS 'Alergias ou restrições alimentares. Vital para gestão de eventos e escola.';
+COMMENT ON COLUMN people.persons.sacraments_info IS 'Resumo declaratório dos sacramentos (Ex: {"baptized": true, "date": "...", "place": "..."}).';
 
 COMMENT ON TABLE people.roles IS 'Tipos de vínculos possíveis (Padre, Aluno, Funcionário).';
 

@@ -187,6 +187,28 @@ window.ajaxValidator = (data) => {
   });
 };
 
+window.ajaxValidatorFoto = (data) => {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: window.defaultApp.validator,
+      data,
+      dataType: "json",
+      type: "POST",
+      processData: false,
+      contentType: false,
+      success: (response) => resolve(response),
+      error: (xhr, status, error) => {
+        if (xhr.status === 401 || xhr.status === 403) {
+          console.warn("Erro de autenticação.");
+          window.logOut();
+        }
+        reject(error);
+      },
+    });
+  });
+};
+
+
 // =========================================================
 // 5. MOTOR DE SESSÃO
 // =========================================================
