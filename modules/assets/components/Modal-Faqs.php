@@ -2,166 +2,215 @@
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="duvidas_frequentesLabel">
-            <i class="fas fa-question-circle mr-2"></i> Dúvidas Frequentes
+        <h1 class="modal-title fs-5 text-white" id="duvidas_frequentesLabel">
+          <i class="fas fa-question-circle m-2"></i> Central de Ajuda
         </h1>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      
-      <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+
+      <div class="modal-body bg-light" style="max-height: 75vh; overflow-y: auto;">
         <div class="accordion" id="accordionDuvidas">
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
-                1. Como realizar a matrícula de um novo catequizando?
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                <i class="fas fa-user m-2 txt-theme"></i> Como cadastrar um novo fiel, aluno ou catequista?
               </button>
             </h2>
             <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Vá no menu <strong>Escola da Fé > Matrículas</strong>. Primeiro, certifique-se de que o aluno já possui cadastro em "Pessoas". Se não, cadastre-o primeiro. Na tela de matrícula, selecione a Turma desejada (ex: Eucaristia I - Sábado) e busque o aluno pelo nome. O sistema validará automaticamente se a idade dele é compatível com o curso.
+                Todo cadastro começa no <strong>Diretório de Pessoas</strong>. Lá você preenche os dados pessoais, endereço e define o vínculo (se é aluno, pai, catequista ou clero). É o "Prontuário Único" do sistema.
+                <div class="mt-3 text-end">
+                  <a href="pessoas.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Ir para Pessoas</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
-                2. Como o catequista lança a chamada e o conteúdo?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                <i class="fas fa-user-plus m-2 txt-theme"></i> Como matricular um aluno na catequese?
               </button>
             </h2>
             <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                O acesso é feito pelo menu <strong>Escola da Fé > Diário de Classe</strong>. O catequista seleciona sua turma e clica em "Nova Aula". Deve-se preencher a data, o tema do encontro (ex: "A Criação") e marcar a presença dos alunos na lista. Ao salvar, a frequência é atualizada automaticamente no percentual do aluno.
+                Após cadastrar a pessoa, vá em <strong>Matrículas</strong>. Selecione a Turma desejada e busque o aluno. O sistema verificará se a idade dele é compatível com o curso.
+                <div class="mt-3 text-end">
+                  <a href="matriculas.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Nova Matrícula</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
-                3. Como registrar intenções para a Santa Missa?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                <i class="fas fa-book m-2 txt-theme"></i> Sou Catequista. Como faço a chamada?
               </button>
             </h2>
             <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Acesse <strong>Vida Eclesiástica > Liturgia</strong>. Selecione a missa agendada no calendário e clique em "Adicionar Intenção". Você pode registrar o nome da pessoa, o motivo (Falecimento, Saúde, Ação de Graças) e, se houver oferta (espórtula), o valor. O sistema gera um comprovante e lança o valor no caixa do dia.
+                No menu <strong>Escola da Fé > Diário de Classe</strong>, você verá suas turmas. Clique em "Acessar", selecione a data da aula e marque "Presente" ou "Ausente" para cada aluno. Não esqueça de descrever o tema dado no dia.
+                <div class="mt-3 text-end">
+                  <a href="meus-diarios.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Meus Diários</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
-                4. Como emitir uma segunda via de Batistério?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
+                <i class="fas fa-chalkboard-teacher m-2 txt-theme"></i> Como abrir novas turmas para o próximo ano?
               </button>
             </h2>
             <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Vá em <strong>Vida Eclesiástica > Livros de Tombo</strong>. Utilize a busca para encontrar o fiel pelo nome ou data de nascimento. Ao localizar o registro, clique no ícone de "Impressora" para gerar o PDF oficial com os dados do Livro, Folha e Termo, pronto para assinatura do Pároco.
+                Vá em <strong>Gestão de Turmas</strong>. Clique em "Nova Turma", defina o Ano Letivo, o Curso (ex: Eucaristia I) e a Sala. Você também define o horário e o Catequista responsável nesta tela.
+                <div class="mt-3 text-end">
+                  <a href="turmas.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Gerenciar Turmas</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
-                5. Como diferenciar Dízimo de Oferta no sistema?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5">
+                <i class="fas fa-church m-2 txt-theme"></i> Como agendar Missas e Intenções?
               </button>
             </h2>
             <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                No módulo <strong>Administrativo > Financeiro</strong>, ao lançar uma entrada, selecione a Categoria correta. Para <strong>Dízimo</strong>, é obrigatório vincular a "Pessoa" (Dizimista) para que conste no histórico dela. Para <strong>Oferta de Missa</strong>, o vínculo com a pessoa é opcional e o lançamento pode ser feito pelo total da coleta.
+                Acesse o módulo <strong>Liturgia</strong>. No calendário, clique no dia desejado para agendar uma celebração. Dentro da celebração, você pode adicionar as <strong>Intenções (Súplicas)</strong> dos fiéis e gerar o recibo da oferta.
+                <div class="mt-3 text-end">
+                  <a href="liturgia.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Agenda Litúrgica</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapse6">
-                6. Como funciona o sistema de "Cartão de Consumo" nas festas?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6">
+                <i class="fas fa-file-signature m-2 txt-theme"></i> Onde emito Certidões de Batismo?
               </button>
             </h2>
             <div id="collapse6" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Em <strong>Eventos > Gestão de Festas</strong>, você cria o evento. O fiel adquire um cartão recarregável no caixa central. Nas barracas (Pastel, Bebidas), o atendente apenas bipa o cartão do fiel. O sistema debita o saldo e calcula automaticamente a comissão da igreja e o valor a ser repassado ao barraqueiro terceirizado.
+                Utilize o módulo <strong>Livros de Tombo</strong>. Pesquise pelo nome do fiel. Ao encontrar o registro de batismo, clique no ícone de impressora para gerar o documento oficial com os dados do Livro/Folha/Termo.
+                <div class="mt-3 text-end">
+                  <a href="sacramentos.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Livros de Tombo</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7" aria-expanded="false" aria-controls="collapse7">
-                7. Um aluno mudou de cidade. Como fazer a transferência?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7">
+                <i class="fas fa-hand-holding-usd m-2 txt-theme"></i> Como lançar Dízimo e Ofertas?
               </button>
             </h2>
             <div id="collapse7" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Acesse <strong>Secretaria > Transferências</strong>. Inicie uma nova solicitação de saída, selecionando o aluno e a paróquia de destino (se usar o sistema) ou digitando o nome da nova paróquia. O sistema gera a "Carta de Transferência" com todo o histórico de sacramentos e etapas concluídas para ser entregue na nova comunidade.
+                No <strong>Financeiro</strong>, clique em "Nova Entrada". Se for Dízimo, selecione a categoria "Dízimo" e vincule a pessoa. Se for Oferta de Missa, selecione a categoria "Oferta" e vincule (opcionalmente) à celebração do dia.
+                <div class="mt-3 text-end">
+                  <a href="financeiro.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Caixa</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8" aria-expanded="false" aria-controls="collapse8">
-                8. Como abrir novas turmas para o próximo ano?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8">
+                <i class="fas fa-glass-cheers m-2 txt-theme"></i> Como funciona o sistema da Quermesse?
               </button>
             </h2>
             <div id="collapse8" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Em <strong>Escola da Fé > Turmas</strong>, clique em "Nova Turma". Defina o Ano Letivo (ex: 2026), o Curso (ex: Crisma) e a Sala. O sistema permite duplicar a estrutura de horários de uma turma anterior para facilitar o cadastro. Lembre-se de verificar a disponibilidade das salas no menu "Minha Paróquia".
+                Crie o evento em <strong>Eventos e Festas</strong>. Cadastre as Barracas (ex: Pastel, Bebidas). No dia da festa, utilize a tela de "Venda de Fichas/Caixa" para carregar saldo no cartão do fiel. As barracas apenas bipam o cartão para debitar.
+                <div class="mt-3 text-end">
+                  <a href="eventos.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Gerir Eventos</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse9" aria-expanded="false" aria-controls="collapse9">
-                9. Quem tem acesso às informações financeiras e pessoais?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse9">
+                <i class="fas fa-building m-2 txt-theme"></i> Preciso cadastrar uma nova Sala ou Capela.
               </button>
             </h2>
             <div id="collapse9" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                O sistema utiliza controle de acesso granular.
-                <ul>
-                    <li><strong>Catequistas:</strong> Acessam apenas suas turmas e alunos.</li>
-                    <li><strong>Secretaria:</strong> Acessa cadastros e sacramentos, mas pode ter o financeiro bloqueado.</li>
-                    <li><strong>Pároco/Tesoureiro:</strong> Acesso total aos relatórios financeiros.</li>
-                </ul>
-                Todas as ações sensíveis ficam registradas no Log de Auditoria.
+                Vá em <strong>Minha Paróquia</strong> (Configurações). Na aba "Salas e Espaços", você pode cadastrar novos locais, definir a capacidade máxima e se possui recursos como Ar-Condicionado.
+                <div class="mt-3 text-end">
+                  <a href="organizacao.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Estrutura</a>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse10" aria-expanded="false" aria-controls="collapse10">
-                10. O sistema travou ou encontrei um erro. O que fazer?
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse10">
+                <i class="fas fa-graduation-cap m-2 txt-theme"></i> Como definir o que é ensinado (Grade Curricular)?
               </button>
             </h2>
             <div id="collapse10" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Primeiro, tente atualizar a página (F5). Se o erro persistir, verifique sua conexão com a internet. O sistema possui um log automático de erros que é enviado para nossa equipe de desenvolvimento. Para casos urgentes, utilize o botão de WhatsApp abaixo.
+                Primeiro cadastre as matérias em <strong>Disciplinas</strong> (ex: Bíblia). Depois vá em <strong>Cursos</strong> (ex: Crisma) e vincule quais disciplinas compõem aquele curso e a carga horária.
+                <div class="mt-3 text-end">
+                  <a href="cursos.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Configurar Cursos</a>
+                </div>
               </div>
-              
-              <div class="accordion-footer mt-3">
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <a class="btn btn-success text-white" target="_blank" href="https://wa.me/5581999999999?text=Olá,%20sou%20da%20Paróquia%20e%20preciso%20de%20ajuda%20no%20sistema%20Trilha%20da%20Fé.">
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse11">
+                <i class="fas fa-exchange-alt m-2 txt-theme"></i> Como transferir um aluno para outra cidade?
+              </button>
+            </h2>
+            <div id="collapse11" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
+              <div class="accordion-body">
+                Acesse <strong>Transferências</strong>. Inicie uma solicitação de saída. O sistema irá gerar a documentação com o histórico do aluno e encerrar a matrícula local, deixando-o pronto para ser recebido na nova paróquia.
+                <div class="mt-3 text-end">
+                  <a href="transferencias.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Transferências</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse12">
+                <i class="fas fa-headset m-2 txt-theme"></i> Erro no sistema ou Dúvida Técnica?
+              </button>
+            </h2>
+            <div id="collapse12" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
+              <div class="accordion-body">
+                Se encontrou um erro técnico ou precisa de ajuda urgente que não está listada aqui, entre em contato com nosso suporte via WhatsApp.
+                <div class="mt-3 text-end">
+                  <a class="btn btn-success text-white" target="_blank" href="https://wa.me/5581982549914?text=Olá,%20preciso%20de%20ajuda%20no%20sistema%20Trilha%20da%20Fé.">
                     <i class="fab fa-whatsapp"></i> Falar com Suporte
                   </a>
                 </div>
               </div>
-
             </div>
           </div>
 
         </div>
       </div>
-      
-      <div class="modal-footer">
+
+      <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
         <button class="btn btn-secondary text-white" data-bs-dismiss="modal">
-            <i class="fas fa-times"></i> Fechar
+          <i class="fas fa-times mr-1"></i> Fechar Ajuda
         </button>
       </div>
     </div>

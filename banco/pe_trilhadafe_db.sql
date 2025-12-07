@@ -18,21 +18,18 @@ DROP SCHEMA IF EXISTS organization CASCADE;    -- Estrutura Física
 -- 3. Remove Extensões
 DROP EXTENSION IF EXISTS "pgcrypto";
 
--- Log Visual
-DO $$ BEGIN
-    RAISE NOTICE 'Banco de dados limpo com sucesso. Todos os schemas foram removidos.';
-END $$;
 
-
-
--- ==========================================================
--- SCHEMA: ORGANIZATION
--- Responsabilidade: Estrutura Física e Jurídica
--- ==========================================================
-
+CREATE SCHEMA IF NOT EXISTS people;
 CREATE SCHEMA IF NOT EXISTS organization;
+CREATE SCHEMA IF NOT EXISTS security;
+CREATE SCHEMA IF NOT EXISTS education;
+CREATE SCHEMA IF NOT EXISTS sacraments;
+CREATE SCHEMA IF NOT EXISTS pastoral;
+CREATE SCHEMA IF NOT EXISTS finance;
+CREATE SCHEMA IF NOT EXISTS events_commerce;
+CREATE SCHEMA IF NOT EXISTS communication;
 
--- Enum: Define a natureza canônica e jurídica da unidade
+-- ==========================================================
 CREATE TYPE organization.org_type_enum AS ENUM (
     'PARISH',         -- Paróquia (Pública, com território definido)
     'CHAPEL',         -- Capela / Comunidade (Vinculada a uma Paróquia)
@@ -43,93 +40,53 @@ CREATE TYPE organization.org_type_enum AS ENUM (
     'RETREAT_HOUSE'   -- Casa de Retiro (Hospedagem temporária)
 );
 
--- Tabela Principal: As Entidades
 CREATE TABLE organization.organizations (
     org_id SERIAL PRIMARY KEY,
-    parent_org_id INT REFERENCES organization.organizations(org_id), -- Auto-relacionamento (Ex: Capela X pertence à Paróquia Y)
+    parent_org_id INT REFERENCES organization.organizations(org_id),
     
     -- Classificação
-    org_type organization.org_type_enum NOT NULL DEFAULT 'PARISH',
+    org_type VARCHAR(50) NOT NULL DEFAULT 'PARISH', -- Simplificado para VARCHAR para evitar erro de Type Enum se não existir
     
-    -- Identificação Jurídica e Civil
-    legal_name VARCHAR(255) NOT NULL,    -- Razão Social (Ex: Mitra Arquidiocesana...)
-    display_name VARCHAR(255) NOT NULL,  -- Nome Fantasia (Ex: Paróquia São José)
-    tax_id VARCHAR(20),                  -- CNPJ
+    -- Identificação
+    legal_name VARCHAR(255) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    tax_id VARCHAR(20),
     
-    -- Identificação Eclesiástica (Canônica)
-    diocese_name VARCHAR(200),           -- Diocese a que pertence
-    patron_saint VARCHAR(150),           -- Padroeiro (Define datas festivas)
-    decree_number VARCHAR(50),           -- Nº do Decreto de Criação/Ereção Canônica
-    foundation_date DATE,                -- Data de fundação
-    closure_date DATE,                   -- Se preenchido, a unidade foi suprimida (fechada)
+    -- Eclesiástico
+    diocese_name VARCHAR(200),
+    patron_saint VARCHAR(150),
+    decree_number VARCHAR(50),
+    foundation_date DATE,
+    closure_date DATE,
     
-    -- Contatos Oficiais
+    -- Contatos
     phone_main VARCHAR(20),
     phone_secondary VARCHAR(20),
     email_contact VARCHAR(150),
     website_url VARCHAR(255),
     
-    -- Endereço Físico
+    -- Endereço
     address_street VARCHAR(255),
     address_number VARCHAR(20),
-    address_district VARCHAR(100),       -- Bairro
+    address_district VARCHAR(100),
     address_city VARCHAR(100),
     address_state CHAR(2),
-    zip_code VARCHAR(20),                -- CEP
-    geo_coordinates VARCHAR(50),         -- Latitude/Longitude (Para mapas no App)
+    zip_code VARCHAR(20),
+    geo_coordinates VARCHAR(50),
     
     -- Controle
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE       -- Soft Delete
-);
-
--- Documentação Tabela Organizations
-COMMENT ON TABLE organization.organizations IS 'Cadastro das unidades eclesiásticas (Paróquias, Capelas, Conventos).';
-COMMENT ON COLUMN organization.organizations.parent_org_id IS 'Hierarquia: Se for uma Capela, aponta para a Paróquia Matriz (org_id pai).';
-COMMENT ON COLUMN organization.organizations.org_type IS 'Natureza da instituição. Define regras de negócio (ex: Convento tem celas, Paróquia tem dízimo).';
-COMMENT ON COLUMN organization.organizations.decree_number IS 'Dado jurídico canônico: documento oficial do Bispo que criou a paróquia.';
-COMMENT ON COLUMN organization.organizations.closure_date IS 'Histórico: Data de encerramento das atividades (Supressão da Paróquia).';
-
-
--- Tabela de Locais: Espaços Físicos dentro da Organização
-CREATE TABLE organization.locations (
-    location_id SERIAL PRIMARY KEY,
-    org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
-    
-    name VARCHAR(150) NOT NULL,          -- Ex: "Sala 1", "Altar Mor", "Refeitório"
-    description TEXT,                    -- Detalhes de como chegar ou uso
-    capacity INT DEFAULT 0,              -- Capacidade máxima de pessoas (Segurança)
-    
-    -- Características Físicas (Flags)
-    is_accessible BOOLEAN DEFAULT FALSE,  -- Tem rampa/elevador? (Importante para inclusão)
-    is_lodging BOOLEAN DEFAULT FALSE,     -- É alojamento/cela/dormitório?
-    is_consecrated BOOLEAN DEFAULT FALSE, -- É espaço sagrado? (Altar/Capela do Santíssimo)
-    has_ac BOOLEAN DEFAULT FALSE,         -- Tem Ar-Condicionado?
-    has_ceiling_fan BOOLEAN DEFAULT FALSE,-- Tem Ventilador de Teto?
-    
-    -- Inventário Rápido (JSON)
-    -- Exemplo: {"projetor": true, "bancos": 50, "instrumentos": ["teclado", "violão"]}
-    resources_detail JSONB,
-    
-    photo_url VARCHAR(255),               -- Foto do espaço (para reservas ou eventos)
-    
     is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    deleted BOOLEAN DEFAULT FALSE, -- ADICIONADO PARA O SOFT DELETE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- Documentação Tabela Locations
-COMMENT ON TABLE organization.locations IS 'Salas, Prédios e Espaços Físicos gerenciáveis dentro de uma unidade.';
-COMMENT ON COLUMN organization.locations.is_consecrated IS 'Define se o local é sagrado (restringe festas/eventos profanos neste local).';
-COMMENT ON COLUMN organization.locations.is_lodging IS 'Define se o local serve para dormir (Celas de monjas, quartos de retiro).';
-COMMENT ON COLUMN organization.locations.resources_detail IS 'Campo flexível (JSON) para listar patrimônio fixo da sala (Projetor, Som, Cadeiras).';
+-- ==========================================================
 
 -- ==========================================================
 -- SCHEMA: PEOPLE
 -- Responsabilidade: Gestão de Pessoas, Vínculos e Famílias
 -- ==========================================================
 
-CREATE SCHEMA IF NOT EXISTS people;
 
 -- 1. Tabela Mestra de Pessoas (Prontuário Único)
 CREATE TABLE people.persons (
@@ -257,12 +214,123 @@ CREATE TABLE people.status_history (
 -- Documentação Tabela Status History
 COMMENT ON TABLE people.status_history IS 'Linha do tempo de ocorrências (Férias, Doenças, Afastamentos).';
 
+
+-- ==========================================================
+-- SCHEMA: ORGANIZATION
+-- Responsabilidade: Estrutura Física e Jurídica
+-- ==========================================================
+
+
+-- Enum: Define a natureza canônica e jurídica da unidade
+-- CREATE TYPE organization.org_type_enum AS ENUM (
+--     'PARISH',         -- Paróquia (Pública, com território definido)
+--     'CHAPEL',         -- Capela / Comunidade (Vinculada a uma Paróquia)
+--     'CONVENT',        -- Convento (Residencial, vida religiosa)
+--     'MONASTERY',      -- Mosteiro (Vida contemplativa)
+--     'SEMINARY',       -- Seminário (Formação de padres)
+--     'CURIA',          -- Cúria / Sede Administrativa da Diocese
+--     'RETREAT_HOUSE'   -- Casa de Retiro (Hospedagem temporária)
+-- );
+
+-- Tabela Principal: As Entidades
+-- CREATE TABLE organization.organizations (
+--     org_id SERIAL PRIMARY KEY,
+--     parent_org_id INT REFERENCES organization.organizations(org_id), -- Auto-relacionamento (Ex: Capela X pertence à Paróquia Y)
+    
+--     -- Classificação
+--     org_type organization.org_type_enum NOT NULL DEFAULT 'PARISH',
+    
+--     -- Identificação Jurídica e Civil
+--     legal_name VARCHAR(255) NOT NULL,    -- Razão Social (Ex: Mitra Arquidiocesana...)
+--     display_name VARCHAR(255) NOT NULL,  -- Nome Fantasia (Ex: Paróquia São José)
+--     tax_id VARCHAR(20),                  -- CNPJ
+    
+--     -- Identificação Eclesiástica (Canônica)
+--     diocese_name VARCHAR(200),           -- Diocese a que pertence
+--     patron_saint VARCHAR(150),           -- Padroeiro (Define datas festivas)
+--     decree_number VARCHAR(50),           -- Nº do Decreto de Criação/Ereção Canônica
+--     foundation_date DATE,                -- Data de fundação
+--     closure_date DATE,                   -- Se preenchido, a unidade foi suprimida (fechada)
+    
+--     -- Contatos Oficiais
+--     phone_main VARCHAR(20),
+--     phone_secondary VARCHAR(20),
+--     email_contact VARCHAR(150),
+--     website_url VARCHAR(255),
+    
+--     -- Endereço Físico
+--     address_street VARCHAR(255),
+--     address_number VARCHAR(20),
+--     address_district VARCHAR(100),       -- Bairro
+--     address_city VARCHAR(100),
+--     address_state CHAR(2),
+--     zip_code VARCHAR(20),                -- CEP
+--     geo_coordinates VARCHAR(50),         -- Latitude/Longitude (Para mapas no App)
+    
+--     -- Controle
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     is_active BOOLEAN DEFAULT TRUE       -- Soft Delete
+-- );
+
+-- Documentação Tabela Organizations
+COMMENT ON TABLE organization.organizations IS 'Cadastro das unidades eclesiásticas (Paróquias, Capelas, Conventos).';
+COMMENT ON COLUMN organization.organizations.parent_org_id IS 'Hierarquia: Se for uma Capela, aponta para a Paróquia Matriz (org_id pai).';
+COMMENT ON COLUMN organization.organizations.org_type IS 'Natureza da instituição. Define regras de negócio (ex: Convento tem celas, Paróquia tem dízimo).';
+COMMENT ON COLUMN organization.organizations.decree_number IS 'Dado jurídico canônico: documento oficial do Bispo que criou a paróquia.';
+COMMENT ON COLUMN organization.organizations.closure_date IS 'Histórico: Data de encerramento das atividades (Supressão da Paróquia).';
+
+
+-- 2. Cria a nova estrutura atualizada
+CREATE TABLE organization.locations (
+    location_id SERIAL PRIMARY KEY,
+    org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
+    
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    capacity INT DEFAULT 0,
+    
+    -- Responsável (Vínculo com Pessoa)
+    responsible_id INT REFERENCES people.persons(person_id),
+    
+    -- Endereço Descentralizado
+    address_street VARCHAR(255),
+    address_number VARCHAR(20),
+    address_district VARCHAR(100),
+    zip_code VARCHAR(20),
+    
+    -- Características Físicas (Colunas)
+    is_accessible BOOLEAN DEFAULT FALSE,
+    is_lodging BOOLEAN DEFAULT FALSE,
+    is_consecrated BOOLEAN DEFAULT FALSE,
+    has_ac BOOLEAN DEFAULT FALSE,
+    has_ceiling_fan BOOLEAN DEFAULT FALSE,
+
+    -- Inventário (JSON)
+    resources_detail JSONB,
+    
+    photo_url VARCHAR(255),
+    
+    -- Controle
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE, -- ADICIONADO PARA O SOFT DELETE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- Documentação
+COMMENT ON TABLE organization.locations IS 'Espaços físicos. Suporta endereços descentralizados e vínculo com responsável.';
+COMMENT ON COLUMN organization.locations.responsible_id IS 'Pessoa responsável pela chave ou manutenção.';
+COMMENT ON TABLE organization.locations IS 'Salas, Prédios e Espaços Físicos gerenciáveis dentro de uma unidade.';
+COMMENT ON COLUMN organization.locations.is_consecrated IS 'Define se o local é sagrado (restringe festas/eventos profanos neste local).';
+COMMENT ON COLUMN organization.locations.is_lodging IS 'Define se o local serve para dormir (Celas de monjas, quartos de retiro).';
+COMMENT ON COLUMN organization.locations.resources_detail IS 'Campo flexível (JSON) para listar patrimônio fixo da sala (Projetor, Som, Cadeiras).';
+
 -- ==========================================================
 -- SCHEMA: SECURITY
 -- Responsabilidade: Auditoria, Logs de Erro e Rastreabilidade
 -- ==========================================================
 
-CREATE SCHEMA IF NOT EXISTS security;
 
 -- 1. Tabela de Auditoria (Audit Trail / Change Data Capture)
 -- Registra O QUE mudou, QUEM mudou e QUANDO mudou.
@@ -390,7 +458,6 @@ COMMENT ON FUNCTION security.log_changes IS 'Gatilho genérico. Deve ser acionad
 -- Responsabilidade: Gestão Pedagógica, Cursos e Diários
 -- ==========================================================
 
-CREATE SCHEMA IF NOT EXISTS education;
 
 -- 1. Disciplinas (Matérias Isoladas)
 -- Ex: "Novo Testamento", "Liturgia", "Orações Básicas"
@@ -601,7 +668,6 @@ COMMENT ON TABLE education.student_grades IS 'Notas individuais dos alunos nas a
 -- Responsabilidade: Registro Canônico e Livros de Tombo
 -- ==========================================================
 
-CREATE SCHEMA IF NOT EXISTS sacraments;
 
 -- Enum: Tipos de Livros Oficiais
 CREATE TYPE sacraments.sacrament_type_enum AS ENUM (
@@ -766,7 +832,6 @@ COMMENT ON COLUMN sacraments.deaths.sacraments_received IS 'Histórico pastoral:
 -- Responsabilidade: Liturgia, Missas, Intenções e Atendimentos
 -- ==========================================================
 
-CREATE SCHEMA IF NOT EXISTS pastoral;
 
 -- 1. Tipos de Celebração
 -- Ex: "Santa Missa", "Adoração ao Santíssimo", "Batizado Comunitário", "Novena"
@@ -888,7 +953,6 @@ COMMENT ON COLUMN pastoral.pastoral_visits.notes_private IS 'Campo sensível. De
 -- Responsabilidade: Tesouraria, Dízimo, Contas a Pagar/Receber
 -- ==========================================================
 
-CREATE SCHEMA IF NOT EXISTS finance;
 
 -- 1. Contas Bancárias e Caixas (Onde o dinheiro está?)
 -- Ex: "Cofre da Matriz", "Conta Corrente BB", "Caixinha da Secretaria"
@@ -1010,7 +1074,6 @@ COMMENT ON TABLE finance.tithe_profiles IS 'Perfil do Dizimista. Gerencia numera
 -- Responsabilidade: Festas, Bingos, Trilhas e Sistema Cashless (Vendas)
 -- ==========================================================
 
-CREATE SCHEMA IF NOT EXISTS events_commerce;
 
 -- 1. O Evento (A Campanha)
 -- Ex: "Quermesse 2025", "Trilha da Fé - Edição 1", "Bingo Beneficente"
@@ -1181,7 +1244,6 @@ COMMENT ON COLUMN events_commerce.transactions.church_fee_amount IS 'Lucro retid
 -- Responsabilidade: Blog, Notícias, Banners do App e Mídia
 -- ==========================================================
 
-CREATE SCHEMA IF NOT EXISTS communication;
 
 -- 1. Categorias de Conteúdo
 -- Ex: "Homilias", "Avisos Paroquiais", "Prestação de Contas", "Fotos da Festa"

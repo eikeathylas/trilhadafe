@@ -27,14 +27,17 @@ const configTheme = (ele) => {
     }
   }
 };
-// Inicia o tema
 configTheme();
 
 // =========================================================
-// 2. CONFIGURAÇÕES GLOBAIS E SESSÃO
+// 2. CONFIGURAÇÕES GLOBAIS
 // =========================================================
+const getUrl = () => {
+  let path = window.location.pathname;
+  let dir = path.substring(0, path.lastIndexOf("/"));
+  return `${window.location.origin}${dir}`;
+};
 
-// Leitura segura do LocalStorage
 const getSessionData = () => {
   try {
     return JSON.parse(localStorage.getItem("tf_data")) || {};
@@ -43,60 +46,112 @@ const getSessionData = () => {
   }
 };
 
-// Objeto Global da Aplicação
 window.defaultApp = {
   userInfo: getSessionData(),
   validator: `app/validation/validation.php`,
 };
 
-const getUrl = () => {
-  let path = window.location.pathname;
-  let dir = path.substring(0, path.lastIndexOf("/"));
-  return `${window.location.origin}${dir}`;
+// =========================================================
+// 3. UTILITÁRIOS GLOBAIS (O QUE VOCÊ PEDIU)
+// =========================================================
+
+// MÁSCARAS GLOBAIS
+// Use classes no HTML: .mask-cpf, .mask-cnpj, .mask-phone, .mask-cep
+window.initMasks = () => {
+  if ($.fn.mask) {
+    $(".mask-date").mask("00/00/0000");
+    $(".mask-time").mask("00:00:00");
+    $(".mask-cep").mask("00000-000");
+    $(".mask-cpf").mask("000.000.000-00", { reverse: true });
+    $(".mask-cnpj").mask("00.000.000/0000-00", { reverse: true });
+    $(".mask-money").mask("000.000.000,00", { reverse: true });
+
+    // Máscara dinâmica para telefone (8 ou 9 dígitos)
+    var phoneMaskBehavior = function (val) {
+        return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
+      },
+      phoneOptions = {
+        onKeyPress: function (val, e, field, options) {
+          field.mask(phoneMaskBehavior.apply({}, arguments), options);
+        },
+      };
+    $(".mask-phone").mask(phoneMaskBehavior, phoneOptions);
+  }
+};
+
+// BOTÃO DE LOADING (Salvando...)
+window.setButton = (isLoading, element, originalText = "Salvar") => {
+  if (isLoading) {
+    element.prop("disabled", true);
+    element.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processando...');
+  } else {
+    element.prop("disabled", false);
+    element.html(originalText);
+  }
+};
+
+// BIBLIOTECA DE ÍCONES DE RECURSOS (Para Tabelas)
+window.getResourceIcon = (key) => {
+  // Nota: Em Bootstrap 5, usa-se 'me-2' (margin-end) e não 'mr-2'
+  const icons = {
+    // Estruturais
+    ac: '<i class="fas fa-snowflake text-info me-2" title="Ar-Condicionado"></i>',
+    fan: '<i class="fas fa-fan text-secondary me-2" title="Ventilador"></i>',
+    access: '<i class="fas fa-wheelchair text-primary me-2" title="Acessibilidade (PCD)"></i>',
+    sacred: '<i class="fas fa-church text-warning me-2" title="Local Sagrado / Altar"></i>',
+
+    // Equipamentos
+    wifi: '<i class="fas fa-wifi text-success me-2" title="Wi-Fi Disponível"></i>',
+    projector: '<i class="fas fa-video text-secondary me-2" title="Projetor / TV"></i>',
+    sound: '<i class="fas fa-volume-up text-danger me-2" title="Sistema de Som"></i>',
+    whiteboard: '<i class="fas fa-chalkboard text-dark me-2" title="Quadro / Lousa"></i>',
+    computer: '<i class="fas fa-desktop text-dark me-2" title="Computadores"></i>',
+
+    // Apoio
+    kitchen: '<i class="fas fa-utensils text-warning me-2" title="Cozinha / Copa"></i>',
+    water: '<i class="fas fa-tint text-info me-2" title="Bebedouro Próximo"></i>',
+    parking: '<i class="fas fa-parking text-muted me-2" title="Estacionamento"></i>',
+  };
+  return icons[key] || "";
+};
+
+// GERADOR DE TOGGLE SWITCH (Para Tabelas)
+window.renderToggle = (id, isChecked, onChangeFunction) => {
+  const checkedAttr = isChecked ? "checked" : "";
+  // Passamos 'this' para o JS manipular o botão
+  return `
+        <div class="form-check form-switch d-flex justify-content-center align-items-center">
+            <input class="form-check-input toggleSwitch" type="checkbox" 
+                   onchange="${onChangeFunction}(${id}, this)" ${checkedAttr}>
+            <div class="spinner-border spinner-border-sm text-primary ms-2 d-none toggle-loader" role="status"></div>
+        </div>
+    `;
 };
 
 // =========================================================
-// 3. FUNÇÕES UTILITÁRIAS (AJAX, ALERTS, UI)
+// 4. FUNÇÕES CORE (LOGOUT, LOAD, ALERTAS)
 // =========================================================
 
-// Função de Logout Global
 window.logOut = (reason = null) => {
-  // Limpa dados sensíveis
   localStorage.removeItem("tf_data");
   localStorage.removeItem("tf_access");
+  localStorage.removeItem("tf_time");
+  localStorage.removeItem("tf_time_confirm");
 
-  if (reason) {
-    alert("Sessão encerrada: " + reason);
-  }
-
-  // Redireciona para o login
+  if (reason) alert("Sessão encerrada: " + reason);
   window.location.href = "../login/";
 };
 
-// Loader (Tela de Carregamento)
 window.load = (status = true) => {
   let divLoad = $("#div-loader");
   if (!divLoad[0]) {
     $("body").append(`<div id="div-loader" class="div-loader" style="display: none;"><span class="loader"></span></div>`);
     divLoad = $("#div-loader");
   }
-
   if (status) divLoad.fadeIn(200);
   else divLoad.fadeOut(200);
 };
 
-// Controle de Botões
-window.setButton = (status, btn, text) => {
-  btn.prop("disabled", status).html(text);
-};
-
-// Formatador de Moeda
-window.formatter = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
-// Alertas (SweetAlert2)
 window.alertDefault = (msg = "Ação realizada!", icon = "success", time = 4, position = "top-end") => {
   Swal.mixin({
     icon: icon,
@@ -113,7 +168,6 @@ window.alertDefault = (msg = "Ação realizada!", icon = "success", time = 4, po
   }).fire();
 };
 
-// Wrapper AJAX Padrão (Promise)
 window.ajaxValidator = (data) => {
   return new Promise((resolve, reject) => {
     $.ajax({
@@ -121,13 +175,10 @@ window.ajaxValidator = (data) => {
       data,
       dataType: "json",
       type: "POST",
-      success: (response) => {
-        resolve(response);
-      },
+      success: (response) => resolve(response),
       error: (xhr, status, error) => {
-        // Se der erro de autenticação (401/403), força logout
         if (xhr.status === 401 || xhr.status === 403) {
-          console.warn("Erro de autenticação no AJAX.");
+          console.warn("Erro de autenticação.");
           window.logOut();
         }
         reject(error);
@@ -137,69 +188,37 @@ window.ajaxValidator = (data) => {
 };
 
 // =========================================================
-// 4. MOTOR DE SESSÃO (PING ECONÔMICO)
+// 5. MOTOR DE SESSÃO
 // =========================================================
 
-// A. Validação de Status (Roda a cada 5 min)
-// Verifica se o token ainda existe ou se há bloqueio financeiro
 const checkSessionStatus = () => {
   if (!defaultApp.userInfo.token) return;
-
-  ajaxValidator({
-    validator: "token",
-    token: defaultApp.userInfo.token,
-  })
+  ajaxValidator({ validator: "token", token: defaultApp.userInfo.token })
     .then((json) => {
       if (json.status && json.data.logout) {
-        // O servidor mandou deslogar
         let msg = "Sessão expirada.";
+        if (json.data.reason === "financial") msg = "Acesso suspenso. Contate o financeiro.";
 
-        // Verifica se é bloqueio financeiro
-        if (json.data.reason === "financial") {
-          msg = "Acesso suspenso. Entre em contato com a administração.";
-        }
-
-        Swal.fire({
-          icon: "warning",
-          text: msg,
-          confirmButtonColor: "#5C8EF1",
-          allowOutsideClick: false,
-        }).then(() => {
-          window.logOut();
-        });
+        Swal.fire({ icon: "warning", title: "Atenção", text: msg, confirmButtonColor: "#5C8EF1", allowOutsideClick: false }).then(() => window.logOut());
       }
     })
-    .catch(() => console.warn("Falha ao verificar sessão (Rede)."));
+    .catch(() => console.warn("Falha ao verificar sessão."));
 };
 
-// B. Renovação de Sessão (Roda a cada 10 min)
-// Diz ao banco: "Estou aqui, não me derrube por inatividade"
 const keepAlive = () => {
   if (!defaultApp.userInfo.token) return;
-
-  ajaxValidator({
-    validator: "confirm",
-    token: defaultApp.userInfo.token,
-  }).then((json) => {
-    if (json.status) {
-      console.log("Sessão renovada com sucesso.");
-    }
-  });
+  ajaxValidator({ validator: "confirm", token: defaultApp.userInfo.token });
 };
 
-// C. Inicialização dos Timers
 $(document).ready(() => {
-  // Verifica imediatamente ao carregar
   checkSessionStatus();
+  setInterval(checkSessionStatus, 300000); // 5 min
+  setInterval(keepAlive, 600000); // 10 min
 
-  // Loop de Validação (5 minutos = 300.000 ms)
-  setInterval(checkSessionStatus, 300000);
-
-  // Loop de Renovação (10 minutos = 600.000 ms)
-  setInterval(keepAlive, 600000);
-
-  // Remove loader inicial se existir
   setTimeout(() => {
     $("#div-loader").fadeOut();
   }, 500);
+
+  // Inicializa máscaras globais ao carregar
+  initMasks();
 });

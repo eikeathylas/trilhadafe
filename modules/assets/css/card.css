@@ -124,7 +124,7 @@
 .cliente-nome {
   font-size: 18px;
   font-weight: bold;
-  color: #ff7622;
+  color: #5c8ef1;
   margin-bottom: 5px;
 }
 
@@ -176,7 +176,7 @@
   margin-right: 10px;
   margin-top: 10px;
   padding: 10px 15px;
-  border: 1px solid #e65c00;
+  border: 1px solid #5c8ef1;
   border-radius: 5px;
   background-color: var(--padrao);
   color: #fff;
@@ -184,7 +184,7 @@
   transition: 0.3s;
 }
 .btn-filter:hover {
-  background-color: #e65c00;
+  background-color: #5c8ef1;
 }
 
 .cards-view {
@@ -202,14 +202,14 @@
 }
 .order-card {
   background-color: var(--fundo);
-  border: 2px solid #ff6600;
+  border: 2px solid #5c8ef1;
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 .order-title {
-  color: #ff6600;
+  color: #5c8ef1;
   font-size: 1.2em;
   margin-bottom: 15px;
   text-align: center;
