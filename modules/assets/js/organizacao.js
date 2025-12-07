@@ -3,7 +3,7 @@ const defaultOrg = {
   orgRowsPerPage: 10,
   orgTotalPages: 1,
   locCurrentPage: 1,
-  locRowsPerPage: 10,
+  locRowsPerPage: 2,
   locTotalPages: 1,
 };
 
@@ -11,14 +11,12 @@ const defaultOrg = {
 // FUNÇÕES AUXILIARES GLOBAIS DO MÓDULO
 // =========================================================
 
-// Lógica de Toggle com Feedback Visual (Evita erros de clique duplo)
 const handleToggle = async (validator, id, element, successMsg = "Status atualizado.") => {
   const $chk = $(element);
   const $loader = $chk.siblings(".toggle-loader");
   const status = $chk.is(":checked");
 
   try {
-    // Bloqueia e mostra loading
     $chk.prop("disabled", true);
     $loader.removeClass("d-none");
 
@@ -32,7 +30,6 @@ const handleToggle = async (validator, id, element, successMsg = "Status atualiz
     if (result.status) {
       alertDefault(successMsg, "success");
     } else {
-      // Erro: Reverte o switch visualmente
       $chk.prop("checked", !status);
       alertDefault(result.alert, "error");
     }
@@ -41,13 +38,11 @@ const handleToggle = async (validator, id, element, successMsg = "Status atualiz
     $chk.prop("checked", !status);
     alertDefault("Erro de conexão.", "error");
   } finally {
-    // Libera
     $chk.prop("disabled", false);
     $loader.addClass("d-none");
   }
 };
 
-// Expostos para o HTML acessar
 window.toggleOrg = (id, element) => handleToggle("toggleOrganization", id, element, "Instituição atualizada.");
 window.toggleLoc = (id, element) => handleToggle("toggleLocation", id, element, "Local atualizado.");
 
@@ -55,7 +50,7 @@ window.toggleLoc = (id, element) => handleToggle("toggleLocation", id, element, 
 // 1. INSTITUIÇÕES (PARÓQUIAS)
 // =========================================================
 
-const buscarCep = (valor) => {
+window.buscarCep = (valor) => {
   var cep = valor.replace(/\D/g, "");
   if (cep != "" && /^[0-9]{8}$/.test(cep)) {
     $("#org_street, #org_district, #org_city, #org_state").prop("disabled", true).val("...");
@@ -98,7 +93,7 @@ const modalInstituicao = (id = null) => {
   } else {
     $("#modalInstituicaoLabel").text("Nova Instituição");
     modal.modal("show");
-    if (window.initMasks) window.initMasks(); // Reaplica máscaras
+    if (window.initMasks) window.initMasks();
   }
 };
 
@@ -130,8 +125,6 @@ const loadOrgData = async (id) => {
       if ($("#org_type")[0].selectize) $("#org_type")[0].selectize.setValue(data.org_type);
 
       $("#modalInstituicaoLabel").text("Editar Instituição");
-
-      // Dispara input para as máscaras formatarem os valores carregados
       $("#org_tax_id, #org_phone, #org_phone2, #org_zip").trigger("input");
 
       $("#modalInstituicao").modal("show");
@@ -143,9 +136,12 @@ const loadOrgData = async (id) => {
   }
 };
 
-const getOrganizacoes = async () => {
+window.getOrganizacoes = async () => {
   try {
     let page = Math.max(0, defaultOrg.orgCurrentPage - 1);
+
+    $(".list-table-orgs").html('<div class="text-center py-5"><span class="loader"></span></div>');
+
     const result = await ajaxValidator({
       validator: "getOrganizations",
       token: defaultApp.userInfo.token,
@@ -162,6 +158,7 @@ const getOrganizacoes = async () => {
     }
   } catch (e) {
     console.error(e);
+    $(".list-table-orgs").html('<p class="text-center py-3 text-danger">Erro ao carregar.</p>');
   }
 };
 
@@ -205,10 +202,7 @@ const renderTableOrgs = (data) => {
                 ${window.renderToggle(item.org_id, item.is_active, "toggleOrg")}
             </td>
             <td class="text-end pe-3">
-                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico">
-                    <i class="fas fa-bolt"></i>
-                </button>
-                
+                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
                 <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
                 <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
             </td>
@@ -218,7 +212,9 @@ const renderTableOrgs = (data) => {
     .join("");
 
   container.html(`<table class="table-custom"><thead><tr><th colspan="2">Instituição</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
-  _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes");
+
+  // CORREÇÃO: Passando o TIPO ('org')
+  _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes", "org");
 };
 
 const salvarInstituicao = async () => {
@@ -276,7 +272,9 @@ const deleteOrg = (id) => {
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
     confirmButtonText: "Sim, inativar",
+    cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
@@ -333,14 +331,13 @@ const loadResponsibles = async () => {
 const modalLocal = (id = null) => {
   const modal = $("#modalLocal");
   $("#loc_id, #loc_name, #loc_capacity").val("");
-  // Reseta checkboxes
   modal.find('input[type="checkbox"]').prop("checked", false);
   $("#loc_address_block").addClass("d-none");
   $("#loc_zip, #loc_street, #loc_number, #loc_district").val("");
 
   loadResponsibles().then(() => {
     if (id) {
-      // Fallback caso precise, mas usamos editarLocalObj
+      // Fallback
     } else {
       if ($("#loc_responsible")[0].selectize) $("#loc_responsible")[0].selectize.clear();
       const filter = $("#filtro-org-locais").val();
@@ -362,12 +359,10 @@ const editarLocalObj = (item) => {
     if ($("#loc_org_id")[0].selectize) $("#loc_org_id")[0].selectize.setValue(item.org_id);
     if ($("#loc_responsible")[0].selectize) $("#loc_responsible")[0].selectize.setValue(item.responsible_id);
 
-    // Flags
     $("#loc_ac").prop("checked", item.has_ac);
     $("#loc_access").prop("checked", item.is_accessible);
     $("#loc_sacred").prop("checked", item.is_sacred);
 
-    // JSON Resources (TODOS)
     const res = item.resources || {};
     $("#loc_whiteboard").prop("checked", res.whiteboard);
     $("#loc_projector").prop("checked", res.projector);
@@ -379,7 +374,6 @@ const editarLocalObj = (item) => {
     $("#loc_water").prop("checked", res.water);
     $("#loc_computer").prop("checked", res.computer);
 
-    // Address
     if (item.address_street) {
       $("#loc_diff_address").prop("checked", true);
       $("#loc_address_block").removeClass("d-none");
@@ -400,6 +394,9 @@ const editarLocalObj = (item) => {
 const getLocais = async () => {
   try {
     let page = Math.max(0, defaultOrg.locCurrentPage - 1);
+
+    $(".list-table-locais").html('<div class="text-center py-5"><span class="loader"></span></div>');
+
     const result = await ajaxValidator({
       validator: "getLocations",
       token: defaultApp.userInfo.token,
@@ -411,17 +408,18 @@ const getLocais = async () => {
       defaultOrg.locTotalPages = Math.max(1, Math.ceil((result.data[0]?.total_registros || 0) / defaultOrg.locRowsPerPage));
       renderTableLocais(result.data || []);
     } else {
-      $(".list-table-locais").html('<p class="text-center py-3">Nenhum local.</p>');
+      $(".list-table-locais").html('<p class="text-center py-3">Nenhum local encontrado.</p>');
     }
   } catch (e) {
     console.error(e);
+    $(".list-table-locais").html('<p class="text-center py-3 text-danger">Erro ao carregar.</p>');
   }
 };
 
 const renderTableLocais = (data) => {
   const container = $(".list-table-locais");
   if (data.length === 0) {
-    container.html('<p class="text-center py-3">Nenhum local.</p>');
+    container.html('<p class="text-center py-3">Nenhum local encontrado.</p>');
     return;
   }
 
@@ -429,7 +427,6 @@ const renderTableLocais = (data) => {
     .map((item) => {
       const itemStr = encodeURIComponent(JSON.stringify(item));
 
-      // Ícones (Todos)
       let icons = "";
       if (item.has_ac) icons += getResourceIcon("ac");
       if (item.is_accessible) icons += getResourceIcon("access");
@@ -459,7 +456,6 @@ const renderTableLocais = (data) => {
             </td>
             <td class="text-center">
                 <span class="fw-bold text-dark">${item.capacity || 0}</span>
-                <small class="text-sub d-block">Pessoas</small>
             </td>
             <td class="text-center fs-6">
                 <div class="d-flex justify-content-center flex-wrap gap-1">
@@ -470,10 +466,7 @@ const renderTableLocais = (data) => {
                 ${window.renderToggle(item.location_id, item.is_active, "toggleLoc")}
             </td>
             <td class="text-end pe-3">
-                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning" title="Histórico">
-                    <i class="fas fa-bolt"></i>
-                </button>
-                
+                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
                 <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
                 <button onclick="deleteLoc(${item.location_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
@@ -482,7 +475,9 @@ const renderTableLocais = (data) => {
     .join("");
 
   container.html(`<table class="table-custom"><thead><tr><th colspan="2">Espaço</th><th class="text-center">Capacidade</th><th class="text-center">Recursos</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
-  _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "getLocais");
+
+  // CORREÇÃO: Passando o TIPO ('loc')
+  _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "getLocais", "loc");
 };
 
 const salvarLocal = async () => {
@@ -506,7 +501,6 @@ const salvarLocal = async () => {
       is_accessible: $("#loc_access").is(":checked"),
       is_consecrated: $("#loc_sacred").is(":checked"),
 
-      // JSON (TODOS)
       has_whiteboard: $("#loc_whiteboard").is(":checked"),
       has_projector: $("#loc_projector").is(":checked"),
       has_sound: $("#loc_sound").is(":checked"),
@@ -539,6 +533,27 @@ const salvarLocal = async () => {
   }
 };
 
+window.deleteLoc = (id) => {
+  Swal.fire({
+    title: "Excluir Local?",
+    text: "Ele será movido para a lixeira.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    confirmButtonText: "Sim",
+  }).then(async (r) => {
+    if (r.isConfirmed) {
+      const res = await ajaxValidator({ validator: "deleteLocation", token: defaultApp.userInfo.token, id: id });
+      if (res.status) {
+        alertDefault("Excluído.", "success");
+        getLocais();
+      } else {
+        alertDefault(res.alert, "error");
+      }
+    }
+  });
+};
+
 // =========================================================
 // UTILITÁRIOS
 // =========================================================
@@ -563,24 +578,49 @@ const initStaticSelects = () => {
   $("#org_type").selectize({ create: false, placeholder: "Selecione o Tipo..." });
 };
 
-const changePage = (page, currentPage, totalPages, func) => {
-  if (page < 1) page = 1;
-  if (page > defaultOrg[totalPages]) page = defaultOrg[totalPages];
-  defaultOrg[currentPage] = page;
-  window[func]();
+// =========================================================
+// PAGINAÇÃO CORRIGIDA
+// =========================================================
+
+// Wrapper Global de Paginação
+window.paginateWrapper = (page, funcName, type) => {
+  // 1. Atualiza a página no objeto de configuração
+  if (type === "org") defaultOrg.orgCurrentPage = page;
+  if (type === "loc") defaultOrg.locCurrentPage = page;
+
+  // 2. Chama a função de recarregamento
+  // Verifica se está no window (global) ou tenta chamar direto (local)
+  if (funcName === "getOrganizacoes") {
+    typeof window.getOrganizacoes === "function" ? window.getOrganizacoes() : getOrganizacoes();
+  } else if (funcName === "getLocais") {
+    typeof window.getLocais === "function" ? window.getLocais() : getLocais();
+  } else if (typeof window[funcName] === "function") {
+    window[funcName]();
+  } else {
+    console.error("Função de paginação não encontrada: " + funcName);
+  }
 };
 
-const _generatePaginationButtons = (containerClass, currentPage, totalPages, func) => {
+const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, type) => {
   let container = $(`.${containerClass}`);
   container.empty();
-  let buttonsHtml = `<button onclick="changePage(1, '${currentPage}', '${totalPages}', '${func}')" class="btn btn-sm btn-secondary">Primeira</button>`;
-  let startPage = Math.max(1, defaultOrg[currentPage] - 1);
-  let endPage = Math.min(defaultOrg[totalPages], startPage + 4);
+
+  let total = defaultOrg[totalPagesKey];
+  let current = defaultOrg[currentPageKey];
+
+  let html = `<button onclick="paginateWrapper(1, '${funcName}', '${type}')" class="btn btn-sm btn-secondary">Primeira</button>`;
+
+  let startPage = Math.max(1, current - 1);
+  let endPage = Math.min(total, startPage + 4);
+
   for (let p = startPage; p <= endPage; p++) {
-    buttonsHtml += `<button onclick="changePage(${p}, '${currentPage}', '${totalPages}', '${func}')" class="btn btn-sm ${p === defaultOrg[currentPage] ? "btn-primary" : "btn-secondary"}">${p}</button>`;
+    let btnClass = p === current ? "btn-primary" : "btn-secondary";
+    html += `<button onclick="paginateWrapper(${p}, '${funcName}', '${type}')" class="btn btn-sm ${btnClass}">${p}</button>`;
   }
-  buttonsHtml += `<button onclick="changePage(${defaultOrg[totalPages]}, '${currentPage}', '${totalPages}', '${func}')" class="btn btn-sm btn-secondary">Última</button>`;
-  container.append(buttonsHtml);
+
+  html += `<button onclick="paginateWrapper(${total}, '${funcName}', '${type}')" class="btn btn-sm btn-secondary">Última</button>`;
+
+  container.html(html);
 };
 
 $(document).ready(() => {
