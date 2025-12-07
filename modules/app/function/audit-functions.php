@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Busca o histórico e cruza com o Banco Staff para pegar os nomes
+ * Busca o histórico e cruza com dados relacionados
  */
 function getHistory($data)
 {
@@ -10,35 +10,34 @@ function getHistory($data)
         $conectStaff = getStaff();
 
         if (empty($data['table']) || empty($data['id_record'])) {
-            // Em erros de validação simples, podemos retornar a mensagem direta ou genérica, 
-            // mas como é erro de "uso" do sistema, vou manter genérica para seguir o padrão estrito.
-            throw new Exception("Parâmetros insuficientes (Tabela ou ID faltando).");
+            return failure("Parâmetros insuficientes.");
         }
 
         $parts = explode('.', $data['table']);
         $schema = count($parts) === 2 ? $parts[0] : 'public';
         $table = count($parts) === 2 ? $parts[1] : $data['table'];
+        $recordId = (string)$data['id_record'];
 
-        // 1. Busca os Logs no Banco Local
-        $sql = <<<'SQL'
-            SELECT 
-                l.log_id,
-                l.operation,
-                l.user_id,
-                l.changed_at,
-                l.old_values,
-                l.new_values
-            FROM security.change_logs l
-            WHERE l.schema_name = :schema
-              AND l.table_name = :table 
-              AND l.record_id = :id
-            ORDER BY l.changed_at DESC
-        SQL;
+        // 1. Query Base (Logs da própria tabela)
+        $sql = "SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name 
+                FROM security.change_logs l 
+                WHERE l.schema_name = :schema AND l.table_name = :table AND l.record_id = :id";
+
+        // 2. Lógica Especial para CURSOS (Busca também a Grade Curricular)
+        if ($table === 'courses') {
+            $sql .= " UNION ALL 
+                      SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name 
+                      FROM security.change_logs l 
+                      WHERE l.schema_name = 'education' AND l.table_name = 'curriculum' 
+                      AND (l.new_values->>'course_id' = :id OR l.old_values->>'course_id' = :id)";
+        }
+
+        $sql .= " ORDER BY changed_at DESC";
 
         $stmt = $conectLocal->prepare($sql);
         $stmt->bindValue(':schema', $schema);
         $stmt->bindValue(':table', $table);
-        $stmt->bindValue(':id', (string)$data['id_record']);
+        $stmt->bindValue(':id', $recordId);
         $stmt->execute();
 
         $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -47,53 +46,92 @@ function getHistory($data)
             return success("Nenhum histórico encontrado.", []);
         }
 
-        // 2. Extrai IDs de usuários únicos para buscar no Staff
-        $userIds = array_unique(array_column($logs, 'user_id'));
-        $usersMap = [];
+        // --- ENRIQUECIMENTO DE DADOS (NOMES) ---
 
-        if (!empty($userIds)) {
-            $placeholders = implode(',', array_fill(0, count($userIds), '?'));
-            $sqlUsers = "SELECT id, name FROM public.users WHERE id IN ($placeholders)";
-            $stmtUsers = $conectStaff->prepare($sqlUsers);
-            $stmtUsers->execute(array_values($userIds));
-            while ($row = $stmtUsers->fetch(PDO::FETCH_ASSOC)) {
-                $usersMap[$row['id']] = $row['name'];
+        $userIds = [];
+        $subjectIds = [];
+
+        foreach ($logs as $log) {
+            if ($log['user_id']) $userIds[] = $log['user_id'];
+
+            // Se for log de curriculum, cata o subject_id para traduzir
+            if ($log['table_name'] === 'curriculum') {
+                $old = json_decode($log['old_values'] ?? '{}', true);
+                $new = json_decode($log['new_values'] ?? '{}', true);
+                if (isset($old['subject_id'])) $subjectIds[] = $old['subject_id'];
+                if (isset($new['subject_id'])) $subjectIds[] = $new['subject_id'];
             }
         }
 
-        // 3. Mescla os nomes nos logs e formata data
+        // Busca Nomes de Usuários (Staff)
+        $usersMap = [];
+        if (!empty($userIds)) {
+            $uIds = array_unique($userIds);
+            $placeholders = implode(',', array_fill(0, count($uIds), '?'));
+            $stmtU = $conectStaff->prepare("SELECT id, name FROM public.users WHERE id IN ($placeholders)");
+            $stmtU->execute(array_values($uIds));
+            while ($row = $stmtU->fetch(PDO::FETCH_ASSOC)) $usersMap[$row['id']] = $row['name'];
+        }
+
+        // Busca Nomes de Disciplinas (Local) - Para trocar ID por Nome
+        $subjectsMap = [];
+        if (!empty($subjectIds)) {
+            $sIds = array_unique($subjectIds);
+            $placeholders = implode(',', array_fill(0, count($sIds), '?'));
+            $stmtS = $conectLocal->prepare("SELECT subject_id, name FROM education.subjects WHERE subject_id IN ($placeholders)");
+            $stmtS->execute(array_values($sIds));
+            while ($row = $stmtS->fetch(PDO::FETCH_ASSOC)) $subjectsMap[$row['subject_id']] = $row['name'];
+        }
+
+        // Processamento Final
         foreach ($logs as &$log) {
+            // 1. Nome do Usuário
             $uid = $log['user_id'];
             $log['user_name'] = isset($usersMap[$uid]) ? $usersMap[$uid] : 'Sistema';
 
-            // Data formatada pelo PHP (Timezone Correto)
+            // 2. Data Formatada
             $date = new DateTime($log['changed_at']);
             $log['date_fmt'] = $date->format('d/m/Y H:i:s');
+
+            // 3. Tradução de IDs técnicos para Nomes (Ex: subject_id: 1 -> subject_id: "Bíblia")
+            if ($log['table_name'] === 'curriculum') {
+                $log['operation'] = 'GRADE ' . $log['operation']; // Marca visualmente como alteração de grade
+
+                $replaceSubject = function ($jsonStr) use ($subjectsMap) {
+                    if (!$jsonStr) return null;
+                    $arr = json_decode($jsonStr, true);
+                    if (isset($arr['subject_id']) && isset($subjectsMap[$arr['subject_id']])) {
+                        // Cria um campo virtual legível
+                        $arr['disciplina'] = $subjectsMap[$arr['subject_id']];
+                        unset($arr['subject_id']); // Remove o ID técnico
+                        unset($arr['course_id']);  // Remove o ID do curso (redundante)
+                    }
+                    return json_encode($arr);
+                };
+
+                $log['old_values'] = $replaceSubject($log['old_values']);
+                $log['new_values'] = $replaceSubject($log['new_values']);
+            }
         }
 
         return success("Histórico recuperado.", $logs);
     } catch (Exception $e) {
-        logSystemError("painel", "audit", "getHistory", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao buscar o histórico. Contate o suporte.", null, false, 500);
+        return failure("Erro ao buscar histórico: " . $e->getMessage());
     }
 }
 
-/**
- * Realiza o Rollback (Desfazer)
- */
+// Função rollbackChange MANTIDA IGUAL (Não precisa mexer nela)
 function rollbackChange($data)
 {
     try {
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
-        // 1. Configura Auditoria para o Rollback
         if (!empty($data['id_user'])) {
             $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
             $stmtAudit->execute(['uid' => (string)$data['id_user']]);
         }
 
-        // 2. Busca o Log Original
         $sqlLog = "SELECT schema_name, table_name, record_id, old_values, operation FROM security.change_logs WHERE log_id = :id";
         $stmt = $conect->prepare($sqlLog);
         $stmt->execute(['id' => $data['log_id']]);
@@ -101,10 +139,7 @@ function rollbackChange($data)
 
         if (!$log || empty($log['old_values'])) {
             $conect->rollBack();
-            // Erros de lógica de negócio podem ser retornados diretamente ou padronizados.
-            // Para manter o padrão estrito, vou logar como erro e dar mensagem genérica, 
-            // mas aqui talvez fosse útil saber que "não há dados". Vou manter a mensagem genérica.
-            throw new Exception("Tentativa de rollback em registro sem dados antigos.");
+            return failure("Não há dados anteriores para restaurar.");
         }
 
         $oldData = json_decode($log['old_values'], true);
@@ -112,34 +147,38 @@ function rollbackChange($data)
         $table = $log['table_name'];
         $recordId = $log['record_id'];
 
-        // 3. Identifica a PK
+        // Se for rollback de Grade Curricular, o processo é diferente (Insert/Delete)
+        // Para simplificar e evitar erros de integridade em chaves compostas, 
+        // vamos BLOQUEAR rollback direto na grade via botão individual e sugerir edição manual.
+        // Ou, para funcionar, precisamos tratar INSERT como DELETE e vice-versa.
+
+        if ($table === 'curriculum') {
+            $conect->rollBack();
+            return failure("Para alterar a grade, edite o curso diretamente.");
+        }
+
+        // Mapa de PKs
         $pkMap = [
             'organizations' => 'org_id',
             'persons' => 'person_id',
             'users' => 'id',
             'locations' => 'location_id',
+            'subjects' => 'subject_id',
+            'courses' => 'course_id',
+            'classes' => 'class_id'
         ];
 
         $pkColumn = isset($pkMap[$table]) ? $pkMap[$table] : rtrim($table, 's') . "_id";
 
-        // 4. Monta o UPDATE dinamicamente
         $setFields = [];
         $params = [];
 
         foreach ($oldData as $col => $val) {
-            // Pula a PK e campos de controle
             if ($col === $pkColumn) continue;
             if (in_array($col, ['updated_at', 'created_at', 'deleted'])) continue;
 
-            // [CORREÇÃO] Trata Array/JSON antes de passar para o SQL
-            if (is_array($val) || is_object($val)) {
-                $val = json_encode($val);
-            }
-
-            // [CORREÇÃO] Trata Booleano
-            if (is_bool($val)) {
-                $val = $val ? 'TRUE' : 'FALSE';
-            }
+            if (is_array($val) || is_object($val)) $val = json_encode($val);
+            if (is_bool($val)) $val = $val ? 'TRUE' : 'FALSE';
 
             $setFields[] = "\"$col\" = :$col";
             $params[$col] = $val;
@@ -147,10 +186,9 @@ function rollbackChange($data)
 
         if (empty($setFields)) {
             $conect->rollBack();
-            throw new Exception("Nenhum campo válido encontrado para restauração.");
+            return failure("Nenhum dado válido para restaurar.");
         }
 
-        // Adiciona updated_at atualizado
         $sqlRestore = "UPDATE \"$schema\".\"$table\" SET " . implode(', ', $setFields) . ", updated_at = CURRENT_TIMESTAMP WHERE \"$pkColumn\" = :pk_val";
 
         $params['pk_val'] = $recordId;
@@ -162,7 +200,6 @@ function rollbackChange($data)
         return success("Dados restaurados com sucesso!");
     } catch (Exception $e) {
         $conect->rollBack();
-        logSystemError("painel", "audit", "rollbackChange", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao restaurar os dados. Contate o suporte.", null, false, 500);
+        return failure("Erro ao restaurar: " . $e->getMessage());
     }
 }

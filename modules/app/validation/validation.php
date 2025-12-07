@@ -15,7 +15,8 @@ include "../controller/dashboard-controller.php";     // Tela Inicial
 include "../controller/audit-controller.php";         // Auditoria (Raio)
 include "../controller/organization-controller.php";  // Organização e Salas
 include "../controller/people-controller.php";  // Pessoas
-include "../controller/academic-controller.php";
+include "../controller/academic-controller.php"; // Disciplinas
+include "../controller/course-controller.php";  // Cursos
 
 // 3. Captura da Ação
 $validator = $_POST["validator"] ?? null;
@@ -89,7 +90,7 @@ switch ($validator) {
 		break;
 
 	// =========================================================
-	// MÓDULO: ORGANIZAÇÃO - LOCAIS/SALAS (organizacao.js)
+	// MÓDULO: PESSOAS (Secretaria)
 	// =========================================================
 	case "getPeople":
 		getPeople();
@@ -111,7 +112,7 @@ switch ($validator) {
 		break;
 
 	// =========================================================
-	// MÓDULO: ORGANIZAÇÃO - LOCAIS/SALAS (organizacao.js)
+	// MÓDULO: ACADÊMICO (Disciplinas)
 	// =========================================================
 	case "getSubjects":
 		getSubjects();
@@ -127,6 +128,28 @@ switch ($validator) {
 		break;
 	case "toggleSubject":
 		toggleSubject();
+		break;
+
+	// =========================================================
+	// MÓDULO: ACADÊMICO (Cursos)
+	// =========================================================
+	case "getCourses":
+		getCourses();
+		break;
+	case "getCourseById":
+		getCourseById();
+		break;
+	case "saveCourse":
+		saveCourse();
+		break;
+	case "deleteCourse":
+		deleteCourse();
+		break;
+	case "toggleCourse":
+		toggleCourse();
+		break;
+	case "getCoursesList": // Para selects simples
+		getCoursesList();
 		break;
 
 	// =========================================================

@@ -197,9 +197,18 @@ const formatKey = (key) => {
     sacraments_info: "Sacramentos",
     civil_status: "Estado Civil",
 
-    // Disciplinas
-    syllabus_summary: "Ementa / Resumo",
-    subject_id: "ID Disciplina",
+    // --- 4. ACADÊMICO (CURSOS E DISCIPLINAS) [NOVO] ---
+    description: "Descrição",
+    min_age: "Idade Mínima",
+    max_age: "Idade Máxima",
+    total_workload_hours: "Carga Horária Total",
+    syllabus_summary: "Ementa",
+    subject_id: "--",
+    course_id: "--",
+    disciplina: "Disciplina", // Campo Virtual que criamos no PHP
+    course: "Curso", // Campo Virtual que criamos no PHP
+    workload_hours: "Carga Horária",
+    is_mandatory: "Obrigatória",
 
     // Controle
     is_active: "Ativo",
@@ -304,6 +313,7 @@ window.doRollback = (logId) => {
             if (typeof getLocais === "function") getLocais();
             if (typeof getPessoas === "function") getPessoas();
             if (typeof getDisciplinas === "function") getDisciplinas();
+            if (typeof getCursos === "function") getCursos();
           });
         } else {
           Swal.fire("Erro", res.alert, "error");

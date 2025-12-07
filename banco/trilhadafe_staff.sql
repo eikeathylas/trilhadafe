@@ -244,58 +244,64 @@ INSERT INTO public.profiles (title, description, staff) VALUES
 -- Estrutura: Menu Principal -> Sub-ações
 
 -- Dashboard (ID 1)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class, controller) 
-VALUES (1, 'dashboard', 'Painel Principal', TRUE, 'icon-home', 'DashboardController');
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller) 
+VALUES (1, 'dashboard', 'Painel Principal', 'Visão geral com gráficos, indicadores e alertas do sistema.', TRUE, 'icon-home', 'DashboardController');
 
 -- Filhos do Dashboard (2, 3)
-INSERT INTO public.actions (id, parent_id, slug, name, is_menu) VALUES 
-(2, 1, 'dashboard.view_students_stats', 'Ver Gráfico de Alunos', FALSE),
-(3, 1, 'dashboard.view_finance_stats', 'Ver Gráfico Financeiro', FALSE);
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(2, 1, 'dashboard.view_students_stats', 'Ver Gráfico de Alunos', 'Permite visualizar estatísticas de matrícula.', FALSE),
+(3, 1, 'dashboard.view_finance_stats', 'Ver Gráfico Financeiro', 'Permite visualizar entradas e saídas no painel.', FALSE);
+
 
 -- Acadêmico (ID 4)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class, controller) 
-VALUES (4, 'academico', 'Secretaria Escolar', TRUE, 'icon-book', 'AcademicController');
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller) 
+VALUES (4, 'academico', 'Secretaria Escolar', 'Gestão de matrículas, documentos e solicitações web.', TRUE, 'icon-book', 'AcademicController');
 
 -- Filhos do Acadêmico (5, 6)
-INSERT INTO public.actions (id, parent_id, slug, name, is_menu) VALUES 
-(5, 4, 'academico.create_student', 'Cadastrar Aluno', FALSE),
-(6, 4, 'academico.approve_registration', 'Aprovar Matrícula Web', FALSE);
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(5, 4, 'academico.create_student', 'Cadastrar Aluno', 'Permite registrar novos alunos manualmente.', FALSE),
+(6, 4, 'academico.approve_registration', 'Aprovar Matrícula Web', 'Permite analisar solicitações vindas do site.', FALSE);
+
 
 -- Financeiro (ID 7)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class, controller) 
-VALUES (7, 'financeiro', 'Financeiro', TRUE, 'icon-money', 'FinanceController');
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller) 
+VALUES (7, 'financeiro', 'Financeiro', 'Controle de caixa, dízimo, ofertas e contas a pagar.', TRUE, 'icon-money', 'FinanceController');
 
 -- Estrutura/Paróquia (ID 8)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class) 
-VALUES (8, 'organizacao', 'Minha Paróquia', TRUE, 'icon-building');
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (8, 'organizacao', 'Minha Paróquia', 'Gestão da estrutura física, dados jurídicos da paróquia e cadastro de salas/locais.', TRUE, 'icon-building', 'OrganizationController');
 
 -- Disciplinas (ID 9)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class) 
-VALUES (9, 'disciplinas', 'Disciplinas', TRUE, 'icon-list');
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (9, 'disciplinas', 'Disciplinas', 'Cadastro de matérias base (Ex: Bíblia, Liturgia) e ementas.', TRUE, 'icon-list', 'AcademicController');
 
--- Turmas (ID 10)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class) 
-VALUES (10, 'turmas', 'Gestão de Turmas', TRUE, 'icon-group');
+-- cursos (ID 10)
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (10, 'cursos', 'Cursos e Grades', 'Definição de etapas formativas (Ex: Eucaristia I), requisitos de idade e matriz curricular.', TRUE, 'icon-school', 'AcademicController');
 
--- Pessoas (ID 11)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class) 
-VALUES (11, 'pessoas', 'Diretório de Pessoas', TRUE, 'icon-user');
+-- Turmas (ID 11)
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (11, 'turmas', 'Gestão de Turmas', 'Abertura de turmas anuais, alocação de catequistas e enturmação de alunos.', TRUE, 'icon-group', 'AcademicController');
 
--- Diários (ID 12)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class) 
-VALUES (12, 'meus-diarios', 'Diário de Classe', TRUE, 'icon-calendar');
+-- Pessoas (ID 12)
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (12, 'meus-diarios', 'Diário de Classe', 'Área do professor/catequista para registro de presença e conteúdo ministrado.', TRUE, 'icon-calendar', 'AcademicController');
 
--- Liturgia (ID 13)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class) 
-VALUES (13, 'liturgia', 'Liturgia', TRUE, 'icon-church');
+-- Diários (ID 13)
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (13, 'pessoas', 'Diretório de Pessoas', 'Prontuário único de fiéis, alunos, pais, catequistas e clero com histórico completo.', TRUE, 'icon-user', 'PeopleController');
 
--- Eventos (ID 14)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class) 
-VALUES (14, 'eventos', 'Eventos e Festas', TRUE, 'icon-ticket');
+-- Liturgia (ID 14)
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (14, 'liturgia', 'Liturgia e Missas', 'Agenda de celebrações, gestão de sacramentos (Batismo/Casamento) e intenções.', TRUE, 'icon-church', 'PastoralController');
 
--- Comunicação (ID 15)
-INSERT INTO public.actions (id, slug, name, is_menu, icon_class) 
-VALUES (15, 'comunicacao', 'Blog e App', TRUE, 'icon-rss');
+-- Eventos (ID 15)
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (15, 'eventos', 'Eventos e Festas', 'Gestão de quermesses, venda de ingressos, controle de barracas e caixa.', TRUE, 'icon-ticket', 'EventsController');
+
+-- Comunicação (ID 16)
+INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller)
+VALUES (16, 'comunicacao', 'Site e App', 'Gerenciamento de notícias, banners do aplicativo e notificações push.', TRUE, 'icon-rss', 'CommunicationController');
 
 -- CORREÇÃO DA SEQUÊNCIA AUTOMÁTICA (ESSENCIAL!)
 -- Atualiza o contador interno do PostgreSQL para que o próximo ID inserido automaticamente seja o 16

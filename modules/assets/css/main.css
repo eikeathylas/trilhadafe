@@ -1790,4 +1790,20 @@ canvas {
   border-color: #f87171;
 } /* Vermelho */
 
+/* Corrige badges que usam bg-light (como a Carga Horária) */
+[data-theme="escuro"] .badge.bg-light {
+  background-color: var(--fundo) !important; /* Fundo escuro do card */
+  color: var(--white) !important; /* Texto branco */
+  border-color: var(--borda) !important; /* Borda sutil */
+}
 
+/* Corrige ícones circulares que usam bg-light (como o Capelo/Livro) */
+[data-theme="escuro"] .icon-circle.bg-light {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: var(--padrao) !important; /* Mantém a cor do ícone (amarelo/azul) */
+}
+
+/* Ajuste específico para bordas de badges info/warning no escuro */
+[data-theme="escuro"] .badge.border {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
