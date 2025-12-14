@@ -534,7 +534,7 @@ body {
 /* Wrapper Interno com Scroll Invisível */
 .sidebar-scroll-wrapper {
   height: 100%;
-  /* overflow-y: auto; /* O scroll continua funcionando */
+  overflow-y: auto; /* O scroll continua funcionando*/
   overflow-x: visible;
   padding: 24px 16px;
   border-radius: 40px;

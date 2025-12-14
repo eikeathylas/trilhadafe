@@ -230,7 +230,7 @@ INSERT INTO public.users (name, email, password, img, staff) VALUES
 ('Teste Dev', 'teste@dev', 'teste@dev', 'avatar.jpg', TRUE);
 
 -- 3.3 Cliente Inicial
-INSERT INTO public.clients (name, description) VALUES ('Paróquia Nossa Senhora da Assunção - Caruaru', 'Matriz');
+INSERT INTO public.clients (name, description) VALUES ('Caruaru - PE', 'Diocese de Caruaru - PE');
 
 -- 3.4 Conexão com Banco Local (pe_ribeirao_db)
 INSERT INTO public.clients_config (id_client, host, "database", "user", "password", port) 
@@ -315,30 +315,30 @@ VALUES (16, 'comunicacao', 'Site e App', 'Gerenciamento de notícias, banners do
 
 -- DEV (1): Vê tudo
 INSERT INTO public.profiles_actions (id_profile, id_action) 
-SELECT 1, id FROM public.actions;
+SELECT 99, id FROM public.actions;
 
 -- PÁROCO (2): Vê Dashboard, Financeiro, Liturgia e Estrutura
 INSERT INTO public.profiles_actions (id_profile, id_action) VALUES 
-(2, 1), -- Dashboard
-(2, 2), -- Graf. Aluno
-(2, 3), -- Graf. Financeiro
-(2, 7), -- Financeiro
-(2, 8), -- Organização
-(2, 11), -- Pessoas
-(2, 13), -- Liturgia
-(2, 14), -- Eventos
-(2, 15); -- Comunicação
+(50, 1), -- Dashboard
+(50, 2), -- Graf. Aluno
+(50, 3), -- Graf. Financeiro
+(50, 7), -- Financeiro
+(50, 8), -- Organização
+(50, 11), -- Pessoas
+(50, 13), -- Liturgia
+(50, 14), -- Eventos
+(50, 15); -- Comunicação
 
 -- CATEQUISTA (3): Vê Dashboard Limitado e Acadêmico
 INSERT INTO public.profiles_actions (id_profile, id_action) VALUES 
-(3, 1), -- Dashboard
-(3, 2), -- Graf. Aluno (NÃO VÊ O 3 - FINANCEIRO)
-(3, 4), -- Acadêmico (Tela)
-(3, 5), -- Cadastrar Aluno (Ação)
-(3, 10), -- Turmas
-(3, 12); -- Diários
+(30, 1), -- Dashboard
+(30, 2), -- Graf. Aluno (NÃO VÊ O 3 - FINANCEIRO)
+(30, 4), -- Acadêmico (Tela)
+(30, 5), -- Cadastrar Aluno (Ação)
+(30, 10), -- Turmas
+(30, 12); -- Diários
 
--- 3.8 VÍNCULO FINAL (Admin -> Ribeirão -> DEV)
+-- 3.8 VÍNCULO FINAL
 INSERT INTO public.users_clients_profiles (id_user, id_client, id_profile) VALUES 
 (1, 1, 99),
-(2, 1, 1);
+(2, 1, 50);
