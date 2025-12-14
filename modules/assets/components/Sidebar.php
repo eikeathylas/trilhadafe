@@ -17,6 +17,30 @@
         </div>
 
         <div class="menu-only">
+            <p class="title-only">Sistema</p>
+            <ul>
+                <li>
+                    <a href="organizacao.php">
+                        <span class="material-symbols-outlined icon-only">domain</span>
+                        <span class="text-only">Minha Paróquia</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="usuarios.php">
+                        <span class="material-symbols-outlined icon-only">manage_accounts</span>
+                        <span class="text-only">Usuários Admin</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="comunicacao.php">
+                        <span class="material-symbols-outlined icon-only">campaign</span>
+                        <span class="text-only">Site e App</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="menu-only">
             <p class="title-only">Secretaria</p>
             <ul>
                 <li>
@@ -38,25 +62,6 @@
             <p class="title-only">Escola da Fé</p>
             <ul>
                 <li>
-                    <a href="turmas.php">
-                        <span class="material-symbols-outlined icon-only">school</span>
-                        <span class="text-only">Gestão de Turmas</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="matriculas.php">
-                        <span class="material-symbols-outlined icon-only">how_to_reg</span>
-                        <span class="text-only">Matrículas</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="meus-diarios.php">
-                        <span class="material-symbols-outlined icon-only">menu_book</span>
-                        <span class="text-only">Diário de Classe</span>
-                    </a>
-                </li>
-
-                <li>
                     <a href="#">
                         <span class="material-symbols-outlined icon-only">settings_accessibility</span>
                         <span class="text-only">Config. Acadêmica</span>
@@ -77,6 +82,25 @@
                         </li>
                     </ul>
                 </li>
+                <li>
+                    <a href="turmas.php">
+                        <span class="material-symbols-outlined icon-only">school</span>
+                        <span class="text-only">Gestão de Turmas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="matriculas.php">
+                        <span class="material-symbols-outlined icon-only">how_to_reg</span>
+                        <span class="text-only">Matrículas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="meus-diarios.php">
+                        <span class="material-symbols-outlined icon-only">menu_book</span>
+                        <span class="text-only">Diário de Classe</span>
+                    </a>
+                </li>
+
             </ul>
         </div>
 
@@ -116,30 +140,6 @@
             </ul>
         </div>
 
-        <div class="menu-only">
-            <p class="title-only">Sistema</p>
-            <ul>
-                <li>
-                    <a href="organizacao.php">
-                        <span class="material-symbols-outlined icon-only">domain</span>
-                        <span class="text-only">Minha Paróquia</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="usuarios.php">
-                        <span class="material-symbols-outlined icon-only">manage_accounts</span>
-                        <span class="text-only">Usuários Admin</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="comunicacao.php">
-                        <span class="material-symbols-outlined icon-only">campaign</span>
-                        <span class="text-only">Site e App</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-
     </div>
 
     <div class="menu-only mt-3">
@@ -159,13 +159,13 @@
             <li>
                 <a href="#" onclick="configTheme(this)">
                     <span class="material-symbols-outlined icon-only">dark_mode</span>
-                    <span class="text-only">Trocar tema</span>
+                    <span class="text-only">Modo noturno</span>
                 </a>
             </li>
             <li>
                 <a href="#" onclick="logOut()">
-                    <span class="material-symbols-outlined icon-only text-danger">logout</span>
-                    <span class="text-only text-danger">Sair</span>
+                    <span class="material-symbols-outlined icon-only">logout</span>
+                    <span class="text-only">Sair</span>
                 </a>
             </li>
         </ul>

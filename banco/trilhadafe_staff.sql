@@ -225,7 +225,9 @@ INSERT INTO public.settings (name, email, contact, city) VALUES ('Trilha da Fé'
 
 -- 3.2 Usuário Admin (DEV)
 -- Nota: Senha '123' apenas para teste inicial.
-INSERT INTO public.users (name, email, password, img, staff) VALUES ('Eike Benízio', 'eike@dev', 'eikebenizio', 'avatar.jpg', TRUE);
+INSERT INTO public.users (name, email, password, img, staff) VALUES
+('Eike Benízio', 'eike@dev', 'eikebenizio', 'avatar.jpg', TRUE),
+('Teste Dev', 'teste@dev', 'teste@dev', 'avatar.jpg', TRUE);
 
 -- 3.3 Cliente Inicial
 INSERT INTO public.clients (name, description) VALUES ('Paróquia Nossa Senhora da Assunção - Caruaru', 'Matriz');
@@ -235,10 +237,12 @@ INSERT INTO public.clients_config (id_client, host, "database", "user", "passwor
 VALUES (1, '31.220.51.183', 'pe_caruaru_db', 'postgres', 'N8GCOjHT0ArVUq8vWNVtz0sv3wMPC6mBx7ytPfL18wsoUQZqdT', '5432');
 
 -- 3.5 Perfis
-INSERT INTO public.profiles (title, description, staff) VALUES
-('DEV', 'Acesso Total', TRUE),       -- ID 1
-('Pároco', 'Gestor', FALSE),         -- ID 2
-('Catequista', 'Professor', FALSE);  -- ID 3
+INSERT INTO public.profiles (id, title, description, staff, active) VALUES
+(99, 'DEV', 'Acesso Supremo (Desenvolvedor)', TRUE, TRUE),
+(50, 'PÁROCO', 'Administrador da Paróquia', FALSE, TRUE),
+(40, 'COORDENADOR', 'Gestão Pedagógica e Pastoral', FALSE, TRUE),
+(30, 'CATEQUISTA', 'Professor/Evangelizador', FALSE, TRUE),
+(10, 'ALUNO/RESPONSÁVEL', 'Portal do Fiel', FALSE, TRUE);
 
 -- 3.6 AÇÕES (COM IDs FIXOS PARA EVITAR ERROS)
 -- Estrutura: Menu Principal -> Sub-ações
@@ -335,4 +339,6 @@ INSERT INTO public.profiles_actions (id_profile, id_action) VALUES
 (3, 12); -- Diários
 
 -- 3.8 VÍNCULO FINAL (Admin -> Ribeirão -> DEV)
-INSERT INTO public.users_clients_profiles (id_user, id_client, id_profile) VALUES (1, 1, 1);
+INSERT INTO public.users_clients_profiles (id_user, id_client, id_profile) VALUES 
+(1, 1, 99),
+(2, 1, 1);
