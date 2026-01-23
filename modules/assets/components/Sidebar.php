@@ -19,24 +19,24 @@
         <div class="menu-only">
             <p class="title-only">Sistema</p>
             <ul>
+                <!-- <li>
+                    <a href="diocese.php">
+                        <span class="material-symbols-outlined icon-only">castle</span>
+                        <span class="text-only">Diocese</span>
+                    </a>
+                </li> -->
                 <li>
                     <a href="organizacao.php">
                         <span class="material-symbols-outlined icon-only">domain</span>
                         <span class="text-only">Minha Paróquia</span>
                     </a>
                 </li>
-                <li>
-                    <a href="usuarios.php">
-                        <span class="material-symbols-outlined icon-only">manage_accounts</span>
-                        <span class="text-only">Usuários Admin</span>
-                    </a>
-                </li>
-                <li>
+                <!-- <li>
                     <a href="comunicacao.php">
                         <span class="material-symbols-outlined icon-only">campaign</span>
                         <span class="text-only">Site e App</span>
                     </a>
-                </li>
+                </li> -->
             </ul>
         </div>
 
@@ -49,12 +49,12 @@
                         <span class="text-only">Diretório de Pessoas</span>
                     </a>
                 </li>
-                <li>
+                <!-- <li>
                     <a href="transferencias.php">
                         <span class="material-symbols-outlined icon-only">transfer_within_a_station</span>
                         <span class="text-only">Transferências</span>
                     </a>
-                </li>
+                </li> -->
             </ul>
         </div>
 
@@ -88,23 +88,17 @@
                         <span class="text-only">Gestão de Turmas</span>
                     </a>
                 </li>
-                <li>
-                    <a href="matriculas.php">
-                        <span class="material-symbols-outlined icon-only">how_to_reg</span>
-                        <span class="text-only">Matrículas</span>
-                    </a>
-                </li>
-                <li>
+                <!-- <li>
                     <a href="meus-diarios.php">
                         <span class="material-symbols-outlined icon-only">menu_book</span>
                         <span class="text-only">Diário de Classe</span>
                     </a>
-                </li>
+                </li> -->
 
             </ul>
         </div>
 
-        <div class="menu-only">
+        <!-- <div class="menu-only">
             <p class="title-only">Vida Eclesiástica</p>
             <ul>
                 <li>
@@ -138,7 +132,7 @@
                     </a>
                 </li>
             </ul>
-        </div>
+        </div> -->
 
     </div>
 
