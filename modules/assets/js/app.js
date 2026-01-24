@@ -234,8 +234,8 @@ const keepAlive = () => {
 
 $(document).ready(() => {
   checkSessionStatus();
-  setInterval(checkSessionStatus, 300000); // 5 min
-  setInterval(keepAlive, 600000); // 10 min
+  setInterval(checkSessionStatus, 600000); // 10 min
+  setInterval(keepAlive, 300000); // 5 min
 
   setTimeout(() => {
     $("#div-loader").fadeOut();

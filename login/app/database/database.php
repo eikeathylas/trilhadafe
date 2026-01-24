@@ -3,11 +3,17 @@
 // Configurações do Banco Central (Staff)
 // É este banco que valida o login e diz qual paróquia o usuário vai acessar.
 
-$host = "31.220.51.183"; // 31.220.51.183
+// $host = "31.220.51.183"; // 31.220.51.183
+// $port = "5432";
+// $dbname = "trilhadafe";
+// $user = "postgres";
+// $password = "N8GCOjHT0ArVUq8vWNVtz0sv3wMPC6mBx7ytPfL18wsoUQZqdT"; // N8GCOjHT0ArVUq8vWNVtz0sv3wMPC6mBx7ytPfL18wsoUQZqdT
+
+$host = "localhost";
 $port = "5432";
-$dbname = "trilhadafe";
+$dbname = "trilhadafe_staff";
 $user = "postgres";
-$password = "N8GCOjHT0ArVUq8vWNVtz0sv3wMPC6mBx7ytPfL18wsoUQZqdT"; // N8GCOjHT0ArVUq8vWNVtz0sv3wMPC6mBx7ytPfL18wsoUQZqdT
+$password = "159753";
 
 try {
     // String de conexão (DSN) para PostgreSQL

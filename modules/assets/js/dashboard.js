@@ -79,6 +79,9 @@ async function getDashboardStats() {
 
       // Renderiza a lista de avisos
       renderAvisos(data.avisos);
+
+      // Renderiza os aniversariantes do mês
+      renderAniversariantes(data.aniversariantes);
     } else {
       console.warn("Alerta do Dashboard:", result.alert);
     }
@@ -108,6 +111,38 @@ function renderAvisos(avisos) {
                     <small class="text-muted">${aviso.date}</small>
                 </div>
                 <p class="mb-1 text-xs text-secondary" style="font-size: 0.85rem;">${aviso.summary}</p>
+            </li>
+        `;
+    container.append(html);
+  });
+}
+
+
+function renderAniversariantes(aniversariantes) {
+  const container = $("#lista-avisos");
+  container.empty();
+
+  if (!aniversariantes || aniversariantes.length === 0) {
+    container.html('<li class="list-group-item text-center text-muted">Nenhum aniversariante neste mês.</li>');
+    return;
+  }
+
+  aniversariantes.forEach((pessoa) => {
+    let avatarHtml = "";
+    if (pessoa.profile_photo_url) {
+      avatarHtml = `<img src="${pessoa.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border" style="width:40px; height:40px; margin: 0 10px 0 0; object-fit:cover;">`;
+    } else {
+      const nameParts = pessoa.name.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+      avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px; margin: 0 10px 0 0;">${initials}</div>`;
+    }
+    const html = `
+            <li class="list-group-item d-flex align-items-center">
+                ${avatarHtml}
+                <div>
+                    <h6 class="mb-0 txt-theme">${pessoa.name}</h6>
+                    <small class="text-muted">Aniversário: ${pessoa.birth_date}</small>
+                </div>
             </li>
         `;
     container.append(html);

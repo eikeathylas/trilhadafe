@@ -91,6 +91,29 @@ function getDashboardStatsData($data)
             }
         }
 
+        // Aniversariantes dos proximos 30 dias
+        $sql = <<<'SQL'
+            SELECT full_name, TO_CHAR(birth_date, 'DD/MM') as birth_fmt, profile_photo_url
+            FROM people.persons 
+            WHERE birth_date IS NOT NULL
+            AND TO_CHAR(birth_date, 'MM-DD') BETWEEN TO_CHAR(CURRENT_DATE, 'MM-DD') 
+            AND TO_CHAR(CURRENT_DATE + INTERVAL '30 days', 'MM-DD')
+            ORDER BY TO_CHAR(birth_date, 'MM-DD') ASC
+        SQL;
+        $stmt = $conect->prepare($sql);
+        $stmt->execute();
+        $aniversariantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stats['aniversariantes'] = [];
+        if ($aniversariantes) {
+            foreach ($aniversariantes as $aniversariante) {
+                $stats['aniversariantes'][] = [
+                    'name' => $aniversariante['full_name'],
+                    'birth_date' => $aniversariante['birth_fmt'],
+                    'photo_url' => $aniversariante['profile_photo_url']
+                ];
+            }
+        }
+
         return success("Dados do dashboard carregados.", $stats);
     } catch (Exception $e) {
         logSystemError("painel", "dashboard", "getDashboardStatsData", "sql", $e->getMessage(), $data);

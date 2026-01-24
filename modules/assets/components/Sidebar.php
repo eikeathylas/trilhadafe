@@ -69,15 +69,15 @@
                     </a>
                     <ul class="sub-menu-only">
                         <li>
-                            <a href="cursos.php">
-                                <span class="material-symbols-outlined">workspace_premium</span>
-                                <span class="text-only">Cursos</span>
-                            </a>
-                        </li>
-                        <li>
                             <a href="disciplinas.php">
                                 <span class="material-symbols-outlined">subject</span>
                                 <span class="text-only">Disciplinas</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="cursos.php">
+                                <span class="material-symbols-outlined">workspace_premium</span>
+                                <span class="text-only">Cursos</span>
                             </a>
                         </li>
                     </ul>

@@ -37,7 +37,7 @@
 
                 <div class="row">
 
-                    <div class="col-sm-12 col-md-6 col-xxl-3 mb-3">
+                    <div class="col-sm-12 col-md-6 col-xxl-6 mb-3">
                         <div class="card card-stats border-left-primary shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -55,7 +55,7 @@
                         </div>
                     </div>
 
-                    <div class="col-sm-12 col-md-6 col-xxl-3 mb-3">
+                    <div class="col-sm-12 col-md-6 col-xxl-6 mb-3">
                         <div class="card card-stats border-left-success shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -73,7 +73,7 @@
                         </div>
                     </div>
 
-                    <div class="col-sm-12 col-md-6 col-xxl-3 mb-3">
+                    <!-- <div class="col-sm-12 col-md-6 col-xxl-3 mb-3">
                         <div class="card card-stats border-left-warning shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -89,9 +89,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
-                    <div class="col-sm-12 col-md-6 col-xxl-3 mb-3 permission-finance" style="display:none;">
+                    <!-- <div class="col-sm-12 col-md-6 col-xxl-3 mb-3 permission-finance" style="display:none;">
                         <div class="card card-stats border-left-danger shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -107,14 +107,14 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                 </div>
 
                 <hr class="my-4">
 
                 <div class="row">
-                    <div class="col-lg-6 mb-4">
+                    <div class="col-lg-12 mb-4">
                         <div class="card shadow mb-4">
                             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                 <h6 class="m-0 font-weight-bold txt-theme">
@@ -129,7 +129,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-6 mb-4">
+                    <!-- <div class="col-lg-6 mb-4">
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
                                 <h6 class="m-0 font-weight-bold txt-theme">
@@ -153,7 +153,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
 
             </div>

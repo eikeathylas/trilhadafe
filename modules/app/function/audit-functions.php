@@ -32,7 +32,7 @@ function getHistory($data)
                       AND (l.new_values->>'course_id' = :id OR l.old_values->>'course_id' = :id)";
         }
 
-        $sql .= " ORDER BY changed_at DESC";
+        $sql .= " ORDER BY changed_at DESC, log_id DESC";
 
         $stmt = $conectLocal->prepare($sql);
         $stmt->bindValue(':schema', $schema);
