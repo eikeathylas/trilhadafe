@@ -55,6 +55,9 @@ switch ($validator) {
 	// =========================================================
 	// MÓDULO: ORGANIZAÇÃO - INSTITUIÇÕES (organizacao.js)
 	// =========================================================
+	case "getDiocese":
+		getDiocese();
+		break;
 	case "getOrganizations":
 		getOrganizations();
 		break;

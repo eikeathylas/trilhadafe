@@ -36,7 +36,12 @@
                 <div class="card-header border-bottom-0 bg-transparent px-0 pb-0">
                     <ul class="nav nav-tabs card-header-tabs" id="orgTab" role="tablist">
                         <li class="nav-item">
-                            <button class="nav-link active txt-theme font-weight-bold" id="inst-tab" data-bs-toggle="tab" data-bs-target="#instituicoes" type="button">
+                            <button class="nav-link active txt-theme font-weight-bold" id="dioc-tab" data-bs-toggle="tab" data-bs-target="#diocese" type="button">
+                                <i class="fa-solid fa-synagogue mr-2"></i> Diocese
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link txt-theme font-weight-bold" id="inst-tab" data-bs-toggle="tab" data-bs-target="#instituicoes" type="button">
                                 <i class="fas fa-church mr-2"></i> Instituições
                             </button>
                         </li>
@@ -48,10 +53,15 @@
                     </ul>
                 </div>
 
-                <div class="card-body px-0 pt-4">
+                <div class="card-body pt-4">
                     <div class="tab-content">
 
-                        <div class="tab-pane fade show active" id="instituicoes" role="tabpanel">
+                        <div class="tab-pane fade show active" id="diocese" role="tabpanel">
+                            <div class="table-responsive list-table-diocese"></div>
+                            <div class="pagination paginationButtons pagination-diocese mt-3 text-center"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="instituicoes" role="tabpanel">
                             <div class="row mb-3">
                                 <div class="col-12 text-end">
                                     <button class="btn-filter" onclick="modalInstituicao()">
@@ -110,6 +120,7 @@
                         <div class="col-md-3">
                             <label class="form-label">Tipo</label>
                             <select id="org_type" class="form-control">
+                                <option value="DIOCESE">Diocese</option>
                                 <option value="PARISH">Paróquia</option>
                                 <option value="CHAPEL">Capela</option>
                                 <option value="CONVENT">Convento</option>

@@ -136,6 +136,74 @@ const loadOrgData = async (id) => {
   }
 };
 
+window.getDiocese = async () => {
+  try {
+    $(".list-table-diocese").html('<div class="text-center py-5"><span class="loader"></span></div>');
+
+    const result = await ajaxValidator({
+      validator: "getDiocese",
+      token: defaultApp.userInfo.token,
+      type: "dio",
+    });
+
+    if (result.status) {
+      renderTableDiocese(result.data || []);
+    } else {
+      $(".list-table-diocese").html('<p class="text-center py-3">Nenhuma diocese encontrada.</p>');
+    }
+  } catch (e) {
+    console.error(e);
+    $(".list-table-diocese").html('<p class="text-center py-3 text-danger">Erro ao carregar.</p>');
+  }
+};
+
+const renderTableDiocese = (data) => {
+  const container = $(".list-table-diocese");
+  if (data.length === 0) {
+    container.html('<p class="text-center py-3">Nenhuma instituição encontrada.</p>');
+    return;
+  }
+
+  const tipoMap = {
+    DIOCESE: { l: "Diocese", i: "synagogue" },
+  };
+
+  let rows = data
+    .map((item, index) => {
+      let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
+
+      return `
+        <tr>
+            <td style="width: 60px;">
+                <div class="icon-circle"><span class="material-symbols-outlined">${info.i}</span></div>
+            </td>
+            <td>
+                <div class="fw-bold text-dark">${item.display_name}</div>
+                <small class="text-sub">${item.phone_main || "-"}</small>
+            </td>
+            <td class="text-center">
+                <span class="badge" style="background-color: var(--padrao); color: var(--white); font-weight: 500;">${info.l}</span>
+            </td>
+            <td>
+                <div class="text-dark font-weight-500">${item.city_state || "-"}</div>
+                <small class="text-sub">Localização</small>
+            </td>
+            <td class="text-center align-middle">
+                ${window.renderToggle(item.org_id, item.is_active, "toggleOrg")}
+            </td>
+            <td class="text-end pe-3">
+                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
+                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+        `;
+    })
+    .join("");
+
+  container.html(`<table class="table-custom"><thead><tr><th colspan="2">Instituição</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+};
+
 window.getOrganizacoes = async () => {
   try {
     let page = Math.max(0, defaultOrg.orgCurrentPage - 1);
@@ -147,6 +215,7 @@ window.getOrganizacoes = async () => {
       token: defaultApp.userInfo.token,
       limit: defaultOrg.orgRowsPerPage,
       page: page * defaultOrg.orgRowsPerPage,
+      type: "org",
     });
 
     if (result.status) {
@@ -170,6 +239,7 @@ const renderTableOrgs = (data) => {
   }
 
   const tipoMap = {
+    DIOCESE: { l: "Diocese", i: "synagogue" },
     PARISH: { l: "Paróquia", i: "church" },
     CHAPEL: { l: "Capela", i: "home_work" },
     CONVENT: { l: "Convento", i: "account_balance" },
@@ -626,6 +696,7 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
 $(document).ready(() => {
   initStaticSelects();
   if (window.initMasks) window.initMasks();
+  getDiocese();
   getOrganizacoes();
   $("#locais-tab").on("shown.bs.tab", function () {
     getLocais();

@@ -4,6 +4,40 @@
 // INSTITUIÇÕES
 // =========================================================
 
+function getAllDiocese($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+
+        $sql = <<<'SQL'
+            SELECT 
+                org_id,
+                display_name,
+                org_type,
+                address_city || ' - ' || address_state as city_state,
+                phone_main,
+                is_active
+            FROM organization.organizations
+            WHERE deleted IS FALSE AND org_type = 'DIOCESE'
+        SQL;
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute();
+
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Ajuste de tipos
+        foreach ($result as &$row) {
+            $row['is_active'] = (bool)$row['is_active'];
+        }
+
+        return success("Dioceses listadas.", $result);
+    } catch (Exception $e) {
+        logSystemError("painel", "organization", "getAllDiocese", "sql", $e->getMessage(), $data);
+        return failure("Erro ao listar dioceses.", null, false, 500);
+    }
+}
+
 function getAllOrganizations($data)
 {
     try {
@@ -19,7 +53,7 @@ function getAllOrganizations($data)
                 phone_main,
                 is_active
             FROM organization.organizations
-            WHERE deleted IS FALSE
+            WHERE deleted IS FALSE AND org_type != 'DIOCESE'
             ORDER BY org_id ASC
             LIMIT :limit OFFSET :page
         SQL;

@@ -32,6 +32,7 @@ CREATE SCHEMA IF NOT EXISTS communication;
 -- ==========================================================
 CREATE TYPE organization.org_type_enum AS ENUM (
     'PARISH',         -- Paróquia (Pública, com território definido)
+    'DIOCESE',        -- Diocese (Território administrativo)
     'CHAPEL',         -- Capela / Comunidade (Vinculada a uma Paróquia)
     'CONVENT',        -- Convento (Residencial, vida religiosa)
     'MONASTERY',      -- Mosteiro (Vida contemplativa)
@@ -45,7 +46,7 @@ CREATE TABLE organization.organizations (
     parent_org_id INT REFERENCES organization.organizations(org_id),
     
     -- Classificação
-    org_type VARCHAR(50) NOT NULL DEFAULT 'PARISH', -- Simplificado para VARCHAR para evitar erro de Type Enum se não existir
+    org_type VARCHAR(50) NOT NULL DEFAULT 'DIOCESE', -- Simplificado para VARCHAR para evitar erro de Type Enum se não existir
     
     -- Identificação
     legal_name VARCHAR(255) NOT NULL,

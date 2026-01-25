@@ -6,6 +6,29 @@ include "../function/organization-functions.php";
 // INSTITUIÇÕES (PARÓQUIAS)
 // =========================================================
 
+function getDiocese()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token não informado.", null, false, 401));
+        return;
+    }
+
+    $decoded = decodeAccessToken($_POST["token"]);
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Token inválido.", null, false, 401));
+        return;
+    }
+
+    getLocal($decoded["conexao"]);
+
+    $data = [
+        "limit" => $_POST["limit"] ?? 10,
+        "page" => $_POST["page"] ?? 0
+    ];
+
+    echo json_encode(getAllDiocese($data));
+}
+
 function getOrganizations()
 {
     if (!isset($_POST["token"])) {
