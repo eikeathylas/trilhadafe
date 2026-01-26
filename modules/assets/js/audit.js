@@ -193,7 +193,7 @@ const formatKey = (key) => {
     national_id: "RG",
     is_pcd: "PCD",
     pcd_details: "Detalhes PCD",
-    profile_photo_url: "Foto Perfil",
+    profile_photo_url: "Foto de Perfil",
     sacraments_info: "Sacramentos",
     civil_status: "Estado Civil",
     phone_mobile: "Celular",

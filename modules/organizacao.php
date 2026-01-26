@@ -57,7 +57,7 @@
                     <div class="tab-content">
 
                         <div class="tab-pane fade show active" id="diocese" role="tabpanel">
-                            <div class="table-responsive list-table-diocese"></div>
+                            <div class="table-responsive list-table-diocese" style="max-height: 600px;"></div>
                             <div class="pagination paginationButtons pagination-diocese mt-3 text-center"></div>
                         </div>
 
@@ -69,7 +69,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="table-responsive list-table-orgs"></div>
+                            <div class="table-responsive list-table-orgs" style="max-height: 600px;"></div>
                             <div class="pagination paginationButtons pagination-orgs mt-3 text-center"></div>
                         </div>
 
@@ -85,7 +85,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="table-responsive list-table-locais"></div>
+                            <div class="table-responsive list-table-locais" style="max-height: 600px;"></div>
                             <div class="pagination paginationButtons pagination-locais mt-3 text-center"></div>
                         </div>
 
