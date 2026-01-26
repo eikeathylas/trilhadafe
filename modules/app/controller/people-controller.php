@@ -108,10 +108,71 @@ function savePerson()
                 $data['profile_photo_url'] = "assets/img/" . $id_client . "/people/" . $filename;
             } else {
                 // Se falhar o upload, avisa mas não impede o cadastro (opcional)
-                // return echo json_encode(failure("Falha ao salvar a foto de perfil."));
+                echo json_encode(failure("Falha ao salvar a foto de perfil."));
+                return;
             }
         }
     }
+
+    // // --- LÓGICA DE UPLOAD DE FOTO (MELHORADA) ---
+    // // Verifica se foi enviado um ficheiro e se não é um erro de "nenhum ficheiro"
+    // if (isset($_FILES["profile_photo"]) && $_FILES["profile_photo"]["error"] !== UPLOAD_ERR_NO_FILE) {
+
+    //     // 1. Verificar Erros do PHP no Upload
+    //     if ($_FILES["profile_photo"]["error"] !== UPLOAD_ERR_OK) {
+    //         $msg = "Erro no envio do ficheiro. Código: " . $_FILES["profile_photo"]["error"];
+    //         echo json_encode(failure($msg));
+    //         return;
+    //     }
+
+    //     $id_client = isset($_POST["id_client"]) ? intval($_POST["id_client"]) : 0;
+
+    //     if ($id_client > 0) {
+    //         // 2. Definição do Caminho Absoluto
+    //         // Ajustamos para garantir que aponta para a raiz correta do projeto
+    //         // __DIR__ é a pasta onde está este ficheiro. O "../../../" volta para a raiz.
+    //         // Verifica se a estrutura de pastas corresponde a isso.
+    //         $basePath = __DIR__ . "/../../assets/img/" . $id_client . "/people/";
+
+    //         // 3. Criação de Pasta com Permissões Totais (0777)
+    //         if (!is_dir($basePath)) {
+    //             // O 'true' ativa o modo recursivo (cria as pastas pai se necessário)
+    //             if (!mkdir($basePath, 0777, true)) {
+    //                 // Se falhar, captura o erro nos logs do servidor
+    //                 error_log("Erro Crítico: Não foi possível criar a pasta em: " . $basePath);
+    //                 echo json_encode(failure("Falha interna: Não foi possível criar a diretoria de imagens."));
+    //                 return;
+    //             }
+    //             // Garante permissões mesmo se a pasta já existir mas estiver restrita
+    //             chmod($basePath, 0777);
+    //         }
+
+    //         // 4. Sanitização do Nome do Ficheiro
+    //         $extension = pathinfo($_FILES["profile_photo"]["name"], PATHINFO_EXTENSION);
+    //         // Nome seguro: timestamp + id único
+    //         $newFilename = time() . "_" . uniqid() . "." . strtolower($extension);
+    //         $targetFile = $basePath . $newFilename;
+
+    //         // 5. Mover o Ficheiro
+    //         if (move_uploaded_file($_FILES["profile_photo"]["tmp_name"], $targetFile)) {
+    //             // SUCESSO: Guarda o caminho relativo para o HTML acessar
+    //             $data['profile_photo_url'] = "assets/img/" . $id_client . "/people/" . $newFilename;
+    //         } else {
+    //             // FALHA: Diagnóstico
+    //             error_log("Falha no move_uploaded_file. Temp: " . $_FILES["profile_photo"]["tmp_name"] . " -> Destino: " . $targetFile);
+
+    //             // Verifica permissões da pasta para debug
+    //             $perms = substr(sprintf('%o', fileperms($basePath)), -4);
+    //             error_log("Permissões da pasta de destino: " . $perms);
+
+    //             echo json_encode(failure("Falha ao gravar o ficheiro no disco. Verifique o log de erros."));
+    //             return;
+    //         }
+    //     } else {
+    //         echo json_encode(failure("ID do cliente inválido para upload."));
+    //         return;
+    //     }
+    // }
 
     echo json_encode(upsertPerson($data));
 }

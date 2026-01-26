@@ -196,6 +196,9 @@ const formatKey = (key) => {
     profile_photo_url: "Foto Perfil",
     sacraments_info: "Sacramentos",
     civil_status: "Estado Civil",
+    phone_mobile: "Celular",
+    phone_landline: "Telefone Fixo",
+
 
     // --- 4. ACADÊMICO (CURSOS E DISCIPLINAS) [NOVO] ---
     subject_id: "ID Disciplina",

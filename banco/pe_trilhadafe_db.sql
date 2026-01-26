@@ -46,7 +46,7 @@ CREATE TABLE organization.organizations (
     parent_org_id INT REFERENCES organization.organizations(org_id),
     
     -- Classificação
-    org_type VARCHAR(50) NOT NULL DEFAULT 'DIOCESE', -- Simplificado para VARCHAR para evitar erro de Type Enum se não existir
+    org_type VARCHAR(50) NOT NULL DEFAULT 'PARISH', -- Simplificado para VARCHAR para evitar erro de Type Enum se não existir
     
     -- Identificação
     legal_name VARCHAR(255) NOT NULL,
@@ -1209,16 +1209,17 @@ COMMENT ON COLUMN communication.banners.target_link IS 'Deep link para área do 
 -- ----------------------------------------------------------
 -- 1. ORGANIZATION (A IGREJA E SALAS)
 -- ----------------------------------------------------------
-INSERT INTO organization.organizations (org_id, org_type, legal_name, display_name, tax_id, diocese_name, patron_saint, phone_main)
+INSERT INTO organization.organizations (org_id, parent_org_id, org_type, legal_name, display_name, tax_id, diocese_name, patron_saint, phone_main)
 VALUES 
-(1, 'PARISH', 'Mitra Arquidiocesana - Paróquia São José', 'Paróquia São José Operário', '12.345.678/0001-99', 'Diocese de Ribeirão', 'São José', '(16) 3636-1010');
+(1, NULL, 'DIOCESE', 'Diocese Caruaru', 'Diocese Caruaru', '12.345.678/0001-99', 'Diocese de Recife', 'São José', '(16) 3636-1010'),
+(2, 1, 'PARISH', 'Mitra Arquidiocesana - Paróquia São José', 'Paróquia São José Operário', '12.345.678/0001-99', 'Diocese de Ribeirão', 'São José', '(16) 3636-1010');
 
 INSERT INTO organization.locations (location_id, org_id, name, capacity, has_ac, has_ceiling_fan, resources_detail)
 VALUES 
-(1, 1, 'Igreja Matriz', 400, FALSE, TRUE, '{"som": true, "projetor": true}'),
-(2, 1, 'Salão Paroquial', 200, TRUE, FALSE, '{"cozinha": true, "palco": true}'),
-(3, 1, 'Sala 1 - Catequese', 30, FALSE, TRUE, '{"quadro": true}'),
-(4, 1, 'Sala 2 - Catequese', 30, FALSE, TRUE, '{"quadro": true}');
+(1, 2, 'Igreja Matriz', 400, FALSE, TRUE, '{"som": true, "projetor": true}'),
+(2, 2, 'Salão Paroquial', 200, TRUE, FALSE, '{"cozinha": true, "palco": true}'),
+(3, 2, 'Sala 1 - Catequese', 30, FALSE, TRUE, '{"quadro": true}'),
+(4, 2, 'Sala 2 - Catequese', 30, FALSE, TRUE, '{"quadro": true}');
 
 
 -- ----------------------------------------------------------

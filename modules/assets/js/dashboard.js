@@ -129,8 +129,8 @@ function renderAniversariantes(aniversariantes) {
 
   aniversariantes.forEach((pessoa) => {
     let avatarHtml = "";
-    if (pessoa.profile_photo_url) {
-      avatarHtml = `<img src="${pessoa.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border" style="width:40px; height:40px; margin: 0 10px 0 0; object-fit:cover;">`;
+    if (pessoa.photo_url) {
+      avatarHtml = `<img src="${pessoa.photo_url}?v=${new Date().getTime()}" class="rounded-circle border" style="width:40px; height:40px; margin: 0 10px 0 0; object-fit:cover;">`;
     } else {
       const nameParts = pessoa.name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
