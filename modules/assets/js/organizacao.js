@@ -323,6 +323,7 @@ const salvarInstituicao = async () => {
     if (result.status) {
       alertDefault("Salvo com sucesso!", "success");
       $("#modalInstituicao").modal("hide");
+      getDiocese();
       getOrganizacoes();
     } else {
       alertDefault(result.alert, "error");
@@ -351,6 +352,7 @@ const deleteOrg = (id) => {
         const res = await ajaxValidator({ validator: "deleteOrganization", token: defaultApp.userInfo.token, id: id });
         if (res.status) {
           alertDefault("Instituição inativada.", "success");
+          getDiocese();
           getOrganizacoes();
         } else {
           alertDefault(res.alert, "error");
@@ -660,7 +662,9 @@ window.paginateWrapper = (page, funcName, type) => {
 
   // 2. Chama a função de recarregamento
   // Verifica se está no window (global) ou tenta chamar direto (local)
-  if (funcName === "getOrganizacoes") {
+  if (funcName === "getDiocese") {
+    typeof window.getDiocese === "function" ? window.getDiocese() : getDiocese();
+  } else if (funcName === "getOrganizacoes") {
     typeof window.getOrganizacoes === "function" ? window.getOrganizacoes() : getOrganizacoes();
   } else if (funcName === "getLocais") {
     typeof window.getLocais === "function" ? window.getLocais() : getLocais();
