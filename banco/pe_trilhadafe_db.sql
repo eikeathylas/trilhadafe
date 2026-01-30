@@ -189,6 +189,9 @@ COMMENT ON TABLE people.person_roles IS 'Histórico de funções. Permite que um
 COMMENT ON TABLE people.family_ties IS 'Grafo de relacionamentos familiares. Essencial para lógica escolar (quem busca, quem paga).';
 COMMENT ON COLUMN people.family_ties.is_legal_guardian IS 'Se TRUE, esta pessoa pode autorizar passeios e retirar o aluno da escola.';
 
+ALTER TABLE people.person_roles 
+ADD CONSTRAINT unique_person_role UNIQUE (person_id, role_id);
+
 
 -- 5. Histórico de Status (RH e Vida Acadêmica)
 CREATE TABLE people.status_history (

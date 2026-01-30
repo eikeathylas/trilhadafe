@@ -284,39 +284,58 @@ const initSelectRelatives = () => {
 };
 
 const promptAddRelative = (id, name) => {
+
+  $("#modalPessoa").modal("hide");
+
   Swal.fire({
     title: `Vincular ${name}`,
     html: `
-            <select id="swal-rel-type" class="form-control mb-3">
-                <option value="FATHER">Pai</option>
-                <option value="MOTHER">Mãe</option>
-                <option value="SIBLING">Irmão(ã)</option>
-                <option value="GRANDPARENT">Avô(ó)</option>
-                <option value="SPOUSE">Esposo(a)</option>
-                <option value="GUARDIAN">Tutor Legal</option>
-            </select>
-            <div class="form-check text-start mb-2">
-                <input class="form-check-input" type="checkbox" id="swal-fin">
-                <label class="form-check-label">Responsável Financeiro?</label>
-            </div>
-            <div class="form-check text-start">
-                <input class="form-check-input" type="checkbox" id="swal-legal">
-                <label class="form-check-label">Responsável Legal (Retira aluno)?</label>
+            <div class="text-start">
+                <label class="form-label fw-bold">Grau de Parentesco:</label>
+                <select id="swal-rel-type" class="form-control mb-3">
+                    <option value="" disabled selected>Selecione...</option>
+                    <option value="FATHER">Pai</option>
+                    <option value="MOTHER">Mãe</option>
+                    <option value="SIBLING">Irmão(ã)</option>
+                    <option value="GRANDPARENT">Avô(ó)</option>
+                    <option value="SPOUSE">Esposo(a)</option>
+                    <option value="GUARDIAN">Tutor Legal</option>
+                </select>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="swal-fin">
+                    <label class="form-check-label" for="swal-fin">Responsável Financeiro?</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="swal-legal">
+                    <label class="form-check-label" for="swal-legal">Responsável Legal (Pode retirar o aluno)?</label>
+                </div>
             </div>
         `,
     showCancelButton: true,
-    confirmButtonText: "Adicionar",
-    preConfirm: () => ({
-      type: document.getElementById("swal-rel-type").value,
-      fin: document.getElementById("swal-fin").checked,
-      legal: document.getElementById("swal-legal").checked,
-    }),
+    confirmButtonText: "Adicionar Vínculo",
+    focusConfirm: false, // Evita focar no botão e focar no input
+    preConfirm: () => {
+      const type = document.getElementById("swal-rel-type").value;
+      if (!type) {
+        Swal.showValidationMessage("Por favor, selecione o grau de parentesco.");
+        return false;
+      }
+      return {
+        type: type, // Pega valor dinâmico
+        fin: document.getElementById("swal-fin").checked,
+        legal: document.getElementById("swal-legal").checked,
+      };
+    },
   }).then((result) => {
+    $("#modalPessoa").modal("show");
     if (result.isConfirmed) {
       addRelativeToList(id, name, result.value);
-      if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
+      // Limpa o selectize após adicionar
+      const selectize = $("#search_relative")[0].selectize;
+      if (selectize) selectize.clear();
     } else {
-      if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
+      const selectize = $("#search_relative")[0].selectize;
+      if (selectize) selectize.clear();
     }
   });
 };
@@ -332,10 +351,12 @@ const addRelativeToList = (id, name, details) => {
   });
   renderFamilyTable();
 };
+
 window.removeRelative = (index) => {
   currentFamilyList.splice(index, 1);
   renderFamilyTable();
 };
+
 const renderFamilyTable = () => {
   const container = $("#lista-familia");
   container.empty();
@@ -349,8 +370,7 @@ const renderFamilyTable = () => {
     if (fam.is_financial_responsible) badges += '<span class="badge bg-success me-1">$ Finan</span>';
     if (fam.is_legal_guardian) badges += '<span class="badge bg-primary">Legal</span>';
     container.append(
-      `<tr><td>${fam.relative_name}</td><td>${
-        typeMap[fam.relationship_type] || fam.relationship_type
+      `<tr><td>${fam.relative_name}</td><td>${typeMap[fam.relationship_type] || fam.relationship_type
       }</td><td class="text-center">${badges}</td><td class="text-center"><button class="btn btn-sm btn-outline-danger border-0" onclick="removeRelative(${index})"><i class="fas fa-times"></i></button></td></tr>`
     );
   });
@@ -400,13 +420,13 @@ window.salvarPessoa = async () => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-          url: defaultApp.validator,
-          data: formData,
-          type: "POST",
-          processData: false,
-          contentType: false,
-          dataType: "json",
-        }));
+        url: defaultApp.validator,
+        data: formData,
+        type: "POST",
+        processData: false,
+        contentType: false,
+        dataType: "json",
+      }));
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");
@@ -473,10 +493,12 @@ $("#is_pcd").change(function () {
   if ($(this).is(":checked")) $("#pcd_details").removeClass("d-none").focus();
   else $("#pcd_details").addClass("d-none");
 });
+
 $("#has_baptism").change(function () {
   if ($(this).is(":checked")) $("#baptism_details").removeClass("d-none");
   else $("#baptism_details").addClass("d-none");
 });
+
 $("#filtro-role, #busca-texto").on("change keyup", function () {
   clearTimeout(window.searchTimeout);
   window.searchTimeout = setTimeout(() => {
@@ -490,6 +512,7 @@ window.changePage = (page) => {
   defaultPeople.currentPage = page;
   getPessoas();
 };
+
 window.getPessoas = getPessoas; // Torna acessível caso botões usem
 
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
