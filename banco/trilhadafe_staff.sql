@@ -234,7 +234,7 @@ INSERT INTO public.clients (name, description) VALUES ('Caruaru - PE', 'Diocese 
 
 -- 3.4 Conexão com Banco Local (pe_ribeirao_db)
 INSERT INTO public.clients_config (id_client, host, "database", "user", "password", port) 
-VALUES (1, '31.220.51.183', 'pe_caruaru_db', 'postgres', 'N8GCOjHT0ArVUq8vWNVtz0sv3wMPC6mBx7ytPfL18wsoUQZqdT', '5432');
+VALUES (1, '145.223.94.211', 'pe_caruaru_db', 'postgres', 'vSoj3WaPHUaa6MrADKtzayy46ub5YS69S2K3JXrQtqkeV8VtYv', '5432');
 
 -- 3.5 Perfis
 INSERT INTO public.profiles (id, title, description, staff, active) VALUES

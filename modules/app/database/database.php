@@ -9,17 +9,17 @@ function getStaff()
     }
 
     // Configurações do Banco Central (Staff)
-    // $host = "31.220.51.183";
-    // $port = "5432";
-    // $dbname = "trilhadafe";
-    // $user = "postgres";
-    // $pass = "N8GCOjHT0ArVUq8vWNVtz0sv3wMPC6mBx7ytPfL18wsoUQZqdT";
-
-    $host = "localhost";
+    $host = "145.223.94.211";
     $port = "5432";
     $dbname = "trilhadafe_staff";
     $user = "postgres";
-    $pass = "159753";
+    $pass = "vSoj3WaPHUaa6MrADKtzayy46ub5YS69S2K3JXrQtqkeV8VtYv";
+
+    // $host = "localhost";
+    // $port = "5432";
+    // $dbname = "trilhadafe_staff";
+    // $user = "postgres";
+    // $pass = "159753";
 
     $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
 
