@@ -157,7 +157,8 @@ const renderTimeline = (logs, container) => {
         const vNew = newVal[key];
 
         // --- FILTRO SUPREMO DE VAZIOS ---
-        // Se ambos forem considerados vazios (ex: null vs false, "" vs null), ignora.
+        // Se ambos forem considerados vazios (ex: null vs false, "" vs null)
+
         if (isEffectivelyEmpty(vOld) && isEffectivelyEmpty(vNew)) return;
 
         const dOld = formatValue(vOld);
@@ -168,9 +169,9 @@ const renderTimeline = (logs, container) => {
           hasVisibleChanges = true;
           rows += `<tr>
                         <td class="diff-field text-muted">${formatKey(key)}</td>
-                        <td class="diff-old">${formatValue(vOld)}</td>
+                        <td class="diff-old">${formatValue(vOld, key)}</td>
                         <td class="text-center"><i class="fas fa-arrow-right text-muted mx-2" style="font-size:10px;"></i></td>
-                        <td class="diff-new">${formatValue(vNew)}</td>
+                        <td class="diff-new">${formatValue(vNew, key)}</td>
                     </tr>`;
         }
       });
@@ -316,9 +317,14 @@ const formatKey = (key) => {
   return map[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
-const formatValue = (val) => {
+const formatValue = (val, key = '') => {
+  // Permite formatação específica por chave, se necessário
+  let specificKey = ['is_active', 'active'];
+
   // Filtro inicial usando a nova função
-  if (isEffectivelyEmpty(val)) return '<em class="text-muted opacity-75">vazio</em>';
+  if (!specificKey.includes(key)) {
+    if (isEffectivelyEmpty(val)) return '<em class="text-muted opacity-75">vazio</em>';
+  }
 
   if (val === true || val === "t" || val === "true") return '<span class="badge bg-success-subtle text-success border border-success">Sim</span>';
   if (val === false || val === "f" || val === "false") return '<span class="badge bg-secondary-subtle text-secondary border">Não</span>';
