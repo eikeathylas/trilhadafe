@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V15 (FILTRO INTELIGENTE)
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V18 (Dicionário Expandido)
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -8,7 +8,6 @@ window.openAudit = async (table, id) => {
 
   modal.modal("show");
 
-  // Loader inicial
   container.html(`
         <div class="text-center py-5 text-muted">
             <div class="spinner-border text-primary" role="status"></div>
@@ -40,18 +39,20 @@ window.openAudit = async (table, id) => {
   }
 };
 
+/**
+ * Verifica se um valor é tecnicamente vazio
+ */
 const isEffectivelyEmpty = (val) => {
   if (val === null || val === undefined || val === "" || val === false) return true;
-  if (typeof val === 'string') {
+  if (typeof val === "string") {
     const v = val.trim();
     if (v === "null" || v === "false" || v === "") return true;
-    if (v === "{}" || v === "[]") return true; // JSON vazio
-    // Tenta parsear JSON simples que sobrou como "{}"
-    if (v.startsWith('{') && v.endsWith('}')) {
+    if (v === "{}" || v === "[]") return true;
+    if (v.startsWith("{") && v.endsWith("}")) {
       try {
         const j = JSON.parse(v);
         return Object.keys(j).length === 0;
-      } catch (e) { }
+      } catch (e) {}
     }
   }
   return false;
@@ -66,7 +67,7 @@ const renderTimeline = (logs, container) => {
   let html = "";
   let visibleLogsCount = 0;
 
-  // Lista negra de campos
+  // Campos técnicos que nunca devem aparecer no Diff
   const globalBlacklist = ["updated_at", "created_at", "user_id", "audit_user_id", "deleted", "org_id", "org_id_origin", "link_id", "tie_id", "notes", "start_date", "end_date", "person_id", "role_id", "class_id", "course_id"];
 
   const isTrue = (v) => v === true || v === "t" || v === "true" || v === 1;
@@ -75,12 +76,21 @@ const renderTimeline = (logs, container) => {
   logs.forEach((log) => {
     let oldVal = {};
     let newVal = {};
-    try { oldVal = typeof log.old_values === "string" ? JSON.parse(log.old_values) : log.old_values || {}; } catch (e) { }
-    try { newVal = typeof log.new_values === "string" ? JSON.parse(log.new_values) : log.new_values || {}; } catch (e) { }
+    try {
+      oldVal = typeof log.old_values === "string" ? JSON.parse(log.old_values) : log.old_values || {};
+    } catch (e) {}
+    try {
+      newVal = typeof log.new_values === "string" ? JSON.parse(log.new_values) : log.new_values || {};
+    } catch (e) {}
 
     // --- DETECÇÃO DO TIPO DE EVENTO ---
-    const table = log.table_name;
-    const op = log.operation; // INSERT, UPDATE, DELETE
+    const op = (log.operation || "").toUpperCase().trim();
+
+    // Identifica tipos
+    const isInsert = op === "INSERT" || op === "ADD VÍNCULO";
+    const isHardDelete = op === "DELETE" || op === "RMV VÍNCULO";
+    const isSoftDelete = op === "UPDATE" && isTrue(newVal.deleted) && !isTrue(oldVal.deleted);
+    const isReactivation = op === "UPDATE" && isFalse(newVal.deleted) && isTrue(oldVal.deleted);
 
     let icon = "edit";
     let colorClass = "UPDATE";
@@ -88,106 +98,86 @@ const renderTimeline = (logs, container) => {
     let hasVisibleChanges = false;
     let headerText = "Atualização";
 
-    // Nome do item (cargo, parente, etc)
-    let itemName = oldVal.vinculo || newVal.vinculo || oldVal.relative_name || newVal.relative_name || "Item";
+    // Ajuste de Título do Card
+    if (log.table_name === "person_roles") headerText = "Cargos e Funções";
+    else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
+    else if (log.table_name === "locations") headerText = "Espaço / Sala";
 
-    // 1. EVENTO NA PESSOA (TABELA PRINCIPAL)
-    if (table === 'persons') {
-      if (op === 'INSERT') {
-        icon = "person_add"; colorClass = "INSERT";
-        diffHtml = '<div class="text-success fw-bold"><i class="fas fa-check-circle me-2"></i> Cadastro realizado no sistema.</div>';
-        hasVisibleChanges = true;
+    // Nome do item afetado (para subtabelas)
+    let itemName = oldVal.vinculo || newVal.vinculo || oldVal.relative_name || newVal.relative_name || oldVal.name || newVal.name || "Item";
+
+    // --- LÓGICA DE EXIBIÇÃO ---
+
+    if (isInsert) {
+      icon = "add";
+      colorClass = "INSERT";
+      if (log.table_name === "persons" || log.table_name === "organizations") {
+        diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro criado no sistema.</div>';
         headerText = "Criação";
-      } else if (op === 'UPDATE') {
-        // Checa reativação
-        if (isFalse(newVal.deleted) && isTrue(oldVal.deleted)) {
-          icon = "restore_from_trash"; colorClass = "INSERT";
-          diffHtml = '<div class="text-success fw-bold">Cadastro restaurado da lixeira.</div>';
-          hasVisibleChanges = true;
-        } else if (isTrue(newVal.deleted) && !isTrue(oldVal.deleted)) {
-          icon = "delete"; colorClass = "DELETE";
-          diffHtml = '<div class="text-danger fw-bold">Cadastro movido para a lixeira.</div>';
-          hasVisibleChanges = true;
-        } else {
-          // Update Normal
-          headerText = "Dados Pessoais";
-        }
+      } else {
+        diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Adicionado: ${itemName}</div>`;
       }
-    }
-    // 2. EVENTO NOS VÍNCULOS (CARGOS)
-    else if (table === 'person_roles') {
-      headerText = "Cargos e Funções";
-      if (op === 'ADD VÍNCULO' || op === 'INSERT') {
-        icon = "verified_user"; colorClass = "INSERT";
-        diffHtml = `<div class="text-success"><i class="fas fa-plus-circle me-2"></i> Adicionado cargo: <strong>${itemName}</strong></div>`;
-        hasVisibleChanges = true;
-      } else if (op === 'RMV VÍNCULO' || op === 'DELETE' || (op === 'UPDATE' && isTrue(newVal.deleted))) {
-        icon = "remove_moderator"; colorClass = "DELETE";
-        diffHtml = `<div class="text-danger"><i class="fas fa-minus-circle me-2"></i> Removido cargo: <strong>${itemName}</strong></div>`;
-        hasVisibleChanges = true;
-      } else if (isFalse(newVal.deleted) && isTrue(oldVal.deleted)) {
-        // Reativação
-        icon = "verified_user"; colorClass = "INSERT";
-        diffHtml = `<div class="text-success"><i class="fas fa-redo me-2"></i> Reativado cargo: <strong>${itemName}</strong></div>`;
-        hasVisibleChanges = true;
-      }
-    }
-    // 3. EVENTO NA FAMÍLIA
-    else if (table === 'family_ties') {
-      headerText = "Vínculos Familiares";
-      if (op === 'INSERT') {
-        icon = "group_add"; colorClass = "INSERT";
-        diffHtml = `<div class="text-success"><i class="fas fa-user-plus me-2"></i> Adicionado parente: <strong>${itemName}</strong></div>`;
-        hasVisibleChanges = true;
-      } else if (op === 'DELETE' || (op === 'UPDATE' && isTrue(newVal.deleted))) {
-        icon = "group_remove"; colorClass = "DELETE";
-        diffHtml = `<div class="text-danger"><i class="fas fa-user-minus me-2"></i> Removido parente: <strong>${itemName}</strong></div>`;
-        hasVisibleChanges = true;
-      }
-    }
+      hasVisibleChanges = true;
+    } else if (isHardDelete) {
+      icon = "delete";
+      colorClass = "DELETE";
+      diffHtml = '<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Registro excluído permanentemente.</div>';
+      hasVisibleChanges = true;
+    } else if (isSoftDelete) {
+      icon = "delete";
+      colorClass = "DELETE";
+      let label = "Item enviado para a lixeira.";
+      if (log.table_name === "person_roles") label = `Vínculo removido: <strong>${itemName}</strong>`;
+      else if (log.table_name === "family_ties") label = `Familiar removido: <strong>${itemName}</strong>`;
+      else if (log.table_name === "locations") label = `Local desativado: <strong>${itemName}</strong>`;
+      else label = "Registro movido para a lixeira.";
 
-    // Se não caiu nos casos especiais acima, gera o DIFF padrão
-    if (!hasVisibleChanges && op === 'UPDATE') {
+      diffHtml = `<div class="text-danger small"><i class="fas fa-trash me-2"></i> ${label}</div>`;
+      hasVisibleChanges = true;
+    } else if (isReactivation) {
+      icon = "recycling";
+      colorClass = "INSERT";
+      let label = `<strong>${itemName}</strong> restaurado.`;
+      if (log.table_name === "persons" || log.table_name === "organizations") label = "Cadastro restaurado da lixeira.";
+
+      diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-recycle me-2"></i> ${label}</div>`;
+      hasVisibleChanges = true;
+    } else {
+      // --- UPDATE NORMAL ---
       let rows = "";
       const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
+
       allKeys.forEach((key) => {
         if (globalBlacklist.includes(key)) return;
 
         const vOld = oldVal[key];
         const vNew = newVal[key];
 
-        // --- FILTRO SUPREMO DE VAZIOS ---
-        // Se ambos forem considerados vazios (ex: null vs false, "" vs null)
+        const displayOld = formatValue(vOld, key);
+        const displayNew = formatValue(vNew, key);
 
-        if (isEffectivelyEmpty(vOld) && isEffectivelyEmpty(vNew)) return;
+        if (displayOld === displayNew) return;
 
-        const dOld = formatValue(vOld);
-        const dNew = formatValue(vNew);
-        if (dOld === dNew) return;
-
-        if (JSON.stringify(vOld) !== JSON.stringify(vNew)) {
-          hasVisibleChanges = true;
-          rows += `<tr>
-                        <td class="diff-field text-muted">${formatKey(key)}</td>
-                        <td class="diff-old">${formatValue(vOld, key)}</td>
-                        <td class="text-center"><i class="fas fa-arrow-right text-muted mx-2" style="font-size:10px;"></i></td>
-                        <td class="diff-new">${formatValue(vNew, key)}</td>
-                    </tr>`;
-        }
+        hasVisibleChanges = true;
+        rows += `
+            <tr>
+                <td class="diff-field text-muted">${formatKey(key)}</td>
+                <td class="diff-old">${displayOld}</td>
+                <td class="text-center"><i class="fas fa-arrow-right text-muted mx-2" style="font-size:10px;"></i></td>
+                <td class="diff-new">${displayNew}</td>
+            </tr>`;
       });
+
       if (rows) diffHtml = `<table class="audit-diff-table">${rows}</table>`;
     }
 
-    // RENDERIZA
-    // Se no final do processamento (especialmente no bloco UPDATE) não sobrou nenhuma mudança visível, não renderiza o card.
     if (!hasVisibleChanges) return;
 
     visibleLogsCount++;
 
-    // Botão Rollback só para UPDATEs de dados pessoais simples
     let rollbackBtn = "";
-    if (table === 'persons' && op === 'UPDATE' && !diffHtml.includes("lixeira")) {
-      rollbackBtn = `<div class="mt-2 text-end border-top pt-2"><button class="btn btn-xs btn-outline-warning" onclick="doRollback(${log.log_id}, '${log.date_fmt}')"><i class="fas fa-undo-alt me-1"></i> Restaurar</button></div>`;
+    if (op === "UPDATE" && !isSoftDelete && !isReactivation && (log.table_name === "persons" || log.table_name === "organizations")) {
+      rollbackBtn = `<div class="mt-2 text-end border-top pt-2"><button class="btn btn-xs btn-outline-warning" onclick="doRollback(${log.log_id}, '${log.date_fmt}')"><i class="fas fa-undo-alt me-1"></i> Restaurar esta versão</button></div>`;
     }
 
     html += `
@@ -198,18 +188,29 @@ const renderTimeline = (logs, container) => {
                 <div class="audit-content">
                     <div class="audit-header">
                         <span class="audit-user">
-                            <strong>${log.user_name}</strong>
+                            <strong>${log.user_name || "Sistema"}</strong>
                             <span class="ms-2 badge bg-light text-secondary border small">${headerText}</span>
                         </span>
                         <span class="audit-date text-muted small">${log.date_fmt}</span>
                     </div>
-                    <div class="audit-body">${diffHtml}${rollbackBtn}</div>
+                    <div class="audit-body">
+                        ${diffHtml}
+                        ${rollbackBtn}
+                    </div>
                 </div>
             </div>`;
   });
 
-  if (visibleLogsCount === 0) container.html(`<div class="text-center py-5 text-muted opacity-50"><p class="mt-2">Registro atualizado tecnicamente, sem alterações visíveis.</p></div>`);
-  else container.html(html);
+  if (visibleLogsCount === 0) {
+    container.html(`
+        <div class="text-center py-5 text-muted opacity-50">
+            <span class="material-symbols-outlined" style="font-size: 48px;">history_edu</span>
+            <p class="mt-2">Registro atualizado tecnicamente, sem alterações de dados visíveis.</p>
+        </div>
+    `);
+  } else {
+    container.html(html);
+  }
 };
 
 const formatKey = (key) => {
@@ -234,6 +235,7 @@ const formatKey = (key) => {
     diocese_name: "Diocese",
     decree_number: "Decreto Canônico",
     foundation_date: "Data de Fundação",
+    instituicao: "Instituição Vinculada",
 
     // --- LOCAIS & SALAS ---
     name: "Nome",
@@ -261,7 +263,7 @@ const formatKey = (key) => {
     phone_mobile: "Celular / WhatsApp",
     phone_landline: "Telefone Fixo",
 
-    // Sub-tabelas Pessoas
+    // Sub-tabelas
     vinculo: "Cargo / Função",
     relationship_type: "Grau de Parentesco",
     is_financial_responsible: "Responsável Financeiro",
@@ -269,7 +271,7 @@ const formatKey = (key) => {
     relative_id: "ID Parente",
     relative_name: "Nome do Parente",
 
-    // --- ACADÊMICO (CURSOS, DISCIPLINAS, TURMAS) ---
+    // --- ACADÊMICO ---
     subject_id: "Disciplina",
     syllabus_summary: "Ementa / Conteúdo",
     course_id: "Curso",
@@ -310,51 +312,86 @@ const formatKey = (key) => {
     // --- CONTROLE & SISTEMA ---
     is_active: "Status (Ativo)",
     deleted: "Excluído",
-    active: "Ativo"
+    active: "Ativo",
   };
 
-  // Retorna a tradução ou formata a chave (ex: "campo_novo" -> "Campo Novo")
   return map[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
-const formatValue = (val, key = '') => {
-  // Permite formatação específica por chave, se necessário
-  let specificKey = ['is_active', 'active'];
+const formatValue = (val, key = "") => {
+  // Ignora verificação de vazio para campos booleanos explícitos
+  const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated"];
 
-  // Filtro inicial usando a nova função
-  if (!specificKey.includes(key)) {
+  if (!boolKeys.includes(key)) {
     if (isEffectivelyEmpty(val)) return '<em class="text-muted opacity-75">vazio</em>';
   }
 
   if (val === true || val === "t" || val === "true") return '<span class="badge bg-success-subtle text-success border border-success">Sim</span>';
   if (val === false || val === "f" || val === "false") return '<span class="badge bg-secondary-subtle text-secondary border">Não</span>';
 
-  // Parentescos
+  // Mapas de Tradução
   const relMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
   if (relMap[val]) return relMap[val];
 
-  // Turnos
   const shiftMap = { MORNING: "Matutino", AFTERNOON: "Vespertino", NIGHT: "Noturno", ALL_DAY: "Integral" };
   if (shiftMap[val]) return shiftMap[val];
 
-  // Datas (YYYY-MM-DD)
+  const orgTypeMap = { DIOCESE: "Diocese", PARISH: "Paróquia", CHAPEL: "Capela", CONVENT: "Convento", CURIA: "Cúria" };
+  if (orgTypeMap[val]) return orgTypeMap[val];
+
+  // Data
   if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
     const p = val.split("-");
     return `${p[2]}/${p[1]}/${p[0]}`;
   }
 
+  // Objeto JSON
   if (typeof val === "object" && val !== null) {
     let str = "";
+
+    // ATENÇÃO: Dicionário expandido com chaves curtas e longas
     const jsonMap = {
-      baptism: "Batismo", baptism_date: "Data Batismo", baptism_place: "Local Batismo",
-      eucharist: "Eucaristia", confirmation: "Crisma", marriage: "Casamento"
+      // Sacramentos
+      baptism: "Batismo",
+      baptism_date: "Data Batismo",
+      baptism_place: "Local Batismo",
+      eucharist: "Eucaristia",
+      confirmation: "Crisma",
+      marriage: "Casamento",
+
+      // Recursos (Chaves curtas do banco)
+      wifi: "Wi-Fi",
+      projector: "Projetor/TV",
+      sound: "Som",
+      whiteboard: "Lousa/Quadro",
+      computer: "Computador",
+      kitchen: "Cozinha/Copa",
+      parking: "Estacionamento",
+      fan: "Ventilador",
+      water: "Bebedouro",
+      ac: "Ar Condicionado",
+      palco: "Palco",
+
+      // Recursos (Chaves longas has_*)
+      has_ac: "Ar Cond.",
+      has_wifi: "Wi-Fi",
+      has_projector: "Projetor",
+      has_sound: "Som",
+      has_whiteboard: "Lousa",
+      has_computer: "PC",
+      has_kitchen: "Cozinha",
+      has_parking: "Estacionamento",
+      has_fan: "Ventilador",
+      has_water: "Água",
     };
 
+    let hasContent = false;
     for (const [k, v] of Object.entries(val)) {
-      // Ignora false, null, vazio e "false" string dentro do JSON também
       if (isEffectivelyEmpty(v)) continue;
+      hasContent = true;
 
-      let label = jsonMap[k] || k;
+      // Usa o mapa ou formata a chave se não encontrar
+      let label = jsonMap[k] || k.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
       let displayVal = v;
 
       if (v === true || v === "true") displayVal = '<i class="fas fa-check text-success"></i>';
@@ -364,9 +401,7 @@ const formatValue = (val, key = '') => {
       }
       str += `<div class="d-inline-block me-2 border rounded px-2 mb-1 small bg-white text-dark shadow-sm"><strong>${label}:</strong> ${displayVal}</div>`;
     }
-
-    // CORREÇÃO: Se o JSON ficou vazio após o filtro, retorna "vazio"
-    return str || '<em class="text-muted opacity-75">vazio</em>';
+    return hasContent ? str : '<em class="text-muted opacity-75">vazio</em>';
   }
 
   return val;
@@ -391,9 +426,9 @@ window.doRollback = (logId, dateStr = "") => {
     confirmButtonColor: "#f6c23e",
     cancelButtonColor: "#6c757d",
     confirmButtonText: '<i class="fas fa-history me-2"></i> Sim, restaurar',
-    cancelButtonText: 'Cancelar',
+    cancelButtonText: "Cancelar",
     reverseButtons: true,
-    focusCancel: true
+    focusCancel: true,
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
@@ -401,13 +436,15 @@ window.doRollback = (logId, dateStr = "") => {
           title: "Restaurando...",
           html: "Aplicando as alterações antigas.",
           allowOutsideClick: false,
-          didOpen: () => { Swal.showLoading(); }
+          didOpen: () => {
+            Swal.showLoading();
+          },
         });
 
         const res = await ajaxValidator({
           validator: "rollbackAuditLog",
           token: defaultApp.userInfo.token,
-          log_id: logId
+          log_id: logId,
         });
 
         if (res.status) {
@@ -416,20 +453,19 @@ window.doRollback = (logId, dateStr = "") => {
             text: "O registro voltou para a versão selecionada.",
             icon: "success",
             timer: 2000,
-            showConfirmButton: false
+            showConfirmButton: false,
           }).then(() => {
             $("#modalAudit").modal("hide");
 
             // === AUTO-REFRESH DAS LISTAGENS ===
-            // Verifica quais funções existem no escopo global e executa
-            if (typeof window.getPessoas === 'function') window.getPessoas();
-            if (typeof window.getTurmas === 'function') window.getTurmas();
-            if (typeof window.getCursos === 'function') window.getCursos();
-            if (typeof window.getDisciplinas === 'function') window.getDisciplinas();
-            if (typeof window.getOrganizacoes === 'function') window.getOrganizacoes();
-            if (typeof window.getLocais === 'function') window.getLocais();
-            if (typeof window.getFinanceiro === 'function') window.getFinanceiro();
-            if (typeof window.getLiturgia === 'function') window.getLiturgia();
+            if (typeof window.getPessoas === "function") window.getPessoas();
+            if (typeof window.getTurmas === "function") window.getTurmas();
+            if (typeof window.getCursos === "function") window.getCursos();
+            if (typeof window.getDisciplinas === "function") window.getDisciplinas();
+            if (typeof window.getOrganizacoes === "function") window.getOrganizacoes();
+            if (typeof window.getLocais === "function") window.getLocais();
+            if (typeof window.getFinanceiro === "function") window.getFinanceiro();
+            if (typeof window.getLiturgia === "function") window.getLiturgia();
           });
         } else {
           Swal.fire("Erro", res.alert, "error");
@@ -440,5 +476,3 @@ window.doRollback = (logId, dateStr = "") => {
     }
   });
 };
-
-

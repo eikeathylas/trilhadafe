@@ -83,10 +83,19 @@ const limpa_formulário_cep = () => {
   $("#org_street, #org_district, #org_city, #org_state").val("").prop("disabled", false);
 };
 
+// --- ATUALIZAÇÃO: Função Genérica Blindada ---
 const modalInstituicao = (id = null) => {
   const modal = $("#modalInstituicao");
+
+  // 1. Limpa campos de texto
   modal.find("input").val("");
-  if ($("#org_type")[0].selectize) $("#org_type")[0].selectize.clear();
+
+  // 2. RESET TOTAL DO SELECTIZE (AQUI ESTÁ A CORREÇÃO)
+  const selectize = $("#org_type")[0].selectize;
+  if (selectize) {
+    selectize.clear(true); // Limpa a seleção anterior (true = sem disparar change)
+    selectize.enable(); // FORÇA O DESTRAVAMENTO
+  }
 
   if (id) {
     loadOrgData(id);
@@ -94,6 +103,21 @@ const modalInstituicao = (id = null) => {
     $("#modalInstituicaoLabel").text("Nova Instituição");
     modal.modal("show");
     if (window.initMasks) window.initMasks();
+  }
+};
+
+// --- Função Específica para Diocese ---
+window.modalDiocese = () => {
+  // 1. Abre o modal padrão (que vai limpar e destravar tudo primeiro)
+  modalInstituicao();
+
+  // 2. Aplica as regras de bloqueio da Diocese
+  $("#modalInstituicaoLabel").text("Nova Diocese");
+
+  const selectize = $("#org_type")[0].selectize;
+  if (selectize) {
+    selectize.setValue("DIOCESE"); // Define o valor
+    selectize.disable(); // Trava novamente apenas para este caso
   }
 };
 

@@ -57,6 +57,13 @@
                     <div class="tab-content">
 
                         <div class="tab-pane fade show active" id="diocese" role="tabpanel">
+                            <div class="row mb-3">
+                                <div class="col-12 text-end">
+                                    <button class="btn-filter" onclick="modalDiocese()">
+                                        <i class="fas fa-plus mr-2"></i> Nova Diocese
+                                    </button>
+                                </div>
+                            </div>
                             <div class="table-responsive list-table-diocese" style="max-height: 600px;"></div>
                             <div class="pagination paginationButtons pagination-diocese mt-3 text-center"></div>
                         </div>
