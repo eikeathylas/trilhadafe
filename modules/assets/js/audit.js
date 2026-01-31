@@ -1,11 +1,10 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V22 (Padrão Visual)
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V23 (Locais como Principal)
 // =========================================================
 
 window.openAudit = async (table, id) => {
   const container = $("#audit-timeline-container");
   const modal = $("#modalAudit");
-
   modal.modal("show");
 
   container.html(`
@@ -39,9 +38,6 @@ window.openAudit = async (table, id) => {
   }
 };
 
-/**
- * Verifica se um valor é tecnicamente vazio
- */
 const isEffectivelyEmpty = (val) => {
   if (val === null || val === undefined || val === "" || val === false) return true;
   if (typeof val === "string") {
@@ -212,11 +208,11 @@ const renderTimeline = (logs, container) => {
                             <span class="ms-2 badge bg-light text-secondary border small">${headerText}</span>
                         </span>
                         <span class="audit-date text-muted small">${log.date_fmt}</span>
-                    </div>
+            </div>
                     <div class="audit-body">
                         ${diffHtml}
-                        ${rollbackBtn}
-                    </div>
+            ${rollbackBtn}
+        </div>
                 </div>
             </div>`;
   });
@@ -235,8 +231,18 @@ const renderTimeline = (logs, container) => {
 
 const formatKey = (key) => {
   const map = {
-    // --- GERAL & ORGANIZAÇÃO ---
-    id: "ID",
+    // Cursos
+    min_age: "Idade Mínima",
+    max_age: "Idade Máxima",
+    total_workload_hours: "Carga Horária Total",
+    subject_id: "Disciplina",
+    workload_hours: "Horas/Aula",
+    is_mandatory: "Obrigatória",
+    disciplina: "Matéria",
+    // Geral
+    name: "Nome",
+    description: "Descrição",
+    is_active: "Ativo",
     display_name: "Nome Fantasia",
     legal_name: "Razão Social",
     phone_main: "Telefone Principal",
@@ -351,7 +357,7 @@ const formatValue = (val, key = "") => {
     return `${p[2]}/${p[1]}/${p[0]}`;
   }
 
-  // Objeto JSON
+  // Objeto JSON (Recursos)
   if (typeof val === "object" && val !== null) {
     let str = "";
     const jsonMap = {
@@ -361,7 +367,7 @@ const formatValue = (val, key = "") => {
       eucharist: "Eucaristia",
       confirmation: "Crisma",
       marriage: "Casamento",
-      // Recursos
+      // Recursos Locais (chaves curtas e longas unificadas)
       wifi: "Wi-Fi",
       projector: "Projetor/TV",
       sound: "Som",
@@ -452,7 +458,7 @@ window.doRollback = (logId, dateStr = "") => {
             timer: 2000,
             showConfirmButton: false,
           }).then(() => {
-            $("#modalAudit").modal("hide");
+        $("#modalAudit").modal("hide");
             if (typeof window.getPessoas === "function") window.getPessoas();
             if (typeof window.getTurmas === "function") window.getTurmas();
             if (typeof window.getCursos === "function") window.getCursos();
