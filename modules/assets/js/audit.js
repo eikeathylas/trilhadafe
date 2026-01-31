@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V21 (Anti-Crash Null)
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V22 (Padrão Visual)
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -74,25 +74,27 @@ const renderTimeline = (logs, container) => {
   const isFalse = (v) => v === false || v === "f" || v === "false" || v === 0 || v === null;
 
   logs.forEach((log) => {
-    // --- CORREÇÃO DE CRASH: BLINDAGEM CONTRA NULL ---
-    // Garante que se o JSON for "null", a variável vire {} e não null
+    // --- BLINDAGEM CONTRA NULL ---
     let oldVal = {};
     let newVal = {};
-    
+
     try {
       const parsedOld = typeof log.old_values === "string" ? JSON.parse(log.old_values) : log.old_values;
-      oldVal = parsedOld || {}; 
-    } catch (e) { oldVal = {}; }
+      oldVal = parsedOld || {};
+    } catch (e) {
+      oldVal = {};
+    }
 
     try {
       const parsedNew = typeof log.new_values === "string" ? JSON.parse(log.new_values) : log.new_values;
       newVal = parsedNew || {};
-    } catch (e) { newVal = {}; }
+    } catch (e) {
+      newVal = {};
+    }
 
     // --- DETECÇÃO DO TIPO DE EVENTO ---
     const op = (log.operation || "").toUpperCase().trim();
 
-    // Identifica tipos
     const isInsert = op === "INSERT" || op === "ADD VÍNCULO";
     const isHardDelete = op === "DELETE" || op === "RMV VÍNCULO";
     const isSoftDelete = op === "UPDATE" && isTrue(newVal.deleted) && !isTrue(oldVal.deleted);
@@ -104,26 +106,21 @@ const renderTimeline = (logs, container) => {
     let hasVisibleChanges = false;
     let headerText = "Atualização";
 
-    // Ajuste de Título do Card
+    // Títulos de Sub-tabelas
     if (log.table_name === "person_roles") headerText = "Cargos e Funções";
     else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
     else if (log.table_name === "locations") headerText = "Espaço / Sala";
     else if (log.table_name === "curriculum") headerText = "Grade Curricular";
 
-    // Nome do item afetado (para subtabelas)
-    // Agora seguro pois oldVal/newVal nunca são null
-    let itemName = oldVal.vinculo || newVal.vinculo || 
-                   oldVal.relative_name || newVal.relative_name || 
-                   oldVal.name || newVal.name || 
-                   oldVal.disciplina || newVal.disciplina || 
-                   "Item";
+    // Nome do item afetado (Inteligente)
+    let itemName = oldVal.vinculo || newVal.vinculo || oldVal.relative_name || newVal.relative_name || oldVal.name || newVal.name || oldVal.disciplina || newVal.disciplina || "Item";
 
     // --- LÓGICA DE EXIBIÇÃO ---
 
     if (isInsert) {
       icon = "add";
       colorClass = "INSERT";
-      // Se for tabela principal, é criação do registro. Se for subtabela, é adição de item.
+      // Se for tabela principal
       if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses") {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro criado no sistema.</div>';
         headerText = "Criação";
@@ -134,12 +131,21 @@ const renderTimeline = (logs, container) => {
     } else if (isHardDelete) {
       icon = "delete";
       colorClass = "DELETE";
-      diffHtml = '<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Registro excluído permanentemente.</div>';
+
+      // AJUSTE SOLICITADO: Diferenciar Registro Principal de Sub-item
+      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses") {
+        diffHtml = '<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Registro excluído permanentemente.</div>';
+        headerText = "Exclusão";
+      } else {
+        // Aqui mostra o nome da matéria/cargo removido
+        diffHtml = `<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Removido: ${itemName}</div>`;
+      }
       hasVisibleChanges = true;
     } else if (isSoftDelete) {
       icon = "delete";
       colorClass = "DELETE";
       let label = "Item enviado para a lixeira.";
+
       if (log.table_name === "person_roles") label = `Vínculo removido: <strong>${itemName}</strong>`;
       else if (log.table_name === "family_ties") label = `Familiar removido: <strong>${itemName}</strong>`;
       else if (log.table_name === "locations") label = `Local desativado: <strong>${itemName}</strong>`;
@@ -313,7 +319,7 @@ const formatKey = (key) => {
     // --- SISTEMA ---
     is_active: "Status (Ativo)",
     deleted: "Excluído",
-    active: "Ativo"
+    active: "Ativo",
   };
 
   return map[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
@@ -356,12 +362,27 @@ const formatValue = (val, key = "") => {
       confirmation: "Crisma",
       marriage: "Casamento",
       // Recursos
-      wifi: "Wi-Fi", projector: "Projetor/TV", sound: "Som", whiteboard: "Lousa/Quadro",
-      computer: "Computador", kitchen: "Cozinha/Copa", parking: "Estacionamento",
-      fan: "Ventilador", water: "Bebedouro", ac: "Ar Condicionado", palco: "Palco",
-      has_ac: "Ar Cond.", has_wifi: "Wi-Fi", has_projector: "Projetor", has_sound: "Som",
-      has_whiteboard: "Lousa", has_computer: "PC", has_kitchen: "Cozinha", has_parking: "Estacionamento",
-      has_fan: "Ventilador", has_water: "Água"
+      wifi: "Wi-Fi",
+      projector: "Projetor/TV",
+      sound: "Som",
+      whiteboard: "Lousa/Quadro",
+      computer: "Computador",
+      kitchen: "Cozinha/Copa",
+      parking: "Estacionamento",
+      fan: "Ventilador",
+      water: "Bebedouro",
+      ac: "Ar Condicionado",
+      palco: "Palco",
+      has_ac: "Ar Cond.",
+      has_wifi: "Wi-Fi",
+      has_projector: "Projetor",
+      has_sound: "Som",
+      has_whiteboard: "Lousa",
+      has_computer: "PC",
+      has_kitchen: "Cozinha",
+      has_parking: "Estacionamento",
+      has_fan: "Ventilador",
+      has_water: "Água",
     };
 
     let hasContent = false;
@@ -372,7 +393,8 @@ const formatValue = (val, key = "") => {
       let displayVal = v;
       if (v === true || v === "true") displayVal = '<i class="fas fa-check text-success"></i>';
       else if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
-        const p = v.split("-"); displayVal = `${p[2]}/${p[1]}/${p[0]}`;
+        const p = v.split("-");
+        displayVal = `${p[2]}/${p[1]}/${p[0]}`;
       }
       str += `<div class="d-inline-block me-2 border rounded px-2 mb-1 small bg-white text-dark shadow-sm"><strong>${label}:</strong> ${displayVal}</div>`;
     }
@@ -411,7 +433,9 @@ window.doRollback = (logId, dateStr = "") => {
           title: "Restaurando...",
           html: "Aplicando as alterações antigas.",
           allowOutsideClick: false,
-          didOpen: () => { Swal.showLoading(); },
+          didOpen: () => {
+            Swal.showLoading();
+          },
         });
 
         const res = await ajaxValidator({

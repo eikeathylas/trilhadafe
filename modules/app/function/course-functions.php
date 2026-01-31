@@ -21,7 +21,7 @@ function getAllCourses($data)
             $params[':search'] = "%" . $data['search'] . "%";
         }
 
-        // CORREÇÃO: Cálculo dinâmico da carga horária total
+        // Soma dinâmica (SUM) da carga horária direto da grade curricular
         $sql = <<<SQL
             SELECT 
                 COUNT(*) OVER() as total_registros,
@@ -30,13 +30,13 @@ function getAllCourses($data)
                 c.min_age,
                 c.max_age,
                 c.is_active,
-                -- Soma real das horas baseada na grade curricular
+                -- Calcula o total de horas somando as matérias vinculadas
                 COALESCE((
                     SELECT SUM(cur.workload_hours) 
                     FROM education.curriculum cur 
                     WHERE cur.course_id = c.course_id
                 ), 0) as total_workload_hours,
-                -- Contagem de disciplinas vinculadas
+                -- Conta quantas matérias tem
                 (
                     SELECT COUNT(*) 
                     FROM education.curriculum cur 
@@ -171,27 +171,61 @@ function upsertCourse($data)
             $msg = "Curso criado com sucesso!";
         }
 
-        // --- 2. SALVAR GRADE CURRICULAR ---
-        // Estratégia: Limpar vínculos antigos e recriar (Snapshot da grade)
+        // --- 2. SALVAR GRADE CURRICULAR (SMART SYNC) ---
+        // A lógica abaixo evita deletar e recriar itens iguais, prevenindo logs de auditoria inúteis.
 
-        $sqlClean = "DELETE FROM education.curriculum WHERE course_id = :id";
-        $conect->prepare($sqlClean)->execute(['id' => $courseId]);
+        // A. Busca o que já existe no banco
+        $sqlGetCurr = "SELECT curriculum_id, subject_id, workload_hours, is_mandatory FROM education.curriculum WHERE course_id = :id";
+        $stmtGet = $conect->prepare($sqlGetCurr);
+        $stmtGet->execute(['id' => $courseId]);
 
-        if (!empty($data['curriculum_json'])) {
-            $curriculumList = json_decode($data['curriculum_json'], true);
+        $existingItems = [];
+        while ($row = $stmtGet->fetch(PDO::FETCH_ASSOC)) {
+            $existingItems[$row['subject_id']] = $row;
+        }
 
-            foreach ($curriculumList as $item) {
-                $sqlIns = <<<'SQL'
-                    INSERT INTO education.curriculum (course_id, subject_id, workload_hours, is_mandatory)
-                    VALUES (:cid, :sid, :hours, :mandatory)
-                SQL;
+        // B. Processa a lista enviada pelo Front
+        $incomingList = !empty($data['curriculum_json']) ? json_decode($data['curriculum_json'], true) : [];
+        $processedSubjectIds = [];
 
+        foreach ($incomingList as $item) {
+            $sid = $item['subject_id'];
+            $hours = (int)$item['workload_hours'];
+            $mandatory = filter_var($item['is_mandatory'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            $processedSubjectIds[] = $sid;
+
+            if (isset($existingItems[$sid])) {
+                // ITEM EXISTE: Verifica se houve mudança antes de atualizar
+                $current = $existingItems[$sid];
+                $currentMandatory = ($current['is_mandatory'] === true || $current['is_mandatory'] === 't' || $current['is_mandatory'] == 1);
+
+                if ($current['workload_hours'] != $hours || $currentMandatory !== $mandatory) {
+                    // Só atualiza se mudou Carga Horária ou Obrigatoriedade
+                    $sqlUpdate = "UPDATE education.curriculum SET workload_hours = :h, is_mandatory = :m, updated_at = CURRENT_TIMESTAMP WHERE curriculum_id = :id";
+                    $conect->prepare($sqlUpdate)->execute([
+                        'h' => $hours,
+                        'm' => $mandatory ? 'TRUE' : 'FALSE',
+                        'id' => $current['curriculum_id']
+                    ]);
+                }
+                // Se não mudou nada, não faz nada (ZERO LOGS)
+            } else {
+                // ITEM NOVO: Insere
+                $sqlIns = "INSERT INTO education.curriculum (course_id, subject_id, workload_hours, is_mandatory) VALUES (:cid, :sid, :h, :m)";
                 $conect->prepare($sqlIns)->execute([
                     'cid' => $courseId,
-                    'sid' => $item['subject_id'],
-                    'hours' => (int)$item['workload_hours'],
-                    'mandatory' => filter_var($item['is_mandatory'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'TRUE' : 'FALSE'
+                    'sid' => $sid,
+                    'h' => $hours,
+                    'm' => $mandatory ? 'TRUE' : 'FALSE'
                 ]);
+            }
+        }
+
+        // C. Remove itens que não estão mais na lista
+        foreach ($existingItems as $sid => $item) {
+            if (!in_array($sid, $processedSubjectIds)) {
+                $conect->prepare("DELETE FROM education.curriculum WHERE curriculum_id = :id")->execute(['id' => $item['curriculum_id']]);
             }
         }
 
@@ -290,6 +324,7 @@ function searchCoursesForSelect($search)
         return failure("Erro na busca de cursos.");
     }
 }
+
 
 function searchSubjects($search = '')
 {
