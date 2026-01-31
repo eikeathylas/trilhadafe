@@ -158,6 +158,9 @@ switch ($validator) {
 	case "getCoursesList": // Para selects simples
 		getCoursesList();
 		break;
+	case "getSubjectsSelect": // Para selects simples
+		getSubjectsSelect();
+		break;
 
 	// =========================================================
 	// MÓDULO: TURMAS (turmas)

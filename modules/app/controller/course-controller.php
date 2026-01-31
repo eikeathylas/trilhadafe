@@ -155,3 +155,27 @@ function getCoursesList()
 
     echo json_encode(searchCoursesForSelect($search));
 }
+
+/**
+ * Busca dinâmica de disciplinas para o Selectize
+ */
+function getSubjectsSelect()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token não informado.", null, false, 401));
+        return;
+    }
+
+    $decoded = decodeAccessToken($_POST["token"]);
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Token inválido.", null, false, 401));
+        return;
+    }
+
+    getLocal($decoded["conexao"]);
+
+    // Pega o termo da busca (pode vir vazio para o preload)
+    $search = $_POST["search"] ?? "";
+
+    echo json_encode(searchSubjects($search));
+}

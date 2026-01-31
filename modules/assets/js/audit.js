@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V18 (Dicionário Expandido)
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V21 (Anti-Crash Null)
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -68,20 +68,26 @@ const renderTimeline = (logs, container) => {
   let visibleLogsCount = 0;
 
   // Campos técnicos que nunca devem aparecer no Diff
-  const globalBlacklist = ["updated_at", "created_at", "user_id", "audit_user_id", "deleted", "org_id", "org_id_origin", "link_id", "tie_id", "notes", "start_date", "end_date", "person_id", "role_id", "class_id", "course_id"];
+  const globalBlacklist = ["updated_at", "created_at", "user_id", "audit_user_id", "deleted", "org_id", "org_id_origin", "link_id", "tie_id", "notes", "start_date", "end_date", "person_id", "role_id", "class_id", "course_id", "curriculum_id"];
 
   const isTrue = (v) => v === true || v === "t" || v === "true" || v === 1;
   const isFalse = (v) => v === false || v === "f" || v === "false" || v === 0 || v === null;
 
   logs.forEach((log) => {
+    // --- CORREÇÃO DE CRASH: BLINDAGEM CONTRA NULL ---
+    // Garante que se o JSON for "null", a variável vire {} e não null
     let oldVal = {};
     let newVal = {};
+    
     try {
-      oldVal = typeof log.old_values === "string" ? JSON.parse(log.old_values) : log.old_values || {};
-    } catch (e) {}
+      const parsedOld = typeof log.old_values === "string" ? JSON.parse(log.old_values) : log.old_values;
+      oldVal = parsedOld || {}; 
+    } catch (e) { oldVal = {}; }
+
     try {
-      newVal = typeof log.new_values === "string" ? JSON.parse(log.new_values) : log.new_values || {};
-    } catch (e) {}
+      const parsedNew = typeof log.new_values === "string" ? JSON.parse(log.new_values) : log.new_values;
+      newVal = parsedNew || {};
+    } catch (e) { newVal = {}; }
 
     // --- DETECÇÃO DO TIPO DE EVENTO ---
     const op = (log.operation || "").toUpperCase().trim();
@@ -102,16 +108,23 @@ const renderTimeline = (logs, container) => {
     if (log.table_name === "person_roles") headerText = "Cargos e Funções";
     else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
     else if (log.table_name === "locations") headerText = "Espaço / Sala";
+    else if (log.table_name === "curriculum") headerText = "Grade Curricular";
 
     // Nome do item afetado (para subtabelas)
-    let itemName = oldVal.vinculo || newVal.vinculo || oldVal.relative_name || newVal.relative_name || oldVal.name || newVal.name || "Item";
+    // Agora seguro pois oldVal/newVal nunca são null
+    let itemName = oldVal.vinculo || newVal.vinculo || 
+                   oldVal.relative_name || newVal.relative_name || 
+                   oldVal.name || newVal.name || 
+                   oldVal.disciplina || newVal.disciplina || 
+                   "Item";
 
     // --- LÓGICA DE EXIBIÇÃO ---
 
     if (isInsert) {
       icon = "add";
       colorClass = "INSERT";
-      if (log.table_name === "persons" || log.table_name === "organizations") {
+      // Se for tabela principal, é criação do registro. Se for subtabela, é adição de item.
+      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses") {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro criado no sistema.</div>';
         headerText = "Criação";
       } else {
@@ -130,6 +143,7 @@ const renderTimeline = (logs, container) => {
       if (log.table_name === "person_roles") label = `Vínculo removido: <strong>${itemName}</strong>`;
       else if (log.table_name === "family_ties") label = `Familiar removido: <strong>${itemName}</strong>`;
       else if (log.table_name === "locations") label = `Local desativado: <strong>${itemName}</strong>`;
+      else if (log.table_name === "curriculum") label = `Disciplina removida: <strong>${itemName}</strong>`;
       else label = "Registro movido para a lixeira.";
 
       diffHtml = `<div class="text-danger small"><i class="fas fa-trash me-2"></i> ${label}</div>`;
@@ -138,7 +152,7 @@ const renderTimeline = (logs, container) => {
       icon = "recycling";
       colorClass = "INSERT";
       let label = `<strong>${itemName}</strong> restaurado.`;
-      if (log.table_name === "persons" || log.table_name === "organizations") label = "Cadastro restaurado da lixeira.";
+      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses") label = "Cadastro restaurado da lixeira.";
 
       diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-recycle me-2"></i> ${label}</div>`;
       hasVisibleChanges = true;
@@ -176,7 +190,7 @@ const renderTimeline = (logs, container) => {
     visibleLogsCount++;
 
     let rollbackBtn = "";
-    if (op === "UPDATE" && !isSoftDelete && !isReactivation && (log.table_name === "persons" || log.table_name === "organizations")) {
+    if (op === "UPDATE" && !isSoftDelete && !isReactivation && (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses")) {
       rollbackBtn = `<div class="mt-2 text-end border-top pt-2"><button class="btn btn-xs btn-outline-warning" onclick="doRollback(${log.log_id}, '${log.date_fmt}')"><i class="fas fa-undo-alt me-1"></i> Restaurar esta versão</button></div>`;
     }
 
@@ -271,12 +285,12 @@ const formatKey = (key) => {
     relative_id: "ID Parente",
     relative_name: "Nome do Parente",
 
-    // --- ACADÊMICO ---
+    // --- ACADÊMICO (CURSOS E GRADE) ---
     subject_id: "Disciplina",
     syllabus_summary: "Ementa / Conteúdo",
     course_id: "Curso",
-    min_age: "Idade Mínima",
-    max_age: "Idade Máxima",
+    min_age: "Idade Mínima (Anos)",
+    max_age: "Idade Máxima (Anos)",
     total_workload_hours: "Carga Horária Total",
     class_id: "Turma",
     year_cycle: "Ano Letivo",
@@ -286,7 +300,7 @@ const formatKey = (key) => {
     max_capacity: "Vagas Totais",
     status: "Situação",
     is_mandatory: "Disciplina Obrigatória",
-    workload_hours: "Carga Horária",
+    workload_hours: "Carga Horária (Matéria)",
     curriculum_id: "ID Grade",
     disciplina: "Nome da Disciplina",
     class_name: "Nome da Turma",
@@ -294,33 +308,19 @@ const formatKey = (key) => {
     start_time: "Horário Inicial",
     end_time: "Horário Final",
     location_id: "Sala / Local",
+    description: "Descrição / Objetivo",
 
-    // --- LITURGIA ---
-    mass_date: "Data da Missa",
-    celebrant_name: "Celebrante",
-    intention: "Intenção",
-    liturgical_color: "Cor Litúrgica",
-
-    // --- FINANCEIRO ---
-    amount: "Valor",
-    due_date: "Data de Vencimento",
-    pay_date: "Data de Pagamento",
-    payment_method: "Método de Pagamento",
-    description: "Descrição",
-    category_id: "Categoria",
-
-    // --- CONTROLE & SISTEMA ---
+    // --- SISTEMA ---
     is_active: "Status (Ativo)",
     deleted: "Excluído",
-    active: "Ativo",
+    active: "Ativo"
   };
 
   return map[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 const formatValue = (val, key = "") => {
-  // Ignora verificação de vazio para campos booleanos explícitos
-  const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated"];
+  const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory"];
 
   if (!boolKeys.includes(key)) {
     if (isEffectivelyEmpty(val)) return '<em class="text-muted opacity-75">vazio</em>';
@@ -329,7 +329,7 @@ const formatValue = (val, key = "") => {
   if (val === true || val === "t" || val === "true") return '<span class="badge bg-success-subtle text-success border border-success">Sim</span>';
   if (val === false || val === "f" || val === "false") return '<span class="badge bg-secondary-subtle text-secondary border">Não</span>';
 
-  // Mapas de Tradução
+  // Mapas
   const relMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
   if (relMap[val]) return relMap[val];
 
@@ -348,56 +348,31 @@ const formatValue = (val, key = "") => {
   // Objeto JSON
   if (typeof val === "object" && val !== null) {
     let str = "";
-
-    // ATENÇÃO: Dicionário expandido com chaves curtas e longas
     const jsonMap = {
-      // Sacramentos
       baptism: "Batismo",
       baptism_date: "Data Batismo",
       baptism_place: "Local Batismo",
       eucharist: "Eucaristia",
       confirmation: "Crisma",
       marriage: "Casamento",
-
-      // Recursos (Chaves curtas do banco)
-      wifi: "Wi-Fi",
-      projector: "Projetor/TV",
-      sound: "Som",
-      whiteboard: "Lousa/Quadro",
-      computer: "Computador",
-      kitchen: "Cozinha/Copa",
-      parking: "Estacionamento",
-      fan: "Ventilador",
-      water: "Bebedouro",
-      ac: "Ar Condicionado",
-      palco: "Palco",
-
-      // Recursos (Chaves longas has_*)
-      has_ac: "Ar Cond.",
-      has_wifi: "Wi-Fi",
-      has_projector: "Projetor",
-      has_sound: "Som",
-      has_whiteboard: "Lousa",
-      has_computer: "PC",
-      has_kitchen: "Cozinha",
-      has_parking: "Estacionamento",
-      has_fan: "Ventilador",
-      has_water: "Água",
+      // Recursos
+      wifi: "Wi-Fi", projector: "Projetor/TV", sound: "Som", whiteboard: "Lousa/Quadro",
+      computer: "Computador", kitchen: "Cozinha/Copa", parking: "Estacionamento",
+      fan: "Ventilador", water: "Bebedouro", ac: "Ar Condicionado", palco: "Palco",
+      has_ac: "Ar Cond.", has_wifi: "Wi-Fi", has_projector: "Projetor", has_sound: "Som",
+      has_whiteboard: "Lousa", has_computer: "PC", has_kitchen: "Cozinha", has_parking: "Estacionamento",
+      has_fan: "Ventilador", has_water: "Água"
     };
 
     let hasContent = false;
     for (const [k, v] of Object.entries(val)) {
       if (isEffectivelyEmpty(v)) continue;
       hasContent = true;
-
-      // Usa o mapa ou formata a chave se não encontrar
       let label = jsonMap[k] || k.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
       let displayVal = v;
-
       if (v === true || v === "true") displayVal = '<i class="fas fa-check text-success"></i>';
       else if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
-        const p = v.split("-");
-        displayVal = `${p[2]}/${p[1]}/${p[0]}`;
+        const p = v.split("-"); displayVal = `${p[2]}/${p[1]}/${p[0]}`;
       }
       str += `<div class="d-inline-block me-2 border rounded px-2 mb-1 small bg-white text-dark shadow-sm"><strong>${label}:</strong> ${displayVal}</div>`;
     }
@@ -436,9 +411,7 @@ window.doRollback = (logId, dateStr = "") => {
           title: "Restaurando...",
           html: "Aplicando as alterações antigas.",
           allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
+          didOpen: () => { Swal.showLoading(); },
         });
 
         const res = await ajaxValidator({
@@ -456,8 +429,6 @@ window.doRollback = (logId, dateStr = "") => {
             showConfirmButton: false,
           }).then(() => {
             $("#modalAudit").modal("hide");
-
-            // === AUTO-REFRESH DAS LISTAGENS ===
             if (typeof window.getPessoas === "function") window.getPessoas();
             if (typeof window.getTurmas === "function") window.getTurmas();
             if (typeof window.getCursos === "function") window.getCursos();

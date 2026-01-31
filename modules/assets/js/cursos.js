@@ -114,7 +114,7 @@ window.modalCurso = (id = null) => {
   $("#course_description").val("");
   $("#min_age").val("");
   $("#max_age").val("");
-  $("#total_workload").val("0"); // Pode ser calculado
+  $("#total_workload").val("0");
 
   // Reseta Grade Curricular
   currentCurriculumList = [];
@@ -123,7 +123,9 @@ window.modalCurso = (id = null) => {
   // Limpa Inputs da Grade
   $("#curr_hours").val("");
   $("#curr_mandatory").prop("checked", true);
-  if ($("#curr_subject")[0]?.selectize) $("#curr_subject")[0].selectize.clear();
+
+  // Inicializa o Selectize corretamente
+  initSelectSubjects();
 
   // Reset Abas
   $("#courseTab button:first").tab("show");
@@ -133,7 +135,6 @@ window.modalCurso = (id = null) => {
   } else {
     $("#modalLabel").text("Novo Curso");
     modal.modal("show");
-    initSelectSubjects(); // Inicializa busca de disciplinas
   }
 };
 
@@ -175,38 +176,55 @@ const loadCourseData = async (id) => {
 // =========================================================
 
 const initSelectSubjects = () => {
-  const $select = $("#curr_subject");
-  if ($select[0]?.selectize) $select[0].selectize.destroy();
+  const $select = $("#curr_subject"); // ID correto do campo
 
-  // Carrega lista simples de disciplinas (Backend deve ter um getSubjectsList ou usar o getSubjects normal)
-  // Vamos usar getSubjects com paginação alta ou criar um helper especifico
-  // Para simplificar, vou usar o getSubjects filtrando
+  // Limpa instância anterior
+  if ($select[0].selectize) {
+    $select[0].selectize.destroy();
+  }
 
   $select.selectize({
-    valueField: "subject_id",
-    labelField: "name",
-    searchField: ["name"],
-    placeholder: "Busque a disciplina...",
-    create: false,
-    load: function (query, callback) {
-      if (!query.length) return callback();
-      $.ajax({
-        url: defaultApp.validator,
-        type: "POST",
-        dataType: "json",
-        data: {
-          validator: "getSubjects", // Reutilizando listagem de disciplinas
+    valueField: 'id',
+    labelField: 'title',
+    searchField: 'title',
+    placeholder: 'Busque uma disciplina...',
+    preload: true, // Carrega as 100 primeiras ao clicar
+    maxOptions: 100,
+    // Renderização simplificada (sem mostrar horas, pois não temos esse dado)
+    render: {
+      option: function(item, escape) {
+        return `<div>
+                    <span class="fw-bold">${escape(item.title)}</span>
+                </div>`;
+      }
+    },
+    load: async function(query, callback) {
+      try {
+        const result = await window.ajaxValidator({
+          validator: 'getSubjectsSelect',
           token: defaultApp.userInfo.token,
-          search: query,
-          limit: 20,
-        },
-        success: function (res) {
-          callback(res.data);
-        },
-        error: function () {
+          search: query
+        });
+
+        if (result.status) {
+          callback(result.data);
+        } else {
           callback();
-        },
-      });
+        }
+      } catch (e) {
+        console.error("Erro ao buscar disciplinas:", e);
+        callback();
+      }
+    },
+    onChange: function (value) {
+      if (!value) return;
+      const selectize = $select[0].selectize;
+      const data = selectize.options[value];
+    
+      // Preenche a carga horária automaticamente se disponível
+      if (data && data.workload_hours) {
+        $("#curr_hours").val(data.workload_hours);
+      }
     },
   });
 };

@@ -21,6 +21,7 @@ function getAllCourses($data)
             $params[':search'] = "%" . $data['search'] . "%";
         }
 
+        // CORREÇÃO: Cálculo dinâmico da carga horária total
         $sql = <<<SQL
             SELECT 
                 COUNT(*) OVER() as total_registros,
@@ -28,8 +29,13 @@ function getAllCourses($data)
                 c.name,
                 c.min_age,
                 c.max_age,
-                c.total_workload_hours,
                 c.is_active,
+                -- Soma real das horas baseada na grade curricular
+                COALESCE((
+                    SELECT SUM(cur.workload_hours) 
+                    FROM education.curriculum cur 
+                    WHERE cur.course_id = c.course_id
+                ), 0) as total_workload_hours,
                 -- Contagem de disciplinas vinculadas
                 (
                     SELECT COUNT(*) 
@@ -57,7 +63,7 @@ function getAllCourses($data)
         return success("Cursos listados.", $result);
     } catch (Exception $e) {
         logSystemError("painel", "education", "getAllCourses", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao listar os cursos. Contate o suporte.", null, false, 500);
+        return failure("Ocorreu um erro ao listar os cursos.", null, false, 500);
     }
 }
 
@@ -282,5 +288,43 @@ function searchCoursesForSelect($search)
     } catch (Exception $e) {
         logSystemError("painel", "education", "searchCoursesForSelect", "sql", $e->getMessage(), ['search' => $search]);
         return failure("Erro na busca de cursos.");
+    }
+}
+
+function searchSubjects($search = '')
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $params = [];
+
+        // Mantemos apenas as colunas que existem na tabela education.subjects
+        $where = "WHERE deleted IS FALSE AND is_active IS TRUE";
+
+        if (!empty($search)) {
+            $where .= " AND name ILIKE :search";
+            $params[':search'] = "%" . $search . "%";
+        }
+
+        // CORREÇÃO: Removido 'workload_hours' que não existe nesta tabela
+        $sql = <<<SQL
+            SELECT 
+                subject_id as id, 
+                name as title
+            FROM education.subjects 
+            $where
+            ORDER BY name ASC 
+            LIMIT 100
+        SQL;
+
+        $stmt = $conect->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
+        $stmt->execute();
+
+        return success("Disciplinas listadas.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (Exception $e) {
+        logSystemError("painel", "education", "searchSubjects", "sql", $e->getMessage(), ["search" => $search]);
+        return failure("Erro ao buscar disciplinas.", []);
     }
 }
