@@ -38,10 +38,8 @@
                     <div class="row align-items-end">
                         <div class="col-md-2 mb-3 mb-md-0">
                             <label class="form-label title">Ano Letivo:</label>
-                            <select id="filtro-ano" class="form-control">
-                                <option value="<?php echo date('Y'); ?>"><?php echo date('Y'); ?></option>
-                                <option value="<?php echo date('Y') + 1; ?>"><?php echo date('Y') + 1; ?></option>
-                                <option value="">Todos</option>
+                            <select id="filtro-ano" class="form-select">
+                                <option value="">Carregando...</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3 mb-md-0">
@@ -104,8 +102,8 @@
                                     <input type="text" id="class_name" class="form-control" placeholder="Ex: Eucaristia Sábado Manhã">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Ano Letivo</label>
-                                    <input type="number" id="class_year" class="form-control" value="<?php echo date('Y'); ?>">
+                                    <label class="form-label">Ano Letivo <span class="text-danger">*</span></label>
+                                    <select id="class_year_id" class="form-select"></select>
                                 </div>
 
                                 <div class="col-md-6">
@@ -128,7 +126,12 @@
                                         <option value="PLANNED">Planejada</option>
                                         <option value="ACTIVE" selected>Ativa (Matrículas Abertas)</option>
                                         <option value="FINISHED">Encerrada</option>
+                                        <option value="CANCELLED">Cancelada</option>
                                     </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Sala Principal</label>
+                                    <select id="sel_location" class="form-control" placeholder="Sala padrão..."></select>
                                 </div>
                             </div>
                         </div>
@@ -159,7 +162,7 @@
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small fw-bold">Sala (Opcional)</label>
-                                            <select id="sel_location" class="form-control form-control-sm" placeholder="Sala padrão..."></select>
+                                            <select id="sel_location_sched" class="form-control form-control-sm" placeholder="Sala da Turma..."></select>
                                         </div>
                                         <div class="col-md-1">
                                             <button class="btn btn-sm btn-success w-100" onclick="addSchedule()" title="Adicionar">
@@ -190,7 +193,6 @@
                         </div>
 
                         <div class="tab-pane fade" id="tab-alunos">
-
                             <div class="card bg-light border-0 mb-3 shadow-sm">
                                 <div class="card-body py-2">
                                     <div class="row g-2 align-items-end">

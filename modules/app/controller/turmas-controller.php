@@ -1,28 +1,18 @@
 <?php
 
-include "../function/turmas-functions.php";
+// UTILIZE INCLUDE_ONCE PARA EVITAR CONFLITOS COM O VALIDATION.PHP
+include_once "../function/turmas-functions.php";
+include_once "../function/people-functions.php";
+include_once "../function/course-functions.php";
+// include_once "../function/organization-functions.php"; // Geralmente carregado pelo organization-controller
 
 // =========================================================
-// GESTÃO DE TURMAS (CRUD)
+// 1. GESTÃO DE TURMAS (CRUD)
 // =========================================================
 
-/**
- * Lista as turmas com filtros (Ano, Busca, Paginação)
- */
 function getClasses()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido ou expirado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "limit" => $_POST["limit"] ?? 10,
@@ -34,250 +24,165 @@ function getClasses()
     echo json_encode(getAllClasses($data));
 }
 
-/**
- * Busca dados completos de uma turma (para edição)
- */
 function getClassById()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
-    $id = $_POST["id"] ?? 0;
-
-    echo json_encode(getClassData($id));
+    if (!verifyToken()) return;
+    echo json_encode(getClassData($_POST["id"] ?? 0));
 }
 
-/**
- * Salva (Cria ou Atualiza) uma turma e sua grade horária
- */
 function saveClass()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = $_POST['data'] ?? [];
-    $data['user_id'] = $decoded['id_user']; // Auditoria
+    $data['user_id'] = getAuthUserId();
 
     echo json_encode(upsertClass($data));
 }
 
-/**
- * Exclui (Soft Delete) uma turma
- */
 function deleteClass()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "id" => $_POST["id"] ?? 0,
-        "user_id" => $decoded["id_user"] // Auditoria
+        "user_id" => getAuthUserId()
     ];
 
     echo json_encode(removeClass($data));
 }
 
-/**
- * Ativa/Desativa uma turma
- */
 function toggleClass()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "id" => $_POST["id"] ?? 0,
-        "active" => $_POST["active"],
-        "user_id" => $decoded["id_user"] // Auditoria
+        "active" => $_POST["active"], // JS envia 'true'/'false' string ou bool
+        "user_id" => getAuthUserId()
     ];
 
     echo json_encode(toggleClassStatus($data));
 }
 
+// =========================================================
+// 2. AUXILIARES E FILTROS
+// =========================================================
+
+function getAcademicYearsList()
+{
+    if (!verifyToken()) return;
+    echo json_encode(getAcademicYearsF());
+}
+
+function getStudentsList()
+{
+    if (!verifyToken()) return;
+    $search = $_POST['search'] ?? '';
+    echo json_encode(getStudentsForSelect($search));
+}
+
+function getCoursesList()
+{
+    if (!verifyToken()) return;
+    $search = $_POST['search'] ?? '';
+    // Verifica se a função existe para evitar erro caso o include falhe
+    if (function_exists('searchCoursesForSelect')) {
+        echo json_encode(searchCoursesForSelect($search));
+    } else {
+        echo json_encode(['status' => false, 'alert' => 'Função de cursos não encontrada.']);
+    }
+}
+
+function getCatechistsList()
+{
+    if (!verifyToken()) return;
+    $search = $_POST['search'] ?? '';
+    // Assume que existe uma função para buscar catequistas/pessoas
+    if (function_exists('getCatechistsForSelect')) {
+        echo json_encode(getCatechistsForSelect($search));
+    } else {
+        // Fallback: Busca pessoas gerais se não tiver filtro especifico
+        echo json_encode(getStudentsForSelect($search));
+    }
+}
 
 // =========================================================
-// GESTÃO DE ALUNOS E MATRÍCULAS
+// 3. GESTÃO DE ALUNOS (MATRÍCULAS)
 // =========================================================
 
-/**
- * Lista alunos matriculados em uma turma
- */
 function getClassStudents()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
+    if (!verifyToken()) return;
     echo json_encode(getClassStudentsF($_POST));
 }
 
-/**
- * Matricula um aluno na turma
- */
 function enrollStudent()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
+    if (!verifyToken()) return;
     $data = $_POST;
-    $data['user_id'] = $decoded['id_user']; // Auditoria
-
+    $data['user_id'] = getAuthUserId();
     echo json_encode(enrollStudentF($data));
 }
 
-/**
- * Remove (Cancela) a matrícula de um aluno
- */
 function deleteEnrollment()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
+    if (!verifyToken()) return;
     $data = $_POST;
-    $data['user_id'] = $decoded['id_user']; // Auditoria
-
+    $data['user_id'] = getAuthUserId();
     echo json_encode(deleteEnrollmentF($data));
 }
 
-
 // =========================================================
-// HISTÓRICO E OCORRÊNCIAS
+// 4. HISTÓRICO E OCORRÊNCIAS
 // =========================================================
 
-/**
- * Busca histórico acadêmico da matrícula (ocorrências)
- */
 function getEnrollmentHistory()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
+    if (!verifyToken()) return;
     echo json_encode(getEnrollmentHistoryF($_POST));
 }
 
-/**
- * Adiciona um registro no histórico (Ex: Suspensão, Obs)
- */
 function addEnrollmentHistory()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
+    if (!verifyToken()) return;
     $data = $_POST;
-    $data['user_id'] = $decoded['id_user']; // Auditoria
-
+    $data['user_id'] = getAuthUserId();
     echo json_encode(addEnrollmentHistoryF($data));
 }
 
-/**
- * Apaga um registro do histórico (apenas o log, não reverte status)
- */
 function deleteEnrollmentHistory()
+{
+    if (!verifyToken()) return;
+    $data = $_POST;
+    $data['user_id'] = getAuthUserId();
+    echo json_encode(deleteEnrollmentHistoryF($data));
+}
+
+// =========================================================
+// HELPERS PRIVADOS (PADRÃO DE SEGURANÇA)
+// =========================================================
+
+function verifyToken()
 {
     if (!isset($_POST["token"])) {
         echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
+        return false;
     }
 
     $decoded = decodeAccessToken($_POST["token"]);
     if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
+        echo json_encode(failure("Acesso negado. Token inválido.", null, false, 401));
+        return false;
     }
 
     getLocal($decoded["conexao"]);
+    return true;
+}
 
-    $data = $_POST;
-    $data['user_id'] = $decoded['id_user']; // Auditoria
-
-    echo json_encode(deleteEnrollmentHistoryF($data));
+function getAuthUserId()
+{
+    if (!isset($_POST["token"])) return null;
+    $decoded = decodeAccessToken($_POST["token"]);
+    return $decoded['id_user'] ?? null;
 }

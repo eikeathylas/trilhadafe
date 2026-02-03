@@ -92,9 +92,6 @@ switch ($validator) {
 	case "getResponsiblesList":
 		getResponsiblesList(); // Preenche select de responsáveis
 		break;
-	case "getCatechistsList":
-		getCatechistsList();
-		break; // NOVO
 
 	// =========================================================
 	// MÓDULO: PESSOAS (Secretaria)
@@ -155,15 +152,16 @@ switch ($validator) {
 	case "toggleCourse":
 		toggleCourse();
 		break;
-	case "getCoursesList": // Para selects simples
+	// Auxiliares usados por Cursos e Turmas
+	case "getCoursesList":
 		getCoursesList();
 		break;
-	case "getSubjectsSelect": // Para selects simples
+	case "getSubjectsSelect":
 		getSubjectsSelect();
 		break;
 
 	// =========================================================
-	// MÓDULO: TURMAS (turmas)
+	// MÓDULO: TURMAS (turmas.js)
 	// =========================================================
 	case "getClasses":
 		getClasses();
@@ -179,6 +177,17 @@ switch ($validator) {
 		break;
 	case "toggleClass":
 		toggleClass();
+		break;
+
+	// Filtros e Selects do Módulo Turmas
+	case "getAcademicYearsList":
+		getAcademicYearsList();
+		break;
+	case "getStudentsList":
+		getStudentsList();
+		break;
+	case "getCatechistsList":
+		getCatechistsList();
 		break;
 
 	// Sub-rotas de Alunos da Turma

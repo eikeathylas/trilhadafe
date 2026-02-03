@@ -23,8 +23,8 @@ function getDashboardStatsData($data)
         $sql = <<<'SQL'
             SELECT COUNT(*) as total 
             FROM education.classes 
-            WHERE status = 'ACTIVE' 
-            AND year_cycle = EXTRACT(YEAR FROM CURRENT_DATE)
+            WHERE is_active IS TRUE
+            AND academic_year_id = EXTRACT(YEAR FROM CURRENT_DATE)
         SQL;
         $stmt = $conect->prepare($sql);
         $stmt->execute();
