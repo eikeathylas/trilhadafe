@@ -1,10 +1,7 @@
 <?php
 
 // UTILIZE INCLUDE_ONCE PARA EVITAR CONFLITOS COM O VALIDATION.PHP
-include_once "../function/turmas-functions.php";
-include_once "../function/people-functions.php";
-include_once "../function/course-functions.php";
-// include_once "../function/organization-functions.php"; // Geralmente carregado pelo organization-controller
+include '../function/turmas-functions.php';
 
 // =========================================================
 // 1. GESTÃO DE TURMAS (CRUD)
@@ -73,38 +70,6 @@ function getAcademicYearsList()
 {
     if (!verifyToken()) return;
     echo json_encode(getAcademicYearsF());
-}
-
-function getStudentsList()
-{
-    if (!verifyToken()) return;
-    $search = $_POST['search'] ?? '';
-    echo json_encode(getStudentsForSelect($search));
-}
-
-function getCoursesList()
-{
-    if (!verifyToken()) return;
-    $search = $_POST['search'] ?? '';
-    // Verifica se a função existe para evitar erro caso o include falhe
-    if (function_exists('searchCoursesForSelect')) {
-        echo json_encode(searchCoursesForSelect($search));
-    } else {
-        echo json_encode(['status' => false, 'alert' => 'Função de cursos não encontrada.']);
-    }
-}
-
-function getCatechistsList()
-{
-    if (!verifyToken()) return;
-    $search = $_POST['search'] ?? '';
-    // Assume que existe uma função para buscar catequistas/pessoas
-    if (function_exists('getCatechistsForSelect')) {
-        echo json_encode(getCatechistsForSelect($search));
-    } else {
-        // Fallback: Busca pessoas gerais se não tiver filtro especifico
-        echo json_encode(getStudentsForSelect($search));
-    }
 }
 
 // =========================================================
