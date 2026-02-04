@@ -44,16 +44,15 @@ function getHistory($data)
         $userIds = [];
         $roleIds = [];
         $subjectIds = [];
-        $relativeIds = [];
-        $orgIds = [];
         $peopleIds = [];
+        $orgIds = [];
 
         foreach ($logs as $log) {
             if ($log['user_id']) $userIds[] = $log['user_id'];
             $old = json_decode($log['old_values'] ?? '{}', true);
             $new = json_decode($log['new_values'] ?? '{}', true);
 
-            // Coleta Pessoas (Coordenador e Assistente em Turmas)
+            // TURMAS: Coleta IDs de Pessoas (Coordenador e Assistente)
             if ($log['table_name'] === 'classes') {
                 if (!empty($old['coordinator_id'])) $peopleIds[] = $old['coordinator_id'];
                 if (!empty($new['coordinator_id'])) $peopleIds[] = $new['coordinator_id'];
@@ -61,18 +60,22 @@ function getHistory($data)
                 if (!empty($new['class_assistant_id'])) $peopleIds[] = $new['class_assistant_id'];
             }
 
+            // CARGOS
             if ($log['table_name'] === 'person_roles') {
                 if (isset($old['role_id'])) $roleIds[] = $old['role_id'];
                 if (isset($new['role_id'])) $roleIds[] = $new['role_id'];
             }
+            // FAMILIA
             if ($log['table_name'] === 'family_ties') {
                 if (isset($old['relative_id'])) $peopleIds[] = $old['relative_id'];
                 if (isset($new['relative_id'])) $peopleIds[] = $new['relative_id'];
             }
+            // CURSO/GRADE
             if ($log['table_name'] === 'curriculum') {
                 if (isset($old['subject_id'])) $subjectIds[] = $old['subject_id'];
                 if (isset($new['subject_id'])) $subjectIds[] = $new['subject_id'];
             }
+            // LOCAIS
             if ($log['table_name'] === 'locations') {
                 if (isset($old['org_id'])) $orgIds[] = $old['org_id'];
                 if (isset($new['org_id'])) $orgIds[] = $new['org_id'];
@@ -92,18 +95,17 @@ function getHistory($data)
             $stmtR->execute();
             while ($row = $stmtR->fetch(PDO::FETCH_ASSOC)) $rolesMap[$row['role_id']] = $row['nome'];
         }
+        $peopleMap = []; // Usado para Parentes, Coordenadores e Assistentes
+        if (!empty($peopleIds)) {
+            $stmtP = $conectLocal->prepare("SELECT person_id, full_name FROM people.persons WHERE person_id IN (" . implode(',', array_unique($peopleIds)) . ")");
+            $stmtP->execute();
+            while ($row = $stmtP->fetch(PDO::FETCH_ASSOC)) $peopleMap[$row['person_id']] = $row['full_name'];
+        }
         $subjectsMap = [];
         if (!empty($subjectIds)) {
             $stmtS = $conectLocal->prepare("SELECT subject_id, name FROM education.subjects WHERE subject_id IN (" . implode(',', array_unique($subjectIds)) . ")");
             $stmtS->execute();
             while ($row = $stmtS->fetch(PDO::FETCH_ASSOC)) $subjectsMap[$row['subject_id']] = $row['name'];
-        }
-        $peopleMap = []; // Usado para Parentes, Coordenadores e Assistentes
-        $allPeopleIds = array_merge($relativeIds, $peopleIds);
-        if (!empty($allPeopleIds)) {
-            $stmtRel = $conectLocal->prepare("SELECT person_id, full_name FROM people.persons WHERE person_id IN (" . implode(',', array_unique($allPeopleIds)) . ")");
-            $stmtRel->execute();
-            while ($row = $stmtRel->fetch(PDO::FETCH_ASSOC)) $peopleMap[$row['person_id']] = $row['full_name'];
         }
         $orgMap = [];
         if (!empty($orgIds)) {
@@ -123,9 +125,9 @@ function getHistory($data)
             $log['date_fmt'] = $date->format('d/m/Y H:i:s');
             $log['__exclude'] = false;
 
-            // TURMAS (Classes) - Tradução de IDs para Nomes
+            // --- INJEÇÃO EM TURMAS (Tradução de IDs) ---
             if ($log['table_name'] === 'classes') {
-                $injectClasses = function ($j) use ($peopleMap) {
+                $injectNames = function ($j) use ($peopleMap) {
                     $a = json_decode($j, true);
                     // Traduz Coordenador
                     if (!empty($a['coordinator_id']) && isset($peopleMap[$a['coordinator_id']])) {
@@ -137,11 +139,11 @@ function getHistory($data)
                     }
                     return json_encode($a);
                 };
-                $log['old_values'] = $injectClasses($log['old_values']);
-                $log['new_values'] = $injectClasses($log['new_values']);
+                $log['old_values'] = $injectNames($log['old_values']);
+                $log['new_values'] = $injectNames($log['new_values']);
             }
 
-            // CARGOS (Vínculos)
+            // --- CARGOS (Vínculos) ---
             if ($log['table_name'] === 'person_roles') {
                 $old = json_decode($log['old_values'] ?? '{}', true);
                 $new = json_decode($log['new_values'] ?? '{}', true);
@@ -154,9 +156,8 @@ function getHistory($data)
                 $inject = function ($j) use ($rolesMap) {
                     $a = json_decode($j, true);
                     if (isset($a['role_id']) && isset($rolesMap[$a['role_id']])) {
-                        $a['vinculo'] = $rolesMap[$a['role_id']]; // Injeta o nome do cargo
+                        $a['vinculo'] = $rolesMap[$a['role_id']]; // Nome do cargo
                     }
-                    // Remove IDs técnicos para limpar a visualização
                     if (is_array($a)) unset($a['role_id'], $a['person_id'], $a['org_id'], $a['deleted'], $a['is_active'], $a['link_id']);
                     return json_encode($a);
                 };
@@ -176,7 +177,7 @@ function getHistory($data)
                 $log['new_values'] = $inject($log['new_values']);
             }
 
-            // LOCAIS
+            // LOCAIS & GRADE
             if ($log['table_name'] === 'locations') {
                 $inject = function ($j) use ($orgMap) {
                     $a = json_decode($j, true);
@@ -188,12 +189,12 @@ function getHistory($data)
                 $log['new_values'] = $inject($log['new_values']);
             }
 
-            // GRADE
             if ($log['table_name'] === 'curriculum') {
                 $old = json_decode($log['old_values'] ?? '{}', true);
                 $new = json_decode($log['new_values'] ?? '{}', true);
                 $sId = $new['subject_id'] ?? $old['subject_id'] ?? 0;
 
+                // Filtro mantido apenas para Grade Curricular (onde o refresh é comum)
                 if ($log['operation'] === 'INSERT') $tempAdded['s' . $sId] = $index;
                 if ($log['operation'] === 'DELETE') $tempRemoved['s' . $sId] = $index;
 
@@ -215,7 +216,7 @@ function getHistory($data)
                 $logAdd = $logs[$addIndex];
                 $logRem = $logs[$remIndex];
 
-                // Se aconteceu no mesmo segundo, é ruído de atualização técnica
+                // Se aconteceu no mesmo segundo, é ruído
                 if (substr($logAdd['changed_at'], 0, 19) === substr($logRem['changed_at'], 0, 19)) {
                     // Para Cargos e Grades, esconde o par delete/insert
                     if (strpos($key, 'r') === 0 || (strpos($key, 's') === 0 && $logAdd['new_values'] === $logRem['old_values'])) {
@@ -223,10 +224,7 @@ function getHistory($data)
                         $logs[$remIndex]['__exclude'] = true;
                     }
                     // Para Grade (curriculum), verifica se os dados são iguais
-                    else if (strpos($key, 's') === 0) {
-                        // Compara os JSONs injetados (já sem IDs técnicos)
-                        // Se Remover dados X e Adicionar dados X -> Exclui (Refresh técnico)
-                        // Se Remover dados X e Adicionar dados Y -> Mantém (Edição)
+                    if (strpos($key, 's') === 0) {
                         if ($logAdd['new_values'] === $logRem['old_values']) {
                             $logs[$addIndex]['__exclude'] = true;
                             $logs[$remIndex]['__exclude'] = true;
@@ -298,9 +296,8 @@ function rollbackChange($data)
         foreach ($oldData as $col => $val) {
             if ($col === $pkColumn) continue;
             if (in_array($col, ['updated_at', 'created_at', 'deleted'])) continue;
-
-            // Ignora campos injetados visualmente (nomes traduzidos)
-            if (in_array($col, ['vinculo', 'relative_name', 'disciplina', 'instituicao'])) continue;
+            // Ignora campos injetados visualmente
+            if (in_array($col, ['vinculo', 'relative_name', 'disciplina', 'instituicao', 'coordinator_id', 'class_assistant_id'])) continue;
 
             if (is_array($val) || is_object($val)) $val = json_encode($val);
             if (is_bool($val)) $val = $val ? 'TRUE' : 'FALSE';

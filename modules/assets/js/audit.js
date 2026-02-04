@@ -70,7 +70,6 @@ const renderTimeline = (logs, container) => {
   const isFalse = (v) => v === false || v === "f" || v === "false" || v === 0 || v === null;
 
   logs.forEach((log) => {
-    // --- BLINDAGEM CONTRA NULL ---
     let oldVal = {};
     let newVal = {};
 
@@ -88,7 +87,6 @@ const renderTimeline = (logs, container) => {
       newVal = {};
     }
 
-    // --- DETECÇÃO DO TIPO DE EVENTO ---
     const op = (log.operation || "").toUpperCase().trim();
 
     const isInsert = op === "INSERT" || op === "ADD VÍNCULO";
@@ -102,21 +100,16 @@ const renderTimeline = (logs, container) => {
     let hasVisibleChanges = false;
     let headerText = "Atualização";
 
-    // Títulos de Sub-tabelas
     if (log.table_name === "person_roles") headerText = "Cargos e Funções";
     else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
     else if (log.table_name === "locations") headerText = "Espaço / Sala";
     else if (log.table_name === "curriculum") headerText = "Grade Curricular";
 
-    // Nome do item afetado (Inteligente)
     let itemName = oldVal.vinculo || newVal.vinculo || oldVal.relative_name || newVal.relative_name || oldVal.name || newVal.name || oldVal.disciplina || newVal.disciplina || "Item";
-
-    // --- LÓGICA DE EXIBIÇÃO ---
 
     if (isInsert) {
       icon = "add";
       colorClass = "INSERT";
-      // Se for tabela principal
       if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses" || log.table_name === "classes") {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro criado no sistema.</div>';
         headerText = "Criação";
@@ -127,13 +120,10 @@ const renderTimeline = (logs, container) => {
     } else if (isHardDelete) {
       icon = "delete";
       colorClass = "DELETE";
-
-      // AJUSTE SOLICITADO: Diferenciar Registro Principal de Sub-item
       if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses" || log.table_name === "classes") {
         diffHtml = '<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Registro excluído permanentemente.</div>';
         headerText = "Exclusão";
       } else {
-        // Aqui mostra o nome da matéria/cargo removido
         diffHtml = `<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Removido: ${itemName}</div>`;
       }
       hasVisibleChanges = true;
@@ -146,7 +136,7 @@ const renderTimeline = (logs, container) => {
       else if (log.table_name === "family_ties") label = `Familiar removido: <strong>${itemName}</strong>`;
       else if (log.table_name === "locations") label = `Local desativado: <strong>${itemName}</strong>`;
       else if (log.table_name === "curriculum") label = `Disciplina removida: <strong>${itemName}</strong>`;
-      else label = "Registro movido para a lixeira.";
+      // else label = "Registro movido para a lixeira.";
 
       diffHtml = `<div class="text-danger small"><i class="fas fa-trash me-2"></i> ${label}</div>`;
       hasVisibleChanges = true;
@@ -159,7 +149,6 @@ const renderTimeline = (logs, container) => {
       diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-recycle me-2"></i> ${label}</div>`;
       hasVisibleChanges = true;
     } else {
-      // --- UPDATE NORMAL ---
       let rows = "";
       const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
 
@@ -191,7 +180,7 @@ const renderTimeline = (logs, container) => {
 
     visibleLogsCount++;
 
-    // BOTÃO RESTAURAR (Agora liberado para qualquer UPDATE válido)
+    // BOTÃO DE RESTAURAR (Liberado Geral)
     let rollbackBtn = "";
     if (op === "UPDATE" && !isSoftDelete && !isReactivation) {
       rollbackBtn = `<div class="mt-2 text-end border-top pt-2"><button class="btn btn-xs btn-outline-warning" onclick="doRollback(${log.log_id}, '${log.date_fmt}')"><i class="fas fa-undo-alt me-1"></i> Restaurar esta versão</button></div>`;
@@ -232,7 +221,7 @@ const renderTimeline = (logs, container) => {
 
 const formatKey = (key) => {
   const map = {
-    // --- TURMAS (NOVOS CAMPOS) ---
+    // --- TURMAS ---
     coordinator_id: "Coordenador",
     class_assistant_id: "Auxiliar de Turma",
 
@@ -382,7 +371,6 @@ const formatValue = (val, key = "") => {
       eucharist: "Eucaristia",
       confirmation: "Crisma",
       marriage: "Casamento",
-      // Recursos Locais (chaves curtas e longas unificadas)
       wifi: "Wi-Fi",
       projector: "Projetor/TV",
       sound: "Som",
@@ -482,6 +470,7 @@ window.doRollback = (logId, dateStr = "") => {
             if (typeof window.getLocais === "function") window.getLocais();
             if (typeof window.getFinanceiro === "function") window.getFinanceiro();
             if (typeof window.getLiturgia === "function") window.getLiturgia();
+            if (window.location.href.includes("turmas")) window.getTurmas();
           });
         } else {
           Swal.fire("Erro", res.alert, "error");
