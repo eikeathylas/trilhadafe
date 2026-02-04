@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V23 (Locais como Principal)
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V25
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -117,7 +117,7 @@ const renderTimeline = (logs, container) => {
       icon = "add";
       colorClass = "INSERT";
       // Se for tabela principal
-      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses") {
+      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses" || log.table_name === "classes") {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro criado no sistema.</div>';
         headerText = "Criação";
       } else {
@@ -129,7 +129,7 @@ const renderTimeline = (logs, container) => {
       colorClass = "DELETE";
 
       // AJUSTE SOLICITADO: Diferenciar Registro Principal de Sub-item
-      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses") {
+      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses" || log.table_name === "classes") {
         diffHtml = '<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Registro excluído permanentemente.</div>';
         headerText = "Exclusão";
       } else {
@@ -191,8 +191,9 @@ const renderTimeline = (logs, container) => {
 
     visibleLogsCount++;
 
+    // BOTÃO RESTAURAR (Agora liberado para qualquer UPDATE válido)
     let rollbackBtn = "";
-    if (op === "UPDATE" && !isSoftDelete && !isReactivation && (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses")) {
+    if (op === "UPDATE" && !isSoftDelete && !isReactivation) {
       rollbackBtn = `<div class="mt-2 text-end border-top pt-2"><button class="btn btn-xs btn-outline-warning" onclick="doRollback(${log.log_id}, '${log.date_fmt}')"><i class="fas fa-undo-alt me-1"></i> Restaurar esta versão</button></div>`;
     }
 
@@ -208,11 +209,11 @@ const renderTimeline = (logs, container) => {
                             <span class="ms-2 badge bg-light text-secondary border small">${headerText}</span>
                         </span>
                         <span class="audit-date text-muted small">${log.date_fmt}</span>
-            </div>
+                    </div>
                     <div class="audit-body">
                         ${diffHtml}
-            ${rollbackBtn}
-        </div>
+                        ${rollbackBtn}
+                    </div>
                 </div>
             </div>`;
   });
@@ -231,6 +232,10 @@ const renderTimeline = (logs, container) => {
 
 const formatKey = (key) => {
   const map = {
+    // --- TURMAS (NOVOS CAMPOS) ---
+    coordinator_id: "Coordenador",
+    class_assistant_id: "Auxiliar de Turma",
+
     // Cursos
     min_age: "Idade Mínima",
     max_age: "Idade Máxima",
@@ -341,7 +346,17 @@ const formatValue = (val, key = "") => {
   if (val === true || val === "t" || val === "true") return '<span class="badge bg-success-subtle text-success border border-success">Sim</span>';
   if (val === false || val === "f" || val === "false") return '<span class="badge bg-secondary-subtle text-secondary border">Não</span>';
 
-  // Mapas
+  // TRADUÇÃO DE STATUS DE TURMA
+  const statusMap = {
+    ACTIVE: "Ativa",
+    PLANNED: "Planejada",
+    FINISHED: "Encerrada",
+    CANCELLED: "Cancelada",
+    PENDING: "Pendente",
+  };
+  if (statusMap[val]) return statusMap[val];
+
+  // Mapas Existentes
   const relMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
   if (relMap[val]) return relMap[val];
 
@@ -458,7 +473,7 @@ window.doRollback = (logId, dateStr = "") => {
             timer: 2000,
             showConfirmButton: false,
           }).then(() => {
-        $("#modalAudit").modal("hide");
+            $("#modalAudit").modal("hide");
             if (typeof window.getPessoas === "function") window.getPessoas();
             if (typeof window.getTurmas === "function") window.getTurmas();
             if (typeof window.getCursos === "function") window.getCursos();
