@@ -161,7 +161,7 @@ function upsertClass($data)
 
         if (!empty($data['class_id'])) {
             // UPDATE
-            $sql = "UPDATE education.classes SET course_id=:course_id, main_location_id=:main_location_id, coordinator_id=:coordinator_id, name=:name, academic_year_id=:academic_year_id, max_capacity=:max_capacity, status=:status, updated_at=CURRENT_TIMESTAMP WHERE class_id=:class_id";
+            $sql = "UPDATE education.classes SET course_id=:course_id, main_location_id=:main_location_id, coordinator_id=:coordinator_id, class_assistant_id=:class_assistant_id, name=:name, academic_year_id=:academic_year_id, max_capacity=:max_capacity, status=:status, updated_at=CURRENT_TIMESTAMP WHERE class_id=:class_id";
             $params['class_id'] = $data['class_id'];
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
