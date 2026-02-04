@@ -8,7 +8,7 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <div class="modal-body bg-light" style="max-height: 75vh; overflow-y: auto;">
+      <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
         <div class="accordion" id="accordionDuvidas">
 
           <div class="accordion-item">
