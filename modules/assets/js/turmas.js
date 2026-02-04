@@ -13,7 +13,6 @@ let currentSchedules = [];
 $(document).ready(() => {
   loadAcademicYears(); // 1. Anos
   initSelects(); // 2. Selects
-  getTurmas(); // 3. Listagem
 
   $("#busca-texto, #filtro-ano").on("change keyup", function () {
     clearTimeout(window.searchTimeout);
@@ -36,13 +35,15 @@ const loadAcademicYears = async () => {
       let optsModal = "";
 
       res.data.forEach((y) => {
-        const sel = y.is_active ? "selected" : "";
+        const sel = y.now ? "selected" : "";
         optsFilter += `<option value="${y.year_id}" ${sel}>${y.name}</option>`;
         optsModal += `<option value="${y.year_id}" ${sel}>${y.name}</option>`;
       });
 
       if ($("#filtro-ano").length) $("#filtro-ano").html(optsFilter);
       if ($("#class_year_id").length) $("#class_year_id").html(optsModal);
+
+      getTurmas();
     }
   } catch (e) {
     console.error("Erro ao carregar anos:", e);

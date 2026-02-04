@@ -9,7 +9,7 @@ function getAcademicYearsF()
 {
     try {
         $conect = $GLOBALS["local"];
-        $sql = "SELECT year_id, name, is_active FROM education.academic_years WHERE deleted IS FALSE ORDER BY name DESC";
+        $sql = "SELECT year_id, name, is_active, (CASE WHEN year_id = EXTRACT(YEAR FROM CURRENT_DATE) THEN TRUE ELSE FALSE END) as now FROM education.academic_years WHERE deleted IS FALSE ORDER BY name DESC";
         return success("Anos listados", $conect->query($sql)->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
         return failure("Erro ao listar anos letivos.");
