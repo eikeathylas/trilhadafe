@@ -52,7 +52,7 @@ function getHistory($data)
             $old = json_decode($log['old_values'] ?? '{}', true);
             $new = json_decode($log['new_values'] ?? '{}', true);
 
-            // TURMAS: Coleta IDs de Pessoas (Coordenador e Assistente)
+            // TURMAS: Coleta IDs de Coordenador e Assistente
             if ($log['table_name'] === 'classes') {
                 if (!empty($old['coordinator_id'])) $peopleIds[] = $old['coordinator_id'];
                 if (!empty($new['coordinator_id'])) $peopleIds[] = $new['coordinator_id'];
@@ -62,27 +62,27 @@ function getHistory($data)
 
             // CARGOS
             if ($log['table_name'] === 'person_roles') {
-                if (isset($old['role_id'])) $roleIds[] = $old['role_id'];
-                if (isset($new['role_id'])) $roleIds[] = $new['role_id'];
+                if (!empty($old['role_id'])) $roleIds[] = $old['role_id'];
+                if (!empty($new['role_id'])) $roleIds[] = $new['role_id'];
             }
             // FAMILIA
             if ($log['table_name'] === 'family_ties') {
-                if (isset($old['relative_id'])) $peopleIds[] = $old['relative_id'];
-                if (isset($new['relative_id'])) $peopleIds[] = $new['relative_id'];
+                if (!empty($old['relative_id'])) $peopleIds[] = $old['relative_id'];
+                if (!empty($new['relative_id'])) $peopleIds[] = $new['relative_id'];
             }
             // CURSO/GRADE
             if ($log['table_name'] === 'curriculum') {
-                if (isset($old['subject_id'])) $subjectIds[] = $old['subject_id'];
-                if (isset($new['subject_id'])) $subjectIds[] = $new['subject_id'];
+                if (!empty($old['subject_id'])) $subjectIds[] = $old['subject_id'];
+                if (!empty($new['subject_id'])) $subjectIds[] = $new['subject_id'];
             }
             // LOCAIS
             if ($log['table_name'] === 'locations') {
-                if (isset($old['org_id'])) $orgIds[] = $old['org_id'];
-                if (isset($new['org_id'])) $orgIds[] = $new['org_id'];
+                if (!empty($old['org_id'])) $orgIds[] = $old['org_id'];
+                if (!empty($new['org_id'])) $orgIds[] = $new['org_id'];
             }
         }
 
-        // --- 3. TRADUÇÃO (BATCH) ---
+        // --- 3. BUSCA DE NOMES (TRADUÇÃO) ---
         $usersMap = [];
         if (!empty($userIds)) {
             $stmtU = $conectStaff->prepare("SELECT id, name FROM public.users WHERE id IN (" . implode(',', array_unique($userIds)) . ")");
@@ -149,16 +149,18 @@ function getHistory($data)
                 $new = json_decode($log['new_values'] ?? '{}', true);
                 $rId = $new['role_id'] ?? $old['role_id'] ?? 0;
 
-                // Filtro de ruído (Add/Del rápidos)
+                // Filtro de ruído MANTIDO mas com lógica correta
                 if ($log['operation'] === 'INSERT') $tempAdded['r' . $rId] = $index;
-                elseif ($log['operation'] === 'DELETE' || ($log['operation'] === 'UPDATE' && ($new['deleted'] ?? false))) $tempRemoved['r' . $rId] = $index;
+                // Apenas marca como REMOVIDO se for DELETE REAL
+                elseif ($log['operation'] === 'DELETE') $tempRemoved['r' . $rId] = $index;
 
                 $inject = function ($j) use ($rolesMap) {
                     $a = json_decode($j, true);
                     if (isset($a['role_id']) && isset($rolesMap[$a['role_id']])) {
-                        $a['vinculo'] = $rolesMap[$a['role_id']]; // Nome do cargo
+                        $a['vinculo'] = $rolesMap[$a['role_id']];
                     }
-                    if (is_array($a)) unset($a['role_id'], $a['person_id'], $a['org_id'], $a['deleted'], $a['is_active'], $a['link_id']);
+                    // CORREÇÃO CRÍTICA: NÃO REMOVER 'deleted' NEM 'is_active'
+                    if (is_array($a)) unset($a['role_id'], $a['person_id'], $a['org_id'], $a['link_id']);
                     return json_encode($a);
                 };
                 $log['old_values'] = $inject($log['old_values']);
@@ -170,19 +172,21 @@ function getHistory($data)
                 $inject = function ($j) use ($peopleMap) {
                     $a = json_decode($j, true);
                     if (isset($a['relative_id']) && isset($peopleMap[$a['relative_id']])) $a['relative_name'] = $peopleMap[$a['relative_id']];
-                    if (is_array($a)) unset($a['person_id'], $a['tie_id'], $a['deleted'], $a['relative_id']);
+                    // CORREÇÃO CRÍTICA: NÃO REMOVER 'deleted'
+                    if (is_array($a)) unset($a['person_id'], $a['tie_id'], $a['relative_id']);
                     return json_encode($a);
                 };
                 $log['old_values'] = $inject($log['old_values']);
                 $log['new_values'] = $inject($log['new_values']);
             }
 
-            // LOCAIS & GRADE
+            // LOCAIS
             if ($log['table_name'] === 'locations') {
                 $inject = function ($j) use ($orgMap) {
                     $a = json_decode($j, true);
                     if (isset($a['org_id']) && isset($orgMap[$a['org_id']])) $a['instituicao'] = $orgMap[$a['org_id']];
-                    if (is_array($a)) unset($a['org_id'], $a['location_id'], $a['deleted']);
+                    // CORREÇÃO CRÍTICA: NÃO REMOVER 'deleted'
+                    if (is_array($a)) unset($a['org_id'], $a['location_id']);
                     return json_encode($a);
                 };
                 $log['old_values'] = $inject($log['old_values']);
@@ -194,7 +198,6 @@ function getHistory($data)
                 $new = json_decode($log['new_values'] ?? '{}', true);
                 $sId = $new['subject_id'] ?? $old['subject_id'] ?? 0;
 
-                // Filtro mantido apenas para Grade Curricular (onde o refresh é comum)
                 if ($log['operation'] === 'INSERT') $tempAdded['s' . $sId] = $index;
                 if ($log['operation'] === 'DELETE') $tempRemoved['s' . $sId] = $index;
 
@@ -216,7 +219,6 @@ function getHistory($data)
                 $logAdd = $logs[$addIndex];
                 $logRem = $logs[$remIndex];
 
-                // Se aconteceu no mesmo segundo, é ruído
                 if (substr($logAdd['changed_at'], 0, 19) === substr($logRem['changed_at'], 0, 19)) {
                     // Para Cargos e Grades, esconde o par delete/insert
                     if (strpos($key, 'r') === 0 || (strpos($key, 's') === 0 && $logAdd['new_values'] === $logRem['old_values'])) {
