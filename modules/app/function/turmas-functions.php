@@ -50,6 +50,7 @@ function getAllClasses($data)
                 co.name as course_name,
                 p.full_name as coordinator_name,
                 p.profile_photo_url as coordinator_photo,
+                pa.full_name as assistant_name,
                 l.name as location_name,
                 c.is_active,
                 
@@ -72,6 +73,7 @@ function getAllClasses($data)
             LEFT JOIN education.academic_years y ON c.academic_year_id = y.year_id
             JOIN education.courses co ON c.course_id = co.course_id
             LEFT JOIN people.persons p ON c.coordinator_id = p.person_id
+            LEFT JOIN people.persons pa ON c.class_assistant_id = pa.person_id
             LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
             $where
             ORDER BY y.name DESC, c.name ASC
@@ -105,10 +107,12 @@ function getClassData($id)
                 c.*, 
                 co.name as course_name_text,
                 p.full_name as coordinator_name_text,
+                pa.full_name as assistant_name_text,
                 l.name as location_name_text
             FROM education.classes c 
             LEFT JOIN education.courses co ON c.course_id = co.course_id
             LEFT JOIN people.persons p ON c.coordinator_id = p.person_id
+            LEFT JOIN people.persons pa ON c.class_assistant_id = pa.person_id
             LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
             WHERE c.class_id = :id AND c.deleted IS FALSE LIMIT 1
         SQL;
@@ -148,6 +152,7 @@ function upsertClass($data)
             'course_id' => $data['course_id'],
             'main_location_id' => !empty($data['main_location_id']) ? $data['main_location_id'] : null,
             'coordinator_id' => !empty($data['coordinator_id']) ? $data['coordinator_id'] : null,
+            'class_assistant_id' => !empty($data['class_assistant_id']) ? $data['class_assistant_id'] : null,
             'name' => $data['name'],
             'academic_year_id' => $data['academic_year_id'],
             'max_capacity' => !empty($data['max_capacity']) ? $data['max_capacity'] : null,
@@ -165,7 +170,7 @@ function upsertClass($data)
         } else {
             // INSERT
             $params['org_id'] = 1; // Fixo ou pego da sessão
-            $sql = "INSERT INTO education.classes (course_id, org_id, main_location_id, coordinator_id, name, academic_year_id, max_capacity, status) VALUES (:course_id, :org_id, :main_location_id, :coordinator_id, :name, :academic_year_id, :max_capacity, :status) RETURNING class_id";
+            $sql = "INSERT INTO education.classes (course_id, org_id, main_location_id, coordinator_id, class_assistant_id, name, academic_year_id, max_capacity, status) VALUES (:course_id, :org_id, :main_location_id, :coordinator_id, :class_assistant_id, :name, :academic_year_id, :max_capacity, :status) RETURNING class_id";
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
             $classId = $stmt->fetchColumn();

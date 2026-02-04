@@ -337,6 +337,7 @@ CREATE TABLE education.classes (
     
     main_location_id INT REFERENCES organization.locations(location_id),
     coordinator_id INT REFERENCES people.persons(person_id),
+    class_assistant_id INT REFERENCES people.persons(person_id),
     
     name VARCHAR(100) NOT NULL,
     semester INT,

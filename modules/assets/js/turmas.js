@@ -174,6 +174,7 @@ window.modalTurma = (id = null) => {
   // Limpa Selects (Com verificação de existência)
   if ($("#sel_course")[0]?.selectize) $("#sel_course")[0].selectize.clear();
   if ($("#sel_coordinator")[0]?.selectize) $("#sel_coordinator")[0].selectize.clear();
+  if ($("#sel_assistant")[0]?.selectize) $("#sel_assistant")[0].selectize.clear();
   if ($("#sel_location")[0]?.selectize) $("#sel_location")[0].selectize.clear();
 
   currentSchedules = [];
@@ -215,6 +216,12 @@ const loadClassData = async (id) => {
         const sel = $("#sel_coordinator")[0].selectize;
         sel.addOption({ id: d.coordinator_id, title: d.coordinator_name_text });
         sel.setValue(d.coordinator_id);
+      }
+
+      if (d.class_assistant_id && d.assistant_name_text) {
+        const sel = $("#sel_assistant")[0].selectize;
+        sel.addOption({ id: d.class_assistant_id, title: d.assistant_name_text });
+        sel.setValue(d.class_assistant_id);
       }
 
       if (d.main_location_id && d.location_name_text) {
@@ -322,6 +329,7 @@ window.salvarTurma = async () => {
     academic_year_id: yearId,
     course_id: course,
     coordinator_id: $("#sel_coordinator").val(),
+    class_assistant_id: $("#sel_assistant").val(),
     main_location_id: $("#sel_location").val(),
     max_capacity: $("#class_capacity").val(),
     status: $("#class_status").val(),
@@ -562,6 +570,7 @@ const initSelects = () => {
   const selects = [
     { id: "#sel_course", val: "getCoursesList", ph: "Selecione o Curso..." },
     { id: "#sel_coordinator", val: "getCatechistsList", ph: "Busque o catequista..." },
+    { id: "#sel_assistant", val: "getCatechistsList", ph: "Busque o auxiliar..." }, 
     { id: "#sel_location", val: "getLocations", ph: "Sala Principal..." },
     { id: "#sel_location_sched", val: "getLocations", ph: "Sala Específica..." },
     { id: "#sel_new_student", val: "getStudentsList", ph: "Busque o aluno...", search: ["title", "tax_id"] },
