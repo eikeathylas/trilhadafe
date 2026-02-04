@@ -785,57 +785,102 @@ CREATE TABLE events_commerce.transactions (
 
 -- ==========================================================
 -- SCHEMA: COMMUNICATION
--- Responsabilidade: Blog, Notícias, Banners
+-- Responsabilidade: Blog, Notícias, Banners do App e Mídia
 -- ==========================================================
 
+
+-- 1. Categorias de Conteúdo
+-- Ex: "Homilias", "Avisos Paroquiais", "Prestação de Contas", "Fotos da Festa"
 CREATE TABLE communication.categories (
     category_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
+    
     name VARCHAR(100) NOT NULL,
-    slug VARCHAR(100) NOT NULL,
-    color_hex VARCHAR(7),
+    slug VARCHAR(100) NOT NULL,      -- URL amigável (ex: 'avisos-semanais')
+    color_hex VARCHAR(7),            -- Cor da etiqueta no site (ex: '#FF0000')
+    
     is_active BOOLEAN DEFAULT TRUE
 );
 
+-- Documentação Tabela Categories
+COMMENT ON TABLE communication.categories IS 'Taxonomia para organizar as notícias e avisos.';
+
+
+-- 2. Postagens (Artigos e Notícias)
 CREATE TABLE communication.posts (
     post_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
-    author_id INT NOT NULL REFERENCES people.persons(person_id),
+    
+    -- Autoria
+    author_id INT NOT NULL REFERENCES people.persons(person_id), -- Quem escreveu?
     category_id INT REFERENCES communication.categories(category_id),
+    
+    -- Conteúdo
     title VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) NOT NULL,
-    summary TEXT,
-    content_html TEXT,
-    cover_image_url VARCHAR(255),
-    status VARCHAR(20) DEFAULT 'DRAFT',
-    published_at TIMESTAMP,
+    slug VARCHAR(255) NOT NULL,      -- Ex: 'resultado-bingo-2025'
+    summary TEXT,                    -- Resumo para listagens (Lead)
+    content_html TEXT,               -- O texto completo (HTML do editor rico)
+    
+    cover_image_url VARCHAR(255),    -- Imagem de destaque (Thumbnail)
+    
+    -- Controle de Publicação
+    status VARCHAR(20) DEFAULT 'DRAFT', -- DRAFT (Rascunho), PUBLISHED, ARCHIVED
+    published_at TIMESTAMP,          -- Agendamento (Pode publicar no futuro)
+    
+    -- Engajamento
     allow_comments BOOLEAN DEFAULT FALSE,
-    views_count INT DEFAULT 0,
+    views_count INT DEFAULT 0,       -- Contador simples de visualizações
+    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Documentação Tabela Posts
+COMMENT ON TABLE communication.posts IS 'Gerenciador de Conteúdo (CMS). Centraliza homilias e notícias.';
+COMMENT ON COLUMN communication.posts.slug IS 'Identificador para URL (SEO). Deve ser único por organização.';
+COMMENT ON COLUMN communication.posts.content_html IS 'Corpo da notícia. Armazena HTML sanitizado vindo de editores WYSIWYG.';
+COMMENT ON COLUMN communication.posts.published_at IS 'Data de exibição pública. Se for futura, o post fica agendado.';
+
+
+-- 3. Anexos e Galeria (Media)
+-- Fotos da galeria ou PDF do boletim semanal
 CREATE TABLE communication.attachments (
     attachment_id SERIAL PRIMARY KEY,
     post_id INT NOT NULL REFERENCES communication.posts(post_id) ON DELETE CASCADE,
-    file_url VARCHAR(255) NOT NULL,
-    file_type VARCHAR(50),
-    caption VARCHAR(200),
-    display_order INT DEFAULT 0
+    
+    file_url VARCHAR(255) NOT NULL,  -- Link do S3 / Uploads
+    file_type VARCHAR(50),           -- IMAGE, PDF, VIDEO_LINK, AUDIO (Podcast)
+    
+    caption VARCHAR(200),            -- Legenda da foto
+    display_order INT DEFAULT 0      -- Ordem de aparição na galeria
 );
 
+-- Documentação Tabela Attachments
+COMMENT ON TABLE communication.attachments IS 'Arquivos vinculados ao post (Galeria de fotos ou PDFs para download).';
+
+
+-- 4. Banners do App / Site (Destaques)
+-- Gerencia o "Carrossel" da Home
 CREATE TABLE communication.banners (
     banner_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
-    title VARCHAR(150),
-    image_desktop_url VARCHAR(255),
-    image_mobile_url VARCHAR(255),
-    target_link VARCHAR(255),
-    start_date TIMESTAMP,
-    end_date TIMESTAMP,
-    display_order INT DEFAULT 0,
+    
+    title VARCHAR(150),              -- Título interno
+    image_desktop_url VARCHAR(255),  -- Banner largo
+    image_mobile_url VARCHAR(255),   -- Banner alto (para celular)
+    
+    target_link VARCHAR(255),        -- Para onde vai ao clicar? (Link interno ou externo)
+    
+    start_date TIMESTAMP,            -- Quando começa a aparecer?
+    end_date TIMESTAMP,              -- Quando some automaticamente?
+    
+    display_order INT DEFAULT 0,     -- Ordem no slide
     is_active BOOLEAN DEFAULT TRUE
 );
+
+-- Documentação Tabela Banners
+COMMENT ON TABLE communication.banners IS 'Gestão de publicidade interna. Controla os slides da página inicial do App/Site.';
+COMMENT ON COLUMN communication.banners.target_link IS 'Deep link para área do app (ex: /app/doacao) ou URL externa.';
 
 
 -- ==========================================================
@@ -872,9 +917,9 @@ INSERT INTO people.persons (person_id, org_id_origin, full_name, religious_name,
 (5, 1, 'Enzo Gabriel Silva', NULL, 'M', '2015-02-10', NULL, FALSE, NULL),
 (6, 1, 'Valentina Santos', NULL, 'F', '2014-11-05', 'mae.valentina@gmail.com', TRUE, 'Deficiência Auditiva Leve'),
 (7, 1, 'Carlos do Pastel', NULL, 'M', '1970-06-20', NULL, FALSE, NULL),
-(8, 1, 'Maria das Dores (Aniversariante)', NULL, 'F', (CURRENT_DATE - INTERVAL '40 years'), NULL, FALSE, NULL),
-(9, 1, 'Pedro Henrique (Aniversariante)', NULL, 'M', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), NULL, FALSE, NULL),
-(10, 1, 'Irmã Lúcia (Aniversariante)', NULL, 'F', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), NULL, FALSE, NULL);
+(8, 1, 'Maria das Dores', NULL, 'F', (CURRENT_DATE - INTERVAL '40 years'), NULL, FALSE, NULL),
+(9, 1, 'Pedro Henrique', NULL, 'M', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), NULL, FALSE, NULL),
+(10, 1, 'Irmã Lúcia', NULL, 'F', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), NULL, FALSE, NULL);
 
 INSERT INTO people.person_roles (person_id, org_id, role_id) VALUES
 (1, 1, 1), (2, 1, 2), (3, 1, 3), (4, 1, 5), (5, 1, 4), (6, 1, 4), (7, 1, 6), (8, 1, 5), (9, 1, 4), (10, 1, 3);
@@ -903,7 +948,7 @@ INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES
 
 -- Turma (Com Academic Year ID)
 INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, academic_year_id, status) VALUES 
-(1, 1, 1, 3, 3, 'Turma Sábado Manhã', 1, 'ACTIVE');
+(1, 1, 1, 3, 3, 'Turma Sábado Manhã', 2025, 'ACTIVE');
 
 INSERT INTO education.class_schedules (class_id, week_day, start_time, end_time, subject_id, location_id, instructor_id) VALUES 
 (1, 6, '09:00:00', '10:30:00', 1, 3, 3);
