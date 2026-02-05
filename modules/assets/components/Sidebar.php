@@ -88,12 +88,12 @@
                         <span class="text-only">Gestão de Turmas</span>
                     </a>
                 </li>
-                <!-- <li>
+                <li>
                     <a href="meus-diarios.php">
                         <span class="material-symbols-outlined icon-only">menu_book</span>
                         <span class="text-only">Diário de Classe</span>
                     </a>
-                </li> -->
+                </li>
 
             </ul>
         </div>
