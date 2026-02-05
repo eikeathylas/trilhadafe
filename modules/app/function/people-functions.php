@@ -465,8 +465,8 @@ function syncUserLogin($personId)
                         $conectStaff->prepare("UPDATE users_clients_profiles SET id_profile = :pid, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
                             ->execute(['pid' => $profileId, 'id' => $linkId]);
                     } else {
-                        // Insere (usa create_in)
-                        $conectStaff->prepare("INSERT INTO users_clients_profiles (id_user, id_client, id_profile, create_in, updated_at) VALUES (:uid, :cid, :pid, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
+                        // Cria Vínculo
+                        $conectStaff->prepare("INSERT INTO users_clients_profiles (id_user, id_client, id_profile, created_at, updated_at) VALUES (:uid, :cid, :pid, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
                             ->execute(['uid' => $staffUserId, 'cid' => $clientId, 'pid' => $profileId]);
                     }
                 }
