@@ -118,7 +118,7 @@
                 </a>
             </li>
             <li>
-                <a href="#" onclick="logOut()" class="text-danger">
+                <a href="#" onclick="logOut()" class="">
                     <span class="material-symbols-outlined icon-only">logout</span>
                     <span class="text-only">Sair</span>
                 </a>
@@ -225,7 +225,7 @@
 
             res.data.forEach(y => {
                 selectize.addOption({ value: y.year_id, text: y.name });
-                if (!cachedYear && y.is_active) activeYear = y.year_id;
+                if (y.now && y.is_active) activeYear = y.year_id
             });
 
             if (cachedYear) {

@@ -393,7 +393,7 @@ CREATE TABLE education.registration_requests (
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'PENDING',
     rejection_reason TEXT,
-    processed_by_user_id INT REFERENCES security.users(user_id),
+    processed_by_user_id INT, -- REFERENCES security.users(user_id),
     created_student_id INT REFERENCES people.persons(person_id),
     deleted BOOLEAN DEFAULT FALSE,
     updated_at TIMESTAMP
@@ -423,7 +423,7 @@ CREATE TABLE education.enrollment_history (
     action_type VARCHAR(50) NOT NULL, -- ENROLLED, SUSPENDED, DROPPED, TRANSFERRED
     action_date DATE DEFAULT CURRENT_DATE,
     observation TEXT,
-    created_by_user_id INT REFERENCES security.users(user_id), 
+    created_by_user_id INT, -- REFERENCES security.users(user_id), 
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
@@ -444,7 +444,7 @@ CREATE TABLE education.class_sessions (
     status VARCHAR(20) DEFAULT 'PUBLISHED', -- DRAFT, PUBLISHED, LOCKED
     
     -- Assinatura
-    signed_by_user_id INT REFERENCES security.users(user_id),
+    signed_by_user_id INT, -- REFERENCES security.users(user_id),
     signed_at TIMESTAMP,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -722,7 +722,7 @@ CREATE TABLE finance.transactions (
     document_number VARCHAR(50),
     document_url VARCHAR(255),
     is_reconciled BOOLEAN DEFAULT FALSE,
-    created_by_user_id INT REFERENCES security.users(user_id),
+    created_by_user_id INT, -- REFERENCES security.users(user_id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 COMMENT ON TABLE finance.transactions IS 'Movimentações financeiras (O Livro Caixa).';
@@ -771,7 +771,7 @@ CREATE TABLE events_commerce.tickets (
     is_paid BOOLEAN DEFAULT FALSE,
     transaction_id BIGINT,
     validation_date TIMESTAMP,
-    validated_by_user_id INT REFERENCES security.users(user_id),
+    validated_by_user_id INT, -- REFERENCES security.users(user_id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -783,7 +783,7 @@ CREATE TABLE events_commerce.donations_in_kind (
     quantity NUMERIC(10,2) DEFAULT 1,
     unit_measure VARCHAR(20),
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    received_by_user_id INT REFERENCES security.users(user_id)
+    received_by_user_id INT -- REFERENCES security.users(user_id)
 );
 
 CREATE TABLE events_commerce.cards (
@@ -827,7 +827,7 @@ CREATE TABLE events_commerce.transactions (
     products_json JSONB,
     church_fee_amount NUMERIC(15,2) DEFAULT 0.00,
     vendor_net_amount NUMERIC(15,2) DEFAULT 0.00,
-    operator_user_id INT REFERENCES security.users(user_id),
+    operator_user_id INT, -- REFERENCES security.users(user_id),
     transaction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -929,7 +929,7 @@ COMMENT ON TABLE security.error_logs IS 'Log de erros de aplicação (Backend Ca
 
 CREATE TABLE security.access_logs (
     access_id BIGSERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES security.users(user_id),
+    user_id INT NOT NULL, -- REFERENCES security.users(user_id),
     org_id INT NOT NULL,
     login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     logout_time TIMESTAMP,

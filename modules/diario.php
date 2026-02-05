@@ -120,7 +120,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body modal-body-scroll bg-light">
+                <div class="modal-body modal-body-scroll">
                     <input type="hidden" id="session_id">
                     <div class="row g-4">
 
@@ -146,7 +146,7 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label small fw-bold">Conteúdo Ministrado *</label>
+                                        <label class="form-label small fw-bold">Conteúdo Ministrado</label>
                                         <textarea id="session_content" class="form-control" rows="8" placeholder="Descreva os temas, atividades ou observações gerais..."></textarea>
                                     </div>
 
@@ -200,7 +200,7 @@
     <div class="modal fade" id="modalJustification" tabindex="-1" style="z-index: 1060;">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-warning-subtle">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title fs-6">Justificar Ausência</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>

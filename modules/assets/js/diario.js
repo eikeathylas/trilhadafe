@@ -1,5 +1,5 @@
 // =========================================================
-// GESTÃO DE DIÁRIO - PADRÃO V3.2 (FINAL)
+// GESTÃO DE DIÁRIO - LÓGICA V3.5 (YEAR RELOAD FIX)
 // =========================================================
 
 const defaultDiary = {
@@ -12,21 +12,20 @@ let currentStudents = [];
 let currentSessionId = null;
 
 $(document).ready(() => {
-  initFilters();
-
-  // Listener Global do Menu (Ano Letivo)
-  // Se o usuário mudar o ano no menu lateral, resetamos a tela
+  // --- CORREÇÃO 1: ESCUTA A MUDANÇA DE ANO NO MENU ---
   window.addEventListener("yearChanged", () => {
-    const selClass = $("#sel_filter_class")[0].selectize;
-    if (selClass) {
-      selClass.clear();
-      selClass.clearOptions();
-      // Força recarregamento das opções na próxima abertura
-      selClass.load(function (callback) {
-        callback();
-      });
-    }
+    // 1. Limpa grids e botões
     resetInterface();
+
+    // 2. Destrói a instância do Selectize de Turma (se existir)
+    // Isso é crucial para que o 'preload' rode novamente com o novo ano
+    const $selClass = $("#sel_filter_class");
+    if ($selClass.length && $selClass[0].selectize) {
+      $selClass[0].selectize.destroy();
+    }
+
+    // 3. Recria os filtros (o load será disparado automaticamente)
+    initFilters();
   });
 });
 
@@ -35,70 +34,82 @@ $(document).ready(() => {
 // =========================================================
 
 const initFilters = () => {
-  // 1.1 Seletor de Turma
-  $("#sel_filter_class").selectize({
-    valueField: "class_id",
-    labelField: "class_name",
-    searchField: ["class_name", "course_name"],
-    placeholder: "Selecione a Turma...",
-    preload: true,
-    render: {
-      option: function (item, escape) {
-        return `<div class="py-1 px-2">
-                            <div class="fw-bold">${escape(item.class_name)}</div>
-                            <div class="small text-muted">${escape(item.course_name)}</div>
-                        </div>`;
-      },
-    },
-    load: function (query, callback) {
-      const globalYear = localStorage.getItem("sys_active_year");
-      // Se não tiver ano selecionado no menu, não carrega nada
-      if (!globalYear) return callback();
-
-      $.ajax({
-        url: defaultApp.validator,
-        type: "POST",
-        dataType: "json",
-        data: {
-          validator: "getMyClasses",
-          token: defaultApp.userInfo.token,
-          role: defaultApp.userInfo.office,
-          year: globalYear, // Passa o contexto global
+  // 1.1 Seletor de Turma (Com Verificação de Existência)
+  if ($("#sel_filter_class").length && !$("#sel_filter_class")[0].selectize) {
+    $("#sel_filter_class").selectize({
+      valueField: "class_id",
+      labelField: "class_name",
+      searchField: ["class_name", "course_name"],
+      placeholder: "Selecione a Turma...",
+      preload: true, // Carrega dados assim que é criado
+      render: {
+        option: function (item, escape) {
+          return `<div class="py-1 px-2">
+                                <div class="fw-bold">${escape(item.class_name)}</div>
+                                <div class="small text-muted">${escape(item.course_name)}</div>
+                            </div>`;
         },
-        success: (res) => callback(res.data),
-        error: () => callback(),
-      });
-    },
-    onChange: function (value) {
-      if (value) {
-        loadSubjects(value);
-        // Habilita o próximo passo
-        $("#sel_filter_subject")[0].selectize.enable();
-      } else {
-        resetInterface();
-      }
-    },
-  });
+      },
+      // AQUI A MÁGICA: O Selectize chama isso ao ser criado (devido ao preload)
+      load: function (query, callback) {
+        const globalYear = localStorage.getItem("sys_active_year");
 
-  // 1.2 Seletor de Disciplina
-  $("#sel_filter_subject").selectize({
-    valueField: "subject_id",
-    labelField: "subject_name",
-    searchField: "subject_name",
-    placeholder: "Selecione a Disciplina...",
-    onChange: function (value) {
-      if (value) {
-        // Se escolheu disciplina, carrega a grid e habilita o botão de ação
-        defaultDiary.currentPage = 1;
-        getHistory();
-        $("#btn_new_session").prop("disabled", false);
-      } else {
-        $("#btn_new_session").prop("disabled", true);
-        // Limpa a grid se desmarcar
-        $(".list-table-diario").empty();
-      }
-    },
-  });
+        // Se não tiver ano selecionado no menu, não carrega nada
+        if (!globalYear) return callback();
+
+        $.ajax({
+          url: defaultApp.validator,
+          type: "POST",
+          dataType: "json",
+          data: {
+            validator: "getMyClasses",
+            token: defaultApp.userInfo.token,
+            role: defaultApp.userInfo.office,
+            year: globalYear, // Passa o contexto global
+          },
+          success: (res) => {
+            if (res.status && res.data.length > 0) {
+              callback(res.data);
+            } else {
+              callback(); // Retorna vazio se não houver turmas
+            }
+          },
+          error: () => callback(),
+        });
+      },
+      onChange: function (value) {
+        if (value) {
+          loadSubjects(value);
+          // Habilita o próximo select se ele existir
+          if ($("#sel_filter_subject")[0].selectize) {
+            $("#sel_filter_subject")[0].selectize.enable();
+          }
+        } else {
+          resetInterface();
+        }
+      },
+    });
+  }
+
+  // 1.2 Seletor de Disciplina (Com Verificação)
+  if ($("#sel_filter_subject").length && !$("#sel_filter_subject")[0].selectize) {
+    $("#sel_filter_subject").selectize({
+      valueField: "subject_id",
+      labelField: "subject_name",
+      searchField: "subject_name",
+      placeholder: "Selecione a Disciplina...",
+      onChange: function (value) {
+        if (value) {
+          defaultDiary.currentPage = 1;
+          getHistory();
+          $("#btn_new_session").prop("disabled", false);
+        } else {
+          $("#btn_new_session").prop("disabled", true);
+          $(".list-table-diario").empty();
+        }
+      },
+    });
+  }
 };
 
 const loadSubjects = async (classId) => {
@@ -199,9 +210,9 @@ const renderTableHistory = (data) => {
 
       return `
             <tr>
-                <td class="ps-4 fw-bold text-dark align-middle">${dateFmt}</td>
+                <td class="ps-4 fw-bold text-muted align-middle">${dateFmt}</td>
                 <td class="align-middle"><div class="text-muted small">${summary}</div></td>
-                <td class="align-middle"><span class="badge bg-light text-dark border">${typeLabel}</span></td>
+                <td class="align-middle"><span class="badge bg-light text-muted border">${typeLabel}</span></td>
                 <td class="text-center align-middle">
                     <div class="d-flex align-items-center justify-content-center gap-2">
                         <span class="small fw-bold">${present}/${total}</span>
@@ -308,7 +319,7 @@ const renderModalAttendance = () => {
     const html = `
             <tr class="student-row">
                 <td class="align-middle ps-4">
-                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">${student.full_name}</div>
+                    <div class="fw-bold text-muted" style="font-size: 0.9rem;">${student.full_name}</div>
                 </td>
                 <td class="align-middle text-center">
                     <div class="btn-group w-100" role="group">
@@ -377,7 +388,7 @@ window.confirmJustification = () => {
 // 5. SALVAR NO BACKEND
 // =========================================================
 
-window.saveSession = async () => {
+const saveSession = async () => {
   // Coleta dados
   const classId = $("#sel_filter_class").val();
   const subjectId = $("#sel_filter_subject").val();
@@ -385,10 +396,11 @@ window.saveSession = async () => {
   const content = $("#session_content").val();
   const type = $("#session_type").val();
   const sessionId = $("#session_id").val();
+  const btn = $(".btn-save");
 
   // Validações básicas
   if (!date) return window.alertDefault("Por favor, informe a data da aula.", "warning");
-  if (!content.trim()) return window.alertDefault("Por favor, descreva o conteúdo ministrado.", "warning");
+  //   if (!content.trim()) return window.alertDefault("Por favor, descreva o conteúdo ministrado.", "warning");
 
   // Valida se todos os alunos têm presença marcada (não pode ser null/undefined)
   const pending = currentStudents.filter((s) => s.is_present === null || s.is_present === undefined);
@@ -397,7 +409,7 @@ window.saveSession = async () => {
   }
 
   // Trava botão
-  window.setButton(true, ".btn-save", "Salvando...");
+  setButton(true, btn, "Salvando...");
 
   try {
     const res = await window.ajaxValidator({
@@ -423,7 +435,7 @@ window.saveSession = async () => {
     window.alertDefault("Erro técnico ao salvar.", "error");
     console.error(e);
   } finally {
-    window.setButton(false, ".btn-save", "Salvar Diário");
+    window.setButton(false, btn, "Salvar Diário");
   }
 };
 
