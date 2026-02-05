@@ -9,14 +9,16 @@ function getAcademicYearsF()
 {
     try {
         $conect = $GLOBALS["local"];
+        // Busca anos ativos e não deletados, ordenados do mais recente
         $sql = "SELECT year_id, name, is_active, (CASE WHEN year_id = EXTRACT(YEAR FROM CURRENT_DATE) THEN TRUE ELSE FALSE END) as now FROM education.academic_years WHERE deleted IS FALSE ORDER BY name DESC";
-        return success("Anos listados", $conect->query($sql)->fetchAll(PDO::FETCH_ASSOC));
+        $stmt = $conect->query($sql);
+        return success("Anos listados", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
         return failure("Erro ao listar anos letivos.");
     }
 }
 
-// 2. Listagem Principal de Turmas
+// 2. Listagem Principal de Turmas (Grid)
 function getAllClasses($data)
 {
     try {
@@ -29,11 +31,13 @@ function getAllClasses($data)
 
         $where = "WHERE c.deleted IS FALSE";
 
+        // Filtro de Texto
         if (!empty($data['search'])) {
             $where .= " AND (c.name ILIKE :search OR co.name ILIKE :search OR p.full_name ILIKE :search)";
             $params[':search'] = "%" . $data['search'] . "%";
         }
 
+        // Filtro de Ano Letivo (Vindo do Menu Global)
         if (!empty($data['year'])) {
             $where .= " AND c.academic_year_id = :year";
             $params[':year'] = (int)$data['year'];
@@ -101,7 +105,6 @@ function getClassData($id)
     try {
         $conect = $GLOBALS["local"];
 
-        // Busca dados principais + Textos para Selectize (Evita bug de campo vazio)
         $sql = <<<SQL
             SELECT 
                 c.*, 
@@ -123,7 +126,7 @@ function getClassData($id)
 
         if (!$class) return failure("Turma não encontrada.");
 
-        // Busca horários formatados
+        // Busca horários
         $sqlSched = "SELECT schedule_id, week_day, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id FROM education.class_schedules WHERE class_id = :id AND is_active IS TRUE ORDER BY week_day, start_time";
         $stmtSched = $conect->prepare($sqlSched);
         $stmtSched->execute(['id' => $id]);
@@ -135,14 +138,13 @@ function getClassData($id)
     }
 }
 
-// 4. Salvar (Criar ou Editar) - Com Smart Sync de Horários
+// 4. Salvar (Criar ou Editar)
 function upsertClass($data)
 {
     try {
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
-        // Configura Auditoria
         if (!empty($data['user_id'])) {
             $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
@@ -169,7 +171,7 @@ function upsertClass($data)
             $msg = "Turma atualizada com sucesso!";
         } else {
             // INSERT
-            $params['org_id'] = 1; // Fixo ou pego da sessão
+            $params['org_id'] = 1;
             $sql = "INSERT INTO education.classes (course_id, org_id, main_location_id, coordinator_id, class_assistant_id, name, academic_year_id, max_capacity, status) VALUES (:course_id, :org_id, :main_location_id, :coordinator_id, :class_assistant_id, :name, :academic_year_id, :max_capacity, :status) RETURNING class_id";
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
@@ -178,27 +180,22 @@ function upsertClass($data)
         }
 
         // --- SMART SYNC DA GRADE HORÁRIA ---
-        // Objetivo: Atualizar apenas o que mudou para não poluir o log de auditoria
-
-        // A. Busca o que já existe no banco
         $sqlGet = "SELECT schedule_id, week_day, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id FROM education.class_schedules WHERE class_id = :id";
         $stmtGet = $conect->prepare($sqlGet);
         $stmtGet->execute(['id' => $classId]);
 
         $existingItems = [];
         while ($row = $stmtGet->fetch(PDO::FETCH_ASSOC)) {
-            // Chave única: Dia + Inicio + Fim
             $key = $row['week_day'] . '-' . $row['start_time'] . '-' . $row['end_time'];
             $existingItems[$key] = $row;
         }
 
-        // B. Processa o que veio do formulário
         $incomingList = !empty($data['schedules_json']) ? json_decode($data['schedules_json'], true) : [];
         $processedKeys = [];
 
         foreach ($incomingList as $sch) {
             $wd = (int)$sch['week_day'];
-            $st = substr($sch['start_time'], 0, 5); // Garante HH:MM
+            $st = substr($sch['start_time'], 0, 5);
             $et = substr($sch['end_time'], 0, 5);
             $lid = !empty($sch['location_id']) ? $sch['location_id'] : null;
 
@@ -206,14 +203,12 @@ function upsertClass($data)
             $processedKeys[] = $key;
 
             if (isset($existingItems[$key])) {
-                // Item já existe. Verifica se mudou a SALA
                 $current = $existingItems[$key];
                 if ($current['location_id'] != $lid) {
                     $conect->prepare("UPDATE education.class_schedules SET location_id = :lid WHERE schedule_id = :sid")
                         ->execute(['lid' => $lid, 'sid' => $current['schedule_id']]);
                 }
             } else {
-                // Item novo -> INSERT
                 $sqlIns = "INSERT INTO education.class_schedules (class_id, week_day, start_time, end_time, location_id) VALUES (:cid, :wd, :st, :et, :lid)";
                 $conect->prepare($sqlIns)->execute([
                     'cid' => $classId,
@@ -225,7 +220,6 @@ function upsertClass($data)
             }
         }
 
-        // C. Remove o que não veio no formulário (DELETE)
         foreach ($existingItems as $key => $item) {
             if (!in_array($key, $processedKeys)) {
                 $conect->prepare("DELETE FROM education.class_schedules WHERE schedule_id = :id")->execute(['id' => $item['schedule_id']]);
@@ -246,6 +240,11 @@ function removeClass($data)
 {
     try {
         $conect = $GLOBALS["local"];
+
+        $check = $conect->prepare("SELECT enrollment_id FROM education.enrollments WHERE class_id = :id AND status = 'ACTIVE'");
+        $check->execute(['id' => $data['id']]);
+        if ($check->rowCount() > 0) return failure("Não é possível excluir: Existem alunos matriculados.");
+
         $conect->beginTransaction();
 
         if (!empty($data['user_id'])) {
@@ -264,7 +263,7 @@ function removeClass($data)
     }
 }
 
-// 6. Alternar Status (Ativa/Inativa)
+// 6. Alternar Status
 function toggleClassStatus($data)
 {
     try {
@@ -275,9 +274,6 @@ function toggleClassStatus($data)
             $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
-        // Se ativo = true -> ACTIVE, senão PLANNED (ou poderia ser CANCELLED/FINISHED)
-        // Aqui assumimos alternância simples de is_active, mas a tabela usa status string
-        // Adaptando:
         $newStatus = ($data['active'] === 'true' || $data['active'] === true) ? 'ACTIVE' : 'PLANNED';
         $newBool = ($data['active'] === 'true' || $data['active'] === true) ? 'TRUE' : 'FALSE';
 
@@ -333,7 +329,6 @@ function enrollStudentF($data)
             $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
-        // 1. Verifica duplicidade
         $check = $conect->prepare("SELECT enrollment_id FROM education.enrollments WHERE class_id = :cid AND student_id = :sid AND deleted IS FALSE");
         $check->execute(['cid' => $data['class_id'], 'sid' => $data['student_id']]);
         if ($check->fetch()) {
@@ -341,7 +336,7 @@ function enrollStudentF($data)
             return failure("Este aluno já está matriculado nesta turma.");
         }
 
-        // 2. Validação de Capacidade
+        // Validação Capacidade
         $sqlCap = "SELECT max_capacity, (SELECT COUNT(*) FROM education.enrollments WHERE class_id = :cid AND status = 'ACTIVE' AND deleted IS FALSE) as total FROM education.classes WHERE class_id = :cid";
         $stmtCap = $conect->prepare($sqlCap);
         $stmtCap->execute(['cid' => $data['class_id']]);
@@ -349,16 +344,14 @@ function enrollStudentF($data)
 
         if ($capInfo && $capInfo['max_capacity'] > 0 && $capInfo['total'] >= $capInfo['max_capacity']) {
             $conect->rollBack();
-            return failure("A turma atingiu a capacidade máxima ({$capInfo['max_capacity']} alunos).");
+            return failure("A turma atingiu a capacidade máxima.");
         }
 
-        // 3. Cria Matrícula
         $sql = "INSERT INTO education.enrollments (class_id, student_id, status) VALUES (:cid, :sid, 'ACTIVE') RETURNING enrollment_id";
         $stmt = $conect->prepare($sql);
         $stmt->execute(['cid' => $data['class_id'], 'sid' => $data['student_id']]);
         $enrollId = $stmt->fetchColumn();
 
-        // 4. Log Inicial no Histórico
         $sqlHist = "INSERT INTO education.enrollment_history (enrollment_id, action_type, observation, created_by_user_id) VALUES (:eid, 'ENROLLED', 'Matrícula Inicial', :uid)";
         $conect->prepare($sqlHist)->execute(['eid' => $enrollId, 'uid' => $data['user_id']]);
 
@@ -381,7 +374,6 @@ function deleteEnrollmentF($data)
             $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
-        // Apenas marca como deletado e status CANCELLED/DROPPED
         $sql = "UPDATE education.enrollments SET deleted = TRUE, status = 'DROPPED' WHERE enrollment_id = :id";
         $conect->prepare($sql)->execute(['id' => $data['id']]);
 
@@ -394,15 +386,11 @@ function deleteEnrollmentF($data)
     }
 }
 
-// =========================================================
-// HISTÓRICO DE OCORRÊNCIAS
-// =========================================================
-
 function getEnrollmentHistoryF($data)
 {
     try {
         $conect = $GLOBALS["local"];
-        $conectStaff = getStaff(); // Conexão com banco de usuários/staff para pegar o nome
+        $conectStaff = getStaff();
 
         $sql = <<<'SQL'
             SELECT 
@@ -417,7 +405,6 @@ function getEnrollmentHistoryF($data)
         $stmt->execute(['eid' => $data['enrollment_id']]);
         $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Mapeia IDs de usuários para Nomes
         $userIds = array_unique(array_filter(array_column($logs, 'created_by_user_id')));
         $usersMap = [];
 
@@ -436,7 +423,6 @@ function getEnrollmentHistoryF($data)
 
         return success("Histórico carregado.", $logs);
     } catch (Exception $e) {
-        logSystemError("painel", "education", "getEnrollmentHistoryF", "sql", $e->getMessage(), $data);
         return failure("Erro ao buscar histórico.");
     }
 }
@@ -459,7 +445,6 @@ function addEnrollmentHistoryF($data)
             'uid' => $data['user_id']
         ]);
 
-        // Se a ação não for apenas um comentário, atualiza o status da matrícula
         if ($data['action_type'] !== 'COMMENT') {
             $sqlUp = "UPDATE education.enrollments SET status = :st WHERE enrollment_id = :eid";
             $conect->prepare($sqlUp)->execute(['st' => $data['action_type'], 'eid' => $data['enrollment_id']]);
@@ -469,7 +454,6 @@ function addEnrollmentHistoryF($data)
         return success("Registro adicionado.");
     } catch (Exception $e) {
         $conect->rollBack();
-        logSystemError("painel", "education", "addEnrollmentHistoryF", "sql", $e->getMessage(), $data);
         return failure("Erro ao registrar no histórico.");
     }
 }
@@ -478,12 +462,10 @@ function deleteEnrollmentHistoryF($data)
 {
     try {
         $conect = $GLOBALS["local"];
-        // Soft delete no histórico
         $sql = "UPDATE education.enrollment_history SET deleted = TRUE WHERE history_id = :id";
         $conect->prepare($sql)->execute(['id' => $data['id']]);
         return success("Item apagado.");
     } catch (Exception $e) {
-        logSystemError("painel", "education", "deleteEnrollmentHistoryF", "sql", $e->getMessage(), $data);
         return failure("Erro ao apagar registro.");
     }
 }

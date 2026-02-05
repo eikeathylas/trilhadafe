@@ -1,5 +1,5 @@
 // =========================================================
-// GESTÃO DE TURMAS - PADRÃO OURO V2.4 (FINAL E BLINDADO)
+// GESTÃO DE TURMAS - PADRÃO OURO V3.0 (GLOBAL YEAR AWARE)
 // =========================================================
 
 const defaultClass = {
@@ -11,53 +11,39 @@ const defaultClass = {
 let currentSchedules = [];
 
 $(document).ready(() => {
-  loadAcademicYears(); // 1. Anos
-  initSelects(); // 2. Selects
+  initSelects();
 
-  $("#busca-texto, #filtro-ano").on("change keyup", function () {
+  // Busca textual
+  $("#busca-texto").on("keyup", function () {
     clearTimeout(window.searchTimeout);
     window.searchTimeout = setTimeout(() => {
       defaultClass.currentPage = 1;
       getTurmas();
     }, 500);
   });
+
+  // LISTENER GLOBAL: Quando o Ano mudar no Sidebar
+  window.addEventListener("yearChanged", () => {
+    defaultClass.currentPage = 1;
+    getTurmas();
+  });
 });
 
 // =========================================================
-// 1. CARREGAMENTOS (ANOS LETIVOS)
-// =========================================================
-const loadAcademicYears = async () => {
-  try {
-    const res = await window.ajaxValidator({ validator: "getAcademicYearsList", token: defaultApp.userInfo.token });
-
-    if (res.status) {
-      let optsFilter = '<option value="">Todos</option>';
-      let optsModal = "";
-
-      res.data.forEach((y) => {
-        const sel = y.now ? "selected" : "";
-        optsFilter += `<option value="${y.year_id}" ${sel}>${y.name}</option>`;
-        optsModal += `<option value="${y.year_id}" ${sel}>${y.name}</option>`;
-      });
-
-      if ($("#filtro-ano").length) $("#filtro-ano").html(optsFilter);
-      if ($("#class_year_id").length) $("#class_year_id").html(optsModal);
-
-      getTurmas();
-    }
-  } catch (e) {
-    console.error("Erro ao carregar anos:", e);
-  }
-};
-
-// =========================================================
-// 2. LISTAGEM
+// 2. LISTAGEM (COM FILTRO GLOBAL)
 // =========================================================
 const getTurmas = async () => {
   try {
     const page = Math.max(0, defaultClass.currentPage - 1);
     const search = $("#busca-texto").val();
-    const year = $("#filtro-ano").val();
+
+    // --- MUDANÇA CRÍTICA: LÊ DO LOCALSTORAGE (MENU LATERAL) ---
+    const year = localStorage.getItem("sys_active_year");
+
+    if (!year) {
+      $(".list-table-turmas").html('<div class="text-center py-5 text-muted"><i class="fas fa-arrow-left fa-2x mb-3 opacity-25"></i><p>Selecione um Ano Letivo no menu lateral.</p></div>');
+      return;
+    }
 
     $(".list-table-turmas").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
@@ -67,7 +53,7 @@ const getTurmas = async () => {
       limit: defaultClass.rowsPerPage,
       page: page * defaultClass.rowsPerPage,
       search: search,
-      year: year,
+      year: year, // Envia o ano global
     });
 
     if (result.status) {
@@ -75,7 +61,7 @@ const getTurmas = async () => {
       defaultClass.totalPages = Math.max(1, Math.ceil(total / defaultClass.rowsPerPage));
       renderTableClasses(result.data || []);
     } else {
-      $(".list-table-turmas").html('<div class="text-center py-5 text-muted"><i class="fas fa-chalkboard fa-3x mb-3 opacity-25"></i><p>Nenhuma turma encontrada.</p></div>');
+      $(".list-table-turmas").html('<div class="text-center py-5 text-muted"><i class="fas fa-chalkboard fa-3x mb-3 opacity-25"></i><p>Nenhuma turma encontrada neste ano.</p></div>');
     }
   } catch (e) {
     $(".list-table-turmas").html('<p class="text-center py-4 text-danger">Erro ao carregar dados.</p>');
@@ -158,6 +144,9 @@ const renderTableClasses = (data) => {
 
   _generatePaginationButtons("pagination-turmas", "currentPage", "totalPages", "getTurmas", defaultClass);
 };
+
+// ... (RESTO DAS FUNÇÕES: modalTurma, loadClassData, addSchedule, saveTurma, etc. MANTIDAS IGUAIS AO ARQUIVO ORIGINAL) ...
+// Certifique-se de manter o restante do arquivo JS original abaixo desta linha.
 
 // =========================================================
 // 3. CADASTRO E EDIÇÃO
@@ -570,7 +559,7 @@ const initSelects = () => {
   const selects = [
     { id: "#sel_course", val: "getCoursesList", ph: "Selecione o Curso..." },
     { id: "#sel_coordinator", val: "getCatechistsList", ph: "Busque o catequista..." },
-    { id: "#sel_assistant", val: "getCatechistsList", ph: "Busque o auxiliar..." }, 
+    { id: "#sel_assistant", val: "getCatechistsList", ph: "Busque o auxiliar..." },
     { id: "#sel_location", val: "getLocations", ph: "Sala Principal..." },
     { id: "#sel_location_sched", val: "getLocations", ph: "Sala Específica..." },
     { id: "#sel_new_student", val: "getStudentsList", ph: "Busque o aluno...", search: ["title", "tax_id"] },

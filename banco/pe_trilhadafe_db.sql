@@ -434,6 +434,7 @@ COMMENT ON TABLE education.enrollment_history IS 'Log de alterações de status 
 CREATE TABLE education.class_sessions (
     session_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id),
+    subject_id INT REFERENCES education.subjects(subject_id),
     
     session_date DATE NOT NULL,
     description TEXT, -- Conteúdo ministrado
@@ -452,6 +453,7 @@ CREATE TABLE education.class_sessions (
     
     CONSTRAINT unique_class_date UNIQUE (class_id, session_date)
 );
+CREATE INDEX idx_sessions_subject ON education.class_sessions(subject_id);
 CREATE INDEX idx_sessions_class ON education.class_sessions(class_id);
 CREATE INDEX idx_sessions_date ON education.class_sessions(session_date);
 

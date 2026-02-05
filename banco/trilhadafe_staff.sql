@@ -244,7 +244,7 @@ INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, co
 (9, 'disciplinas', 'Disciplinas', 'Cadastro de matérias.', TRUE, 'icon-list', 'AcademicController'),
 (10, 'cursos', 'Cursos e Grades', 'Definição formativa.', TRUE, 'icon-school', 'AcademicController'),
 (11, 'turmas', 'Gestão de Turmas', 'Abertura de turmas.', TRUE, 'icon-group', 'AcademicController'),
-(12, 'meus-diarios', 'Diário de Classe', 'Área do professor.', TRUE, 'icon-calendar', 'AcademicController'),
+(12, 'diario', 'Diário de Classe', 'Área do professor.', TRUE, 'icon-calendar', 'AcademicController'),
 (13, 'pessoas', 'Diretório de Pessoas', 'Prontuário único.', TRUE, 'icon-user', 'PeopleController'),
 (14, 'liturgia', 'Liturgia e Missas', 'Agenda de celebrações.', TRUE, 'icon-church', 'PastoralController'),
 (15, 'eventos', 'Eventos e Festas', 'Gestão de quermesses.', TRUE, 'icon-ticket', 'EventsController'),

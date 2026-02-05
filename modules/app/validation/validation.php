@@ -14,10 +14,11 @@ include "../controller/session-controller.php";       // Sessão e Login
 include "../controller/dashboard-controller.php";     // Tela Inicial
 include "../controller/audit-controller.php";         // Auditoria (Raio)
 include "../controller/organization-controller.php";  // Organização e Salas
-include "../controller/people-controller.php";  // Pessoas
-include "../controller/academic-controller.php"; // Disciplinas
-include "../controller/course-controller.php";  // Cursos
-include "../controller/turmas-controller.php";	 // Turmas
+include "../controller/people-controller.php";        // Pessoas
+include "../controller/academic-controller.php";      // Disciplinas
+include "../controller/course-controller.php";        // Cursos
+include "../controller/turmas-controller.php";        // Turmas
+include "../controller/diario-controller.php";        // Diário de Classe (Novo)
 
 // 3. Captura da Ação
 $validator = $_POST["validator"] ?? null;
@@ -210,6 +211,25 @@ switch ($validator) {
 		break;
 	case "deleteEnrollmentHistory":
 		deleteEnrollmentHistory();
+		break;
+
+	// =========================================================
+	// MÓDULO: DIÁRIO DE CLASSE (diario.js)
+	// =========================================================
+	case "getMyClasses":
+		getMyClasses();
+		break;
+	case "getClassSubjects": // [NOVO] Busca disciplinas da turma
+		getClassSubjects();
+		break;
+	case "getClassHistory":  // [NOVO] Busca histórico de aulas
+		getClassHistory();
+		break;
+	case "getClassDailyInfo":
+		getClassDailyInfo();
+		break;
+	case "saveDailyLog":
+		saveDailyLog();
 		break;
 
 	// =========================================================

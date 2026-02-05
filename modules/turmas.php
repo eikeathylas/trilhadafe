@@ -36,15 +36,9 @@
             <div class="card list-commanded mb-4">
                 <div class="card-header border-bottom-0 bg-transparent px-0 pb-0">
                     <div class="row align-items-end">
-                        <div class="col-md-2 mb-3 mb-md-0">
-                            <label class="form-label title">Ano Letivo:</label>
-                            <select id="filtro-ano" class="form-select">
-                                <option value="">Carregando...</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="col-md-8 mb-3 mb-md-0">
                             <label class="form-label title">Buscar Turma:</label>
-                            <input type="text" id="busca-texto" class="form-control" placeholder="Nome da turma ou coordenador...">
+                            <input type="text" id="busca-texto" class="form-control" placeholder="Nome da turma, curso ou coordenador...">
                         </div>
                         <div class="col-md-4 text-end">
                             <button class="btn-filter mt-4" onclick="modalTurma()">
@@ -56,7 +50,7 @@
 
                 <div class="card-body px-0 pt-4">
                     <div class="table-responsive list-table-turmas">
-                    </div>
+                        </div>
                     <div class="pagination paginationButtons pagination-turmas mt-3 text-center"></div>
                 </div>
             </div>
@@ -310,5 +304,4 @@
     <script src="assets/js/turmas.js?v=<?php echo time(); ?>"></script>
 
 </body>
-
 </html>
