@@ -247,37 +247,6 @@ COMMENT ON TABLE people.status_history IS 'Log de afastamentos e ocorrências de
 
 
 -- ==========================================================
--- SCHEMA: SECURITY (ANTECIPADO PARA DEPENDÊNCIAS)
--- Responsabilidade: Login, Senhas e Auditoria
--- ==========================================================
-
-CREATE TABLE security.users (
-    user_id SERIAL PRIMARY KEY,
-    org_id INT NOT NULL REFERENCES organization.organizations(org_id) DEFAULT 1,
-    person_id INT REFERENCES people.persons(person_id), 
-    
-    name VARCHAR(150) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL, 
-    
-    role_level VARCHAR(50) DEFAULT 'USER', -- ADMIN, MANAGER, SECRETARY, TEACHER
-    is_active BOOLEAN DEFAULT TRUE,
-    force_password_change BOOLEAN DEFAULT FALSE,
-    
-    last_login TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_users_email ON security.users(email);
-CREATE INDEX IF NOT EXISTS idx_users_person ON security.users(person_id);
-
-COMMENT ON TABLE security.users IS 'Tabela de autenticação (Login). Vinculada a uma Pessoa Física.';
-COMMENT ON COLUMN security.users.person_id IS 'Link com o cadastro completo da pessoa.';
-COMMENT ON COLUMN security.users.role_level IS 'Nível de permissão no sistema (ACL).';
-
-
--- ==========================================================
 -- SCHEMA: EDUCATION
 -- Responsabilidade: Gestão Pedagógica, Cursos e Diários
 -- ==========================================================
@@ -901,6 +870,31 @@ COMMENT ON TABLE communication.banners IS 'Slideshow da Home do Site/App.';
 -- SCHEMA: SECURITY LOGS (AUDITORIA FINAL)
 -- ==========================================================
 
+CREATE TABLE security.users (
+    user_id SERIAL PRIMARY KEY,
+    org_id INT NOT NULL REFERENCES organization.organizations(org_id) DEFAULT 1,
+    person_id INT REFERENCES people.persons(person_id), 
+    
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL, 
+    
+    role_level VARCHAR(50) DEFAULT 'USER', -- ADMIN, MANAGER, SECRETARY, TEACHER
+    is_active BOOLEAN DEFAULT TRUE,
+    force_password_change BOOLEAN DEFAULT FALSE,
+    
+    last_login TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON security.users(email);
+CREATE INDEX IF NOT EXISTS idx_users_person ON security.users(person_id);
+
+COMMENT ON TABLE security.users IS 'Tabela de autenticação (Login). Vinculada a uma Pessoa Física.';
+COMMENT ON COLUMN security.users.person_id IS 'Link com o cadastro completo da pessoa.';
+COMMENT ON COLUMN security.users.role_level IS 'Nível de permissão no sistema (ACL).';
+
 CREATE TABLE security.change_logs (
     log_id BIGSERIAL PRIMARY KEY,
     schema_name TEXT NOT NULL,
@@ -940,44 +934,54 @@ CREATE TABLE security.access_logs (
 COMMENT ON TABLE security.access_logs IS 'Histórico de acessos e logins.';
 
 
--- ==========================================================
--- FUNÇÕES E TRIGGERS DE AUDITORIA
--- ==========================================================
-
+-- ============================================================================
+-- 1. FUNÇÃO DE AUDITORIA (PADRÃO SECURITY)
+-- ============================================================================
 CREATE OR REPLACE FUNCTION security.log_changes() RETURNS TRIGGER AS $$
 DECLARE
     v_record_id TEXT;
     v_pk_column TEXT;
     v_user_id INT;
 BEGIN
-    -- Tenta pegar o ID do usuário da sessão do banco (setado pelo PHP/Backend)
+    -- 1. Tenta identificar o usuário da sessão (Setado pelo PHP)
     BEGIN
-        v_user_id := current_setting('app.current_user_id')::INT;
+        v_user_id := NULLIF(current_setting('app.current_user_id', true), '')::INT;
     EXCEPTION WHEN OTHERS THEN
         v_user_id := NULL;
     END;
 
+    -- 2. Identifica a coluna de ID passada como argumento
     v_pk_column := TG_ARGV[0];
 
+    -- 3. Lógica por Operação
     IF (TG_OP = 'DELETE') THEN
+        -- Pega o ID do registro antigo dinamicamente
         EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING OLD;
+        
         INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, old_values)
-        VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'DELETE', v_record_id, v_user_id, row_to_json(OLD)::jsonb);
+        VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'DELETE', v_record_id, v_user_id, to_jsonb(OLD));
+        
         RETURN OLD;
         
     ELSIF (TG_OP = 'UPDATE') THEN
+        -- Pega o ID do registro novo
         EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING NEW;
         
-        IF row_to_json(OLD)::jsonb IS DISTINCT FROM row_to_json(NEW)::jsonb THEN
+        -- Só registra se houver mudança real nos dados (Ignora updates falsos)
+        IF to_jsonb(OLD) IS DISTINCT FROM to_jsonb(NEW) THEN
             INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, old_values, new_values)
-            VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'UPDATE', v_record_id, v_user_id, row_to_json(OLD)::jsonb, row_to_json(NEW)::jsonb);
+            VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'UPDATE', v_record_id, v_user_id, to_jsonb(OLD), to_jsonb(NEW));
         END IF;
+        
         RETURN NEW;
         
     ELSIF (TG_OP = 'INSERT') THEN
+        -- Pega o ID do registro novo
         EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING NEW;
+        
         INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, new_values)
-        VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'INSERT', v_record_id, v_user_id, row_to_json(NEW)::jsonb);
+        VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'INSERT', v_record_id, v_user_id, to_jsonb(NEW));
+        
         RETURN NEW;
     END IF;
 
@@ -985,23 +989,36 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Aplicação dos Triggers (Principais Tabelas)
+
+-- Organização
 CREATE TRIGGER audit_trigger_organizations AFTER INSERT OR UPDATE OR DELETE ON organization.organizations FOR EACH ROW EXECUTE FUNCTION security.log_changes('org_id');
 CREATE TRIGGER audit_trigger_locations AFTER INSERT OR UPDATE OR DELETE ON organization.locations FOR EACH ROW EXECUTE FUNCTION security.log_changes('location_id');
+
+-- Pessoas
 CREATE TRIGGER audit_trigger_persons AFTER INSERT OR UPDATE OR DELETE ON people.persons FOR EACH ROW EXECUTE FUNCTION security.log_changes('person_id');
 CREATE TRIGGER audit_trigger_person_roles AFTER INSERT OR UPDATE OR DELETE ON people.person_roles FOR EACH ROW EXECUTE FUNCTION security.log_changes('link_id');
 CREATE TRIGGER audit_trigger_family_ties AFTER INSERT OR UPDATE OR DELETE ON people.family_ties FOR EACH ROW EXECUTE FUNCTION security.log_changes('tie_id');
+
+-- Educacional (Geral)
 CREATE TRIGGER audit_trigger_academic_years AFTER INSERT OR UPDATE OR DELETE ON education.academic_years FOR EACH ROW EXECUTE FUNCTION security.log_changes('year_id');
 CREATE TRIGGER audit_trigger_subjects AFTER INSERT OR UPDATE OR DELETE ON education.subjects FOR EACH ROW EXECUTE FUNCTION security.log_changes('subject_id');
 CREATE TRIGGER audit_trigger_courses AFTER INSERT OR UPDATE OR DELETE ON education.courses FOR EACH ROW EXECUTE FUNCTION security.log_changes('course_id');
 CREATE TRIGGER audit_trigger_curriculum AFTER INSERT OR UPDATE OR DELETE ON education.curriculum FOR EACH ROW EXECUTE FUNCTION security.log_changes('curriculum_id');
+
+-- Turmas e Diário
 CREATE TRIGGER audit_trigger_classes AFTER INSERT OR UPDATE OR DELETE ON education.classes FOR EACH ROW EXECUTE FUNCTION security.log_changes('class_id');
 CREATE TRIGGER audit_trigger_class_schedules AFTER INSERT OR UPDATE OR DELETE ON education.class_schedules FOR EACH ROW EXECUTE FUNCTION security.log_changes('schedule_id');
 CREATE TRIGGER audit_trigger_enrollments AFTER INSERT OR UPDATE OR DELETE ON education.enrollments FOR EACH ROW EXECUTE FUNCTION security.log_changes('enrollment_id');
 CREATE TRIGGER audit_trigger_class_sessions AFTER INSERT OR UPDATE OR DELETE ON education.class_sessions FOR EACH ROW EXECUTE FUNCTION security.log_changes('session_id');
+
+-- Frequência e Notas
+-- OBS: Certifique-se que a tabela attendance tem a coluna 'attendance_id' como PK simples.
+-- Se a PK for composta (session_id, student_id), esta trigger falhará.
 CREATE TRIGGER audit_trigger_attendance AFTER INSERT OR UPDATE OR DELETE ON education.attendance FOR EACH ROW EXECUTE FUNCTION security.log_changes('attendance_id');
 CREATE TRIGGER audit_trigger_assessments AFTER INSERT OR UPDATE OR DELETE ON education.assessments FOR EACH ROW EXECUTE FUNCTION security.log_changes('assessment_id');
 CREATE TRIGGER audit_trigger_enrollment_history AFTER INSERT OR UPDATE OR DELETE ON education.enrollment_history FOR EACH ROW EXECUTE FUNCTION security.log_changes('history_id');
+
+-- Segurança
 CREATE TRIGGER audit_trigger_users AFTER INSERT OR UPDATE OR DELETE ON security.users FOR EACH ROW EXECUTE FUNCTION security.log_changes('user_id');
 
 

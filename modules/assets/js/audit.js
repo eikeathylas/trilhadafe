@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V25
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V26 (SMART NAMES)
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -63,8 +63,31 @@ const renderTimeline = (logs, container) => {
   let html = "";
   let visibleLogsCount = 0;
 
-  // Campos técnicos que nunca devem aparecer no Diff
-  const globalBlacklist = ["updated_at", "created_at", "user_id", "audit_user_id", "deleted", "org_id", "org_id_origin", "link_id", "tie_id", "notes", "start_date", "end_date", "person_id", "role_id", "class_id", "course_id", "curriculum_id"];
+  // Campos técnicos que nunca devem aparecer no Diff (Segurança visual)
+  const globalBlacklist = [
+    "updated_at",
+    "created_at",
+    "user_id",
+    "audit_user_id",
+    "deleted",
+    "org_id",
+    "org_id_origin",
+    "link_id",
+    "tie_id",
+    "notes",
+    "start_date",
+    "end_date",
+    "person_id",
+    "role_id",
+    "class_id",
+    "course_id",
+    "curriculum_id",
+    "student_id",
+    "session_id",
+    "attendance_id",
+    "signed_by_user_id",
+    "subject_id",
+  ];
 
   const isTrue = (v) => v === true || v === "t" || v === "true" || v === 1;
   const isFalse = (v) => v === false || v === "f" || v === "false" || v === 0 || v === null;
@@ -98,20 +121,51 @@ const renderTimeline = (logs, container) => {
     let colorClass = "UPDATE";
     let diffHtml = "";
     let hasVisibleChanges = false;
-    let headerText = "Atualização";
 
-    if (log.table_name === "person_roles") headerText = "Cargos e Funções";
-    else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
-    else if (log.table_name === "locations") headerText = "Espaço / Sala";
-    else if (log.table_name === "curriculum") headerText = "Grade Curricular";
+    // Título do Card: Usa o target_name que o PHP calculou (Nome do Aluno, Cargo, etc)
+    let headerText = log.target_name || "Atualização";
 
-    let itemName = oldVal.vinculo || newVal.vinculo || oldVal.relative_name || newVal.relative_name || oldVal.name || newVal.name || oldVal.disciplina || newVal.disciplina || "Item";
+    // Fallbacks para tabelas genéricas se o target_name falhar
+    if (!log.target_name) {
+      if (log.table_name === "person_roles") headerText = "Cargos e Funções";
+      else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
+      else if (log.table_name === "locations") headerText = "Espaço / Sala";
+      else if (log.table_name === "curriculum") headerText = "Grade Curricular";
+      else if (log.table_name === "class_sessions") headerText = "Dados da Aula";
+      else if (log.table_name === "attendance") headerText = "Frequência";
+    }
+
+    // Identificação Inteligente do Item (Resolve o problema do "Adicionado: Item")
+    let itemName =
+      oldVal.aluno ||
+      newVal.aluno || // Nome do Aluno (Presença)
+      oldVal.vinculo ||
+      newVal.vinculo || // Nome do Cargo
+      oldVal.relative_name ||
+      newVal.relative_name || // Nome do Parente
+      oldVal.name ||
+      newVal.name || // Nome Genérico
+      oldVal.disciplina ||
+      newVal.disciplina || // Nome da Disciplina
+      oldVal.display_name ||
+      newVal.display_name || // Nome Fantasia
+      "Item";
+
+    // Tratamento especial para Aulas (Se não tiver nome, usa a data)
+    if (log.table_name === "class_sessions" && itemName === "Item") {
+      const dt = newVal.session_date || oldVal.session_date;
+      if (dt) itemName = "Aula dia " + dt.split("-").reverse().join("/");
+    }
 
     if (isInsert) {
       icon = "add";
       colorClass = "INSERT";
-      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses" || log.table_name === "classes") {
-        diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro criado no sistema.</div>';
+
+      if (log.table_name === "attendance") {
+        // Mensagem específica para frequência
+        diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro de presença criado.</div>`;
+      } else if (["persons", "organizations", "courses", "classes"].includes(log.table_name)) {
+        diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro mestre criado no sistema.</div>';
         headerText = "Criação";
       } else {
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Adicionado: ${itemName}</div>`;
@@ -120,35 +174,23 @@ const renderTimeline = (logs, container) => {
     } else if (isHardDelete) {
       icon = "delete";
       colorClass = "DELETE";
-      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses" || log.table_name === "classes") {
-        diffHtml = '<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Registro excluído permanentemente.</div>';
-        headerText = "Exclusão";
-      } else {
-        diffHtml = `<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Removido: ${itemName}</div>`;
-      }
+      diffHtml = `<div class="text-danger small fw-bold"><i class="fas fa-trash me-2"></i> Removido permanentemente: ${itemName}</div>`;
       hasVisibleChanges = true;
     } else if (isSoftDelete) {
       icon = "delete";
       colorClass = "DELETE";
-      let label = "Item enviado para a lixeira.";
-
-      if (log.table_name === "person_roles") label = `Vínculo removido: <strong>${itemName}</strong>`;
-      else if (log.table_name === "family_ties") label = `Familiar removido: <strong>${itemName}</strong>`;
-      else if (log.table_name === "locations") label = `Local desativado: <strong>${itemName}</strong>`;
-      else if (log.table_name === "curriculum") label = `Disciplina removida: <strong>${itemName}</strong>`;
-      // else label = "Registro movido para a lixeira.";
+      let label = "Enviado para a lixeira.";
+      if (itemName !== "Item") label = `<strong>${itemName}</strong> removido(a).`;
 
       diffHtml = `<div class="text-danger small"><i class="fas fa-trash me-2"></i> ${label}</div>`;
       hasVisibleChanges = true;
     } else if (isReactivation) {
       icon = "recycling";
       colorClass = "INSERT";
-      let label = `<strong>${itemName}</strong> restaurado.`;
-      if (log.table_name === "persons" || log.table_name === "organizations" || log.table_name === "courses") label = "Cadastro restaurado da lixeira.";
-
-      diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-recycle me-2"></i> ${label}</div>`;
+      diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-recycle me-2"></i> <strong>${itemName}</strong> restaurado(a).</div>`;
       hasVisibleChanges = true;
     } else {
+      // UPDATE NORMAL
       let rows = "";
       const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
 
@@ -221,9 +263,24 @@ const renderTimeline = (logs, container) => {
 
 const formatKey = (key) => {
   const map = {
+    // --- DIÁRIO DE CLASSE (NOVO) ---
+    session_date: "Data da Aula",
+    content_type: "Tipo de Conteúdo",
+    signed_at: "Assinado em",
+    is_present: "Presença",
+    justification: "Justificativa",
+    absence_type: "Motivo da Falta",
+    aluno: "Aluno", // Nome injetado via PHP
+
     // --- TURMAS ---
     coordinator_id: "Coordenador",
     class_assistant_id: "Auxiliar de Turma",
+    class_name: "Nome da Turma",
+    shift: "Turno",
+    start_time: "Horário de Início",
+    end_time: "Horário de Término",
+    location_id: "Local / Sala",
+    academic_year_id: "Ano Letivo",
 
     // Cursos
     min_age: "Idade Mínima",
@@ -233,6 +290,7 @@ const formatKey = (key) => {
     workload_hours: "Horas/Aula",
     is_mandatory: "Obrigatória",
     disciplina: "Matéria",
+
     // Geral
     name: "Nome",
     description: "Descrição",
@@ -354,6 +412,19 @@ const formatValue = (val, key = "") => {
 
   const orgTypeMap = { DIOCESE: "Diocese", PARISH: "Paróquia", CHAPEL: "Capela", CONVENT: "Convento", CURIA: "Cúria" };
   if (orgTypeMap[val]) return orgTypeMap[val];
+
+  // MAPA DE TIPOS DE CONTEÚDO (Diário)
+  const contentTypeMap = {
+    DOCTRINAL: "Doutrinal",
+    BIBLICAL: "Bíblico",
+    LITURGICAL: "Litúrgico",
+    EXPERIENTIAL: "Vivencial",
+    REVIEW: "Avaliação",
+  };
+  if (contentTypeMap[val]) return contentTypeMap[val];
+
+  const classMap = { UNJUSTIFIED: "Não Justificada", JUSTIFIED: "Justificada", MEDICAL: "Atestado Médico", OTHER: "Outro", RECURRENT: "Recorrente" };
+  if (classMap[val]) return classMap[val];
 
   // Data
   if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {

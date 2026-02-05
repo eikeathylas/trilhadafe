@@ -190,47 +190,93 @@ const getHistory = async () => {
 
 const renderTableHistory = (data) => {
   const container = $(".list-table-diario");
+
   if (data.length === 0) {
-    container.html('<div class="text-center py-5 text-muted"><p>Nenhuma aula registrada.</p></div>');
+    container.html(`
+            <div class="text-center py-5">
+                <i class="fas fa-book-open fa-3x text-muted mb-3 opacity-25"></i>
+                <p class="text-muted">Nenhuma aula registrada nesta disciplina.</p>
+            </div>
+        `);
     return;
   }
 
-  const typeMap = { DOCTRINAL: "Doutrinal", BIBLICAL: "Bíblico", LITURGICAL: "Litúrgico", EXPERIENTIAL: "Vivencial", REVIEW: "Avaliação" };
+  const typeMap = {
+    DOCTRINAL: { l: "Doutrinal", c: "primary", i: "auto_stories" },
+    BIBLICAL: { l: "Bíblico", c: "info", i: "menu_book" },
+    LITURGICAL: { l: "Litúrgico", c: "warning", i: "church" },
+    EXPERIENTIAL: { l: "Vivencial", c: "success", i: "diversity_3" },
+    REVIEW: { l: "Avaliação", c: "danger", i: "quiz" },
+  };
 
   let rows = data
     .map((item) => {
       const dateFmt = item.session_date.split("-").reverse().join("/");
-      const summary = item.description.length > 80 ? item.description.substring(0, 80) + "..." : item.description;
-      const typeLabel = typeMap[item.content_type] || item.content_type;
+      const summary = item.description.length > 60 ? item.description.substring(0, 60) + "..." : item.description;
 
+      // Configuração do Tipo (Badge + Ícone)
+      const typeConfig = typeMap[item.content_type] || { l: item.content_type, c: "secondary", i: "circle" };
+
+      // Barra de Progresso (Presença)
       const total = parseInt(item.total_students);
       const present = parseInt(item.present_count);
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
-      let badgeColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
+      let progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
 
       return `
             <tr>
-                <td class="ps-4 fw-bold text-muted align-middle">${dateFmt}</td>
-                <td class="align-middle"><div class="text-muted small">${summary}</div></td>
-                <td class="align-middle"><span class="badge bg-light text-muted border">${typeLabel}</span></td>
-                <td class="text-center align-middle">
-                    <div class="d-flex align-items-center justify-content-center gap-2">
-                        <span class="small fw-bold">${present}/${total}</span>
-                        <div class="progress" style="width: 50px; height: 6px;">
-                            <div class="progress-bar ${badgeColor}" role="progressbar" style="width: ${pct}%"></div>
+                <td class="align-middle ps-3" width="60">
+                    <div class="icon-circle bg-${typeConfig.c} bg-opacity-10 text-${typeConfig.c}">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">${typeConfig.i}</span>
+                    </div>
+                </td>
+                <td class="align-middle">
+                    <div class="fw-bold text-dark">${dateFmt}</div>
+                    <span class="badge bg-${typeConfig.c} bg-opacity-10 text-${typeConfig.c} border border-${typeConfig.c} border-opacity-25 rounded-pill" style="font-size: 0.7rem;">
+                        ${typeConfig.l}
+                    </span>
+                </td>
+                <td class="align-middle">
+                    <span class="text-muted small">${summary}</span>
+                </td>
+                <td class="align-middle text-center" width="180">
+                    <div class="d-flex flex-column align-items-center">
+                        <small class="fw-bold text-muted mb-1">${present}/${total} Presentes</small>
+                        <div class="progress w-100" style="height: 6px; background-color: #e9ecef;">
+                            <div class="progress-bar ${progColor}" role="progressbar" style="width: ${pct}%"></div>
                         </div>
                     </div>
                 </td>
-                <td class="text-end pe-4 align-middle">
-                    <button class="btn btn-icon-action" onclick="openSessionModal(${item.session_id})" title="Editar Diário"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log de Auditoria"><i class="fas fa-bolt"></i></button>
+                <td class="text-end align-middle pe-3">
+                    <button class="btn btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log de Alterações">
+                        <i class="fas fa-bolt"></i>
+                    </button>
+                    <button class="btn btn-icon-action text-primary" onclick="openSessionModal(${item.session_id})" title="Editar Aula">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="btn btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir Registro">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </td>
             </tr>
         `;
     })
     .join("");
 
-  container.html(`<table class="table-custom"><thead><tr><th class="ps-4" width="120">Data</th><th>Conteúdo</th><th width="120">Tipo</th><th class="text-center" width="150">Presença</th><th class="text-end pe-4" width="120">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+  container.html(`
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th colspan="2" class="ps-3">Data / Tipo</th>
+                    <th>Conteúdo Ministrado</th>
+                    <th class="text-center">Frequência</th>
+                    <th class="text-end pe-4">Ações</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+    `);
+
   _generatePaginationButtons("pagination-diario", "currentPage", "totalPages", "changePage", defaultDiary);
 };
 
@@ -437,6 +483,37 @@ const saveSession = async () => {
   } finally {
     window.setButton(false, btn, "Salvar Diário");
   }
+};
+
+window.deleteSession = (sessionId) => {
+  Swal.fire({
+    title: "Excluir Diário?",
+    text: "Isso apagará o registro da aula e todas as presenças vinculadas.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await window.ajaxValidator({
+          validator: "deleteDailyLog",
+          token: defaultApp.userInfo.token,
+          session_id: sessionId,
+        });
+
+        if (res.status) {
+          window.alertDefault("Registro excluído com sucesso!", "success");
+          getHistory(); // Recarrega a tabela
+        } else {
+          window.alertDefault(res.alert, "error");
+        }
+      } catch (e) {
+        window.alertDefault("Erro ao excluir registro.", "error");
+      }
+    }
+  });
 };
 
 // =========================================================

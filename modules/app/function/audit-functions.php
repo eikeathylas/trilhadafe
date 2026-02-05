@@ -21,15 +21,22 @@ function getHistory($data)
                 WHERE l.schema_name = :schema AND l.table_name = :table AND l.record_id = :id";
 
         // --- BLOCOS DE UNION (Filhos) ---
+        // Pessoas (Cargos e Família)
         if ($table === 'persons') {
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'person_roles' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'family_ties' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
         }
+        // Cursos (Grade)
         if ($table === 'courses') {
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'education' AND l.table_name = 'curriculum' AND (l.new_values->>'course_id' = :id OR l.old_values->>'course_id' = :id)";
         }
+        // Instituições (Locais)
         if ($table === 'organizations') {
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'organization' AND l.table_name = 'locations' AND (l.new_values->>'org_id' = :id OR l.old_values->>'org_id' = :id)";
+        }
+        // Diário (Presença) - Traz logs de presença ao abrir o log da aula
+        if ($table === 'class_sessions') {
+            $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'education' AND l.table_name = 'attendance' AND (l.new_values->>'session_id' = :id OR l.old_values->>'session_id' = :id)";
         }
 
         $sql .= " ORDER BY changed_at DESC, log_id DESC";
@@ -52,26 +59,27 @@ function getHistory($data)
             $old = json_decode($log['old_values'] ?? '{}', true);
             $new = json_decode($log['new_values'] ?? '{}', true);
 
-            // TURMAS: Coleta IDs de Coordenador e Assistente
+            // TURMAS
             if ($log['table_name'] === 'classes') {
                 if (!empty($old['coordinator_id'])) $peopleIds[] = $old['coordinator_id'];
                 if (!empty($new['coordinator_id'])) $peopleIds[] = $new['coordinator_id'];
                 if (!empty($old['class_assistant_id'])) $peopleIds[] = $old['class_assistant_id'];
                 if (!empty($new['class_assistant_id'])) $peopleIds[] = $new['class_assistant_id'];
             }
-
             // CARGOS
             if ($log['table_name'] === 'person_roles') {
                 if (!empty($old['role_id'])) $roleIds[] = $old['role_id'];
                 if (!empty($new['role_id'])) $roleIds[] = $new['role_id'];
             }
-            // FAMILIA
-            if ($log['table_name'] === 'family_ties') {
+            // FAMILIA / PRESENÇA (Aluno)
+            if ($log['table_name'] === 'family_ties' || $log['table_name'] === 'attendance') {
                 if (!empty($old['relative_id'])) $peopleIds[] = $old['relative_id'];
                 if (!empty($new['relative_id'])) $peopleIds[] = $new['relative_id'];
+                if (!empty($old['student_id'])) $peopleIds[] = $old['student_id'];
+                if (!empty($new['student_id'])) $peopleIds[] = $new['student_id'];
             }
-            // CURSO/GRADE
-            if ($log['table_name'] === 'curriculum') {
+            // CURSO/GRADE e DIÁRIO (Disciplina)
+            if ($log['table_name'] === 'curriculum' || $log['table_name'] === 'class_sessions') {
                 if (!empty($old['subject_id'])) $subjectIds[] = $old['subject_id'];
                 if (!empty($new['subject_id'])) $subjectIds[] = $new['subject_id'];
             }
@@ -82,7 +90,7 @@ function getHistory($data)
             }
         }
 
-        // --- 3. BUSCA DE NOMES (TRADUÇÃO) ---
+        // --- 3. BUSCAS NO BANCO (MAPS) ---
         $usersMap = [];
         if (!empty($userIds)) {
             $stmtU = $conectStaff->prepare("SELECT id, name FROM public.users WHERE id IN (" . implode(',', array_unique($userIds)) . ")");
@@ -95,7 +103,7 @@ function getHistory($data)
             $stmtR->execute();
             while ($row = $stmtR->fetch(PDO::FETCH_ASSOC)) $rolesMap[$row['role_id']] = $row['nome'];
         }
-        $peopleMap = []; // Usado para Parentes, Coordenadores e Assistentes
+        $peopleMap = [];
         if (!empty($peopleIds)) {
             $stmtP = $conectLocal->prepare("SELECT person_id, full_name FROM people.persons WHERE person_id IN (" . implode(',', array_unique($peopleIds)) . ")");
             $stmtP->execute();
@@ -123,43 +131,37 @@ function getHistory($data)
             $log['user_name'] = isset($usersMap[$uid]) ? $usersMap[$uid] : 'Sistema';
             $date = new DateTime($log['changed_at']);
             $log['date_fmt'] = $date->format('d/m/Y H:i:s');
+            $log['target_name'] = ""; // Título do Card no Modal
             $log['__exclude'] = false;
 
-            // --- INJEÇÃO EM TURMAS (Tradução de IDs) ---
+            // --- INJEÇÃO EM TURMAS ---
             if ($log['table_name'] === 'classes') {
                 $injectNames = function ($j) use ($peopleMap) {
                     $a = json_decode($j, true);
-                    // Traduz Coordenador
-                    if (!empty($a['coordinator_id']) && isset($peopleMap[$a['coordinator_id']])) {
-                        $a['coordinator_id'] = $peopleMap[$a['coordinator_id']];
-                    }
-                    // Traduz Assistente
-                    if (!empty($a['class_assistant_id']) && isset($peopleMap[$a['class_assistant_id']])) {
-                        $a['class_assistant_id'] = $peopleMap[$a['class_assistant_id']];
-                    }
+                    if (!empty($a['coordinator_id']) && isset($peopleMap[$a['coordinator_id']])) $a['coordinator_id'] = $peopleMap[$a['coordinator_id']];
+                    if (!empty($a['class_assistant_id']) && isset($peopleMap[$a['class_assistant_id']])) $a['class_assistant_id'] = $peopleMap[$a['class_assistant_id']];
                     return json_encode($a);
                 };
                 $log['old_values'] = $injectNames($log['old_values']);
                 $log['new_values'] = $injectNames($log['new_values']);
             }
 
-            // --- CARGOS (Vínculos) ---
+            // --- CARGOS ---
             if ($log['table_name'] === 'person_roles') {
                 $old = json_decode($log['old_values'] ?? '{}', true);
                 $new = json_decode($log['new_values'] ?? '{}', true);
                 $rId = $new['role_id'] ?? $old['role_id'] ?? 0;
 
-                // Filtro de ruído MANTIDO mas com lógica correta
+                if ($rId && isset($rolesMap[$rId])) {
+                    $log['target_name'] = $rolesMap[$rId];
+                }
+
                 if ($log['operation'] === 'INSERT') $tempAdded['r' . $rId] = $index;
-                // Apenas marca como REMOVIDO se for DELETE REAL
                 elseif ($log['operation'] === 'DELETE') $tempRemoved['r' . $rId] = $index;
 
                 $inject = function ($j) use ($rolesMap) {
                     $a = json_decode($j, true);
-                    if (isset($a['role_id']) && isset($rolesMap[$a['role_id']])) {
-                        $a['vinculo'] = $rolesMap[$a['role_id']];
-                    }
-                    // CORREÇÃO CRÍTICA: NÃO REMOVER 'deleted' NEM 'is_active'
+                    if (isset($a['role_id']) && isset($rolesMap[$a['role_id']])) $a['vinculo'] = $rolesMap[$a['role_id']];
                     if (is_array($a)) unset($a['role_id'], $a['person_id'], $a['org_id'], $a['link_id']);
                     return json_encode($a);
                 };
@@ -167,32 +169,45 @@ function getHistory($data)
                 $log['new_values'] = $inject($log['new_values']);
             }
 
-            // FAMÍLIA
-            if ($log['table_name'] === 'family_ties') {
+            // --- DIÁRIO / SESSÕES ---
+            if ($log['table_name'] === 'class_sessions') {
+                $log['target_name'] = "Dados da Aula";
+                $inject = function ($j) use ($subjectsMap) {
+                    $a = json_decode($j, true);
+                    if (isset($a['subject_id']) && isset($subjectsMap[$a['subject_id']])) {
+                        $a['disciplina'] = $subjectsMap[$a['subject_id']];
+                    }
+                    if (is_array($a)) unset($a['subject_id'], $a['class_id'], $a['signed_by_user_id']);
+                    return json_encode($a);
+                };
+                $log['old_values'] = $inject($log['old_values']);
+                $log['new_values'] = $inject($log['new_values']);
+            }
+
+            // --- PRESENÇA (ATTENDANCE) ---
+            if ($log['table_name'] === 'attendance') {
+                // Recupera ID do aluno para definir o Título do Card
+                $oldArr = json_decode($log['old_values'] ?? '{}', true);
+                $newArr = json_decode($log['new_values'] ?? '{}', true);
+                $sid = $newArr['student_id'] ?? $oldArr['student_id'];
+
+                if ($sid && isset($peopleMap[$sid])) {
+                    $log['target_name'] = $peopleMap[$sid];
+                } else {
+                    $log['target_name'] = "Aluno (ID $sid)";
+                }
+
                 $inject = function ($j) use ($peopleMap) {
                     $a = json_decode($j, true);
-                    if (isset($a['relative_id']) && isset($peopleMap[$a['relative_id']])) $a['relative_name'] = $peopleMap[$a['relative_id']];
-                    // CORREÇÃO CRÍTICA: NÃO REMOVER 'deleted'
-                    if (is_array($a)) unset($a['person_id'], $a['tie_id'], $a['relative_id']);
+                    // Remove IDs técnicos para limpar a visualização
+                    if (is_array($a)) unset($a['student_id'], $a['session_id'], $a['attendance_id']);
                     return json_encode($a);
                 };
                 $log['old_values'] = $inject($log['old_values']);
                 $log['new_values'] = $inject($log['new_values']);
             }
 
-            // LOCAIS
-            if ($log['table_name'] === 'locations') {
-                $inject = function ($j) use ($orgMap) {
-                    $a = json_decode($j, true);
-                    if (isset($a['org_id']) && isset($orgMap[$a['org_id']])) $a['instituicao'] = $orgMap[$a['org_id']];
-                    // CORREÇÃO CRÍTICA: NÃO REMOVER 'deleted'
-                    if (is_array($a)) unset($a['org_id'], $a['location_id']);
-                    return json_encode($a);
-                };
-                $log['old_values'] = $inject($log['old_values']);
-                $log['new_values'] = $inject($log['new_values']);
-            }
-
+            // --- GRADE CURRICULAR ---
             if ($log['table_name'] === 'curriculum') {
                 $old = json_decode($log['old_values'] ?? '{}', true);
                 $new = json_decode($log['new_values'] ?? '{}', true);
@@ -210,9 +225,33 @@ function getHistory($data)
                 $log['old_values'] = $inject($log['old_values']);
                 $log['new_values'] = $inject($log['new_values']);
             }
+
+            // --- FAMÍLIA ---
+            if ($log['table_name'] === 'family_ties') {
+                $inject = function ($j) use ($peopleMap) {
+                    $a = json_decode($j, true);
+                    if (isset($a['relative_id']) && isset($peopleMap[$a['relative_id']])) $a['relative_name'] = $peopleMap[$a['relative_id']];
+                    if (is_array($a)) unset($a['person_id'], $a['tie_id'], $a['relative_id']);
+                    return json_encode($a);
+                };
+                $log['old_values'] = $inject($log['old_values']);
+                $log['new_values'] = $inject($log['new_values']);
+            }
+
+            // --- LOCAIS ---
+            if ($log['table_name'] === 'locations') {
+                $inject = function ($j) use ($orgMap) {
+                    $a = json_decode($j, true);
+                    if (isset($a['org_id']) && isset($orgMap[$a['org_id']])) $a['instituicao'] = $orgMap[$a['org_id']];
+                    if (is_array($a)) unset($a['org_id'], $a['location_id']);
+                    return json_encode($a);
+                };
+                $log['old_values'] = $inject($log['old_values']);
+                $log['new_values'] = $inject($log['new_values']);
+            }
         }
 
-        // --- 5. FILTRAGEM FINAL DE RUÍDO ---
+        // --- 5. FILTRAGEM FINAL ---
         foreach ($tempAdded as $key => $addIndex) {
             if (isset($tempRemoved[$key])) {
                 $remIndex = $tempRemoved[$key];
@@ -220,17 +259,9 @@ function getHistory($data)
                 $logRem = $logs[$remIndex];
 
                 if (substr($logAdd['changed_at'], 0, 19) === substr($logRem['changed_at'], 0, 19)) {
-                    // Para Cargos e Grades, esconde o par delete/insert
                     if (strpos($key, 'r') === 0 || (strpos($key, 's') === 0 && $logAdd['new_values'] === $logRem['old_values'])) {
                         $logs[$addIndex]['__exclude'] = true;
                         $logs[$remIndex]['__exclude'] = true;
-                    }
-                    // Para Grade (curriculum), verifica se os dados são iguais
-                    if (strpos($key, 's') === 0) {
-                        if ($logAdd['new_values'] === $logRem['old_values']) {
-                            $logs[$addIndex]['__exclude'] = true;
-                            $logs[$remIndex]['__exclude'] = true;
-                        }
                     }
                 }
             }
@@ -273,12 +304,7 @@ function rollbackChange($data)
         $table = $log['table_name'];
         $recordId = $log['record_id'];
 
-        if ($table === 'curriculum') {
-            $conect->rollBack();
-            return failure("Para alterar a grade, edite o curso diretamente.");
-        }
-
-        // PK Map
+        // PK Map - Mapeia tabelas para suas Primary Keys
         $pkMap = [
             'organizations' => 'org_id',
             'persons' => 'person_id',
@@ -287,6 +313,8 @@ function rollbackChange($data)
             'subjects' => 'subject_id',
             'courses' => 'course_id',
             'classes' => 'class_id',
+            'class_sessions' => 'session_id',
+            'attendance' => 'attendance_id',
             'person_roles' => 'link_id',
             'family_ties' => 'tie_id'
         ];
@@ -299,7 +327,7 @@ function rollbackChange($data)
             if ($col === $pkColumn) continue;
             if (in_array($col, ['updated_at', 'created_at', 'deleted'])) continue;
             // Ignora campos injetados visualmente
-            if (in_array($col, ['vinculo', 'relative_name', 'disciplina', 'instituicao', 'coordinator_id', 'class_assistant_id'])) continue;
+            if (in_array($col, ['vinculo', 'relative_name', 'disciplina', 'instituicao', 'aluno', 'aluno_nome'])) continue;
 
             if (is_array($val) || is_object($val)) $val = json_encode($val);
             if (is_bool($val)) $val = $val ? 'TRUE' : 'FALSE';

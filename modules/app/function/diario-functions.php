@@ -330,3 +330,40 @@ function saveClassSessionF($data)
         return failure("Erro ao salvar diário.");
     }
 }
+
+function deleteClassSessionF($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $conect->beginTransaction();
+
+        // 1. Configura o Usuário da Sessão para a Trigger de Auditoria pegar
+        if (!empty($data['user_id'])) {
+            $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
+            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
+        }
+
+        $sessionId = (int)$data['session_id'];
+
+        // 2. Realiza o Soft Delete (Update deleted = true)
+        // A Trigger "trg_audit_class_sessions" vai disparar aqui
+        $sql = "UPDATE education.class_sessions 
+                SET deleted = TRUE, updated_at = CURRENT_TIMESTAMP 
+                WHERE session_id = :sid";
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute(['sid' => $sessionId]);
+
+        if ($stmt->rowCount() > 0) {
+            $conect->commit();
+            return success("Aula excluída com sucesso.");
+        } else {
+            $conect->rollBack();
+            return failure("Registro não encontrado ou já excluído.");
+        }
+    } catch (Exception $e) {
+        $conect->rollBack();
+        logSystemError("painel", "diario", "deleteClassSessionF", "sql", $e->getMessage(), $data);
+        return failure("Erro ao excluir aula.");
+    }
+}

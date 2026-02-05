@@ -231,6 +231,9 @@ switch ($validator) {
 	case "saveDailyLog":
 		saveDailyLog();
 		break;
+	case "deleteDailyLog":
+		deleteDailyLog();
+		break;
 
 	// =========================================================
 	// ROTAS PADRÃO

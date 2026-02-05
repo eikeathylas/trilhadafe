@@ -58,3 +58,11 @@ function saveDailyLog()
     $data['user_id'] = getAuthUserId();
     echo json_encode(saveClassSessionF($data));
 }
+
+function deleteDailyLog()
+{
+    if (!verifyToken()) return;
+    $data = $_POST;
+    $data['user_id'] = getAuthUserId(); // Pega ID do usuário para auditoria
+    echo json_encode(deleteClassSessionF($data));
+}
