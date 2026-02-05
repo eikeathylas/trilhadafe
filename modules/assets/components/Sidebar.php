@@ -29,7 +29,7 @@
             <p class="title-only">Visão Geral</p>
             <ul>
                 <li>
-                    <a href="index.php" class="<?= basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : '' ?>">
+                    <a href="dashboard.php" class="<?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : '' ?>">
                         <span class="material-symbols-outlined icon-only">dashboard</span>
                         <span class="text-only">Dashboard</span>
                     </a>

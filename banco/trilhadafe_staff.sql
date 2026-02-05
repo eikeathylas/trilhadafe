@@ -1,5 +1,5 @@
 -- ==========================================================
--- SCRIPT MESTRE: TRILHA DA FÉ - STAFF DB (CENTRAL V2.2)
+-- SCRIPT MESTRE: TRILHA DA FÉ - STAFF DB (CENTRAL V2.3)
 -- DATA: 04/02/2026
 -- DESCRIÇÃO: Banco responsável por login, roteamento e permissões.
 -- ==========================================================
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS public.settings (
     email TEXT NOT NULL,
     contact TEXT,
     city TEXT,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     active BOOLEAN DEFAULT TRUE
 );
 
@@ -74,8 +74,8 @@ CREATE TABLE IF NOT EXISTS public.versions (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     date DATE,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE
 );
 
@@ -85,8 +85,8 @@ CREATE TABLE IF NOT EXISTS public.versions_logs (
     tag TEXT NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_versions FOREIGN KEY (id_version) REFERENCES public.versions (id)
 );
@@ -101,8 +101,8 @@ CREATE TABLE IF NOT EXISTS public.users (
     hash TEXT,
     contact TEXT,
     staff BOOLEAN DEFAULT FALSE, -- SuperAdmin
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE
 );
@@ -116,8 +116,8 @@ CREATE TABLE IF NOT EXISTS public.clients (
     link TEXT UNIQUE,   -- Slug (ex: ribeirao)
     sync_stats JSONB,   -- Cache de dados
     last_sync TIMESTAMP,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE
 );
 
@@ -139,8 +139,8 @@ CREATE TABLE IF NOT EXISTS public.clients_config (
     "password" TEXT NOT NULL,
     port TEXT NOT NULL DEFAULT '5432',
     
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id)
 );
@@ -151,8 +151,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     title TEXT NOT NULL,
     description TEXT,
     staff BOOLEAN DEFAULT FALSE,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE
 );
 
@@ -165,8 +165,8 @@ CREATE TABLE IF NOT EXISTS public.actions (
     is_menu BOOLEAN DEFAULT FALSE,
     icon_class TEXT,
     controller TEXT,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_action_parent FOREIGN KEY (parent_id) REFERENCES public.actions (id) ON DELETE CASCADE
 );
@@ -175,8 +175,8 @@ CREATE TABLE IF NOT EXISTS public.profiles_actions (
     id SERIAL PRIMARY KEY,
     id_profile INTEGER,
     id_action INTEGER,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_profiles FOREIGN KEY (id_profile) REFERENCES public.profiles (id),
     CONSTRAINT fk_actions FOREIGN KEY (id_action) REFERENCES public.actions (id)
@@ -187,8 +187,8 @@ CREATE TABLE IF NOT EXISTS public.users_clients_profiles (
     id_user INTEGER NOT NULL,
     id_client INTEGER NOT NULL,
     id_profile INTEGER,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_users FOREIGN KEY (id_user) REFERENCES public.users (id),
     CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id),
@@ -201,8 +201,8 @@ CREATE TABLE IF NOT EXISTS public.users_token (
     id_client INTEGER NOT NULL,
     token TEXT NOT NULL,
     ip TEXT NOT NULL,
-    create_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_in TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_users FOREIGN KEY (id_user) REFERENCES public.users (id),
     CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id)
@@ -227,7 +227,7 @@ INSERT INTO public.clients (name, description) VALUES ('Caruaru - PE', 'Diocese 
 INSERT INTO public.clients_config (id_client, host, "database", "user", "password", port) 
 VALUES (1, '145.223.94.211', 'pe_caruaru_db', 'postgres', 'vSoj3WaPHUaa6MrADKtzayy46ub5YS69S2K3JXrQtqkeV8VtYv', '5432');
 
--- 3.5 Perfis
+-- 3.5 Perfis (AJUSTADO CONFORME SOLICITADO)
 INSERT INTO public.profiles (id, title, description, staff, active) VALUES
 (99, 'DEV', 'Acesso Supremo (Desenvolvedor)', TRUE, TRUE),
 (50, 'PÁROCO', 'Administrador da Paróquia', FALSE, TRUE),
@@ -268,19 +268,29 @@ INSERT INTO public.profiles_actions (id_profile, id_action) VALUES
 
 -- CATEQUISTA (30) - Com acesso ao DIÁRIO (12)
 INSERT INTO public.profiles_actions (id_profile, id_action) VALUES 
-(30, 1), -- Dashboard
-(30, 2), -- Graf. Aluno
-(30, 4), -- Secretaria (Visualização básica)
-(30, 5), -- Cadastrar Aluno
-(30, 10), -- Cursos (Ver grade)
-(30, 11), -- Turmas (Ver suas turmas)
 (30, 12); -- Diário de Classe
+
+-- COORDENADOR (40) - Exemplo básico (ajustar conforme necessidade)
+INSERT INTO public.profiles_actions (id_profile, id_action) VALUES 
+(40, 1), -- Dashboard
+(40, 2), -- Stats
+(40, 4), -- Acadêmico
+(40, 9), -- Disciplinas
+(40, 10), -- Cursos
+(40, 11), -- Turmas
+(40, 13); -- Pessoas
 
 -- 3.8 VÍNCULO FINAL (Super Admins)
 INSERT INTO public.users_clients_profiles (id_user, id_client, id_profile) VALUES 
 (1, 1, 99),
-(2, 1, 99); -- Ajustado para 99 (Dev) para facilitar testes
+(2, 1, 99);
 
--- 4. AJUSTE DE SEQUÊNCIA (CRÍTICO)
--- Garante que próximos inserts não dêem erro de ID duplicado
+-- ==========================================================
+-- 4. AJUSTE DE SEQUÊNCIA (CRÍTICO PARA NÃO TRAVAR O SISTEMA)
+-- ==========================================================
+-- Como inserimos IDs manualmente, precisamos avisar ao Postgres onde o contador deve continuar.
+
+SELECT setval('public.profiles_id_seq', (SELECT MAX(id) FROM public.profiles));
+SELECT setval('public.users_id_seq', (SELECT MAX(id) FROM public.users));
+SELECT setval('public.clients_id_seq', (SELECT MAX(id) FROM public.clients));
 SELECT setval('public.actions_id_seq', (SELECT MAX(id) FROM public.actions));

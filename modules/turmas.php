@@ -96,8 +96,9 @@
                                     <input type="text" id="class_name" class="form-control" placeholder="Ex: Eucaristia Sábado Manhã">
                                 </div>
                                 <div class="col-12 col-md-4">
-                                    <label class="form-label">Ano Letivo <span class="text-danger">*</span></label>
-                                    <select id="class_year_id" class="form-select"></select>
+                                    <label class="form-label">Curso Vinculado <span class="text-danger">*</span></label>
+                                    <select id="sel_course" class="form-control" placeholder="Selecione o curso..."></select>
+                                    <small class="text-muted">Define a grade curricular.</small>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label">Coordenador / Catequista</label>
@@ -107,16 +108,11 @@
                                     <label class="form-label">Auxiliar de Turma</label>
                                     <select id="sel_assistant" class="form-control" placeholder="Selecione o auxiliar..."></select>
                                 </div>
-                                <div class="col-12 col-md-3">
-                                    <label class="form-label">Curso Vinculado <span class="text-danger">*</span></label>
-                                    <select id="sel_course" class="form-control" placeholder="Selecione o curso..."></select>
-                                    <small class="text-muted">Define a grade curricular.</small>
-                                </div>
-                                <div class="col-12 col-md-3">
+                                <div class="col-12 col-md-4">
                                     <label class="form-label">Capacidade Máxima</label>
                                     <input type="number" id="class_capacity" class="form-control" placeholder="Ex: 30">
                                 </div>
-                                <div class="col-12 col-md-3">
+                                <div class="col-12 col-md-4">
                                     <label class="form-label">Status</label>
                                     <select id="class_status" class="form-select">
                                         <option value="PLANNED">Planejada</option>
@@ -125,7 +121,7 @@
                                         <option value="CANCELLED">Cancelada</option>
                                     </select>
                                 </div>
-                                <div class="col-12 col-md-3">
+                                <div class="col-12 col-md-4">
                                     <label class="form-label">Sala Principal</label>
                                     <select id="sel_location" class="form-control" placeholder="Sala padrão..."></select>
                                 </div>

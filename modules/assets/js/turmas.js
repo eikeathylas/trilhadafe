@@ -190,7 +190,6 @@ const loadClassData = async (id) => {
       const d = result.data;
       $("#class_id").val(d.class_id);
       $("#class_name").val(d.name);
-      $("#class_year_id").val(d.academic_year_id);
       $("#class_capacity").val(d.max_capacity);
       $("#class_status").val(d.status);
 
@@ -303,7 +302,7 @@ const renderSchedulesTable = () => {
 window.salvarTurma = async () => {
   const name = $("#class_name").val().trim();
   const course = $("#sel_course").val();
-  const yearId = $("#class_year_id").val();
+  const yearId = localStorage.getItem("sys_active_year");
 
   if (!name) return window.alertDefault("Nome da turma é obrigatório.", "warning");
   if (!course) return window.alertDefault("Selecione um curso.", "warning");

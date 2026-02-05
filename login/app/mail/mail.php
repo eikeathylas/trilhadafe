@@ -18,7 +18,7 @@ function sendMail()
             users u
         SET
             hash = :hash,
-            update_in = CURRENT_TIMESTAMP
+            updated_at = CURRENT_TIMESTAMP
         WHERE
             u.email = :email
     SQL;

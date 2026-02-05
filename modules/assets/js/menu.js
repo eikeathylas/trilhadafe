@@ -62,7 +62,7 @@ const currentPageSlug = defaults.pageActive.replace(".php", "");
 if (currentPageSlug && currentPageSlug !== "index") {
   if (!defaults.screensAllowed.includes(currentPageSlug)) {
     // Redireciona para a Home se não tiver acesso
-    window.location.href = "index.php";
+    window.location.href = "dashboard.php";
   }
 }
 

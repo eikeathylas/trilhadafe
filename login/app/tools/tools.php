@@ -187,7 +187,7 @@ function createAccessToken($token, $len, $return, $id_client)
     // Grava no banco
     $sql = <<<'SQL'
         UPDATE public.users_token
-        SET update_in = CURRENT_TIMESTAMP, active = FALSE
+        SET updated_at = CURRENT_TIMESTAMP, active = FALSE
         WHERE id_user = :id_user AND active IS TRUE
     SQL;
 

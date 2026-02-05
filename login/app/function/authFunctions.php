@@ -112,7 +112,7 @@ function validateResetPassword($data)
             SET 
                 password = :password, 
                 hash = NULL, 
-                update_in = CURRENT_TIMESTAMP
+                updated_at = CURRENT_TIMESTAMP
             WHERE 
                 hash = :code 
                 AND email = :email

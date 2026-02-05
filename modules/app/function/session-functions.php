@@ -14,10 +14,10 @@ function checkTokenValidity($token)
                 cc.pendency as client_pendency,
                 
                 -- Regra 1: Vida máxima de 24h (Hard Limit)
-                (NOW() - ut.create_in) > INTERVAL '24 hours' as expired_hard,
+                (NOW() - ut.created_at) > INTERVAL '24 hours' as expired_hard,
                 
                 -- Regra 2: Inatividade de 15min (Soft Limit)
-                (NOW() - COALESCE(ut.update_in, ut.create_in)) > INTERVAL '15 minutes' as expired_soft
+                (NOW() - COALESCE(ut.updated_at, ut.created_at)) > INTERVAL '15 minutes' as expired_soft
                 
             FROM public.users_token ut
             JOIN public.clients_config cc ON cc.id_client = ut.id_client
@@ -69,10 +69,10 @@ function refreshSession($token)
     try {
         $conect = getStaff();
 
-        // Apenas atualiza o 'update_in' para zerar o contador de inatividade (15min)
+        // Apenas atualiza o 'updated_at' para zerar o contador de inatividade (15min)
         $sql = <<<'SQL'
             UPDATE public.users_token 
-            SET update_in = NOW() 
+            SET updated_at = NOW() 
             WHERE token = :token 
               AND active IS TRUE
         SQL;

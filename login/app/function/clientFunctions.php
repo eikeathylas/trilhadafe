@@ -37,7 +37,7 @@ function validateClientAccess($data)
                 cc.config_code,
                 cc.discount,
                 cc.last_payment,
-                cc.create_in,
+                cc.created_at,
                 
                 -- Credenciais do Banco da Cidade (Tenant DB)
                 cc.host,
@@ -82,7 +82,7 @@ function validateClientAccess($data)
                 u.id, u.name, u.img, u.contact,
                 c.id, c.name, c.link,
                 p.title,
-                cc.pendency, cc.value, cc.collect, cc.deadline, cc.config_code, cc.discount, cc.last_payment, cc.create_in,
+                cc.pendency, cc.value, cc.collect, cc.deadline, cc.config_code, cc.discount, cc.last_payment, cc.created_at,
                 cc.host, cc.port, cc.database, cc.user, cc.password,
                 s.name, s.city
         SQL;
@@ -108,7 +108,7 @@ function validateClientAccess($data)
         if ($info['last_payment']) {
             $vencimento = date('Y-m-d', strtotime($info['last_payment'] . " + 1 month"));
         } else {
-            $vencimento = date('Y-m-d', strtotime($info['create_in'] . " + " . $deadline . " days"));
+            $vencimento = date('Y-m-d', strtotime($info['created_at'] . " + " . $deadline . " days"));
         }
             
         $hoje = date('Y-m-d');

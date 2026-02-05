@@ -183,7 +183,7 @@
 
         setTimeout(() => {
             // Caminho para o módulo principal
-            window.location.href = "../modules/index.php"; 
+            window.location.href = "../modules/dashboard.php"; 
         }, 200);
 
       } else {
