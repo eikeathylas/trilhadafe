@@ -29,22 +29,6 @@
 
           <div class="accordion-item">
             <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
-                <i class="fas fa-user-plus m-2 txt-theme"></i> Como matricular um aluno na catequese?
-              </button>
-            </h2>
-            <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
-              <div class="accordion-body">
-                Após cadastrar a pessoa, vá em <strong>Matrículas</strong>. Selecione a Turma desejada e busque o aluno. O sistema verificará se a idade dele é compatível com o curso.
-                <div class="mt-3 text-end">
-                  <a href="matriculas.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Nova Matrícula</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="accordion-item">
-            <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
                 <i class="fas fa-book m-2 txt-theme"></i> Sou Catequista. Como faço a chamada?
               </button>
@@ -53,7 +37,7 @@
               <div class="accordion-body">
                 No menu <strong>Escola da Fé > Diário de Classe</strong>, você verá suas turmas. Clique em "Acessar", selecione a data da aula e marque "Presente" ou "Ausente" para cada aluno. Não esqueça de descrever o tema dado no dia.
                 <div class="mt-3 text-end">
-                  <a href="meus-diarios.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Meus Diários</a>
+                  <a href="diario.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Meus Diários</a>
                 </div>
               </div>
             </div>
@@ -74,7 +58,7 @@
               </div>
             </div>
           </div>
-
+<!-- 
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5">
@@ -89,8 +73,8 @@
                 </div>
               </div>
             </div>
-          </div>
-
+          </div> -->
+<!-- 
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6">
@@ -105,8 +89,8 @@
                 </div>
               </div>
             </div>
-          </div>
-
+          </div> -->
+<!-- 
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7">
@@ -121,8 +105,8 @@
                 </div>
               </div>
             </div>
-          </div>
-
+          </div> -->
+<!-- 
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8">
@@ -137,7 +121,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <div class="accordion-item">
             <h2 class="accordion-header">
@@ -166,22 +150,6 @@
                 Primeiro cadastre as matérias em <strong>Disciplinas</strong> (ex: Bíblia). Depois vá em <strong>Cursos</strong> (ex: Crisma) e vincule quais disciplinas compõem aquele curso e a carga horária.
                 <div class="mt-3 text-end">
                   <a href="cursos.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Configurar Cursos</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse11">
-                <i class="fas fa-exchange-alt m-2 txt-theme"></i> Como transferir um aluno para outra cidade?
-              </button>
-            </h2>
-            <div id="collapse11" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
-              <div class="accordion-body">
-                Acesse <strong>Transferências</strong>. Inicie uma solicitação de saída. O sistema irá gerar a documentação com o histórico do aluno e encerrar a matrícula local, deixando-o pronto para ser recebido na nova paróquia.
-                <div class="mt-3 text-end">
-                  <a href="transferencias.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Transferências</a>
                 </div>
               </div>
             </div>

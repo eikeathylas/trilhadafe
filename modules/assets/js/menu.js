@@ -61,8 +61,14 @@ const currentPageSlug = defaults.pageActive.replace(".php", "");
 
 if (currentPageSlug && currentPageSlug !== "index") {
   if (!defaults.screensAllowed.includes(currentPageSlug)) {
-    // Redireciona para a Home se não tiver acesso
-    window.location.href = "dashboard.php";
+    // Redireciona para a primeira tela permitida
+    const firstAllowedScreen = defaults.screensAllowed[0];
+    if (firstAllowedScreen) {
+      window.location.href = `${firstAllowedScreen}.php`;
+      // Se não tiver nenhuma tela permitida, redireciona para o dashboard
+    } else {
+      window.location.href = "dashboard.php";
+    }
   }
 }
 
