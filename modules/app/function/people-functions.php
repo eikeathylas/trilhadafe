@@ -451,20 +451,20 @@ function removePerson($data)
         $conect->beginTransaction();
 
         if (!empty($data['user_id'])) {
-            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
+            $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
+            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
         }
 
-        // Bloqueia Login
-        $conect->prepare("UPDATE security.users SET is_active = FALSE WHERE person_id = :id")->execute(['id' => $data['id']]);
-
-        // Soft Delete Pessoa
-        $conect->prepare("UPDATE people.persons SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE person_id = :id")->execute(['id' => $data['id']]);
+        $sql = "UPDATE people.persons SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE person_id = :id";
+        $stmt = $conect->prepare($sql);
+        $stmt->execute(['id' => $data['id']]);
 
         $conect->commit();
         return success("Cadastro movido para a lixeira.");
     } catch (Exception $e) {
         $conect->rollBack();
-        return failure("Erro ao remover cadastro.");
+        logSystemError("painel", "people", "removePerson", "sql", $e->getMessage(), $data);
+        return failure("Ocorreu um erro ao remover o cadastro. Contate o suporte.", null, false, 500);
     }
 }
 
@@ -475,22 +475,23 @@ function togglePersonStatus($data)
         $conect->beginTransaction();
 
         if (!empty($data['user_id'])) {
-            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
+            $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
+            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
         }
 
+        $sql = "UPDATE people.persons SET is_active = :active WHERE person_id = :id";
+        $stmt = $conect->prepare($sql);
         $status = ($data['active'] === 'true' || $data['active'] === true);
-        $conect->prepare("UPDATE people.persons SET is_active = :st WHERE person_id = :id")->execute(['st' => $status ? 'TRUE' : 'FALSE', 'id' => $data['id']]);
-
-        // Se desativar a pessoa, desativa o login também
-        if (!$status) {
-            $conect->prepare("UPDATE security.users SET is_active = FALSE WHERE person_id = :id")->execute(['id' => $data['id']]);
-        }
+        $stmt->bindValue(':active', $status, PDO::PARAM_BOOL);
+        $stmt->bindValue(':id', $data['id'], PDO::PARAM_INT);
+        $stmt->execute();
 
         $conect->commit();
         return success("Status atualizado.");
     } catch (Exception $e) {
         $conect->rollBack();
-        return failure("Erro ao atualizar status.");
+        logSystemError("painel", "people", "togglePersonStatus", "sql", $e->getMessage(), $data);
+        return failure("Ocorreu um erro ao atualizar o status. Contate o suporte.", null, false, 500);
     }
 }
 
@@ -503,7 +504,8 @@ function searchPeopleForSelect($search)
         $stmt->execute(['s' => "%$search%"]);
         return success("Busca ok", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
-        return failure("Erro.");
+        logSystemError("painel", "people", "searchPeopleForSelect", "sql", $e->getMessage(), ['search' => $search]);
+        return failure("Erro na busca de pessoas.", null, false, 500);
     }
 }
 
@@ -523,7 +525,8 @@ function getStudentsForSelect($search)
         $stmt->execute(['s' => "%$search%"]);
         return success("Busca ok", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
-        return failure("Erro.");
+        logSystemError("painel", "people", "getStudentsForSelect", "sql", $e->getMessage(), ['search' => $search]);
+        return failure("Erro na busca de alunos.");
     }
 }
 
