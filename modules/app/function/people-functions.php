@@ -1,13 +1,17 @@
 <?php
 
+// =========================================================
+// GESTÃO DE PESSOAS (MODEL) - V2.1 (Com Automação de Login)
+// =========================================================
+
 function getAllPeople($data)
 {
     try {
         $conect = $GLOBALS["local"];
 
         $params = [
-            ':limit' => $data['limit'],
-            ':page' => $data['page']
+            ':limit' => (int)$data['limit'],
+            ':page' => (int)$data['page']
         ];
 
         // Filtros Dinâmicos
@@ -93,16 +97,19 @@ function getPersonData($personId)
 
         if (!$person) return failure("Pessoa não encontrada.");
 
+        // Busca Cargos para preencher o Selectize
         $sqlRoles = <<<'SQL'
-            SELECT DISTINCT r.role_name 
+            SELECT DISTINCT r.role_name, r.role_id, r.description_pt 
             FROM people.person_roles pr
             JOIN people.roles r ON pr.role_id = r.role_id
             WHERE pr.person_id = :id AND pr.deleted IS FALSE AND pr.is_active IS TRUE
         SQL;
         $stmtRoles = $conect->prepare($sqlRoles);
         $stmtRoles->execute(['id' => $personId]);
-        $person['roles'] = $stmtRoles->fetchAll(PDO::FETCH_COLUMN);
+        $person['roles_data'] = $stmtRoles->fetchAll(PDO::FETCH_ASSOC); // Dados completos para o front
+        $person['roles'] = array_column($person['roles_data'], 'role_name'); // Apenas array de nomes para check rápido
 
+        // Busca Família
         $sqlFamily = <<<'SQL'
             SELECT 
                 ft.tie_id,
@@ -119,6 +126,7 @@ function getPersonData($personId)
         $stmtFamily->execute(['id' => $personId]);
         $person['family'] = $stmtFamily->fetchAll(PDO::FETCH_ASSOC);
 
+        // Castings
         $person['is_pcd'] = (bool)$person['is_pcd'];
         $person['sacraments_info'] = json_decode($person['sacraments_info'] ?? '{}', true);
 
@@ -147,7 +155,6 @@ function upsertPerson($data)
         }
 
         // --- HELPER: SANITIZAÇÃO ---
-        // Transforma vazio, espaços duplos e strings "null" em NULL real
         $sanitize = function ($val) {
             if (is_string($val)) {
                 $val = trim(preg_replace('/\s+/', ' ', $val));
@@ -157,7 +164,6 @@ function upsertPerson($data)
         };
 
         // --- LIMPEZA DE SACRAMENTOS ---
-        // Remove chaves com valores falsos ou vazios para não salvar JSON inútil
         $sacramentsJson = $data['sacraments_info'] ?? null;
         if ($sacramentsJson) {
             $sac = json_decode($sacramentsJson, true);
@@ -188,7 +194,7 @@ function upsertPerson($data)
             'address_district' => $sanitize($data['address_district'] ?? null),
             'address_city' => $sanitize($data['address_city'] ?? null),
             'address_state' => $sanitize($data['address_state'] ?? null),
-            'is_pcd' => filter_var($data['is_pcd'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'TRUE' : 'FALSE',
+            'is_pcd' => isset($data['is_pcd']) ? ($data['is_pcd'] === 'true' || $data['is_pcd'] === true ? 'TRUE' : 'FALSE') : 'FALSE',
             'pcd_details' => $sanitize($data['pcd_details'] ?? null),
             'profile_photo_url' => $sanitize($data['profile_photo_url'] ?? null),
             'sacraments_info' => $sacramentsJson,
@@ -234,62 +240,38 @@ function upsertPerson($data)
             $msg = "Pessoa cadastrada com sucesso!";
         }
 
-        // --- 2. VÍNCULOS (CORREÇÃO TOTAL: LINK_ID E DEDUPLICAÇÃO) ---
+        // --- 2. VÍNCULOS (Processamento Básico) ---
+        // A lógica complexa de checkboxes foi substituída por `savePersonRole` individual no novo padrão,
+        // mas mantemos aqui caso o front ainda envie `role_STUDENT` etc.
         $rolesToCheck = ['STUDENT', 'CATECHIST', 'PRIEST', 'PARENT'];
-
         foreach ($rolesToCheck as $roleName) {
-            $shouldBeActive = filter_var($data['role_' . strtolower($roleName)] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if (isset($data['role_' . strtolower($roleName)])) {
+                $shouldBeActive = filter_var($data['role_' . strtolower($roleName)], FILTER_VALIDATE_BOOLEAN);
 
-            // Pega ID do Cargo
-            $stmtGetId = $conect->prepare("SELECT role_id FROM people.roles WHERE role_name = ?");
-            $stmtGetId->execute([$roleName]);
-            $rid = $stmtGetId->fetchColumn();
+                // Busca ID do cargo
+                $stmtGetId = $conect->prepare("SELECT role_id FROM people.roles WHERE role_name = ?");
+                $stmtGetId->execute([$roleName]);
+                $rid = $stmtGetId->fetchColumn();
 
-            if ($rid) {
-                // Busca TODOS os registros (link_id) para detectar duplicatas
-                $stmtCheck = $conect->prepare("SELECT link_id, deleted, is_active FROM people.person_roles WHERE person_id = :pid AND role_id = :rid ORDER BY link_id ASC");
-                $stmtCheck->execute(['pid' => $personId, 'rid' => $rid]);
-                $allLinks = $stmtCheck->fetchAll(PDO::FETCH_ASSOC);
-
-                if ($shouldBeActive) {
-                    if (empty($allLinks)) {
-                        // A: Não existe -> INSERT
-                        $conect->prepare("INSERT INTO people.person_roles (person_id, org_id, role_id, is_active) VALUES (:pid, 1, :rid, TRUE)")
-                            ->execute(['pid' => $personId, 'rid' => $rid]);
+                if ($rid) {
+                    if ($shouldBeActive) {
+                        // Upsert (Insert ou Ativação)
+                        $conect->prepare("
+                            INSERT INTO people.person_roles (person_id, org_id, role_id, is_active, deleted) 
+                            VALUES (:pid, 1, :rid, TRUE, FALSE)
+                            ON CONFLICT (person_id, role_id) 
+                            DO UPDATE SET is_active = TRUE, deleted = FALSE, updated_at = CURRENT_TIMESTAMP
+                        ")->execute(['pid' => $personId, 'rid' => $rid]);
                     } else {
-                        // B: Existe (1 ou mais) -> Usa o primeiro, atualiza e apaga o resto
-                        $first = array_shift($allLinks); // Pega o primeiro da lista
-
-                        $isDeleted = ($first['deleted'] === true || $first['deleted'] === 't');
-                        $isActive = ($first['is_active'] === true || $first['is_active'] === 't');
-
-                        // Só faz UPDATE se realmente precisar (evita log falso)
-                        if ($isDeleted || !$isActive) {
-                            $conect->prepare("UPDATE people.person_roles SET deleted = FALSE, is_active = TRUE, updated_at = CURRENT_TIMESTAMP WHERE link_id = :id")
-                                ->execute(['id' => $first['link_id']]);
-                        }
-
-                        // Limpeza de duplicatas (se houver mais de 1 registro)
-                        foreach ($allLinks as $duplicate) {
-                            $conect->prepare("DELETE FROM people.person_roles WHERE link_id = :id")->execute(['id' => $duplicate['link_id']]);
-                        }
-                    }
-                } else {
-                    // C: Desativar -> Garante que TODOS estejam deletados
-                    if (!empty($allLinks)) {
-                        foreach ($allLinks as $link) {
-                            $isDeleted = ($link['deleted'] === true || $link['deleted'] === 't');
-                            if (!$isDeleted) {
-                                $conect->prepare("UPDATE people.person_roles SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE link_id = :id")
-                                    ->execute(['id' => $link['link_id']]);
-                            }
-                        }
+                        // Soft Delete
+                        $conect->prepare("UPDATE people.person_roles SET is_active = FALSE, deleted = TRUE WHERE person_id = :pid AND role_id = :rid")
+                            ->execute(['pid' => $personId, 'rid' => $rid]);
                     }
                 }
             }
         }
 
-        // --- 3. FAMÍLIA (Revisado) ---
+        // --- 3. FAMÍLIA (Mantido) ---
         $stmtFam = $conect->prepare("SELECT tie_id, relative_id, relationship_type, is_financial_responsible, is_legal_guardian, deleted FROM people.family_ties WHERE person_id = :pid");
         $stmtFam->execute(['pid' => $personId]);
         $dbFamily = [];
@@ -312,12 +294,7 @@ function upsertPerson($data)
                 $existing = $dbFamily[$relId];
                 $isDeleted = ($existing['deleted'] === true || $existing['deleted'] === 't');
 
-                if (
-                    $isDeleted || $existing['relationship_type'] !== $newType ||
-                    $existing['is_financial_responsible'] !== ($newFin === 'TRUE') ||
-                    $existing['is_legal_guardian'] !== ($newLeg === 'TRUE')
-                ) {
-
+                if ($isDeleted || $existing['relationship_type'] !== $newType || $existing['is_financial_responsible'] !== ($newFin === 'TRUE') || $existing['is_legal_guardian'] !== ($newLeg === 'TRUE')) {
                     $conect->prepare("UPDATE people.family_ties SET relationship_type = :t, is_financial_responsible = :f, is_legal_guardian = :l, deleted = FALSE, updated_at = CURRENT_TIMESTAMP WHERE tie_id = :id")
                         ->execute(['t' => $newType, 'f' => $newFin, 'l' => $newLeg, 'id' => $existing['tie_id']]);
                 }
@@ -337,13 +314,135 @@ function upsertPerson($data)
         }
 
         $conect->commit();
-        return success($msg);
+
+        // [AUTOMACAO] Sincroniza Login (Se mudou email/cpf)
+        syncUserLogin($personId);
+
+        return success($msg, ['person_id' => $personId]);
     } catch (Exception $e) {
         $conect->rollBack();
         logSystemError("painel", "people", "upsertPerson", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao salvar o cadastro. Contate o suporte.", null, false, 500);
+        return failure("Ocorreu um erro ao salvar o cadastro.");
     }
 }
+
+// [IMPORTANTE] Função para adicionar Cargo individualmente (Usada em alguns contextos)
+function savePersonRole($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+
+        $conect->prepare("
+            INSERT INTO people.person_roles (person_id, org_id, role_id, is_active, deleted) 
+            VALUES (:pid, 1, :rid, TRUE, FALSE)
+            ON CONFLICT (person_id, role_id) 
+            DO UPDATE SET is_active = TRUE, deleted = FALSE, updated_at = CURRENT_TIMESTAMP
+        ")->execute(['pid' => $data['person_id'], 'rid' => $data['role_id']]);
+
+        // [AUTOMACAO] Verifica se precisa criar login ao dar o cargo
+        syncUserLogin($data['person_id']);
+
+        return success("Vínculo adicionado.");
+    } catch (Exception $e) {
+        return failure("Erro ao salvar vínculo.");
+    }
+}
+
+function removePersonRole($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        // Soft delete no vínculo
+        $conect->prepare("UPDATE people.person_roles SET deleted = TRUE, is_active = FALSE WHERE link_id = :id")->execute(['id' => $data['link_id']]);
+
+        // Opcional: Se remover o cargo de Catequista, poderíamos desativar o login, 
+        // mas por segurança mantemos o usuário ativo até decisão manual.
+
+        return success("Vínculo removido.");
+    } catch (Exception $e) {
+        return failure("Erro ao remover vínculo.");
+    }
+}
+
+// =========================================================
+// [NOVO] AUTOMAÇÃO DE LOGIN (LÓGICA CENTRAL)
+// =========================================================
+
+function syncUserLogin($personId)
+{
+    try {
+        $conect = $GLOBALS["local"];
+
+        // 1. Busca dados da pessoa
+        $stmtP = $conect->prepare("SELECT full_name, email, tax_id FROM people.persons WHERE person_id = :id");
+        $stmtP->execute(['id' => $personId]);
+        $person = $stmtP->fetch(PDO::FETCH_ASSOC);
+
+        // Regra: Só cria login se tiver E-mail válido
+        if (!$person || empty($person['email']) || !filter_var($person['email'], FILTER_VALIDATE_EMAIL)) return;
+
+        // 2. Verifica Cargos Ativos
+        $stmtRoles = $conect->prepare("
+            SELECT r.role_name 
+            FROM people.person_roles pr
+            JOIN people.roles r ON pr.role_id = r.role_id
+            WHERE pr.person_id = :id AND pr.deleted IS FALSE AND pr.is_active IS TRUE
+        ");
+        $stmtRoles->execute(['id' => $personId]);
+        $roles = $stmtRoles->fetchAll(PDO::FETCH_COLUMN);
+
+        // 3. Define Nível de Acesso (Hierarquia)
+        $roleLevel = null;
+        if (in_array('PRIEST', $roles)) $roleLevel = 'MANAGER'; // Padre = Admin Local
+        elseif (in_array('SECRETARY', $roles)) $roleLevel = 'SECRETARY';
+        elseif (in_array('CATECHIST', $roles)) $roleLevel = 'TEACHER'; // Catequista = Diário
+
+        // Se não tiver cargo de liderança, não cria/atualiza usuário (Aluno/Pai não loga por enquanto)
+        if (!$roleLevel) return;
+
+        // 4. Upsert na tabela de Usuários
+        $stmtUser = $conect->prepare("SELECT user_id, email FROM security.users WHERE person_id = :id");
+        $stmtUser->execute(['id' => $personId]);
+        $existingUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+        if ($existingUser) {
+            // ATUALIZAÇÃO: Se o email mudou na ficha, muda no login
+            // Também atualiza o nível de permissão caso tenha sido promovido
+            $conect->prepare("UPDATE security.users SET email = :em, role_level = :rl, updated_at = CURRENT_TIMESTAMP WHERE user_id = :uid")
+                ->execute([
+                    'em' => $person['email'],
+                    'rl' => $roleLevel,
+                    'uid' => $existingUser['user_id']
+                ]);
+        } else {
+            // CRIAÇÃO: Gera senha baseada no CPF (apenas números)
+            $cpfLimpo = preg_replace('/[^0-9]/', '', $person['tax_id'] ?? '');
+
+            // Senha padrão se não tiver CPF: "mudar123"
+            $rawPassword = !empty($cpfLimpo) ? $cpfLimpo : 'mudar123';
+            $hash = password_hash($rawPassword, PASSWORD_DEFAULT);
+
+            $sqlIns = "INSERT INTO security.users (org_id, person_id, name, email, password_hash, role_level, force_password_change) 
+                       VALUES (1, :pid, :name, :email, :hash, :role, TRUE)";
+
+            $conect->prepare($sqlIns)->execute([
+                'pid' => $personId,
+                'name' => $person['full_name'],
+                'email' => $person['email'],
+                'hash' => $hash,
+                'role' => $roleLevel
+            ]);
+        }
+    } catch (Exception $e) {
+        // Falha silenciosa para não travar o cadastro da pessoa (mas loga o erro técnico)
+        // O usuário pode ser criado manualmente depois se falhar aqui.
+        logSystemError("painel", "security", "syncUserLogin", "sql", $e->getMessage(), ['person_id' => $personId]);
+    }
+}
+
+// =========================================================
+// HELPERS DE SELECT & OUTROS
+// =========================================================
 
 function removePerson($data)
 {
@@ -352,20 +451,20 @@ function removePerson($data)
         $conect->beginTransaction();
 
         if (!empty($data['user_id'])) {
-            $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
-            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
+            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
-        $sql = "UPDATE people.persons SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE person_id = :id";
-        $stmt = $conect->prepare($sql);
-        $stmt->execute(['id' => $data['id']]);
+        // Bloqueia Login
+        $conect->prepare("UPDATE security.users SET is_active = FALSE WHERE person_id = :id")->execute(['id' => $data['id']]);
+
+        // Soft Delete Pessoa
+        $conect->prepare("UPDATE people.persons SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE person_id = :id")->execute(['id' => $data['id']]);
 
         $conect->commit();
         return success("Cadastro movido para a lixeira.");
     } catch (Exception $e) {
         $conect->rollBack();
-        logSystemError("painel", "people", "removePerson", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao remover o cadastro. Contate o suporte.", null, false, 500);
+        return failure("Erro ao remover cadastro.");
     }
 }
 
@@ -376,23 +475,22 @@ function togglePersonStatus($data)
         $conect->beginTransaction();
 
         if (!empty($data['user_id'])) {
-            $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
-            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
+            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
-        $sql = "UPDATE people.persons SET is_active = :active WHERE person_id = :id";
-        $stmt = $conect->prepare($sql);
         $status = ($data['active'] === 'true' || $data['active'] === true);
-        $stmt->bindValue(':active', $status, PDO::PARAM_BOOL);
-        $stmt->bindValue(':id', $data['id'], PDO::PARAM_INT);
-        $stmt->execute();
+        $conect->prepare("UPDATE people.persons SET is_active = :st WHERE person_id = :id")->execute(['st' => $status ? 'TRUE' : 'FALSE', 'id' => $data['id']]);
+
+        // Se desativar a pessoa, desativa o login também
+        if (!$status) {
+            $conect->prepare("UPDATE security.users SET is_active = FALSE WHERE person_id = :id")->execute(['id' => $data['id']]);
+        }
 
         $conect->commit();
         return success("Status atualizado.");
     } catch (Exception $e) {
         $conect->rollBack();
-        logSystemError("painel", "people", "togglePersonStatus", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao atualizar o status. Contate o suporte.", null, false, 500);
+        return failure("Erro ao atualizar status.");
     }
 }
 
@@ -400,33 +498,12 @@ function searchPeopleForSelect($search)
 {
     try {
         $conect = $GLOBALS["local"];
-
-        $params = [];
-        $where = "WHERE deceased IS FALSE AND deleted IS FALSE";
-
-        if (!empty($search)) {
-            $where .= " AND (full_name ILIKE :search OR tax_id ILIKE :search)";
-            $params['search'] = "%" . $search . "%";
-        }
-
-        $sql = <<<SQL
-            SELECT 
-                person_id as id, 
-                full_name as title,
-                tax_id 
-            FROM people.persons 
-            $where
-            ORDER BY full_name ASC 
-            LIMIT 20
-        SQL;
-
+        $sql = "SELECT person_id as id, full_name as title, tax_id FROM people.persons WHERE deleted IS FALSE AND (full_name ILIKE :s OR tax_id ILIKE :s) LIMIT 20";
         $stmt = $conect->prepare($sql);
-        $stmt->execute($params);
-
-        return success("Busca realizada.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $stmt->execute(['s' => "%$search%"]);
+        return success("Busca ok", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
-        logSystemError("painel", "people", "searchPeopleForSelect", "sql", $e->getMessage(), ['search' => $search]);
-        return failure("Erro na busca de pessoas.", null, false, 500);
+        return failure("Erro.");
     }
 }
 
@@ -434,46 +511,22 @@ function getStudentsForSelect($search)
 {
     try {
         $conect = $GLOBALS["local"];
-
-        $params = [];
-        // Filtra por Role STUDENT
-        $where = "WHERE p.deleted IS FALSE AND p.is_active IS TRUE 
-                  AND EXISTS (
-                      SELECT 1 FROM people.person_roles pr 
-                      JOIN people.roles r ON pr.role_id = r.role_id 
-                      WHERE pr.person_id = p.person_id 
-                      AND pr.deleted IS FALSE 
-                      AND pr.is_active IS TRUE
-                      AND r.role_name = 'STUDENT'
-                  )";
-
-        if (!empty($search)) {
-            $where .= " AND (p.full_name ILIKE :search OR p.tax_id ILIKE :search)";
-            $params['search'] = "%" . $search . "%";
-        }
-
-        $sql = <<<SQL
-            SELECT 
-                p.person_id as id, 
-                p.full_name as title,
-                p.tax_id 
-            FROM people.persons p 
-            $where
-            ORDER BY p.full_name ASC 
-            LIMIT 20
-        SQL;
+        // Otimizado para buscar apenas quem tem cargo STUDENT
+        $sql = "SELECT p.person_id as id, p.full_name as title, p.tax_id 
+                FROM people.persons p 
+                JOIN people.person_roles pr ON p.person_id = pr.person_id
+                JOIN people.roles r ON pr.role_id = r.role_id
+                WHERE p.deleted IS FALSE AND pr.deleted IS FALSE AND r.role_name = 'STUDENT'
+                AND (p.full_name ILIKE :s OR p.tax_id ILIKE :s) LIMIT 20";
 
         $stmt = $conect->prepare($sql);
-        $stmt->execute($params);
-
-        return success("Busca realizada.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $stmt->execute(['s' => "%$search%"]);
+        return success("Busca ok", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
-        logSystemError("painel", "people", "getStudentsForSelect", "sql", $e->getMessage(), ['search' => $search]);
-        return failure("Erro na busca de alunos.");
+        return failure("Erro.");
     }
 }
 
-// [NOVO] Função para buscar apenas catequistas (usada no modal de Turmas)
 function getCatechistsForSelect($search = "")
 {
     try {
@@ -483,7 +536,7 @@ function getCatechistsForSelect($search = "")
         $where = "WHERE p.deleted IS FALSE AND p.is_active IS TRUE 
                   AND EXISTS (
                       SELECT 1 FROM people.person_roles pr 
-                      JOIN people.roles r ON pr.role_id = r.role_id 
+                JOIN people.roles r ON pr.role_id = r.role_id
                       WHERE pr.person_id = p.person_id 
                       AND pr.deleted IS FALSE 
                       AND pr.is_active IS TRUE
