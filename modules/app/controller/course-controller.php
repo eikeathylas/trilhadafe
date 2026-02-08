@@ -57,7 +57,7 @@ function getCourseById()
 }
 
 /**
- * Cria ou Atualiza um Curso (e sua grade)
+ * Cria ou Atualiza um Curso (e sua grade com templates de aula)
  */
 function saveCourse()
 {
@@ -74,8 +74,11 @@ function saveCourse()
 
     getLocal($decoded["conexao"]);
 
+    // Recebe o objeto 'data' enviado pelo JS
     $data = $_POST['data'] ?? [];
-    $data['user_id'] = $decoded['id_user']; // Auditoria
+
+    // Injeta ID do usuário para auditoria
+    $data['user_id'] = $decoded['id_user'];
 
     echo json_encode(upsertCourse($data));
 }
@@ -100,7 +103,7 @@ function deleteCourse()
 
     $data = [
         "id" => $_POST["id"] ?? 0,
-        "user_id" => $decoded["id_user"] // Auditoria
+        "user_id" => $decoded["id_user"]
     ];
 
     echo json_encode(removeCourse($data));
@@ -127,14 +130,14 @@ function toggleCourse()
     $data = [
         "id" => $_POST["id"] ?? 0,
         "active" => $_POST["active"],
-        "user_id" => $decoded["id_user"] // Auditoria
+        "user_id" => $decoded["id_user"]
     ];
 
     echo json_encode(toggleCourseStatus($data));
 }
 
 /**
- * Busca lista simples para Selects (AJAX)
+ * Busca lista simples para Selects (Uso futuro em Turmas)
  */
 function getCoursesList()
 {
@@ -157,7 +160,7 @@ function getCoursesList()
 }
 
 /**
- * Busca dinâmica de disciplinas para o Selectize
+ * Busca dinâmica de disciplinas para o Selectize da Grade
  */
 function getSubjectsSelect()
 {

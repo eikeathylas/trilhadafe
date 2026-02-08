@@ -78,11 +78,9 @@ function getCourseData($courseId)
         $stmt->execute(['id' => $courseId]);
         $course = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$course) {
-            return failure("Curso não encontrado.");
-        }
+        if (!$course) return failure("Curso não encontrado.");
 
-        // 2. Grade Curricular (Disciplinas Vinculadas)
+        // 2. Grade Curricular
         $sqlCurriculum = <<<'SQL'
             SELECT 
                 cur.curriculum_id,
@@ -98,18 +96,26 @@ function getCourseData($courseId)
 
         $stmtCur = $conect->prepare($sqlCurriculum);
         $stmtCur->execute(['id' => $courseId]);
-        $course['curriculum'] = $stmtCur->fetchAll(PDO::FETCH_ASSOC);
+        $curriculum = $stmtCur->fetchAll(PDO::FETCH_ASSOC);
 
-        // Castings
-        $course['is_active'] = (bool)$course['is_active'];
-        foreach ($course['curriculum'] as &$item) {
+        // 3. Planos de Aula (Busca relacional 1:N)
+        foreach ($curriculum as &$item) {
             $item['is_mandatory'] = (bool)$item['is_mandatory'];
+
+            // Busca na tabela nova, ordenado pelo número do encontro
+            $sqlPlans = "SELECT title, content, meeting_number FROM education.curriculum_plans WHERE curriculum_id = :cid ORDER BY meeting_number ASC";
+            $stmtPlans = $conect->prepare($sqlPlans);
+            $stmtPlans->execute(['cid' => $item['curriculum_id']]);
+            $item['plans'] = $stmtPlans->fetchAll(PDO::FETCH_ASSOC);
         }
+
+        $course['curriculum'] = $curriculum;
+        $course['is_active'] = (bool)$course['is_active'];
 
         return success("Dados carregados.", $course);
     } catch (Exception $e) {
         logSystemError("painel", "education", "getCourseData", "sql", $e->getMessage(), ['id' => $courseId]);
-        return failure("Ocorreu um erro ao carregar os dados. Contate o suporte.", null, false, 500);
+        return failure("Erro ao carregar dados.", null, false, 500);
     }
 }
 
@@ -119,10 +125,8 @@ function upsertCourse($data)
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
-        // AUDITORIA
         if (!empty($data['user_id'])) {
-            $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
-            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
+            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
         // --- 1. SALVAR CURSO ---
@@ -135,98 +139,70 @@ function upsertCourse($data)
         ];
 
         if (!empty($data['course_id'])) {
-            // UPDATE
-            $sql = <<<'SQL'
-                UPDATE education.courses SET
-                    name = :name,
-                    description = :description,
-                    min_age = :min_age,
-                    max_age = :max_age,
-                    total_workload_hours = :total_workload_hours,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE course_id = :course_id
-            SQL;
-
+            $sql = "UPDATE education.courses SET name=:name, description=:description, min_age=:min_age, max_age=:max_age, total_workload_hours=:total_workload_hours, updated_at=CURRENT_TIMESTAMP WHERE course_id=:course_id";
             $paramsCourse['course_id'] = $data['course_id'];
-            $stmt = $conect->prepare($sql);
-            $stmt->execute($paramsCourse);
+            $conect->prepare($sql)->execute($paramsCourse);
             $courseId = $data['course_id'];
-            $msg = "Curso atualizado com sucesso!";
+            $msg = "Curso atualizado!";
         } else {
-            // INSERT
-            $orgId = 1; // ID da Paróquia (Contexto)
-
-            $sql = <<<'SQL'
-                INSERT INTO education.courses 
-                (org_id, name, description, min_age, max_age, total_workload_hours)
-                VALUES 
-                (:org_id, :name, :description, :min_age, :max_age, :total_workload_hours)
-                RETURNING course_id
-            SQL;
-
-            $paramsCourse['org_id'] = $orgId;
+            $sql = "INSERT INTO education.courses (org_id, name, description, min_age, max_age, total_workload_hours) VALUES (1, :name, :description, :min_age, :max_age, :total_workload_hours) RETURNING course_id";
             $stmt = $conect->prepare($sql);
             $stmt->execute($paramsCourse);
             $courseId = $stmt->fetchColumn();
-            $msg = "Curso criado com sucesso!";
+            $msg = "Curso criado!";
         }
 
-        // --- 2. SALVAR GRADE CURRICULAR (SMART SYNC) ---
-        // A lógica abaixo evita deletar e recriar itens iguais, prevenindo logs de auditoria inúteis.
+        // --- 2. SALVAR GRADE CURRICULAR ---
+        $currList = !empty($data['curriculum_json']) ? json_decode($data['curriculum_json'], true) : [];
+        $processedIds = [];
 
-        // A. Busca o que já existe no banco
-        $sqlGetCurr = "SELECT curriculum_id, subject_id, workload_hours, is_mandatory FROM education.curriculum WHERE course_id = :id";
-        $stmtGet = $conect->prepare($sqlGetCurr);
-        $stmtGet->execute(['id' => $courseId]);
+        foreach ($currList as $item) {
+            $curriculumId = $item['curriculum_id'] ?? null;
+            $subjectId = $item['subject_id'];
 
-        $existingItems = [];
-        while ($row = $stmtGet->fetch(PDO::FETCH_ASSOC)) {
-            $existingItems[$row['subject_id']] = $row;
-        }
+            // Verifica ID se não veio do front (caso raro de inserção concorrente, ou segurança)
+            if (!$curriculumId) {
+                $stmtCheck = $conect->prepare("SELECT curriculum_id FROM education.curriculum WHERE course_id = :cid AND subject_id = :sid");
+                $stmtCheck->execute(['cid' => $courseId, 'sid' => $subjectId]);
+                $curriculumId = $stmtCheck->fetchColumn();
+            }
 
-        // B. Processa a lista enviada pelo Front
-        $incomingList = !empty($data['curriculum_json']) ? json_decode($data['curriculum_json'], true) : [];
-        $processedSubjectIds = [];
+            if ($curriculumId) {
+                // UPDATE
+                $conect->prepare("UPDATE education.curriculum SET workload_hours = :h, is_mandatory = :m, updated_at = CURRENT_TIMESTAMP WHERE curriculum_id = :id")
+                    ->execute(['h' => (int)$item['workload_hours'], 'm' => ($item['is_mandatory'] ? 'TRUE' : 'FALSE'), 'id' => $curriculumId]);
+            } else {
+                // INSERT
+                $stmtIns = $conect->prepare("INSERT INTO education.curriculum (course_id, subject_id, workload_hours, is_mandatory) VALUES (:cid, :sid, :h, :m) RETURNING curriculum_id");
+                $stmtIns->execute(['cid' => $courseId, 'sid' => $subjectId, 'h' => (int)$item['workload_hours'], 'm' => ($item['is_mandatory'] ? 'TRUE' : 'FALSE')]);
+                $curriculumId = $stmtIns->fetchColumn();
+            }
 
-        foreach ($incomingList as $item) {
-            $sid = $item['subject_id'];
-            $hours = (int)$item['workload_hours'];
-            $mandatory = filter_var($item['is_mandatory'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $processedIds[] = $curriculumId;
 
-            $processedSubjectIds[] = $sid;
+            // --- 3. SALVAR PLANOS DE AULA (SUB-TABELA) ---
+            // Limpa planos antigos deste item e reinsere na ordem nova (meeting_number)
+            $conect->prepare("DELETE FROM education.curriculum_plans WHERE curriculum_id = :id")->execute(['id' => $curriculumId]);
 
-            if (isset($existingItems[$sid])) {
-                // ITEM EXISTE: Verifica se houve mudança antes de atualizar
-                $current = $existingItems[$sid];
-                $currentMandatory = ($current['is_mandatory'] === true || $current['is_mandatory'] === 't' || $current['is_mandatory'] == 1);
-
-                if ($current['workload_hours'] != $hours || $currentMandatory !== $mandatory) {
-                    // Só atualiza se mudou Carga Horária ou Obrigatoriedade
-                    $sqlUpdate = "UPDATE education.curriculum SET workload_hours = :h, is_mandatory = :m, updated_at = CURRENT_TIMESTAMP WHERE curriculum_id = :id";
-                    $conect->prepare($sqlUpdate)->execute([
-                        'h' => $hours,
-                        'm' => $mandatory ? 'TRUE' : 'FALSE',
-                        'id' => $current['curriculum_id']
+            if (!empty($item['plans']) && is_array($item['plans'])) {
+                $stmtPlan = $conect->prepare("INSERT INTO education.curriculum_plans (curriculum_id, meeting_number, title, content) VALUES (:cid, :num, :tit, :cont)");
+                foreach ($item['plans'] as $idx => $plan) {
+                    $stmtPlan->execute([
+                        'cid' => $curriculumId,
+                        'num' => $idx + 1, // Ordem = Índice + 1
+                        'tit' => $plan['title'] ?? ('Encontro ' . ($idx + 1)),
+                        'cont' => $plan['content'] ?? ''
                     ]);
                 }
-                // Se não mudou nada, não faz nada (ZERO LOGS)
-            } else {
-                // ITEM NOVO: Insere
-                $sqlIns = "INSERT INTO education.curriculum (course_id, subject_id, workload_hours, is_mandatory) VALUES (:cid, :sid, :h, :m)";
-                $conect->prepare($sqlIns)->execute([
-                    'cid' => $courseId,
-                    'sid' => $sid,
-                    'h' => $hours,
-                    'm' => $mandatory ? 'TRUE' : 'FALSE'
-                ]);
             }
         }
 
-        // C. Remove itens que não estão mais na lista
-        foreach ($existingItems as $sid => $item) {
-            if (!in_array($sid, $processedSubjectIds)) {
-                $conect->prepare("DELETE FROM education.curriculum WHERE curriculum_id = :id")->execute(['id' => $item['curriculum_id']]);
-            }
+        // Remove itens da grade excluídos
+        if (!empty($processedIds)) {
+            $inQuery = implode(',', array_map('intval', $processedIds));
+            $conect->prepare("DELETE FROM education.curriculum WHERE course_id = :cid AND curriculum_id NOT IN ($inQuery)")->execute(['cid' => $courseId]);
+        } else {
+            $conect->prepare("DELETE FROM education.curriculum WHERE course_id = :cid")->execute(['cid' => $courseId]);
         }
 
         $conect->commit();
@@ -234,7 +210,7 @@ function upsertCourse($data)
     } catch (Exception $e) {
         $conect->rollBack();
         logSystemError("painel", "education", "upsertCourse", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao salvar o curso. Contate o suporte.", null, false, 500);
+        return failure("Erro ao salvar curso.", null, false, 500);
     }
 }
 
@@ -244,7 +220,6 @@ function removeCourse($data)
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
-        // AUDITORIA
         if (!empty($data['user_id'])) {
             $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
@@ -269,7 +244,6 @@ function toggleCourseStatus($data)
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
-        // AUDITORIA
         if (!empty($data['user_id'])) {
             $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
@@ -291,12 +265,10 @@ function toggleCourseStatus($data)
     }
 }
 
-// Helper para preencher Selects de Cursos (Para telas futuras como Turmas)
 function searchCoursesForSelect($search)
 {
     try {
         $conect = $GLOBALS["local"];
-
         $params = [];
         $where = "WHERE deleted IS FALSE AND is_active IS TRUE";
 
@@ -305,16 +277,7 @@ function searchCoursesForSelect($search)
             $params['search'] = "%" . $search . "%";
         }
 
-        $sql = <<<SQL
-            SELECT 
-                course_id as id, 
-                name as title
-            FROM education.courses 
-            $where
-            ORDER BY name ASC 
-            LIMIT 20
-        SQL;
-
+        $sql = "SELECT course_id as id, name as title FROM education.courses $where ORDER BY name ASC LIMIT 20";
         $stmt = $conect->prepare($sql);
         $stmt->execute($params);
 
@@ -325,14 +288,11 @@ function searchCoursesForSelect($search)
     }
 }
 
-
 function searchSubjects($search = '')
 {
     try {
         $conect = $GLOBALS["local"];
         $params = [];
-
-        // Mantemos apenas as colunas que existem na tabela education.subjects
         $where = "WHERE deleted IS FALSE AND is_active IS TRUE";
 
         if (!empty($search)) {
@@ -340,17 +300,7 @@ function searchSubjects($search = '')
             $params[':search'] = "%" . $search . "%";
         }
 
-        // CORREÇÃO: Removido 'workload_hours' que não existe nesta tabela
-        $sql = <<<SQL
-            SELECT 
-                subject_id as id, 
-                name as title
-            FROM education.subjects 
-            $where
-            ORDER BY name ASC 
-            LIMIT 100
-        SQL;
-
+        $sql = "SELECT subject_id as id, name as title FROM education.subjects $where ORDER BY name ASC LIMIT 100";
         $stmt = $conect->prepare($sql);
         foreach ($params as $key => $val) {
             $stmt->bindValue($key, $val);

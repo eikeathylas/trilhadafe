@@ -4,11 +4,30 @@ const defaultCourse = {
   totalPages: 1,
 };
 
-// Estado local para gerenciar a Grade Curricular antes de salvar
 let currentCurriculumList = [];
+let editingCurriculumIndex = -1;
+
+const summernoteConfig = {
+  height: 300,
+  lang: "pt-BR",
+  placeholder: "Conteúdo do encontro...",
+  dialogsInBody: true, // Fix Modal
+  toolbar: [
+    ["style", ["style", "bold", "italic", "underline", "clear"]],
+    ["font", ["color"]],
+    ["para", ["ul", "ol", "paragraph"]],
+    ["insert", ["link", "emoji", "hr", "table"]],
+    ["view", ["fullscreen", "codeview"]],
+  ],
+  callbacks: {
+    onInit: function () {
+      $(".note-editor").addClass("bg-white text-dark");
+    },
+  },
+};
 
 // =========================================================
-// 1. LISTAGEM (DASHBOARD DO CURSO)
+// 1. LISTAGEM
 // =========================================================
 
 const getCursos = async () => {
@@ -16,7 +35,6 @@ const getCursos = async () => {
     const page = Math.max(0, defaultCourse.currentPage - 1);
     const search = $("#busca-texto").val();
 
-    // Feedback de carregamento
     $(".list-table-cursos").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
     const result = await window.ajaxValidator({
@@ -55,39 +73,37 @@ const renderTableCourses = (data) => {
 
   let rows = data
     .map((item) => {
-      // Formata Faixa Etária
       let ageLabel = "Livre";
       if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
       else if (item.min_age) ageLabel = `A partir de ${item.min_age} anos`;
 
-      // Toggle Seguro
       const toggleHtml = window.renderToggle ? window.renderToggle(item.course_id, item.is_active, "toggleCourse") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)">`;
 
       return `
         <tr>
-            <td style="width: 60px;">
-                <div class="icon-circle bg-light text-warning">
+            <td style="width: 60px;" class="align-middle border-0">
+                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
                     <span class="material-symbols-outlined">school</span>
                 </div>
             </td>
-            <td>
+            <td class="align-middle border-0">
                 <div class="fw-bold text-dark">${item.name}</div>
                 <small class="text-muted">${ageLabel}</small>
             </td>
-            <td class="text-center">
+            <td class="text-center align-middle border-0">
                 <span class="badge bg-light text-dark border">
                     <i class="fas fa-clock me-1"></i> ${item.total_workload_hours || 0}h
                 </span>
             </td>
-            <td class="text-center">
+            <td class="text-center align-middle border-0">
                 <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">
                     ${item.subjects_count || 0} Matérias
                 </span>
             </td>
-            <td class="text-center align-middle">
+            <td class="text-center align-middle border-0">
                 ${toggleHtml}
             </td>
-            <td class="text-end pe-3">
+            <td class="text-end pe-3 align-middle border-0">
                 <button onclick="openAudit('education.courses', ${item.course_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
                 <button onclick="modalCurso(${item.course_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
                 <button onclick="deleteCourse(${item.course_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
@@ -96,19 +112,20 @@ const renderTableCourses = (data) => {
     })
     .join("");
 
-  container.html(`<table class="table-custom"><thead><tr><th colspan="2">Curso</th><th class="text-center">Carga Horária</th><th class="text-center">Grade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+  container.html(
+    `<table class="table table-hover mb-0"><thead><tr><th colspan="2" class="border-0 ps-3">Curso</th><th class="text-center border-0">Carga Horária</th><th class="text-center border-0">Grade</th><th class="text-center border-0">Ativo</th><th class="text-end pe-4 border-0">Ações</th></tr></thead><tbody>${rows}</tbody></table>`,
+  );
 
   _generatePaginationButtons("pagination-cursos", "currentPage", "totalPages", "getCursos", defaultCourse);
 };
 
 // =========================================================
-// 2. CADASTRO E EDIÇÃO (MODAL)
+// 2. CADASTRO DE CURSO E GRADE
 // =========================================================
 
 window.modalCurso = (id = null) => {
   const modal = $("#modalCurso");
 
-  // Reseta Form
   $("#course_id").val("");
   $("#course_name").val("");
   $("#course_description").val("");
@@ -116,18 +133,14 @@ window.modalCurso = (id = null) => {
   $("#max_age").val("");
   $("#total_workload").val("0");
 
-  // Reseta Grade Curricular
   currentCurriculumList = [];
   renderCurriculumTable();
 
-  // Limpa Inputs da Grade
-  $("#curr_hours").val("");
+  $("#curr_hours").val("20");
   $("#curr_mandatory").prop("checked", true);
 
-  // Inicializa o Selectize corretamente
   initSelectSubjects();
 
-  // Reset Abas
   $("#courseTab button:first").tab("show");
 
   if (id) {
@@ -144,8 +157,6 @@ const loadCourseData = async (id) => {
 
     if (result.status) {
       const d = result.data;
-
-      // Dados Básicos
       $("#course_id").val(d.course_id);
       $("#course_name").val(d.name);
       $("#course_description").val(d.description);
@@ -153,9 +164,13 @@ const loadCourseData = async (id) => {
       $("#max_age").val(d.max_age);
       $("#total_workload").val(d.total_workload_hours);
 
-      // Popula Grade (Array do Backend)
-      // Backend retorna: [{subject_id, subject_name, workload_hours, is_mandatory}, ...]
+      // Backend retorna: [{subject_id, ..., plans: [{title, content, meeting_number}] }]
       currentCurriculumList = d.curriculum || [];
+
+      // Normalização: Garante que 'plans' é um array
+      currentCurriculumList.forEach((item) => {
+        if (!Array.isArray(item.plans)) item.plans = [];
+      });
 
       renderCurriculumTable();
       initSelectSubjects();
@@ -172,74 +187,57 @@ const loadCourseData = async (id) => {
 };
 
 // =========================================================
-// 3. GESTÃO DE GRADE CURRICULAR (ABA 2)
+// 3. GRADE CURRICULAR (ADD/REMOVE)
 // =========================================================
 
 const initSelectSubjects = () => {
-  const $select = $("#curr_subject"); // ID correto do campo
-
-  // Limpa instância anterior
+  const $select = $("#curr_subject");
   if ($select[0].selectize) {
     $select[0].selectize.destroy();
   }
 
   $select.selectize({
-    valueField: 'id',
-    labelField: 'title',
-    searchField: 'title',
-    placeholder: 'Busque uma disciplina...',
-    preload: true, // Carrega as 100 primeiras ao clicar
+    valueField: "id",
+    labelField: "title",
+    searchField: "title",
+    placeholder: "Busque uma disciplina...",
+    preload: true,
     maxOptions: 100,
-    // Renderização simplificada (sem mostrar horas, pois não temos esse dado)
     render: {
-      option: function(item, escape) {
-        return `<div>
-                    <span class="fw-bold">${escape(item.title)}</span>
-                </div>`;
-      }
+      option: function (item, escape) {
+        return `<div><span class="fw-bold">${escape(item.title)}</span></div>`;
+      },
     },
-    load: async function(query, callback) {
+    load: async function (query, callback) {
       try {
         const result = await window.ajaxValidator({
-          validator: 'getSubjectsSelect',
+          validator: "getSubjectsSelect",
           token: defaultApp.userInfo.token,
-          search: query
+          search: query,
         });
-
-        if (result.status) {
-          callback(result.data);
-        } else {
-          callback();
-        }
+        if (result.status) callback(result.data);
+        else callback();
       } catch (e) {
-        console.error("Erro ao buscar disciplinas:", e);
         callback();
-      }
-    },
-    onChange: function (value) {
-      if (!value) return;
-      const selectize = $select[0].selectize;
-      const data = selectize.options[value];
-    
-      // Preenche a carga horária automaticamente se disponível
-      if (data && data.workload_hours) {
-        $("#curr_hours").val(data.workload_hours);
       }
     },
   });
 };
 
-// Adicionar Matéria à Lista Temporária
 window.addSubjectToGrid = () => {
   const subjectId = $("#curr_subject").val();
-  const subjectText = $("#curr_subject")[0].selectize.getItem(subjectId).text(); // Pega o nome visual
+  const selectize = $("#curr_subject")[0].selectize;
+
+  // Validação Segura
+  if (!subjectId) return window.alertDefault("Selecione uma disciplina.", "warning");
+
+  const itemData = selectize.options[subjectId];
+  const subjectText = itemData ? itemData.title : "Disciplina";
   const hours = $("#curr_hours").val();
   const isMandatory = $("#curr_mandatory").is(":checked");
 
-  if (!subjectId) return window.alertDefault("Selecione uma disciplina.", "warning");
   if (!hours || hours <= 0) return window.alertDefault("Informe a carga horária.", "warning");
 
-  // Verifica duplicidade
   if (currentCurriculumList.some((i) => i.subject_id == subjectId)) {
     return window.alertDefault("Esta disciplina já está na grade.", "warning");
   }
@@ -249,21 +247,34 @@ window.addSubjectToGrid = () => {
     subject_name: subjectText,
     workload_hours: parseInt(hours),
     is_mandatory: isMandatory,
+    plans: [], // Array vazio inicial
   });
 
   renderCurriculumTable();
-  updateTotalHours(); // Recalcula total
+  updateTotalHours();
 
-  // Limpa campos para próxima inserção
-  $("#curr_subject")[0].selectize.clear();
-  $("#curr_hours").val("");
-  $("#curr_mandatory").prop("checked", true);
+  selectize.clear();
+  $("#curr_hours").val("20");
 };
 
 window.removeSubjectFromGrid = (index) => {
-  currentCurriculumList.splice(index, 1);
-  renderCurriculumTable();
-  updateTotalHours();
+  Swal.fire({
+    title: "Remover da grade?",
+    text: "O planejamento de aulas desta disciplina será perdido.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sim, remover",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      currentCurriculumList.splice(index, 1);
+      renderCurriculumTable();
+      updateTotalHours();
+      window.toast("Disciplina removida.", "success");
+    }
+  });
 };
 
 const renderCurriculumTable = () => {
@@ -271,21 +282,33 @@ const renderCurriculumTable = () => {
   container.empty();
 
   if (currentCurriculumList.length === 0) {
-    container.html('<tr><td colspan="4" class="text-center text-muted py-3">Nenhuma disciplina adicionada.</td></tr>');
+    container.html('<tr><td colspan="4" class="text-center text-muted py-4 opacity-50"><i class="fas fa-inbox fa-2x mb-2"></i><br>Nenhuma disciplina adicionada.</td></tr>');
     return;
   }
 
   currentCurriculumList.forEach((item, index) => {
     const mandatoryBadge = item.is_mandatory ? '<span class="badge bg-danger">Obrigatória</span>' : '<span class="badge bg-secondary">Opcional</span>';
 
+    // Contagem de planos
+    let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
+
+    const btnClass = plansCount > 0 ? "btn-primary" : "btn-outline-secondary";
+    const infoText = plansCount > 0 ? `<div class="mt-1 text-success small fw-bold"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas planejadas</div>` : `<div class="mt-1 text-muted small fst-italic">Sem planejamento</div>`;
+
     container.append(`
-            <tr>
-                <td>${item.subject_name}</td>
-                <td class="text-center">${item.workload_hours}h</td>
-                <td class="text-center">${mandatoryBadge}</td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-danger border-0" onclick="removeSubjectFromGrid(${index})">
-                        <i class="fas fa-times"></i>
+            <tr class="align-middle border-0">
+                <td class="ps-3 border-0">
+                    <span class="fw-bold text-dark fs-6">${item.subject_name}</span>
+                    ${infoText}
+                </td>
+                <td class="text-center border-0"><span class="badge bg-light text-dark border">${item.workload_hours}h</span></td>
+                <td class="text-center border-0">${mandatoryBadge}</td>
+                <td class="text-end pe-3 border-0">
+                    <button class="btn btn-sm ${btnClass} me-2 shadow-sm" onclick="configureTemplate(${index})" title="Planejar Aulas">
+                        <i class="fas fa-book-reader"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger border-0" onclick="removeSubjectFromGrid(${index})" title="Remover">
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 </td>
             </tr>
@@ -293,60 +316,192 @@ const renderCurriculumTable = () => {
   });
 };
 
-const updateTotalHours = () => {
-  // Soma as horas da lista e atualiza o campo da Aba 1
-  const total = currentCurriculumList.reduce((acc, curr) => acc + parseInt(curr.workload_hours), 0);
-  $("#total_workload").val(total);
+// --- GESTÃO DE PLANOS (ACCORDION) ---
+
+window.configureTemplate = (index) => {
+  editingCurriculumIndex = index;
+  const item = currentCurriculumList[index];
+  if (!Array.isArray(item.plans)) item.plans = [];
+
+  renderAccordionList();
+
+  $("#modalTemplateAulaLabel").html(`<i class="fas fa-book-reader me-2"></i> Planejamento: <strong>${item.subject_name}</strong>`);
+  $("#modalTemplateAula").css("z-index", 1060);
+  $("#modalTemplateAula").modal("show");
+};
+
+const renderAccordionList = () => {
+  const container = $("#accordionPlans");
+  container.empty();
+
+  const plans = currentCurriculumList[editingCurriculumIndex].plans;
+
+  if (plans.length === 0) {
+    container.html(`
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-calendar-plus fa-3x mb-3 opacity-25"></i>
+                <p>Nenhum encontro planejado.</p>
+                <button class="btn btn-success btn-sm mt-2" onclick="addPlan()">
+                    <i class="fas fa-plus me-1"></i> Criar 1º Encontro
+                </button>
+            </div>
+        `);
+    return;
+  }
+
+  plans.forEach((plan, i) => {
+    const collapseId = `collapsePlan${i}`;
+    const headingId = `headingPlan${i}`;
+    const isFirst = i === 0;
+    const isLast = i === plans.length - 1;
+
+    // Botões de movimento
+    const upBtn = isFirst ? "" : `<button class="btn btn-sm btn-link text-secondary p-0 me-2 hover-scale" onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
+    const downBtn = isLast ? "" : `<button class="btn btn-sm btn-link text-secondary p-0 me-2 hover-scale" onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
+
+    const html = `
+            <div class="accordion-item mb-3 border-0 shadow-sm rounded overflow-hidden">
+                <h2 class="accordion-header" id="${headingId}">
+                    <div class="accordion-button collapsed bg-white p-3" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                        <div class="d-flex align-items-center w-100">
+                            
+                            <div class="me-3 d-flex align-items-center" style="min-width: 50px;">${upBtn}${downBtn}</div>
+                            
+                            <div class="me-3">
+                                <span class="badge bg-light text-primary border rounded-pill">#${i + 1}</span>
+                            </div>
+                            
+                            <input type="text" class="form-control form-control-sm fw-bold border-0 bg-transparent me-3 flex-grow-1" 
+                                value="${plan.title || "Encontro " + (i + 1)}" 
+                                onclick="event.stopPropagation()" 
+                                onchange="updatePlanTitle(${i}, this.value)"
+                                placeholder="Título do Encontro">
+                            
+                            <div class="ms-auto d-flex align-items-center">
+                                <button class="btn btn-sm btn-outline-danger border-0 p-1" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </h2>
+                <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" data-bs-parent="#accordionPlans">
+                    <div class="accordion-body p-0 border-top">
+                        <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+    container.append(html);
+  });
+
+  const collapses = document.querySelectorAll(".accordion-collapse");
+  collapses.forEach((el) => {
+    el.addEventListener("shown.bs.collapse", function () {
+      const textarea = this.querySelector(".summernote-dynamic");
+      $(textarea).summernote(summernoteConfig);
+    });
+    el.addEventListener("hide.bs.collapse", function () {
+      const textarea = this.querySelector(".summernote-dynamic");
+      const idx = $(textarea).data("index");
+      if ($(textarea).next(".note-editor").length > 0) {
+        currentCurriculumList[editingCurriculumIndex].plans[idx].content = $(textarea).summernote("code");
+        $(textarea).summernote("destroy");
+      }
+    });
+  });
+};
+
+window.addPlan = () => {
+  currentCurriculumList[editingCurriculumIndex].plans.push({ title: `Encontro ${currentCurriculumList[editingCurriculumIndex].plans.length + 1}`, content: "" });
+  renderAccordionList();
+  setTimeout(() => {
+    $(`#accordionPlans .accordion-item:last .accordion-collapse`).collapse("show");
+  }, 150);
+};
+
+window.removePlan = (index) => {
+  Swal.fire({ title: "Excluir Encontro?", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim" }).then((r) => {
+    if (r.isConfirmed) {
+      $(".accordion-collapse.show").collapse("hide");
+      setTimeout(() => {
+        currentCurriculumList[editingCurriculumIndex].plans.splice(index, 1);
+        renderAccordionList();
+      }, 300);
+    }
+  });
+};
+
+window.movePlan = (index, direction) => {
+  const plans = currentCurriculumList[editingCurriculumIndex].plans;
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= plans.length) return;
+  $(".accordion-collapse.show").collapse("hide");
+  setTimeout(() => {
+    [plans[index], plans[newIndex]] = [plans[newIndex], plans[index]];
+    renderAccordionList();
+  }, 300);
+};
+
+window.updatePlanTitle = (index, value) => {
+  currentCurriculumList[editingCurriculumIndex].plans[index].title = value;
+};
+
+window.closeTemplateModal = () => {
+  $(".accordion-collapse.show").collapse("hide");
+  setTimeout(() => {
+    $("#modalTemplateAula").modal("hide");
+    renderCurriculumTable();
+  }, 200);
 };
 
 // =========================================================
-// 4. SALVAR TUDO
+// 5. SALVAR CURSO
 // =========================================================
 
 window.salvarCurso = async () => {
   const name = $("#course_name").val().trim();
   if (!name) return window.alertDefault("Nome do curso é obrigatório.", "warning");
 
-  if (currentCurriculumList.length === 0) {
-    // Opcional: Impedir curso sem matérias? Vou deixar passar com aviso.
-    // return window.alertDefault("Adicione pelo menos uma disciplina.", "warning");
-  }
+  // Garante save do editor aberto
+  $(".accordion-collapse.show").collapse("hide");
 
-  const btn = $(".btn-save");
-  window.setButton(true, btn, "Salvando...");
+  setTimeout(async () => {
+    const btn = $(".btn-save");
+    window.setButton(true, btn, "Salvando...");
 
-  const data = {
-    course_id: $("#course_id").val(),
-    name: name,
-    description: $("#course_description").val(),
-    min_age: $("#min_age").val(),
-    max_age: $("#max_age").val(),
-    total_workload_hours: $("#total_workload").val(),
+    const data = {
+      course_id: $("#course_id").val(),
+      name: name,
+      description: $("#course_description").val(),
+      min_age: $("#min_age").val(),
+      max_age: $("#max_age").val(),
+      total_workload_hours: $("#total_workload").val(),
+      // JSON com a estrutura correta: plans: [{...}]
+      curriculum_json: JSON.stringify(currentCurriculumList),
+    };
 
-    // Envia a grade como JSON
-    curriculum_json: JSON.stringify(currentCurriculumList),
-  };
+    try {
+      const result = await window.ajaxValidator({
+        validator: "saveCourse",
+        token: defaultApp.userInfo.token,
+        data: data,
+      });
 
-  try {
-    const result = await window.ajaxValidator({
-      validator: "saveCourse",
-      token: defaultApp.userInfo.token,
-      data: data,
-    });
-
-    if (result.status) {
-      window.alertDefault("Curso salvo com sucesso!", "success");
-      $("#modalCurso").modal("hide");
-      getCursos();
-    } else {
-      window.alertDefault(result.alert, "error");
+      if (result.status) {
+        window.alertDefault("Curso salvo com sucesso!", "success");
+        $("#modalCurso").modal("hide");
+        getCursos();
+      } else {
+        window.alertDefault(result.alert, "error");
+      }
+    } catch (e) {
+      console.error(e);
+      window.alertDefault("Erro ao salvar.", "error");
+    } finally {
+      window.setButton(false, btn, '<i class="fas fa-check me-2"></i> Salvar Curso');
     }
-  } catch (e) {
-    console.error(e);
-    window.alertDefault("Erro ao salvar.", "error");
-  } finally {
-    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
-  }
+  }, 300);
 };
 
 // =========================================================

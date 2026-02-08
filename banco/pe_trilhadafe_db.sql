@@ -346,6 +346,22 @@ CREATE TABLE education.curriculum (
 COMMENT ON TABLE education.curriculum IS 'Associação Curso x Disciplina. Define a ementa do curso.';
 COMMENT ON COLUMN education.curriculum.lesson_plan_template IS 'Modelo HTML (Summernote) usado como base para novas aulas desta disciplina.';
 
+
+-- Tabela para armazenar o plano de cada encontro individualmente
+CREATE TABLE education.curriculum_plans (
+    plan_id SERIAL PRIMARY KEY,
+    curriculum_id INT NOT NULL REFERENCES education.curriculum(curriculum_id) ON DELETE CASCADE,
+    meeting_number INT NOT NULL,
+    title VARCHAR(255),
+    content TEXT, -- HTML do Summernote
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE education.curriculum_plans IS 'Plano de aula individual para cada encontro de uma disciplina de um curso.';
+COMMENT ON COLUMN education.curriculum_plans.content IS 'Conteúdo HTML do plano de aula.';
+
+CREATE INDEX idx_curriculum_plans ON education.curriculum_plans(curriculum_id);
+
 -- 5. Turmas
 CREATE TABLE education.classes (
     class_id SERIAL PRIMARY KEY,
