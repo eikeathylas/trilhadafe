@@ -9,57 +9,29 @@
 
     <?php include "./assets/components/Head.php"; ?>
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
-
+    
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
-
+    
     <style>
         /* Fix Z-Index do Summernote em Modais */
-        .note-modal-backdrop {
-            z-index: 1065 !important;
-        }
-
-        .note-modal-content {
-            z-index: 1070 !important;
-        }
-
-        .note-popover {
-            z-index: 1070 !important;
-        }
-
-        .note-editor.fullscreen {
-            z-index: 1070 !important;
-        }
-
+        .note-modal-backdrop { z-index: 1065 !important; }
+        .note-modal-content { z-index: 1070 !important; }
+        .note-popover { z-index: 1070 !important; }
+        .note-editor.fullscreen { z-index: 1070 !important; }
+        
         /* Ajuste do Modal */
-        .modal-content {
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .modal-header {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .modal-footer {
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            background-color: transparent !important;
-        }
-
+        .modal-content { border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .modal-header { border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .modal-footer { border-top: 1px solid rgba(0,0,0,0.05); background-color: transparent !important; }
+        
         /* Accordion Customizado */
         .custom-accordion .accordion-button:not(.collapsed) {
             background-color: #f8f9fa;
             color: #4e73df;
             box-shadow: none;
         }
-
-        .custom-accordion .accordion-button:focus {
-            box-shadow: none;
-        }
-
-        .hover-scale:hover {
-            transform: scale(1.1);
-            transition: 0.2s;
-        }
+        .custom-accordion .accordion-button:focus { box-shadow: none; }
+        .hover-scale:hover { transform: scale(1.1); transition: 0.2s; }
     </style>
 </head>
 
@@ -117,7 +89,7 @@
                     <h5 class="modal-title fs-5" id="modalLabel">Gerenciar Curso</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
+                
                 <div class="modal-body">
                     <input type="hidden" id="course_id">
 
@@ -135,7 +107,7 @@
                     </ul>
 
                     <div class="tab-content" id="courseTabContent">
-
+                        
                         <div class="tab-pane fade show active" id="tab-dados">
                             <div class="row g-3">
                                 <div class="col-md-12">
@@ -171,7 +143,7 @@
                         </div>
 
                         <div class="tab-pane fade" id="tab-grade">
-
+                            
                             <div class="card border border-dashed bg-light mb-4">
                                 <div class="card-body p-3">
                                     <h6 class="card-title text-muted text-uppercase small fw-bold mb-3">
@@ -239,13 +211,13 @@
                     </div>
                     <button type="button" class="btn-close btn-close-white" onclick="closeTemplateModal()"></button>
                 </div>
-
+                
                 <div class="modal-body bg-light">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <button class="btn btn-success btn-sm shadow-sm" onclick="addPlan()">
                             <i class="fas fa-plus-circle me-1"></i> Adicionar Encontro
                         </button>
-
+                        
                         <div class="btn-group shadow-sm">
                             <button class="btn btn-white btn-sm border text-secondary" onclick="importPlans()">
                                 <i class="fas fa-file-upload me-1"></i> Importar
@@ -272,11 +244,10 @@
     <?php include "./assets/components/Modal-Faqs.php"; ?>
     <?php include "./assets/components/Modal-Audit.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-pt-BR.min.js"></script>
     <script src="assets/js/cursos.js?v=<?php echo time(); ?>"></script>
 
 </body>
-
 </html>

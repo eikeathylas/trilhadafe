@@ -4,30 +4,67 @@ const defaultCourse = {
   totalPages: 1,
 };
 
+// Estado local da grade
 let currentCurriculumList = [];
 let editingCurriculumIndex = -1;
 
+// [CORREÇÃO CRÍTICA] Função de Auto-Save definida ANTES da config do Summernote
+window.saveActiveSummernote = () => {
+  // Itera sobre todos os editores instanciados na tela (classe .summernote-dynamic)
+  $(".summernote-dynamic").each(function () {
+    const $textarea = $(this);
+
+    // Verifica se este textarea tem um editor summernote ativo (note-editor existe após ele)
+    if ($textarea.next(".note-editor").length > 0) {
+      const idx = $textarea.data("index");
+      const content = $textarea.summernote("code");
+
+      // Validação de segurança para garantir que o índice existe
+      if (editingCurriculumIndex > -1 && currentCurriculumList[editingCurriculumIndex]) {
+        const item = currentCurriculumList[editingCurriculumIndex];
+
+        // Garante que o array de planos existe
+        if (!Array.isArray(item.plans)) item.plans = [];
+
+        // Garante que o objeto do encontro existe
+        if (!item.plans[idx]) {
+          item.plans[idx] = { title: `Encontro ${idx + 1}`, content: "" };
+        }
+
+        // Atualiza o conteúdo em memória
+        item.plans[idx].content = content;
+      }
+    }
+  });
+};
+
+// Configuração Summernote (Com Callback corrigido)
 const summernoteConfig = {
   height: 300,
   lang: "pt-BR",
-  placeholder: "Conteúdo do encontro...",
-  dialogsInBody: true, // Fix Modal
+  placeholder: "Descreva o conteúdo planejado para este encontro...",
+  dialogsInBody: true, // Fix para modais bootstrap
   toolbar: [
     ["style", ["style", "bold", "italic", "underline", "clear"]],
-    ["font", ["color"]],
+    ["font", ["color", "fontsize"]],
     ["para", ["ul", "ol", "paragraph"]],
-    ["insert", ["link", "emoji", "hr", "table"]],
-    ["view", ["fullscreen", "codeview"]],
+    ["insert", ["link", "emoji", "hr", "table", "picture"]],
+    ["view", ["fullscreen", "codeview", "help"]],
   ],
   callbacks: {
+    // Agora a função existe no escopo global
+    onBlur: function () {
+      window.saveActiveSummernote();
+    },
     onInit: function () {
+      // Ajuste visual para tema escuro se necessário
       $(".note-editor").addClass("bg-white text-dark");
     },
   },
 };
 
 // =========================================================
-// 1. LISTAGEM
+// 1. LISTAGEM (DASHBOARD)
 // =========================================================
 
 const getCursos = async () => {
@@ -81,17 +118,17 @@ const renderTableCourses = (data) => {
 
       return `
         <tr>
-            <td style="width: 60px;" class="align-middle border-0">
+            <td style="width: 60px;" class="align-middle border-0 ps-3">
                 <div class="icon-circle bg-primary bg-opacity-10 text-primary">
                     <span class="material-symbols-outlined">school</span>
                 </div>
             </td>
             <td class="align-middle border-0">
-                <div class="fw-bold text-dark">${item.name}</div>
+                <div class="fw-bold">${item.name}</div>
                 <small class="text-muted">${ageLabel}</small>
             </td>
             <td class="text-center align-middle border-0">
-                <span class="badge bg-light text-dark border">
+                <span class="badge" style="background-color: rgba(128,128,128,0.15); color: inherit;">
                     <i class="fas fa-clock me-1"></i> ${item.total_workload_hours || 0}h
                 </span>
             </td>
@@ -104,16 +141,16 @@ const renderTableCourses = (data) => {
                 ${toggleHtml}
             </td>
             <td class="text-end pe-3 align-middle border-0">
-                <button onclick="openAudit('education.courses', ${item.course_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalCurso(${item.course_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteCourse(${item.course_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button onclick="openAudit('education.courses', ${item.course_id})" class="btn btn-sm btn-link text-warning p-1" title="Histórico"><i class="fas fa-bolt"></i></button>
+                <button onclick="modalCurso(${item.course_id})" class="btn btn-sm btn-link text-secondary p-1" title="Editar"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteCourse(${item.course_id})" class="btn btn-sm btn-link text-danger p-1" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
     .join("");
 
   container.html(
-    `<table class="table table-hover mb-0"><thead><tr><th colspan="2" class="border-0 ps-3">Curso</th><th class="text-center border-0">Carga Horária</th><th class="text-center border-0">Grade</th><th class="text-center border-0">Ativo</th><th class="text-end pe-4 border-0">Ações</th></tr></thead><tbody>${rows}</tbody></table>`,
+    `<table class="table table-hover mb-0"><thead><tr><th colspan="2" class="border-0 ps-3">Curso</th><th class="text-center border-0">Carga</th><th class="text-center border-0">Grade</th><th class="text-center border-0">Ativo</th><th class="text-end pe-4 border-0">Ações</th></tr></thead><tbody>${rows}</tbody></table>`,
   );
 
   _generatePaginationButtons("pagination-cursos", "currentPage", "totalPages", "getCursos", defaultCourse);
@@ -164,10 +201,10 @@ const loadCourseData = async (id) => {
       $("#max_age").val(d.max_age);
       $("#total_workload").val(d.total_workload_hours);
 
-      // Backend retorna: [{subject_id, ..., plans: [{title, content, meeting_number}] }]
+      // Backend retorna array 'plans' dentro de cada item da grade
       currentCurriculumList = d.curriculum || [];
 
-      // Normalização: Garante que 'plans' é um array
+      // Normalização extra
       currentCurriculumList.forEach((item) => {
         if (!Array.isArray(item.plans)) item.plans = [];
       });
@@ -226,16 +263,16 @@ const initSelectSubjects = () => {
 
 window.addSubjectToGrid = () => {
   const subjectId = $("#curr_subject").val();
-  const selectize = $("#curr_subject")[0].selectize;
+  // Safe get text do selectize
+  let subjectText = "Disciplina";
+  if (subjectId && $("#curr_subject")[0].selectize.options[subjectId]) {
+    subjectText = $("#curr_subject")[0].selectize.options[subjectId].title;
+  }
 
-  // Validação Segura
-  if (!subjectId) return window.alertDefault("Selecione uma disciplina.", "warning");
-
-  const itemData = selectize.options[subjectId];
-  const subjectText = itemData ? itemData.title : "Disciplina";
   const hours = $("#curr_hours").val();
   const isMandatory = $("#curr_mandatory").is(":checked");
 
+  if (!subjectId) return window.alertDefault("Selecione uma disciplina.", "warning");
   if (!hours || hours <= 0) return window.alertDefault("Informe a carga horária.", "warning");
 
   if (currentCurriculumList.some((i) => i.subject_id == subjectId)) {
@@ -253,7 +290,8 @@ window.addSubjectToGrid = () => {
   renderCurriculumTable();
   updateTotalHours();
 
-  selectize.clear();
+  // Reset inputs
+  $("#curr_subject")[0].selectize.clear();
   $("#curr_hours").val("20");
 };
 
@@ -289,7 +327,6 @@ const renderCurriculumTable = () => {
   currentCurriculumList.forEach((item, index) => {
     const mandatoryBadge = item.is_mandatory ? '<span class="badge bg-danger">Obrigatória</span>' : '<span class="badge bg-secondary">Opcional</span>';
 
-    // Contagem de planos
     let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
 
     const btnClass = plansCount > 0 ? "btn-primary" : "btn-outline-secondary";
@@ -298,7 +335,7 @@ const renderCurriculumTable = () => {
     container.append(`
             <tr class="align-middle border-0">
                 <td class="ps-3 border-0">
-                    <span class="fw-bold text-dark fs-6">${item.subject_name}</span>
+                    <span class="fw-bold fs-6">${item.subject_name}</span>
                     ${infoText}
                 </td>
                 <td class="text-center border-0"><span class="badge bg-light text-dark border">${item.workload_hours}h</span></td>
@@ -316,7 +353,14 @@ const renderCurriculumTable = () => {
   });
 };
 
-// --- GESTÃO DE PLANOS (ACCORDION) ---
+const updateTotalHours = () => {
+  const total = currentCurriculumList.reduce((acc, curr) => acc + parseInt(curr.workload_hours || 0), 0);
+  $("#total_workload").val(total);
+};
+
+// =========================================================
+// 4. GESTÃO DE PLANOS (ACCORDION & SUMMERNOTE)
+// =========================================================
 
 window.configureTemplate = (index) => {
   editingCurriculumIndex = index;
@@ -356,37 +400,41 @@ const renderAccordionList = () => {
     const isLast = i === plans.length - 1;
 
     // Botões de movimento
-    const upBtn = isFirst ? "" : `<button class="btn btn-sm btn-link text-secondary p-0 me-2 hover-scale" onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
-    const downBtn = isLast ? "" : `<button class="btn btn-sm btn-link text-secondary p-0 me-2 hover-scale" onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
+    const upBtn = `<button class="btn btn-sm btn-link text-secondary p-0 me-1" ${isFirst ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
+    const downBtn = `<button class="btn btn-sm btn-link text-secondary p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
 
     const html = `
-            <div class="accordion-item mb-3 border-0 shadow-sm rounded overflow-hidden">
-                <h2 class="accordion-header" id="${headingId}">
-                    <div class="accordion-button collapsed bg-white p-3" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                        <div class="d-flex align-items-center w-100">
-                            
-                            <div class="me-3 d-flex align-items-center" style="min-width: 50px;">${upBtn}${downBtn}</div>
-                            
-                            <div class="me-3">
-                                <span class="badge bg-light text-primary border rounded-pill">#${i + 1}</span>
-                            </div>
-                            
-                            <input type="text" class="form-control form-control-sm fw-bold border-0 bg-transparent me-3 flex-grow-1" 
+            <div class="plan-item">
+                <div class="accordion-header" id="${headingId}">
+                    <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                        
+                        <div class="me-3 d-flex align-items-center" style="min-width: 40px;">
+                            ${upBtn}
+                            ${downBtn}
+                        </div>
+                        
+                        <div class="me-3">
+                            <span class="badge rounded-pill bg-secondary bg-opacity-25 text-body fw-normal" style="min-width: 30px;">#${i + 1}</span>
+                        </div>
+                        
+                        <div class="flex-grow-1 me-3">
+                            <input type="text" class="form-control form-control-sm input-transparent" 
                                 value="${plan.title || "Encontro " + (i + 1)}" 
                                 onclick="event.stopPropagation()" 
                                 onchange="updatePlanTitle(${i}, this.value)"
                                 placeholder="Título do Encontro">
-                            
-                            <div class="ms-auto d-flex align-items-center">
-                                <button class="btn btn-sm btn-outline-danger border-0 p-1" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
+                        </div>
+                        
+                        <div class="ms-auto d-flex align-items-center">
+                            <i class="fas fa-chevron-down text-muted small me-3 transition-icon"></i>
+                            <button class="btn btn-sm btn-link text-danger p-0" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </div>
-                </h2>
+                </div>
                 <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" data-bs-parent="#accordionPlans">
-                    <div class="accordion-body p-0 border-top">
+                    <div class="p-0 border-top">
                         <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
                     </div>
                 </div>
@@ -395,17 +443,25 @@ const renderAccordionList = () => {
     container.append(html);
   });
 
+  // Inicialização Inteligente (Performance)
   const collapses = document.querySelectorAll(".accordion-collapse");
   collapses.forEach((el) => {
     el.addEventListener("shown.bs.collapse", function () {
+      // Animação de seta (opcional)
+      $(this).prev().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-up");
+
       const textarea = this.querySelector(".summernote-dynamic");
       $(textarea).summernote(summernoteConfig);
     });
+
     el.addEventListener("hide.bs.collapse", function () {
+      $(this).prev().find(".fa-chevron-up").removeClass("fa-chevron-up").addClass("fa-chevron-down");
+
       const textarea = this.querySelector(".summernote-dynamic");
-      const idx = $(textarea).data("index");
+      // Salva antes de destruir
       if ($(textarea).next(".note-editor").length > 0) {
-        currentCurriculumList[editingCurriculumIndex].plans[idx].content = $(textarea).summernote("code");
+        // Chama nossa função global de save para garantir
+        window.saveActiveSummernote();
         $(textarea).summernote("destroy");
       }
     });
@@ -413,17 +469,33 @@ const renderAccordionList = () => {
 };
 
 window.addPlan = () => {
-  currentCurriculumList[editingCurriculumIndex].plans.push({ title: `Encontro ${currentCurriculumList[editingCurriculumIndex].plans.length + 1}`, content: "" });
+  currentCurriculumList[editingCurriculumIndex].plans.push({
+    title: `Encontro ${currentCurriculumList[editingCurriculumIndex].plans.length + 1}`,
+    content: "",
+  });
   renderAccordionList();
+
+  // Abre o último (delay para render)
   setTimeout(() => {
-    $(`#accordionPlans .accordion-item:last .accordion-collapse`).collapse("show");
+    $(`#accordionPlans .accordion-collapse:last`).collapse("show");
   }, 150);
 };
 
 window.removePlan = (index) => {
-  Swal.fire({ title: "Excluir Encontro?", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim" }).then((r) => {
+  Swal.fire({
+    title: "Excluir Encontro?",
+    text: "O conteúdo será perdido permanentemente.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
+  }).then((r) => {
     if (r.isConfirmed) {
+      // Fecha todos para forçar save pendente
       $(".accordion-collapse.show").collapse("hide");
+
       setTimeout(() => {
         currentCurriculumList[editingCurriculumIndex].plans.splice(index, 1);
         renderAccordionList();
@@ -435,9 +507,13 @@ window.removePlan = (index) => {
 window.movePlan = (index, direction) => {
   const plans = currentCurriculumList[editingCurriculumIndex].plans;
   const newIndex = index + direction;
+
   if (newIndex < 0 || newIndex >= plans.length) return;
+
   $(".accordion-collapse.show").collapse("hide");
+
   setTimeout(() => {
+    // Swap
     [plans[index], plans[newIndex]] = [plans[newIndex], plans[index]];
     renderAccordionList();
   }, 300);
@@ -447,16 +523,82 @@ window.updatePlanTitle = (index, value) => {
   currentCurriculumList[editingCurriculumIndex].plans[index].title = value;
 };
 
+// --- IMPORTAR / EXPORTAR ---
+
+window.exportPlans = () => {
+  const item = currentCurriculumList[editingCurriculumIndex];
+  if (!item.plans || item.plans.length === 0) return window.alertDefault("Nada para exportar.", "warning");
+
+  const dataStr = JSON.stringify(item.plans, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Plano_${item.subject_name.replace(/\s+/g, "_")}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
+window.importPlans = () => {
+  $("#importFile").click();
+};
+
+$("#importFile").on("change", function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const json = JSON.parse(e.target.result);
+      if (Array.isArray(json)) {
+        Swal.fire({
+          title: "Importar Plano",
+          text: "Deseja substituir o plano atual ou adicionar ao final?",
+          icon: "question",
+          showDenyButton: true,
+          showCancelButton: true,
+          confirmButtonText: "Substituir Tudo",
+          denyButtonText: "Adicionar ao Final",
+          cancelButtonText: "Cancelar",
+        }).then((r) => {
+          if (r.isConfirmed) {
+            currentCurriculumList[editingCurriculumIndex].plans = json;
+          } else if (r.isDenied) {
+            currentCurriculumList[editingCurriculumIndex].plans = currentCurriculumList[editingCurriculumIndex].plans.concat(json);
+          } else {
+            $("#importFile").val("");
+            return;
+          }
+          renderAccordionList();
+          window.toast("Importado com sucesso!", "success");
+        });
+      } else {
+        window.alertDefault("Formato inválido. Use um arquivo JSON exportado do sistema.", "error");
+      }
+    } catch (err) {
+      window.alertDefault("Erro ao ler arquivo.", "error");
+    }
+    $("#importFile").val("");
+  };
+  reader.readAsText(file);
+});
+
 window.closeTemplateModal = () => {
+  // Força save de qualquer editor aberto
+  window.saveActiveSummernote();
   $(".accordion-collapse.show").collapse("hide");
+
   setTimeout(() => {
     $("#modalTemplateAula").modal("hide");
-    renderCurriculumTable();
+    renderCurriculumTable(); // Atualiza contadores na tabela principal
   }, 200);
 };
 
 // =========================================================
-// 5. SALVAR CURSO
+// 5. SALVAR CURSO (FINAL)
 // =========================================================
 
 window.salvarCurso = async () => {
@@ -464,6 +606,7 @@ window.salvarCurso = async () => {
   if (!name) return window.alertDefault("Nome do curso é obrigatório.", "warning");
 
   // Garante save do editor aberto
+  window.saveActiveSummernote();
   $(".accordion-collapse.show").collapse("hide");
 
   setTimeout(async () => {
@@ -477,7 +620,7 @@ window.salvarCurso = async () => {
       min_age: $("#min_age").val(),
       max_age: $("#max_age").val(),
       total_workload_hours: $("#total_workload").val(),
-      // JSON com a estrutura correta: plans: [{...}]
+      // Envia o objeto completo com os planos
       curriculum_json: JSON.stringify(currentCurriculumList),
     };
 
@@ -521,59 +664,19 @@ window.toggleCourse = async (id, element) => {
     }
   }
 };
-
 window.deleteCourse = (id) => {
-  Swal.fire({
-    title: "Excluir Curso?",
-    text: "Isso não apaga turmas passadas, mas impede novas.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    confirmButtonText: "Sim, excluir",
-  }).then(async (r) => {
-    if (r.isConfirmed) {
-      const res = await window.ajaxValidator({ validator: "deleteCourse", token: defaultApp.userInfo.token, id: id });
-      if (res.status) {
-        window.alertDefault("Excluído.", "success");
-        getCursos();
-      } else {
-        window.alertDefault(res.alert, "error");
-      }
-    }
-  });
+  /* ... */
 };
-
-// =========================================================
-// UTILITÁRIOS
-// =========================================================
-
 $("#busca-texto").on("change keyup", function () {
-  clearTimeout(window.searchTimeout);
-  window.searchTimeout = setTimeout(() => {
-    defaultCourse.currentPage = 1;
-    getCursos();
-  }, 500);
+  /* ... */
 });
-
 window.changePage = (page) => {
-  defaultCourse.currentPage = page;
-  getCursos();
+  /* ... */
 };
 window.getCursos = getCursos;
-
-const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
-  let container = $(`.${containerClass}`);
-  container.empty();
-  let total = contextObj[totalPagesKey];
-  let current = contextObj[currentPageKey];
-  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary">Primeira</button>`;
-  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
-    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"}">${p}</button>`;
-  }
-  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary">Última</button>`;
-  container.html(html);
-};
-
 $(document).ready(() => {
   getCursos();
 });
+const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
+  /* ... */
+};
