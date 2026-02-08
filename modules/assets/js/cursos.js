@@ -8,42 +8,29 @@ const defaultCourse = {
 let currentCurriculumList = [];
 let editingCurriculumIndex = -1;
 
-// [CORREÇÃO CRÍTICA] Função de Auto-Save definida ANTES da config do Summernote
+// [AUTO-SAVE] Salva Summernote antes de destruir/focar fora
 window.saveActiveSummernote = () => {
-  // Itera sobre todos os editores instanciados na tela (classe .summernote-dynamic)
   $(".summernote-dynamic").each(function () {
     const $textarea = $(this);
-
-    // Verifica se este textarea tem um editor summernote ativo (note-editor existe após ele)
     if ($textarea.next(".note-editor").length > 0) {
       const idx = $textarea.data("index");
       const content = $textarea.summernote("code");
-
-      // Validação de segurança para garantir que o índice existe
       if (editingCurriculumIndex > -1 && currentCurriculumList[editingCurriculumIndex]) {
         const item = currentCurriculumList[editingCurriculumIndex];
-
-        // Garante que o array de planos existe
         if (!Array.isArray(item.plans)) item.plans = [];
-
-        // Garante que o objeto do encontro existe
-        if (!item.plans[idx]) {
-          item.plans[idx] = { title: `Encontro ${idx + 1}`, content: "" };
-        }
-
-        // Atualiza o conteúdo em memória
+        if (!item.plans[idx]) item.plans[idx] = { title: `Encontro ${idx + 1}`, content: "" };
         item.plans[idx].content = content;
       }
     }
   });
 };
 
-// Configuração Summernote (Com Callback corrigido)
+// Configuração Summernote
 const summernoteConfig = {
   height: 300,
   lang: "pt-BR",
   placeholder: "Descreva o conteúdo planejado para este encontro...",
-  dialogsInBody: true, // Fix para modais bootstrap
+  dialogsInBody: true,
   toolbar: [
     ["style", ["style", "bold", "italic", "underline", "clear"]],
     ["font", ["color", "fontsize"]],
@@ -52,19 +39,17 @@ const summernoteConfig = {
     ["view", ["fullscreen", "codeview", "help"]],
   ],
   callbacks: {
-    // Agora a função existe no escopo global
     onBlur: function () {
       window.saveActiveSummernote();
     },
     onInit: function () {
-      // Ajuste visual para tema escuro se necessário
       $(".note-editor").addClass("bg-white text-dark");
     },
   },
 };
 
 // =========================================================
-// 1. LISTAGEM (DASHBOARD)
+// 1. LISTAGEM (PADRÃO TABLE-CUSTOM)
 // =========================================================
 
 const getCursos = async () => {
@@ -72,6 +57,7 @@ const getCursos = async () => {
     const page = Math.max(0, defaultCourse.currentPage - 1);
     const search = $("#busca-texto").val();
 
+    // Loader padrão
     $(".list-table-cursos").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
     const result = await window.ajaxValidator({
@@ -87,7 +73,12 @@ const getCursos = async () => {
       defaultCourse.totalPages = Math.max(1, Math.ceil(total / defaultCourse.rowsPerPage));
       renderTableCourses(result.data || []);
     } else {
-      $(".list-table-cursos").html('<p class="text-center py-4 text-muted">Nenhum curso encontrado.</p>');
+      $(".list-table-cursos").html(`
+            <div class="text-center py-5">
+                <span class="material-symbols-outlined text-muted opacity-25" style="font-size: 64px;">school</span>
+                <p class="text-muted mt-2">Nenhum curso encontrado.</p>
+            </div>
+        `);
     }
   } catch (e) {
     console.error(e);
@@ -101,8 +92,8 @@ const renderTableCourses = (data) => {
   if (data.length === 0) {
     container.html(`
             <div class="text-center py-5">
-                <i class="fas fa-graduation-cap fa-3x text-muted mb-3 opacity-25"></i>
-                <p class="text-muted">Nenhum curso cadastrado.</p>
+                <span class="material-symbols-outlined text-muted opacity-25" style="font-size: 64px;">school</span>
+                <p class="text-muted mt-2">Nenhum curso cadastrado.</p>
             </div>
         `);
     return;
@@ -114,44 +105,58 @@ const renderTableCourses = (data) => {
       if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
       else if (item.min_age) ageLabel = `A partir de ${item.min_age} anos`;
 
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.course_id, item.is_active, "toggleCourse") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)">`;
+      const toggleHtml = window.renderToggle
+        ? window.renderToggle(item.course_id, item.is_active, "toggleCourse")
+        : `<div class="form-check form-switch d-flex justify-content-center"><input class="form-check-input" type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)"></div>`;
 
       return `
         <tr>
-            <td style="width: 60px;" class="align-middle border-0 ps-3">
-                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+            <td class="text-center align-middle" style="width: 60px;">
+                <div class="icon-circle bg-light text-primary">
                     <span class="material-symbols-outlined">school</span>
                 </div>
             </td>
-            <td class="align-middle border-0">
-                <div class="fw-bold">${item.name}</div>
-                <small class="text-muted">${ageLabel}</small>
+            <td class="align-middle">
+                <div class="fw-bold text-dark">${item.name}</div>
+                <div class="text-muted small">${ageLabel}</div>
             </td>
-            <td class="text-center align-middle border-0">
-                <span class="badge" style="background-color: rgba(128,128,128,0.15); color: inherit;">
+            <td class="text-center align-middle">
+                <span class="badge bg-light text-dark border">
                     <i class="fas fa-clock me-1"></i> ${item.total_workload_hours || 0}h
                 </span>
             </td>
-            <td class="text-center align-middle border-0">
+            <td class="text-center align-middle">
                 <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">
                     ${item.subjects_count || 0} Matérias
                 </span>
             </td>
-            <td class="text-center align-middle border-0">
+            <td class="text-center align-middle">
                 ${toggleHtml}
             </td>
-            <td class="text-end pe-3 align-middle border-0">
-                <button onclick="openAudit('education.courses', ${item.course_id})" class="btn btn-sm btn-link text-warning p-1" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalCurso(${item.course_id})" class="btn btn-sm btn-link text-secondary p-1" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteCourse(${item.course_id})" class="btn btn-sm btn-link text-danger p-1" title="Excluir"><i class="fas fa-trash"></i></button>
+            <td class="text-end align-middle pe-3">
+                <button onclick="openAudit('education.courses', ${item.course_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
+                <button onclick="modalCurso(${item.course_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteCourse(${item.course_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
     .join("");
 
-  container.html(
-    `<table class="table table-hover mb-0"><thead><tr><th colspan="2" class="border-0 ps-3">Curso</th><th class="text-center border-0">Carga</th><th class="text-center border-0">Grade</th><th class="text-center border-0">Ativo</th><th class="text-end pe-4 border-0">Ações</th></tr></thead><tbody>${rows}</tbody></table>`,
-  );
+  // [PADRÃO] Usa table-custom para o estilo animado
+  container.html(`
+    <table class="table-custom">
+        <thead>
+            <tr>
+                <th colspan="2">Curso</th>
+                <th class="text-center">Carga Horária</th>
+                <th class="text-center">Grade</th>
+                <th class="text-center">Ativo</th>
+                <th class="text-end pe-4">Ações</th>
+            </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+    </table>
+  `);
 
   _generatePaginationButtons("pagination-cursos", "currentPage", "totalPages", "getCursos", defaultCourse);
 };
@@ -201,10 +206,7 @@ const loadCourseData = async (id) => {
       $("#max_age").val(d.max_age);
       $("#total_workload").val(d.total_workload_hours);
 
-      // Backend retorna array 'plans' dentro de cada item da grade
       currentCurriculumList = d.curriculum || [];
-
-      // Normalização extra
       currentCurriculumList.forEach((item) => {
         if (!Array.isArray(item.plans)) item.plans = [];
       });
@@ -247,11 +249,7 @@ const initSelectSubjects = () => {
     },
     load: async function (query, callback) {
       try {
-        const result = await window.ajaxValidator({
-          validator: "getSubjectsSelect",
-          token: defaultApp.userInfo.token,
-          search: query,
-        });
+        const result = await window.ajaxValidator({ validator: "getSubjectsSelect", token: defaultApp.userInfo.token, search: query });
         if (result.status) callback(result.data);
         else callback();
       } catch (e) {
@@ -263,12 +261,10 @@ const initSelectSubjects = () => {
 
 window.addSubjectToGrid = () => {
   const subjectId = $("#curr_subject").val();
-  // Safe get text do selectize
   let subjectText = "Disciplina";
   if (subjectId && $("#curr_subject")[0].selectize.options[subjectId]) {
     subjectText = $("#curr_subject")[0].selectize.options[subjectId].title;
   }
-
   const hours = $("#curr_hours").val();
   const isMandatory = $("#curr_mandatory").is(":checked");
 
@@ -284,13 +280,11 @@ window.addSubjectToGrid = () => {
     subject_name: subjectText,
     workload_hours: parseInt(hours),
     is_mandatory: isMandatory,
-    plans: [], // Array vazio inicial
+    plans: [],
   });
 
   renderCurriculumTable();
   updateTotalHours();
-
-  // Reset inputs
   $("#curr_subject")[0].selectize.clear();
   $("#curr_hours").val("20");
 };
@@ -298,7 +292,7 @@ window.addSubjectToGrid = () => {
 window.removeSubjectFromGrid = (index) => {
   Swal.fire({
     title: "Remover da grade?",
-    text: "O planejamento de aulas desta disciplina será perdido.",
+    text: "O planejamento será perdido.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
@@ -325,12 +319,11 @@ const renderCurriculumTable = () => {
   }
 
   currentCurriculumList.forEach((item, index) => {
-    const mandatoryBadge = item.is_mandatory ? '<span class="badge bg-danger">Obrigatória</span>' : '<span class="badge bg-secondary">Opcional</span>';
+    const mandatoryBadge = item.is_mandatory ? '<span class="badge bg-danger bg-opacity-75">Obrigatória</span>' : '<span class="badge bg-secondary bg-opacity-50">Opcional</span>';
 
     let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
-
     const btnClass = plansCount > 0 ? "btn-primary" : "btn-outline-secondary";
-    const infoText = plansCount > 0 ? `<div class="mt-1 text-success small fw-bold"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas planejadas</div>` : `<div class="mt-1 text-muted small fst-italic">Sem planejamento</div>`;
+    const infoText = plansCount > 0 ? `<div class="mt-1 small text-success"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas planejadas</div>` : `<div class="mt-1 small text-muted fst-italic">Sem planejamento</div>`;
 
     container.append(`
             <tr class="align-middle border-0">
@@ -341,12 +334,8 @@ const renderCurriculumTable = () => {
                 <td class="text-center border-0"><span class="badge bg-light text-dark border">${item.workload_hours}h</span></td>
                 <td class="text-center border-0">${mandatoryBadge}</td>
                 <td class="text-end pe-3 border-0">
-                    <button class="btn btn-sm ${btnClass} me-2 shadow-sm" onclick="configureTemplate(${index})" title="Planejar Aulas">
-                        <i class="fas fa-book-reader"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger border-0" onclick="removeSubjectFromGrid(${index})" title="Remover">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <button class="btn btn-sm ${btnClass} me-2 shadow-sm" onclick="configureTemplate(${index})" title="Planejar Aulas"><i class="fas fa-book-reader"></i></button>
+                    <button class="btn btn-sm btn-outline-danger border-0" onclick="removeSubjectFromGrid(${index})" title="Remover"><i class="fas fa-trash-alt"></i></button>
                 </td>
             </tr>
         `);
@@ -366,9 +355,7 @@ window.configureTemplate = (index) => {
   editingCurriculumIndex = index;
   const item = currentCurriculumList[index];
   if (!Array.isArray(item.plans)) item.plans = [];
-
   renderAccordionList();
-
   $("#modalTemplateAulaLabel").html(`<i class="fas fa-book-reader me-2"></i> Planejamento: <strong>${item.subject_name}</strong>`);
   $("#modalTemplateAula").css("z-index", 1060);
   $("#modalTemplateAula").modal("show");
@@ -377,7 +364,6 @@ window.configureTemplate = (index) => {
 const renderAccordionList = () => {
   const container = $("#accordionPlans");
   container.empty();
-
   const plans = currentCurriculumList[editingCurriculumIndex].plans;
 
   if (plans.length === 0) {
@@ -385,9 +371,7 @@ const renderAccordionList = () => {
             <div class="text-center py-5 text-muted">
                 <i class="fas fa-calendar-plus fa-3x mb-3 opacity-25"></i>
                 <p>Nenhum encontro planejado.</p>
-                <button class="btn btn-success btn-sm mt-2" onclick="addPlan()">
-                    <i class="fas fa-plus me-1"></i> Criar 1º Encontro
-                </button>
+                <button class="btn btn-success btn-sm mt-2" onclick="addPlan()"><i class="fas fa-plus me-1"></i> Criar 1º Encontro</button>
             </div>
         `);
     return;
@@ -399,37 +383,21 @@ const renderAccordionList = () => {
     const isFirst = i === 0;
     const isLast = i === plans.length - 1;
 
-    // Botões de movimento
     const upBtn = `<button class="btn btn-sm btn-link text-secondary p-0 me-1" ${isFirst ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
     const downBtn = `<button class="btn btn-sm btn-link text-secondary p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
 
     const html = `
-            <div class="plan-item">
+            <div class="plan-item border-bottom">
                 <div class="accordion-header" id="${headingId}">
                     <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                        
-                        <div class="me-3 d-flex align-items-center" style="min-width: 40px;">
-                            ${upBtn}
-                            ${downBtn}
-                        </div>
-                        
-                        <div class="me-3">
-                            <span class="badge rounded-pill bg-secondary bg-opacity-25 text-body fw-normal" style="min-width: 30px;">#${i + 1}</span>
-                        </div>
-                        
+                        <div class="me-3 d-flex align-items-center" style="min-width: 40px;">${upBtn}${downBtn}</div>
+                        <div class="me-3"><span class="badge rounded-pill bg-secondary bg-opacity-25 text-body fw-normal" style="min-width: 30px;">#${i + 1}</span></div>
                         <div class="flex-grow-1 me-3">
-                            <input type="text" class="form-control form-control-sm input-transparent" 
-                                value="${plan.title || "Encontro " + (i + 1)}" 
-                                onclick="event.stopPropagation()" 
-                                onchange="updatePlanTitle(${i}, this.value)"
-                                placeholder="Título do Encontro">
+                            <input type="text" class="form-control form-control-sm input-transparent" value="${plan.title || "Encontro " + (i + 1)}" onclick="event.stopPropagation()" onchange="updatePlanTitle(${i}, this.value)" placeholder="Título do Encontro">
                         </div>
-                        
                         <div class="ms-auto d-flex align-items-center">
                             <i class="fas fa-chevron-down text-muted small me-3 transition-icon"></i>
-                            <button class="btn btn-sm btn-link text-danger p-0" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                            <button class="btn btn-sm btn-link text-danger p-0" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </div>
                 </div>
@@ -443,24 +411,18 @@ const renderAccordionList = () => {
     container.append(html);
   });
 
-  // Inicialização Inteligente (Performance)
   const collapses = document.querySelectorAll(".accordion-collapse");
   collapses.forEach((el) => {
     el.addEventListener("shown.bs.collapse", function () {
-      // Animação de seta (opcional)
       $(this).prev().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-up");
-
       const textarea = this.querySelector(".summernote-dynamic");
       $(textarea).summernote(summernoteConfig);
     });
-
     el.addEventListener("hide.bs.collapse", function () {
       $(this).prev().find(".fa-chevron-up").removeClass("fa-chevron-up").addClass("fa-chevron-down");
-
       const textarea = this.querySelector(".summernote-dynamic");
-      // Salva antes de destruir
+      const idx = $(textarea).data("index");
       if ($(textarea).next(".note-editor").length > 0) {
-        // Chama nossa função global de save para garantir
         window.saveActiveSummernote();
         $(textarea).summernote("destroy");
       }
@@ -469,13 +431,8 @@ const renderAccordionList = () => {
 };
 
 window.addPlan = () => {
-  currentCurriculumList[editingCurriculumIndex].plans.push({
-    title: `Encontro ${currentCurriculumList[editingCurriculumIndex].plans.length + 1}`,
-    content: "",
-  });
+  currentCurriculumList[editingCurriculumIndex].plans.push({ title: `Encontro ${currentCurriculumList[editingCurriculumIndex].plans.length + 1}`, content: "" });
   renderAccordionList();
-
-  // Abre o último (delay para render)
   setTimeout(() => {
     $(`#accordionPlans .accordion-collapse:last`).collapse("show");
   }, 150);
@@ -493,9 +450,7 @@ window.removePlan = (index) => {
     cancelButtonText: "Cancelar",
   }).then((r) => {
     if (r.isConfirmed) {
-      // Fecha todos para forçar save pendente
       $(".accordion-collapse.show").collapse("hide");
-
       setTimeout(() => {
         currentCurriculumList[editingCurriculumIndex].plans.splice(index, 1);
         renderAccordionList();
@@ -507,13 +462,9 @@ window.removePlan = (index) => {
 window.movePlan = (index, direction) => {
   const plans = currentCurriculumList[editingCurriculumIndex].plans;
   const newIndex = index + direction;
-
   if (newIndex < 0 || newIndex >= plans.length) return;
-
   $(".accordion-collapse.show").collapse("hide");
-
   setTimeout(() => {
-    // Swap
     [plans[index], plans[newIndex]] = [plans[newIndex], plans[index]];
     renderAccordionList();
   }, 300);
@@ -524,15 +475,12 @@ window.updatePlanTitle = (index, value) => {
 };
 
 // --- IMPORTAR / EXPORTAR ---
-
 window.exportPlans = () => {
   const item = currentCurriculumList[editingCurriculumIndex];
   if (!item.plans || item.plans.length === 0) return window.alertDefault("Nada para exportar.", "warning");
-
   const dataStr = JSON.stringify(item.plans, null, 2);
   const blob = new Blob([dataStr], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement("a");
   a.href = url;
   a.download = `Plano_${item.subject_name.replace(/\s+/g, "_")}.json`;
@@ -548,7 +496,6 @@ window.importPlans = () => {
 $("#importFile").on("change", function (e) {
   const file = e.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = function (e) {
     try {
@@ -573,13 +520,13 @@ $("#importFile").on("change", function (e) {
             return;
           }
           renderAccordionList();
-          window.toast("Importado com sucesso!", "success");
+          window.toast("Importado!", "success");
         });
       } else {
         window.alertDefault("Formato inválido. Use um arquivo JSON exportado do sistema.", "error");
       }
     } catch (err) {
-      window.alertDefault("Erro ao ler arquivo.", "error");
+      window.alertDefault("Erro ao ler.", "error");
     }
     $("#importFile").val("");
   };
@@ -587,13 +534,11 @@ $("#importFile").on("change", function (e) {
 });
 
 window.closeTemplateModal = () => {
-  // Força save de qualquer editor aberto
   window.saveActiveSummernote();
   $(".accordion-collapse.show").collapse("hide");
-
   setTimeout(() => {
     $("#modalTemplateAula").modal("hide");
-    renderCurriculumTable(); // Atualiza contadores na tabela principal
+    renderCurriculumTable();
   }, 200);
 };
 
@@ -642,7 +587,7 @@ window.salvarCurso = async () => {
       console.error(e);
       window.alertDefault("Erro ao salvar.", "error");
     } finally {
-      window.setButton(false, btn, '<i class="fas fa-check me-2"></i> Salvar Curso');
+      window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Curso');
     }
   }, 300);
 };
@@ -664,19 +609,59 @@ window.toggleCourse = async (id, element) => {
     }
   }
 };
+
 window.deleteCourse = (id) => {
-  /* ... */
+  Swal.fire({
+    title: "Excluir Curso?",
+    text: "Isso não apaga turmas passadas, mas impede novas.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    confirmButtonText: "Sim, excluir",
+  }).then(async (r) => {
+    if (r.isConfirmed) {
+      const res = await window.ajaxValidator({ validator: "deleteCourse", token: defaultApp.userInfo.token, id: id });
+      if (res.status) {
+        window.alertDefault("Excluído.", "success");
+        getCursos();
+      } else {
+        window.alertDefault(res.alert, "error");
+      }
+    }
+  });
 };
+
+// =========================================================
+// UTILITÁRIOS
+// =========================================================
+
 $("#busca-texto").on("change keyup", function () {
-  /* ... */
+  clearTimeout(window.searchTimeout);
+  window.searchTimeout = setTimeout(() => {
+    defaultCourse.currentPage = 1;
+    getCursos();
+  }, 500);
 });
+
 window.changePage = (page) => {
-  /* ... */
+  defaultCourse.currentPage = page;
+  getCursos();
 };
 window.getCursos = getCursos;
+
+const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
+  let container = $(`.${containerClass}`);
+  container.empty();
+  let total = contextObj[totalPagesKey];
+  let current = contextObj[currentPageKey];
+  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary">Primeira</button>`;
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
+    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"}">${p}</button>`;
+  }
+  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary">Última</button>`;
+  container.html(html);
+};
+
 $(document).ready(() => {
   getCursos();
 });
-const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
-  /* ... */
-};
