@@ -1814,7 +1814,6 @@ canvas {
   border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-
 /* ==========================================================================
    2. CSS DO ANO LETIVO (SEU BLOCO AJUSTADO)
    ========================================================================== */
@@ -1959,103 +1958,198 @@ canvas {
 /* 1. Corpo do Modal e Cards Internos */
 [data-theme="escuro"] .modal-content,
 [data-theme="escuro"] .modal-body {
-    background-color: #111827; /* Fundo Quase Preto (Slate 900) */
-    color: #e2e8f0; /* Texto Claro */
-    border-color: #374151; /* Bordas Sutis */
+  background-color: #111827; /* Fundo Quase Preto (Slate 900) */
+  color: #e2e8f0; /* Texto Claro */
+  border-color: #374151; /* Bordas Sutis */
 }
 
 /* Cards internos (que usam bg-light no HTML) */
 [data-theme="escuro"] .card.bg-light {
-    background-color: #1f2937 !important; /* Cinza Azulado Escuro */
-    border: 1px solid #374151 !important;
+  background-color: #1f2937 !important; /* Cinza Azulado Escuro */
+  border: 1px solid #374151 !important;
 }
 
 [data-theme="escuro"] .card-header.bg-white {
-    background-color: #1f2937 !important;
-    border-bottom: 1px solid #374151 !important;
+  background-color: #1f2937 !important;
+  border-bottom: 1px solid #374151 !important;
 }
 
 [data-theme="escuro"] .card-header h6 {
-    color: #fff !important;
+  color: #fff !important;
 }
 
 /* 2. Inputs, Selects e Textareas */
 [data-theme="escuro"] .form-control,
 [data-theme="escuro"] .form-select {
-    background-color: #0f172a; /* Mais escuro que o card para profundidade */
-    border: 1px solid #374151;
-    color: #fff;
-    transition: all 0.3s ease;
+  background-color: #0f172a; /* Mais escuro que o card para profundidade */
+  border: 1px solid #374151;
+  color: #fff;
+  transition: all 0.3s ease;
 }
 
 [data-theme="escuro"] .form-control:focus,
 [data-theme="escuro"] .form-select:focus {
-    background-color: #0f172a;
-    border-color: var(--padrao); /* Azul do tema */
-    box-shadow: 0 0 0 2px rgba(92, 142, 241, 0.2);
-    color: #fff;
+  background-color: #0f172a;
+  border-color: var(--padrao); /* Azul do tema */
+  box-shadow: 0 0 0 2px rgba(92, 142, 241, 0.2);
+  color: #fff;
 }
 
 /* Placeholder */
 [data-theme="escuro"] .form-control::placeholder {
-    color: #6b7280;
+  color: #6b7280;
 }
 
 /* Ícone de Calendário (Date Input) */
 [data-theme="escuro"] input[type="date"] {
-    color-scheme: dark; /* Força o ícone do calendário a ficar branco */
+  color-scheme: dark; /* Força o ícone do calendário a ficar branco */
 }
 
 /* 3. Tabelas dentro do Modal */
 [data-theme="escuro"] .table-hover {
-    color: #e2e8f0;
+  color: #e2e8f0;
 }
 
 [data-theme="escuro"] .table-hover thead th {
-    background-color: #1f2937;
-    color: #9ca3af;
-    border-bottom: 1px solid #374151;
+  background-color: #1f2937;
+  color: #9ca3af;
+  border-bottom: 1px solid #374151;
 }
 
 [data-theme="escuro"] .table-hover tbody tr:hover {
-    background-color: #374151 !important; /* Highlight suave no hover */
-    color: #fff;
+  background-color: #374151 !important; /* Highlight suave no hover */
+  color: #fff;
 }
 
 [data-theme="escuro"] .table-hover td {
-    border-bottom: 1px solid #374151;
+  border-bottom: 1px solid #374151;
 }
 
 /* 4. Box de Ementa (Syllabus) */
 [data-theme="escuro"] .syllabus-preview {
-    background-color: #1f2937;
-    border-left: 4px solid var(--padrao);
-    color: #cbd5e1;
+  background-color: #1f2937;
+  border-left: 4px solid var(--padrao);
+  color: #cbd5e1;
 }
 
 /* 5. Botões de Ação (Outline) */
 [data-theme="escuro"] .btn-outline-success {
-    color: #4ade80;
-    border-color: #4ade80;
+  color: #4ade80;
+  border-color: #4ade80;
 }
 [data-theme="escuro"] .btn-outline-success:hover,
 [data-theme="escuro"] .btn-check:checked + .btn-outline-success {
-    background-color: #4ade80;
-    color: #000;
+  background-color: #4ade80;
+  color: #000;
 }
 
 [data-theme="escuro"] .btn-outline-danger {
-    color: #f87171;
-    border-color: #f87171;
+  color: #f87171;
+  border-color: #f87171;
 }
 [data-theme="escuro"] .btn-outline-danger:hover,
 [data-theme="escuro"] .btn-check:checked + .btn-outline-danger {
-    background-color: #f87171;
-    color: #fff;
+  background-color: #f87171;
+  color: #fff;
 }
 
 /* Rodapé do Modal */
 [data-theme="escuro"] .modal-footer.bg-white {
-    background-color: #111827 !important;
-    border-top: 1px solid #374151;
+  background-color: #111827 !important;
+  border-top: 1px solid #374151;
+}
+
+.parish-selector-container {
+  background-color: var(--white);
+  border: 1px solid var(--borda);
+  border-radius: 20px;
+  padding: 5px 15px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  transition: all 0.3s ease;
+}
+
+.parish-selector-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--descricao);
+  margin-right: 10px;
+  white-space: nowrap;
+}
+
+#global-parish-selector {
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--padrao);
+  background-color: transparent;
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+  min-width: 200px;
+}
+
+/* Widgets Headers */
+.widget-header {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--borda);
+}
+
+/* Box de Data (Agenda) */
+.event-date-box {
+  background-color: var(--body);
+  /* Usa fundo da página */
+  border-radius: 8px;
+  padding: 5px 10px;
+  text-align: center;
+  min-width: 60px;
+  border: 1px solid transparent;
+}
+
+.event-day {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--descricao);
+  line-height: 1;
+}
+
+.event-num {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--black);
+  line-height: 1.1;
+}
+
+/* Indicador de Bloqueio (Sem Aula) */
+.event-blocked .event-date-box {
+  background-color: rgba(231, 74, 59, 0.1);
+  color: var(--danger);
+  border-color: rgba(231, 74, 59, 0.2);
+}
+
+.event-blocked .event-num,
+.event-blocked .event-day {
+  color: var(--danger) !important;
+}
+
+/* AJUSTES PARA MODO ESCURO (Overrides) */
+[data-theme="escuro"] .parish-selector-container {
+  background-color: var(--padrao1);
+  /* Fundo do Card Escuro */
+  box-shadow: none;
+}
+
+[data-theme="escuro"] #global-parish-selector {
+  color: var(--white);
+}
+
+[data-theme="escuro"] .widget-header {
+  background-color: var(--padrao1);
+}
+
+[data-theme="escuro"] .event-date-box {
+  background-color: rgba(255, 255, 255, 0.05);
 }

@@ -30,7 +30,7 @@ try {
     // Se falhar, mata o processo e devolve JSON para o JavaScript mostrar o alerta
     die(json_encode([
         "status" => false,
-        "alert" => "Erro crítico: Falha na conexão com o Banco Staff."
+        "alert" => "Erro crítico: Falha na conexão."
         // "debug" => $e->getMessage() // Descomente se precisar ver o erro real na tela
     ]));
 }

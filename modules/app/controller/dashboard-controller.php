@@ -1,7 +1,12 @@
 <?php
 
+// Importa as funções de modelo
 include "../function/dashboard-functions.php";
 
+/**
+ * 1. Rota: Estatísticas Gerais do Dashboard
+ * Retorna contadores, próximo evento, financeiro e avisos.
+ */
 function getDashboardStats()
 {
     // 1. Validação de presença do Token
@@ -20,15 +25,73 @@ function getDashboardStats()
     }
 
     // 4. Conexão com o Banco Local (Tenant)
-    // Usa os dados que estavam criptografados no token
+    // Decifra a string de conexão do cliente atual e conecta no PDO global
     getLocal($decoded["conexao"]);
 
     // 5. Preparação dos dados para a função
     $data = [
-        "id_user" => $decoded["id_user"]
+        "id_user" => $decoded["id_user"] // ID do usuário logado (tabela security.users)
     ];
-    
-    // 6. Chamada da Função e Retorno JSON
-    // A função getDashboardStatsData está no dashboard-functions.php
+
+    // 6. Chamada da Função Model e Retorno JSON
     echo json_encode(getDashboardStatsData($data));
+}
+
+/**
+ * 2. Rota: Listar Paróquias (Seletor do Menu)
+ * Busca no banco STAFF quais paróquias este usuário tem acesso.
+ */
+function getMyParishes()
+{
+    // 1. Validação básica
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token não informado.", null, false, 401));
+        return;
+    }
+
+    $decoded = decodeAccessToken($_POST["token"]);
+
+    if (!$decoded) {
+        echo json_encode(failure("Token inválido ou expirado.", null, false, 401));
+        return;
+    }
+
+    // [CORREÇÃO] Não conectamos mais no Local (getLocal).
+    // A função getMyParishesData conecta direto no Staff para verificar se é DEV/ROOT.
+
+    getLocal($decoded["conexao"]);
+
+    $data = [
+        "user_id" => $decoded["id_user"] // ID Global do usuário
+    ];
+
+    echo json_encode(getMyParishesData($data));
+}
+
+/**
+ * 3. Rota: Agenda de Eventos (Widget)
+ * Busca os próximos eventos na tabela organization.events
+ */
+function getUpcomingEvents()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token não informado.", null, false, 401));
+        return;
+    }
+
+    $decoded = decodeAccessToken($_POST["token"]);
+
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Token inválido ou expirado.", null, false, 401));
+        return;
+    }
+
+    // Conecta no banco da paróquia atual
+    getLocal($decoded["conexao"]);
+
+    $data = [
+        "user_id" => $decoded["id_user"]
+    ];
+
+    echo json_encode(getUpcomingEventsData($data));
 }

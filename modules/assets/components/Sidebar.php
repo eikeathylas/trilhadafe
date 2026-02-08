@@ -10,17 +10,26 @@
         </div>
     </div>
 
-    <div class="px-0 mb-5 sidebar-selectize">
-        <div class="context-wrapper" style="padding: 4px 7px !important;">
-            <label class="context-label">
-                <i class="material-symbols-outlined ml-0" style="font-size: 12px; margin-right: 4px;">calendar_month</i> Ano
-            </label>
+    <div class="px-0 mb-4 sidebar-selectize">
 
-            <select id="global_year" placeholder="Buscar ano..."  style="font-size: 12px !important;">
-            </select>
+        <div class="sidebar-context-card top-card">
+            <label class="context-label">
+                <i class="fas fa-building me-1"></i> UNIDADE
+            </label>
+            <div class="context-input-wrapper">
+                <select id="global_parish" placeholder="Carregando..."></select>
+            </div>
         </div>
 
-        <select id="global_org" class="d-none"></select>
+        <div class="sidebar-context-card bottom-card">
+            <label class="context-label">
+                <i class="far fa-calendar-alt me-1"></i> ANO LETIVO
+            </label>
+            <div class="context-input-wrapper">
+                <select id="global_year" placeholder="..."></select>
+            </div>
+        </div>
+
     </div>
 
     <div class="nav-only mb-2">
@@ -128,120 +137,184 @@
 </div>
 
 <script>
-
     document.addEventListener("DOMContentLoaded", async () => {
-    
-    // --- 1. IDENTIFICAÇÃO DO USUÁRIO (OFFICE / ROLE) ---
-    try {
-        let userData = null;
 
-        // Tenta buscar do LocalStorage (onde está o Office)
-        const storageData = localStorage.getItem("tf_data");
-        if (storageData) {
-            userData = JSON.parse(storageData);
-        } 
-        // Fallback: Se não tiver no storage, tenta objeto global
-        else if (typeof defaultApp !== 'undefined') {
-            userData = defaultApp.userInfo;
-        }
+        // --- 1. DADOS DO USUÁRIO ---
+        try {
+            let userData = null;
+            const storageData = localStorage.getItem("tf_data");
+            if (storageData) userData = JSON.parse(storageData);
+            else if (typeof defaultApp !== 'undefined') userData = defaultApp.userInfo;
 
-        if (userData) {
-            const elName = document.getElementById("sidebar_user_name");
-            const elRole = document.getElementById("sidebar_user_role");
-            
-            // Define Nome
-            if (elName) elName.innerText = userData.name || 'Usuário';
-            
-            // Define Cargo (Prioridade: OFFICE > ROLE_LEVEL > 'User')
-            if (elRole) {
-                let roleDisplay = "User";
-                
-                if (userData.office) {
-                    roleDisplay = userData.office; // Ex: SECRETARY
-                } else if (userData.role_level) {
-                    roleDisplay = userData.role_level; // Ex: ADMIN
+            if (userData) {
+                const elName = document.getElementById("sidebar_user_name");
+                const elRole = document.getElementById("sidebar_user_role");
+
+                if (elName) elName.innerText = userData.name || 'Usuário';
+
+                if (elRole) {
+                    let roleDisplay = userData.office || userData.role_level || "User";
+                    elRole.innerText = roleDisplay.toUpperCase();
                 }
-                
-                elRole.innerText = roleDisplay.toUpperCase();
             }
+        } catch (e) {
+            console.error(e);
         }
-    } catch (e) {
-        console.error("Erro ao carregar dados do usuário:", e);
-    }
 
-    // --- 3. INICIALIZAÇÃO DO SELECTIZE (ANO LETIVO) ---
-    const $select = $('#global_year').selectize({
-        create: false,
-        sortField: 'text',
-        searchField: ['text'],
-        placeholder: 'Carregando...',
-        dropdownParent: 'body', // Essencial para Mobile/Z-Index
-        
-        onChange: function(value) {
-            if(!value) return;
-            localStorage.setItem("sys_active_year", value);
-            window.dispatchEvent(new CustomEvent('yearChanged', { detail: value }));
-            
-            const wrapper = document.querySelector('.context-wrapper');
-            if(wrapper) {
-                wrapper.style.borderColor = 'var(--padrao2)'; 
-                setTimeout(() => { wrapper.style.borderColor = 'rgba(255,255,255,0.15)'; }, 800);
-            }
-        },
-        render: {
-            option: function(item, escape) {
-                return `<div class="option"><span>${escape(item.text)}</span></div>`;
-            }
-        }
-    });
+        const urlValidator = (typeof defaultApp !== 'undefined' && defaultApp.validator) ? defaultApp.validator : "app/controller/validation.php";
+        const userToken = (typeof defaultApp !== 'undefined' ? defaultApp.userInfo.token : localStorage.getItem("token"));
 
-    const selectize = $select[0].selectize;
-    selectize.disable();
+        // ============================================================
+        // 2. SELECTIZE: UNIDADE (PARÓQUIA)
+        // ============================================================
+        const $selParish = $('#global_parish').selectize({
+            create: false,
+            sortField: 'text',
+            searchField: ['text'],
+            placeholder: 'Carregando...',
+            dropdownParent: 'body', // Importante para Mobile
 
-    // Carregamento via AJAX (Mantido igual)
-    try {
-        const urlValidator = (typeof defaultApp !== 'undefined' && defaultApp.validator) 
-            ? defaultApp.validator 
-            : "app/controller/validation.php"; 
-
-        const res = await $.ajax({
-            url: urlValidator, 
-            type: "POST",
-            dataType: "json",
-            data: { 
-                validator: "getAcademicYearsList", 
-                token: (typeof defaultApp !== 'undefined' ? defaultApp.userInfo.token : localStorage.getItem("token")) 
+            onChange: function(value) {
+                if (!value) return;
+                const current = localStorage.getItem("tf_active_parish");
+                if (current != value) {
+                    localStorage.setItem("tf_active_parish", value);
+                    // Feedback visual no card
+                    $('.sidebar-context-card.top-card').css('border-color', 'var(--padrao2)');
+                    window.location.reload();
+                }
+            },
+            render: {
+                option: function(item, escape) {
+                    return `<div class="option"><span>${escape(item.text)}</span></div>`;
+                }
             }
         });
 
-        selectize.clearOptions();
-        selectize.enable();
-        selectize.settings.placeholder = "Selecione...";
-        selectize.updatePlaceholder();
+        const parishSelectize = $selParish[0].selectize;
+        parishSelectize.disable();
 
-        if (res.status && res.data) {
-            let activeYear = null;
-            const cachedYear = localStorage.getItem("sys_active_year");
-
-            res.data.forEach(y => {
-                selectize.addOption({ value: y.year_id, text: y.name });
-                if (y.now && y.is_active) activeYear = y.year_id
+        // Carrega Paróquias (Backend Verifica se é DEV/Master)
+        try {
+            const resP = await $.ajax({
+                url: urlValidator,
+                type: "POST",
+                dataType: "json",
+                data: {
+                    validator: "getMyParishes",
+                    token: userToken
+                }
             });
 
-            if (cachedYear) {
-                selectize.setValue(cachedYear);
-            } else if (activeYear) {
-                selectize.setValue(activeYear);
-                localStorage.setItem("sys_active_year", activeYear);
+            parishSelectize.clearOptions();
+            parishSelectize.enable();
+            parishSelectize.settings.placeholder = "Selecione...";
+            parishSelectize.updatePlaceholder();
+
+            if (resP.status && resP.data && resP.data.length > 0) {
+                const savedParish = localStorage.getItem("tf_active_parish");
+                let isActiveSet = false;
+
+                resP.data.forEach(p => {
+                    parishSelectize.addOption({
+                        value: p.id,
+                        text: p.name
+                    });
+                    if (savedParish && p.id == savedParish) isActiveSet = true;
+                });
+
+                if (isActiveSet) parishSelectize.setValue(savedParish, true);
+                else {
+                    const firstId = resP.data[0].id;
+                    localStorage.setItem("tf_active_parish", firstId);
+                    parishSelectize.setValue(firstId, true);
+                }
+            } else {
+                parishSelectize.disable();
+                parishSelectize.settings.placeholder = "Sem acesso";
+                parishSelectize.updatePlaceholder();
             }
-            
-            if(selectize.getValue()) {
-                window.dispatchEvent(new CustomEvent('yearChanged', { detail: selectize.getValue() }));
-            }
+        } catch (e) {
+            parishSelectize.settings.placeholder = "Erro";
+            parishSelectize.updatePlaceholder();
         }
-    } catch (e) {
-        selectize.clearOptions();
-        selectize.addOption({value: "", text: "Erro"});
-    }
-});
-</script>   
+
+        // ============================================================
+        // 3. SELECTIZE: ANO LETIVO
+        // ============================================================
+        const $selYear = $('#global_year').selectize({
+            create: false,
+            sortField: 'text',
+            searchField: ['text'],
+            placeholder: 'Carregando...',
+            dropdownParent: 'body',
+
+            onChange: function(value) {
+                if (!value) return;
+                localStorage.setItem("sys_active_year", value);
+                window.dispatchEvent(new CustomEvent('yearChanged', {
+                    detail: value
+                }));
+
+                // Feedback visual no card
+                const card = document.querySelector('.sidebar-context-card.bottom-card');
+                if (card) {
+                    card.style.borderColor = 'var(--padrao2)';
+                    setTimeout(() => {
+                        card.style.borderColor = 'rgba(255,255,255,0.1)';
+                    }, 800);
+                }
+            },
+            render: {
+                option: function(item, escape) {
+                    return `<div class="option"><span>${escape(item.text)}</span></div>`;
+                }
+            }
+        });
+
+        const yearSelectize = $selYear[0].selectize;
+        yearSelectize.disable();
+
+        try {
+            const resY = await $.ajax({
+                url: urlValidator,
+                type: "POST",
+                dataType: "json",
+                data: {
+                    validator: "getAcademicYearsList",
+                    token: userToken
+                }
+            });
+
+            yearSelectize.clearOptions();
+            yearSelectize.enable();
+            yearSelectize.settings.placeholder = "Selecione...";
+            yearSelectize.updatePlaceholder();
+
+            if (resY.status && resY.data) {
+                let activeYear = null;
+                const cachedYear = localStorage.getItem("sys_active_year");
+
+                resY.data.forEach(y => {
+                    yearSelectize.addOption({
+                        value: y.year_id,
+                        text: y.name
+                    });
+                    if (y.now && y.is_active && !activeYear) activeYear = y.year_id;
+                });
+
+                if (cachedYear) yearSelectize.setValue(cachedYear, true);
+                else if (activeYear) {
+                    yearSelectize.setValue(activeYear, true);
+                    localStorage.setItem("sys_active_year", activeYear);
+                }
+
+                if (yearSelectize.getValue()) {
+                    window.dispatchEvent(new CustomEvent('yearChanged', {
+                        detail: yearSelectize.getValue()
+                    }));
+                }
+            }
+        } catch (e) {}
+    });
+</script>

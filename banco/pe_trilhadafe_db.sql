@@ -1078,8 +1078,8 @@ VALUES
 
 -- [NOVO] Eventos Iniciais
 INSERT INTO organization.events (org_id, title, description, event_date, is_academic_blocker) VALUES 
-(2, 'Padroeiro São José', 'Festa litúrgica solene.', '2025-03-19', TRUE),
-(2, 'Corpus Christi', 'Procissão nas ruas.', '2025-06-19', TRUE);
+(2, 'Padroeiro São José', 'Festa litúrgica solene.', '2026-03-19', TRUE),
+(2, 'Corpus Christi', 'Procissão nas ruas.', '2026-06-19', FALSE);
 
 -- 2. Pessoas
 INSERT INTO people.roles (role_id, role_name, description_pt, is_clergy, is_administrative, is_student) VALUES

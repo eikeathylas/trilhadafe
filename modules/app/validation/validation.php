@@ -42,6 +42,12 @@ switch ($validator) {
 	case "getDashboardStats":
 		getDashboardStats();
 		break;
+	case "getMyParishes": // [NOVO] Seletor de Paróquias
+		getMyParishes();
+		break;
+	case "getUpcomingEvents": // [NOVO] Widget de Agenda
+		getUpcomingEvents();
+		break;
 
 	// =========================================================
 	// MÓDULO: AUDITORIA (audit.js)
@@ -219,10 +225,10 @@ switch ($validator) {
 	case "getMyClasses":
 		getMyClasses();
 		break;
-	case "getClassSubjects": // [NOVO] Busca disciplinas da turma
+	case "getClassSubjects":
 		getClassSubjects();
 		break;
-	case "getClassHistory":  // [NOVO] Busca histórico de aulas
+	case "getClassHistory":
 		getClassHistory();
 		break;
 	case "getClassDailyInfo":
@@ -315,10 +321,6 @@ function ping()
 	if (!isset($_POST["token"])) {
 		return failure("Token não informado.", null, false, 401);
 	}
-
-	// Opcional: Validar token se quiser segurança extra no ping
-	// $decoded = decodeAccessToken($_POST["token"]);
-	// if (!$decoded) return failure("Token inválido.");
 
 	return success("Sistema operacional", [
 		"status" => "ok",
