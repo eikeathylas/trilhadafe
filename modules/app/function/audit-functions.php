@@ -235,10 +235,13 @@ function getHistory($data)
                     $a = json_decode($j, true);
                     if (isset($a['org_id']) && isset($orgMap[$a['org_id']])) $a['instituicao'] = $orgMap[$a['org_id']];
 
-                    // [CORREÇÃO] Decodifica recursos se estiver como string
-                    if (isset($a['resources']) && is_string($a['resources'])) {
-                        $dec = json_decode($a['resources'], true);
-                        if (json_last_error() === JSON_ERROR_NONE) $a['resources'] = $dec;
+                    // [CORREÇÃO] Decodifica recursos e resources_detail se forem string
+                    $fieldsToDecode = ['resources', 'resources_detail'];
+                    foreach ($fieldsToDecode as $f) {
+                        if (isset($a[$f]) && is_string($a[$f])) {
+                            $dec = json_decode($a[$f], true);
+                            if (json_last_error() === JSON_ERROR_NONE) $a[$f] = $dec;
+                        }
                     }
 
                     if (is_array($a)) unset($a['org_id'], $a['location_id']);

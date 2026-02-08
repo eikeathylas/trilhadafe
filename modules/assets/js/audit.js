@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V27 (ATTACHMENTS FIX)
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V27 (ARRAY DIFF FIX)
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -94,6 +94,20 @@ const renderTimeline = (logs, container) => {
   const isTrue = (v) => v === true || v === "t" || v === "true" || v === 1;
   const isFalse = (v) => v === false || v === "f" || v === "false" || v === 0 || v === null;
 
+  // Helper para normalizar objetos de recursos em arrays de chaves ativas
+  const normalizeResources = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === "object") {
+      // Retorna chaves onde o valor é true
+      return Object.keys(val).filter((k) => {
+        const v = val[k];
+        return v === true || v === "true" || v === 1 || v === "1";
+      });
+    }
+    return [];
+  };
+
   logs.forEach((log) => {
     let oldVal = {},
       newVal = {};
@@ -105,6 +119,7 @@ const renderTimeline = (logs, container) => {
     } catch (e) {}
 
     const op = (log.operation || "").toUpperCase().trim();
+    // ... (Definições de isInsert, isHardDelete, etc. iguais) ...
     const isInsert = op === "INSERT" || op === "ADD VÍNCULO";
     const isHardDelete = op === "DELETE" || op === "RMV VÍNCULO";
     const isSoftDelete = op === "UPDATE" && isTrue(newVal.deleted) && !isTrue(oldVal.deleted);
@@ -186,33 +201,52 @@ const renderTimeline = (logs, container) => {
         const vOld = oldVal[key];
         const vNew = newVal[key];
 
-        // [CORREÇÃO] LÓGICA DE DIFF PARA ARRAYS (Ex: Recursos)
-        if (Array.isArray(vOld) || Array.isArray(vNew)) {
-          const arrOld = Array.isArray(vOld) ? vOld : vOld ? [vOld] : [];
-          const arrNew = Array.isArray(vNew) ? vNew : vNew ? [vNew] : [];
+        // [CORREÇÃO] LÓGICA DE DIFF PARA ARRAYS/OBJETOS DE RECURSOS
+        if (key === "resources" || key === "resources_detail") {
+          const listOld = normalizeResources(vOld);
+          const listNew = normalizeResources(vNew);
 
-          // Se forem arrays idênticos, ignora
-          if (JSON.stringify(arrOld.sort()) === JSON.stringify(arrNew.sort())) return;
+          // Ordena para garantir comparação justa
+          listOld.sort();
+          listNew.sort();
 
-          const added = arrNew.filter((x) => !arrOld.includes(x));
-          const removed = arrOld.filter((x) => !arrNew.includes(x));
+          // Se forem idênticos, ignora
+          if (JSON.stringify(listOld) === JSON.stringify(listNew)) return;
+
+          const added = listNew.filter((x) => !listOld.includes(x));
+          const removed = listOld.filter((x) => !listNew.includes(x));
 
           if (added.length === 0 && removed.length === 0) return;
 
           hasVisibleChanges = true;
           let listHtml = "";
 
-          if (removed.length > 0) listHtml += removed.map((x) => `<div class="text-danger small">- ${x} (Removido)</div>`).join("");
-          if (added.length > 0) listHtml += added.map((x) => `<div class="text-success small fw-bold">+ ${x} (Adicionado)</div>`).join("");
+          // Mapeamento de nomes de recursos
+          const resMap = {
+            wifi: "Wi-Fi",
+            projector: "Projetor/TV",
+            sound: "Som",
+            whiteboard: "Lousa/Quadro",
+            computer: "Computador",
+            kitchen: "Cozinha",
+            parking: "Estacionamento",
+            fan: "Ventilador",
+            ac: "Ar Condicionado",
+            water: "Bebedouro",
+          };
+
+          if (removed.length > 0) listHtml += removed.map((x) => `<div class="text-danger small fw-bold"><i class="fas fa-minus-circle me-1"></i> Removido: ${resMap[x] || x}</div>`).join("");
+          if (added.length > 0) listHtml += added.map((x) => `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-1"></i> Adicionado: ${resMap[x] || x}</div>`).join("");
 
           rows += `
                 <tr>
-                    <td class="diff-field text-muted">${formatKey(key)}</td>
-                    <td colspan="3" class="diff-new">${listHtml}</td>
+                    <td class="diff-field text-muted align-top pt-2">Recursos Extras</td>
+                    <td colspan="3" class="diff-new pt-2">${listHtml}</td>
                 </tr>`;
-          return;
+          return; // Retorna para não cair na lógica padrão
         }
 
+        // Lógica Padrão para outros campos
         const displayOld = formatValue(vOld, key);
         const displayNew = formatValue(vNew, key);
 
