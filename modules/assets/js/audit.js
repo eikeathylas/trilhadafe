@@ -63,7 +63,6 @@ const renderTimeline = (logs, container) => {
   let html = "";
   let visibleLogsCount = 0;
 
-  // Campos técnicos que nunca devem aparecer no Diff (Segurança visual)
   const globalBlacklist = [
     "updated_at",
     "created_at",
@@ -87,34 +86,25 @@ const renderTimeline = (logs, container) => {
     "attendance_id",
     "signed_by_user_id",
     "subject_id",
-    "attachment_id", // [NOVO]
-    "uploaded_by",   // [NOVO]
-    "file_path"      // [NOVO] Oculta caminho técnico
+    "attachment_id",
+    "uploaded_by",
+    "file_path",
   ];
 
   const isTrue = (v) => v === true || v === "t" || v === "true" || v === 1;
   const isFalse = (v) => v === false || v === "f" || v === "false" || v === 0 || v === null;
 
   logs.forEach((log) => {
-    let oldVal = {};
-    let newVal = {};
-
-    try {
-      const parsedOld = typeof log.old_values === "string" ? JSON.parse(log.old_values) : log.old_values;
-      oldVal = parsedOld || {};
-    } catch (e) {
-      oldVal = {};
-    }
-
-    try {
-      const parsedNew = typeof log.new_values === "string" ? JSON.parse(log.new_values) : log.new_values;
-      newVal = parsedNew || {};
-    } catch (e) {
+    let oldVal = {},
       newVal = {};
-    }
+    try {
+      oldVal = (typeof log.old_values === "string" ? JSON.parse(log.old_values) : log.old_values) || {};
+    } catch (e) {}
+    try {
+      newVal = (typeof log.new_values === "string" ? JSON.parse(log.new_values) : log.new_values) || {};
+    } catch (e) {}
 
     const op = (log.operation || "").toUpperCase().trim();
-
     const isInsert = op === "INSERT" || op === "ADD VÍNCULO";
     const isHardDelete = op === "DELETE" || op === "RMV VÍNCULO";
     const isSoftDelete = op === "UPDATE" && isTrue(newVal.deleted) && !isTrue(oldVal.deleted);
@@ -125,31 +115,34 @@ const renderTimeline = (logs, container) => {
     let diffHtml = "";
     let hasVisibleChanges = false;
 
-    // Título do Card
     let headerText = log.target_name || "Atualização";
-
-    // [AJUSTE] Sobrescrita de Títulos por Tabela
     if (log.table_name === "person_roles") headerText = "Cargos e Funções";
     else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
     else if (log.table_name === "locations") headerText = "Espaço / Sala";
     else if (log.table_name === "curriculum") headerText = "Grade Curricular";
     else if (log.table_name === "class_sessions") headerText = "Dados da Aula";
     else if (log.table_name === "attendance") headerText = "Frequência";
-    else if (log.table_name === "person_attachments") headerText = "Arquivos"; // [NOVO] Força "Arquivos" no header
+    else if (log.table_name === "person_attachments") headerText = "Arquivos";
 
-    // [AJUSTE] Identificação Inteligente do Item (Incluindo Anexos)
     let itemName =
-      oldVal.description || newVal.description || // Descrição do Anexo (Prioridade)
-      oldVal.file_name || newVal.file_name ||     // Nome do Arquivo
-      oldVal.aluno || newVal.aluno || 
-      oldVal.vinculo || newVal.vinculo ||
-      oldVal.relative_name || newVal.relative_name ||
-      oldVal.name || newVal.name ||
-      oldVal.disciplina || newVal.disciplina ||
-      oldVal.display_name || newVal.display_name ||
+      oldVal.description ||
+      newVal.description ||
+      oldVal.file_name ||
+      newVal.file_name ||
+      oldVal.aluno ||
+      newVal.aluno ||
+      oldVal.vinculo ||
+      newVal.vinculo ||
+      oldVal.relative_name ||
+      newVal.relative_name ||
+      oldVal.name ||
+      newVal.name ||
+      oldVal.disciplina ||
+      newVal.disciplina ||
+      oldVal.display_name ||
+      newVal.display_name ||
       "Item";
 
-    // Tratamento especial para Aulas
     if (log.table_name === "class_sessions" && itemName === "Item") {
       const dt = newVal.session_date || oldVal.session_date;
       if (dt) itemName = "Aula dia " + dt.split("-").reverse().join("/");
@@ -158,19 +151,14 @@ const renderTimeline = (logs, container) => {
     if (isInsert) {
       icon = "add";
       colorClass = "INSERT";
-
-      if (log.table_name === "attendance") {
-        diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro de presença criado.</div>`;
-      } else if (log.table_name === "person_attachments") {
-        // [NOVO] Ícone específico para arquivos
+      if (log.table_name === "attendance") diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro de presença criado.</div>`;
+      else if (log.table_name === "person_attachments") {
         icon = "attach_file";
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-paperclip me-2"></i> Adicionado: ${itemName}</div>`;
       } else if (["persons", "organizations", "courses", "classes"].includes(log.table_name)) {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro mestre criado no sistema.</div>';
         headerText = "Criação";
-      } else {
-        diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Adicionado: ${itemName}</div>`;
-      }
+      } else diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Adicionado: ${itemName}</div>`;
       hasVisibleChanges = true;
     } else if (isHardDelete) {
       icon = "delete";
@@ -180,9 +168,7 @@ const renderTimeline = (logs, container) => {
     } else if (isSoftDelete) {
       icon = "delete";
       colorClass = "DELETE";
-      let label = "Enviado para a lixeira.";
-      if (itemName !== "Item") label = `<strong>${itemName}</strong> removido(a).`;
-
+      let label = itemName !== "Item" ? `<strong>${itemName}</strong> removido(a).` : "Enviado para a lixeira.";
       diffHtml = `<div class="text-danger small"><i class="fas fa-trash me-2"></i> ${label}</div>`;
       hasVisibleChanges = true;
     } else if (isReactivation) {
@@ -191,7 +177,6 @@ const renderTimeline = (logs, container) => {
       diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-recycle me-2"></i> <strong>${itemName}</strong> restaurado(a).</div>`;
       hasVisibleChanges = true;
     } else {
-      // UPDATE NORMAL
       let rows = "";
       const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
 
@@ -200,6 +185,33 @@ const renderTimeline = (logs, container) => {
 
         const vOld = oldVal[key];
         const vNew = newVal[key];
+
+        // [CORREÇÃO] LÓGICA DE DIFF PARA ARRAYS (Ex: Recursos)
+        if (Array.isArray(vOld) || Array.isArray(vNew)) {
+          const arrOld = Array.isArray(vOld) ? vOld : vOld ? [vOld] : [];
+          const arrNew = Array.isArray(vNew) ? vNew : vNew ? [vNew] : [];
+
+          // Se forem arrays idênticos, ignora
+          if (JSON.stringify(arrOld.sort()) === JSON.stringify(arrNew.sort())) return;
+
+          const added = arrNew.filter((x) => !arrOld.includes(x));
+          const removed = arrOld.filter((x) => !arrNew.includes(x));
+
+          if (added.length === 0 && removed.length === 0) return;
+
+          hasVisibleChanges = true;
+          let listHtml = "";
+
+          if (removed.length > 0) listHtml += removed.map((x) => `<div class="text-danger small">- ${x} (Removido)</div>`).join("");
+          if (added.length > 0) listHtml += added.map((x) => `<div class="text-success small fw-bold">+ ${x} (Adicionado)</div>`).join("");
+
+          rows += `
+                <tr>
+                    <td class="diff-field text-muted">${formatKey(key)}</td>
+                    <td colspan="3" class="diff-new">${listHtml}</td>
+                </tr>`;
+          return;
+        }
 
         const displayOld = formatValue(vOld, key);
         const displayNew = formatValue(vNew, key);
@@ -222,8 +234,6 @@ const renderTimeline = (logs, container) => {
     if (!hasVisibleChanges) return;
 
     visibleLogsCount++;
-
-    // BOTÃO DE RESTAURAR
     let rollbackBtn = "";
     if (op === "UPDATE" && !isSoftDelete && !isReactivation) {
       rollbackBtn = `<div class="mt-2 text-end border-top pt-2"><button class="btn btn-xs btn-outline-warning" onclick="doRollback(${log.log_id}, '${log.date_fmt}')"><i class="fas fa-undo-alt me-1"></i> Restaurar esta versão</button></div>`;
@@ -251,12 +261,7 @@ const renderTimeline = (logs, container) => {
   });
 
   if (visibleLogsCount === 0) {
-    container.html(`
-        <div class="text-center py-5 text-muted opacity-50">
-            <span class="material-symbols-outlined" style="font-size: 48px;">history_edu</span>
-            <p class="mt-2">Registro atualizado tecnicamente, sem alterações de dados visíveis.</p>
-        </div>
-    `);
+    container.html(`<div class="text-center py-5 text-muted opacity-50"><span class="material-symbols-outlined" style="font-size: 48px;">history_edu</span><p class="mt-2">Registro atualizado tecnicamente, sem alterações de dados visíveis.</p></div>`);
   } else {
     container.html(html);
   }
@@ -402,7 +407,11 @@ const formatValue = (val, key = "") => {
 
   // TRADUÇÃO DE STATUS
   const statusMap = {
-    ACTIVE: "Ativa", PLANNED: "Planejada", FINISHED: "Encerrada", CANCELLED: "Cancelada", PENDING: "Pendente",
+    ACTIVE: "Ativa",
+    PLANNED: "Planejada",
+    FINISHED: "Encerrada",
+    CANCELLED: "Cancelada",
+    PENDING: "Pendente",
   };
   if (statusMap[val]) return statusMap[val];
 
