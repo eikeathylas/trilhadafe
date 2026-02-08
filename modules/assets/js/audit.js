@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V26 (SMART NAMES)
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V27 (ATTACHMENTS FIX)
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -87,6 +87,9 @@ const renderTimeline = (logs, container) => {
     "attendance_id",
     "signed_by_user_id",
     "subject_id",
+    "attachment_id", // [NOVO]
+    "uploaded_by",   // [NOVO]
+    "file_path"      // [NOVO] Oculta caminho técnico
   ];
 
   const isTrue = (v) => v === true || v === "t" || v === "true" || v === 1;
@@ -122,36 +125,31 @@ const renderTimeline = (logs, container) => {
     let diffHtml = "";
     let hasVisibleChanges = false;
 
-    // Título do Card: Usa o target_name que o PHP calculou (Nome do Aluno, Cargo, etc)
+    // Título do Card
     let headerText = log.target_name || "Atualização";
 
-    // Fallbacks para tabelas genéricas se o target_name falhar
-    if (!log.target_name) {
-      if (log.table_name === "person_roles") headerText = "Cargos e Funções";
-      else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
-      else if (log.table_name === "locations") headerText = "Espaço / Sala";
-      else if (log.table_name === "curriculum") headerText = "Grade Curricular";
-      else if (log.table_name === "class_sessions") headerText = "Dados da Aula";
-      else if (log.table_name === "attendance") headerText = "Frequência";
-    }
+    // [AJUSTE] Sobrescrita de Títulos por Tabela
+    if (log.table_name === "person_roles") headerText = "Cargos e Funções";
+    else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
+    else if (log.table_name === "locations") headerText = "Espaço / Sala";
+    else if (log.table_name === "curriculum") headerText = "Grade Curricular";
+    else if (log.table_name === "class_sessions") headerText = "Dados da Aula";
+    else if (log.table_name === "attendance") headerText = "Frequência";
+    else if (log.table_name === "person_attachments") headerText = "Arquivos"; // [NOVO] Força "Arquivos" no header
 
-    // Identificação Inteligente do Item (Resolve o problema do "Adicionado: Item")
+    // [AJUSTE] Identificação Inteligente do Item (Incluindo Anexos)
     let itemName =
-      oldVal.aluno ||
-      newVal.aluno || // Nome do Aluno (Presença)
-      oldVal.vinculo ||
-      newVal.vinculo || // Nome do Cargo
-      oldVal.relative_name ||
-      newVal.relative_name || // Nome do Parente
-      oldVal.name ||
-      newVal.name || // Nome Genérico
-      oldVal.disciplina ||
-      newVal.disciplina || // Nome da Disciplina
-      oldVal.display_name ||
-      newVal.display_name || // Nome Fantasia
+      oldVal.description || newVal.description || // Descrição do Anexo (Prioridade)
+      oldVal.file_name || newVal.file_name ||     // Nome do Arquivo
+      oldVal.aluno || newVal.aluno || 
+      oldVal.vinculo || newVal.vinculo ||
+      oldVal.relative_name || newVal.relative_name ||
+      oldVal.name || newVal.name ||
+      oldVal.disciplina || newVal.disciplina ||
+      oldVal.display_name || newVal.display_name ||
       "Item";
 
-    // Tratamento especial para Aulas (Se não tiver nome, usa a data)
+    // Tratamento especial para Aulas
     if (log.table_name === "class_sessions" && itemName === "Item") {
       const dt = newVal.session_date || oldVal.session_date;
       if (dt) itemName = "Aula dia " + dt.split("-").reverse().join("/");
@@ -162,8 +160,11 @@ const renderTimeline = (logs, container) => {
       colorClass = "INSERT";
 
       if (log.table_name === "attendance") {
-        // Mensagem específica para frequência
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro de presença criado.</div>`;
+      } else if (log.table_name === "person_attachments") {
+        // [NOVO] Ícone específico para arquivos
+        icon = "attach_file";
+        diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-paperclip me-2"></i> Adicionado: ${itemName}</div>`;
       } else if (["persons", "organizations", "courses", "classes"].includes(log.table_name)) {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro mestre criado no sistema.</div>';
         headerText = "Criação";
@@ -222,7 +223,7 @@ const renderTimeline = (logs, container) => {
 
     visibleLogsCount++;
 
-    // BOTÃO DE RESTAURAR (Liberado Geral)
+    // BOTÃO DE RESTAURAR
     let rollbackBtn = "";
     if (op === "UPDATE" && !isSoftDelete && !isReactivation) {
       rollbackBtn = `<div class="mt-2 text-end border-top pt-2"><button class="btn btn-xs btn-outline-warning" onclick="doRollback(${log.log_id}, '${log.date_fmt}')"><i class="fas fa-undo-alt me-1"></i> Restaurar esta versão</button></div>`;
@@ -263,14 +264,19 @@ const renderTimeline = (logs, container) => {
 
 const formatKey = (key) => {
   const map = {
-    // --- DIÁRIO DE CLASSE (NOVO) ---
+    // --- ANEXOS (NOVO) ---
+    file_name: "Nome do Arquivo",
+    description: "Descrição",
+    file_path: "Caminho",
+
+    // --- DIÁRIO ---
     session_date: "Data da Aula",
     content_type: "Tipo de Conteúdo",
     signed_at: "Assinado em",
     is_present: "Presença",
     justification: "Justificativa",
     absence_type: "Motivo da Falta",
-    aluno: "Aluno", // Nome injetado via PHP
+    aluno: "Aluno",
 
     // --- TURMAS ---
     coordinator_id: "Coordenador",
@@ -337,7 +343,8 @@ const formatKey = (key) => {
     pcd_details: "Detalhes da Deficiência",
     profile_photo_url: "Foto de Perfil",
     sacraments_info: "Dados de Sacramentos",
-    civil_status: "Estado Civil",
+    eucharist_date: "Data Eucaristia",
+    eucharist_place: "Local Eucaristia",
     phone_mobile: "Celular / WhatsApp",
     phone_landline: "Telefone Fixo",
 
@@ -393,34 +400,20 @@ const formatValue = (val, key = "") => {
   if (val === true || val === "t" || val === "true") return '<span class="badge bg-success-subtle text-success border border-success">Sim</span>';
   if (val === false || val === "f" || val === "false") return '<span class="badge bg-secondary-subtle text-secondary border">Não</span>';
 
-  // TRADUÇÃO DE STATUS DE TURMA
+  // TRADUÇÃO DE STATUS
   const statusMap = {
-    ACTIVE: "Ativa",
-    PLANNED: "Planejada",
-    FINISHED: "Encerrada",
-    CANCELLED: "Cancelada",
-    PENDING: "Pendente",
+    ACTIVE: "Ativa", PLANNED: "Planejada", FINISHED: "Encerrada", CANCELLED: "Cancelada", PENDING: "Pendente",
   };
   if (statusMap[val]) return statusMap[val];
 
-  // Mapas Existentes
+  // Mapas
   const relMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
   if (relMap[val]) return relMap[val];
 
   const shiftMap = { MORNING: "Matutino", AFTERNOON: "Vespertino", NIGHT: "Noturno", ALL_DAY: "Integral" };
   if (shiftMap[val]) return shiftMap[val];
 
-  const orgTypeMap = { DIOCESE: "Diocese", PARISH: "Paróquia", CHAPEL: "Capela", CONVENT: "Convento", CURIA: "Cúria" };
-  if (orgTypeMap[val]) return orgTypeMap[val];
-
-  // MAPA DE TIPOS DE CONTEÚDO (Diário)
-  const contentTypeMap = {
-    DOCTRINAL: "Doutrinal",
-    BIBLICAL: "Bíblico",
-    LITURGICAL: "Litúrgico",
-    EXPERIENTIAL: "Vivencial",
-    REVIEW: "Avaliação",
-  };
+  const contentTypeMap = { DOCTRINAL: "Doutrinal", BIBLICAL: "Bíblico", LITURGICAL: "Litúrgico", EXPERIENTIAL: "Vivencial", REVIEW: "Avaliação" };
   if (contentTypeMap[val]) return contentTypeMap[val];
 
   const classMap = { UNJUSTIFIED: "Não Justificada", JUSTIFIED: "Justificada", MEDICAL: "Atestado Médico", OTHER: "Outro", RECURRENT: "Recorrente" };
@@ -432,7 +425,7 @@ const formatValue = (val, key = "") => {
     return `${p[2]}/${p[1]}/${p[0]}`;
   }
 
-  // Objeto JSON (Recursos)
+  // Objeto JSON
   if (typeof val === "object" && val !== null) {
     let str = "";
     const jsonMap = {
@@ -492,9 +485,7 @@ window.doRollback = (logId, dateStr = "") => {
                 <p>Você está prestes a reverter este registro para o estado exato em que ele estava em <b>${dateStr || "nesta data"}</b>.</p>
                 <div class="alert alert-warning d-flex align-items-center mb-0">
                     <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
-                    <div class="small">
-                        <b>Atenção:</b> Quaisquer alterações feitas <u>após</u> esta data neste registro serão substituídas pelos valores antigos.
-                    </div>
+                    <div class="small"><b>Atenção:</b> Quaisquer alterações feitas <u>após</u> esta data serão substituídas.</div>
                 </div>
             </div>
         `,
@@ -509,29 +500,10 @@ window.doRollback = (logId, dateStr = "") => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        Swal.fire({
-          title: "Restaurando...",
-          html: "Aplicando as alterações antigas.",
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-
-        const res = await ajaxValidator({
-          validator: "rollbackAuditLog",
-          token: defaultApp.userInfo.token,
-          log_id: logId,
-        });
-
+        Swal.fire({ title: "Restaurando...", didOpen: () => Swal.showLoading() });
+        const res = await ajaxValidator({ validator: "rollbackAuditLog", token: defaultApp.userInfo.token, log_id: logId });
         if (res.status) {
-          Swal.fire({
-            title: "Restaurado!",
-            text: "O registro voltou para a versão selecionada.",
-            icon: "success",
-            timer: 2000,
-            showConfirmButton: false,
-          }).then(() => {
+          Swal.fire({ title: "Restaurado!", icon: "success", timer: 2000, showConfirmButton: false }).then(() => {
             $("#modalAudit").modal("hide");
             if (typeof window.getPessoas === "function") window.getPessoas();
             if (typeof window.getTurmas === "function") window.getTurmas();
@@ -547,7 +519,7 @@ window.doRollback = (logId, dateStr = "") => {
           Swal.fire("Erro", res.alert, "error");
         }
       } catch (e) {
-        Swal.fire("Erro", "Falha técnica ao tentar restaurar.", "error");
+        Swal.fire("Erro", "Falha técnica.", "error");
       }
     }
   });

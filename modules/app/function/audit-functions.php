@@ -21,20 +21,28 @@ function getHistory($data)
                 WHERE l.schema_name = :schema AND l.table_name = :table AND l.record_id = :id";
 
         // --- BLOCOS DE UNION (Filhos) ---
-        // Pessoas (Cargos e Família)
+
+        // Pessoas (Cargos, Família e Anexos)
         if ($table === 'persons') {
+            // Cargos
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'person_roles' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
+            // Família
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'family_ties' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
+            // Anexos [NOVO]
+            $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'person_attachments' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
         }
+
         // Cursos (Grade)
         if ($table === 'courses') {
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'education' AND l.table_name = 'curriculum' AND (l.new_values->>'course_id' = :id OR l.old_values->>'course_id' = :id)";
         }
+
         // Instituições (Locais)
         if ($table === 'organizations') {
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'organization' AND l.table_name = 'locations' AND (l.new_values->>'org_id' = :id OR l.old_values->>'org_id' = :id)";
         }
-        // Diário (Presença) - Traz logs de presença ao abrir o log da aula
+
+        // Diário (Presença)
         if ($table === 'class_sessions') {
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'education' AND l.table_name = 'attendance' AND (l.new_values->>'session_id' = :id OR l.old_values->>'session_id' = :id)";
         }
@@ -169,6 +177,27 @@ function getHistory($data)
                 $log['new_values'] = $inject($log['new_values']);
             }
 
+            // --- ANEXOS [NOVO] ---
+            if ($log['table_name'] === 'person_attachments') {
+                $old = json_decode($log['old_values'] ?? '{}', true);
+                $new = json_decode($log['new_values'] ?? '{}', true);
+
+                // Tenta pegar o nome ou descrição para exibir no título
+                $nomeArq = $new['file_name'] ?? $old['file_name'] ?? 'Arquivo';
+                $desc = $new['description'] ?? $old['description'] ?? '';
+
+                $log['target_name'] = $desc ? $desc : $nomeArq;
+
+                // Limpa campos técnicos
+                $inject = function ($j) {
+                    $a = json_decode($j, true);
+                    if (is_array($a)) unset($a['person_id'], $a['attachment_id'], $a['file_path'], $a['uploaded_by']);
+                    return json_encode($a);
+                };
+                $log['old_values'] = $inject($log['old_values']);
+                $log['new_values'] = $inject($log['new_values']);
+            }
+
             // --- DIÁRIO / SESSÕES ---
             if ($log['table_name'] === 'class_sessions') {
                 $log['target_name'] = "Dados da Aula";
@@ -186,7 +215,6 @@ function getHistory($data)
 
             // --- PRESENÇA (ATTENDANCE) ---
             if ($log['table_name'] === 'attendance') {
-                // Recupera ID do aluno para definir o Título do Card
                 $oldArr = json_decode($log['old_values'] ?? '{}', true);
                 $newArr = json_decode($log['new_values'] ?? '{}', true);
                 $sid = $newArr['student_id'] ?? $oldArr['student_id'];
@@ -199,7 +227,6 @@ function getHistory($data)
 
                 $inject = function ($j) use ($peopleMap) {
                     $a = json_decode($j, true);
-                    // Remove IDs técnicos para limpar a visualização
                     if (is_array($a)) unset($a['student_id'], $a['session_id'], $a['attendance_id']);
                     return json_encode($a);
                 };
@@ -316,7 +343,8 @@ function rollbackChange($data)
             'class_sessions' => 'session_id',
             'attendance' => 'attendance_id',
             'person_roles' => 'link_id',
-            'family_ties' => 'tie_id'
+            'family_ties' => 'tie_id',
+            'person_attachments' => 'attachment_id' // [NOVO]
         ];
 
         $pkColumn = isset($pkMap[$table]) ? $pkMap[$table] : rtrim($table, 's') . "_id";
