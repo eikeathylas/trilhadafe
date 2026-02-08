@@ -126,27 +126,31 @@ window.modalPessoa = (id = null) => {
   $("#btn-remove-foto").addClass("d-none");
   $("#person_photo").val("");
 
+  // [AJUSTE] Limpa campos de anexo ao abrir modal
+  $("#new_attachment_desc").val("");
+  $("#new_attachment_file").val("");
+
   // Limpa Listas
   currentFamilyList = [];
   currentAttachmentsList = [];
   renderFamilyTable();
-  renderAttachmentsTable([]); // Limpa a tabela visualmente
+  renderAttachmentsTable([]);
 
   if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
 
   // Esconde áreas condicionais
   $("#pcd_details").addClass("d-none");
   $("#baptism_details").addClass("d-none");
-  $("#eucharist_details").addClass("d-none"); // [NOVO]
+  $("#eucharist_details").addClass("d-none");
 
   $("#pessoaTab button:first").tab("show");
 
   if (id) {
     loadPersonData(id);
-    $("#tab-anexos").removeClass("disabled"); // Habilita aba anexos na edição
+    $("#tab-anexos").removeClass("disabled");
   } else {
     $("#modalPessoaLabel").text("Nova Pessoa");
-    $("#tab-anexos").addClass("disabled"); // Desabilita aba anexos na criação
+    $("#tab-anexos").addClass("disabled");
     modal.modal("show");
     initSelectRelatives();
     if (window.initMasks) window.initMasks();

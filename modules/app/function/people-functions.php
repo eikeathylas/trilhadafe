@@ -97,49 +97,43 @@ function getPersonData($personId)
         if (!$person) return failure("Pessoa não encontrada.");
 
         // Busca Cargos
-        $sqlRoles = <<<'SQL'
-            SELECT DISTINCT r.role_name, r.role_id, r.description_pt 
-            FROM people.person_roles pr
-            JOIN people.roles r ON pr.role_id = r.role_id
-            WHERE pr.person_id = :id AND pr.deleted IS FALSE AND pr.is_active IS TRUE
-        SQL;
+        $sqlRoles = "SELECT DISTINCT r.role_name, r.role_id, r.description_pt 
+                     FROM people.person_roles pr
+                     JOIN people.roles r ON pr.role_id = r.role_id
+                     WHERE pr.person_id = :id AND pr.deleted IS FALSE AND pr.is_active IS TRUE";
         $stmtRoles = $conect->prepare($sqlRoles);
         $stmtRoles->execute(['id' => $personId]);
         $person['roles_data'] = $stmtRoles->fetchAll(PDO::FETCH_ASSOC);
         $person['roles'] = array_column($person['roles_data'], 'role_name');
 
         // Busca Família
-        $sqlFamily = <<<'SQL'
-            SELECT 
-                ft.tie_id,
-                ft.relative_id,
-                ft.relationship_type,
-                ft.is_financial_responsible,
-                ft.is_legal_guardian,
-                p.full_name as relative_name
-            FROM people.family_ties ft
-            JOIN people.persons p ON p.person_id = ft.relative_id
-            WHERE ft.person_id = :id AND ft.deleted IS FALSE
-        SQL;
+        $sqlFamily = "SELECT ft.tie_id, ft.relative_id, ft.relationship_type, ft.is_financial_responsible, ft.is_legal_guardian, p.full_name as relative_name
+                      FROM people.family_ties ft
+                      JOIN people.persons p ON p.person_id = ft.relative_id
+                      WHERE ft.person_id = :id AND ft.deleted IS FALSE";
         $stmtFamily = $conect->prepare($sqlFamily);
         $stmtFamily->execute(['id' => $personId]);
         $person['family'] = $stmtFamily->fetchAll(PDO::FETCH_ASSOC);
 
-        // Busca Anexos (Documentos)
-        $sqlAttach = "SELECT attachment_id, file_name, file_path, description, uploaded_at 
+        // [AJUSTE] Busca Anexos com Data Formatada (DD/MM/YYYY HH:mm)
+        $sqlAttach = "SELECT 
+                        attachment_id, 
+                        file_name, 
+                        file_path, 
+                        description, 
+                        TO_CHAR(uploaded_at, 'DD/MM/YYYY HH24:MI') as uploaded_at 
                       FROM people.person_attachments 
-                      WHERE person_id = :id AND deleted IS FALSE ORDER BY uploaded_at DESC";
+                      WHERE person_id = :id AND deleted IS FALSE 
+                      ORDER BY uploaded_at DESC";
+
         $stmtAttach = $conect->prepare($sqlAttach);
         $stmtAttach->execute(['id' => $personId]);
         $person['attachments'] = $stmtAttach->fetchAll(PDO::FETCH_ASSOC);
 
-        // Castings
+        // Castings e JSONs
         $person['is_pcd'] = (bool)$person['is_pcd'];
-
-        // Decodifica sacramentos
         $person['sacraments_info'] = json_decode($person['sacraments_info'] ?? '{}', true);
 
-        // Garante que eucharist_date/place estejam no objeto JS caso venham de colunas
         if (!isset($person['sacraments_info']['eucharist_date']) && !empty($person['eucharist_date'])) {
             $person['sacraments_info']['eucharist_date'] = $person['eucharist_date'];
         }
@@ -158,10 +152,6 @@ function getPersonData($personId)
         return failure("Erro ao carregar cadastro.", null, false, 500);
     }
 }
-
-// ---------------------------------------------------------
-// FUNÇÃO PRINCIPAL DE SALVAMENTO (COM UPLOAD INTEGRADO)
-// ---------------------------------------------------------
 
 function upsertPerson($data, $files = [])
 {
@@ -369,16 +359,13 @@ function upsertPerson($data, $files = [])
     }
 }
 
-// ---------------------------------------------------------
-// GESTÃO DE ANEXOS (DOCUMENTOS)
-// ---------------------------------------------------------
-
 function savePersonAttachment($data, $files)
 {
     try {
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
+        // [AUDITORIA] Garante que o banco saiba quem está inserindo
         if (!empty($data['user_id'])) {
             $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
@@ -395,7 +382,6 @@ function savePersonAttachment($data, $files)
             return failure("Dados de cliente ou pessoa inválidos.", null, false, 400);
         }
 
-        // Caminho: modules/assets/uploads/{client}/{person}/documentos/
         $relativeDir = "assets/uploads/" . $clientId . "/" . $personId . "/documentos/";
         $targetDir = __DIR__ . "/../../" . $relativeDir;
 
@@ -435,7 +421,7 @@ function savePersonAttachment($data, $files)
             return failure("Falha ao mover arquivo para o servidor.", null, false, 500);
         }
     } catch (Exception $e) {
-        if ($conect->inTransaction()) $conect->rollBack();
+        if (isset($conect) && $conect->inTransaction()) $conect->rollBack();
         logSystemError("painel", "people", "savePersonAttachment", "io", $e->getMessage(), $data);
         return failure("Erro interno ao salvar anexo.", null, false, 500);
     }
@@ -447,6 +433,7 @@ function deletePersonAttachment($data)
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
+        // [AUDITORIA] Garante que o banco saiba quem está removendo
         if (!empty($data['user_id'])) {
             $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
@@ -458,15 +445,11 @@ function deletePersonAttachment($data)
         $conect->commit();
         return success("Anexo removido.");
     } catch (Exception $e) {
-        if ($conect->inTransaction()) $conect->rollBack();
+        if (isset($conect) && $conect->inTransaction()) $conect->rollBack();
         logSystemError("painel", "people", "deletePersonAttachment", "sql", $e->getMessage(), $data);
         return failure("Erro ao remover anexo.", null, false, 500);
     }
 }
-
-// =========================================================
-// HELPERS DE SELECT & OUTROS
-// =========================================================
 
 function removePerson($data)
 {
@@ -618,8 +601,6 @@ function getCatechistsForSelect($search = "")
         return failure("Erro na busca de catequistas.", null, false, 500);
     }
 }
-
-// [MANTIDO] Sync User Login (Lógica de sincronia background sem alteração no catch pois não é endpoint)
 function syncUserLogin($personId)
 {
     try {
