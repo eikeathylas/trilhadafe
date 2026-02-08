@@ -70,6 +70,11 @@ const initFilters = () => {
           success: (res) => {
             if (res.status && res.data.length > 0) {
               callback(res.data);
+
+              if (res.data.length === 1) {
+                this.setValue(res.data[0].class_id);
+              }
+
             } else {
               callback(); // Retorna vazio se não houver turmas
             }
@@ -241,8 +246,8 @@ const renderTableHistory = (data) => {
                 </td>
                 <td class="align-middle text-center" width="180">
                     <div class="d-flex flex-column align-items-center">
-                        <small class="fw-bold text-muted mb-1">${present}/${total} Presentes</small>
-                        <div class="progress w-100" style="height: 6px; background-color: #e9ecef;">
+                        <small class="fw-bold text-muted mb-1">${present}/${total} Presentes (${pct}%)</small>
+                        <div class="progress w-100" style="height: 6px; background-color: #0080ff;">
                             <div class="progress-bar ${progColor}" role="progressbar" style="width: ${pct}%"></div>
                         </div>
                     </div>
