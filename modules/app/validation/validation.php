@@ -121,6 +121,12 @@ switch ($validator) {
 	case "getRelativesList":
 		getRelativesList();
 		break;
+	case "uploadAttachment":
+		uploadAttachment();
+		break;
+	case "removeAttachment":
+		removeAttachment();
+		break;
 
 	// =========================================================
 	// MÓDULO: ACADÊMICO (Disciplinas)

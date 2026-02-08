@@ -3,7 +3,7 @@
 include "../function/people-functions.php";
 
 // =========================================================
-// GESTÃO DE PESSOAS (CRUD)
+// GESTÃO DE PESSOAS (CONTROLLER)
 // =========================================================
 
 /**
@@ -35,7 +35,7 @@ function getPeople()
 }
 
 /**
- * Busca dados completos de uma pessoa (incluindo família e vínculos)
+ * Busca dados completos de uma pessoa (incluindo família, vínculos e anexos)
  */
 function getPerson()
 {
@@ -58,7 +58,8 @@ function getPerson()
 }
 
 /**
- * Cria ou Atualiza uma Pessoa (Com Upload de Foto)
+ * Cria ou Atualiza uma Pessoa (Com Upload de Foto de Perfil)
+ * A lógica de upload foi movida para people-functions.php -> upsertPerson
  */
 function savePerson()
 {
@@ -76,105 +77,17 @@ function savePerson()
     getLocal($decoded["conexao"]);
 
     // Recebe os dados do formulário
-    // Nota: Como tem upload de arquivo, os dados vêm no $_POST direto, não em $_POST['data']
     $data = $_POST;
 
     // Injeta ID do usuário logado para Auditoria
     $data['user_id'] = $decoded['id_user'];
 
-    // --- LÓGICA DE UPLOAD DE FOTO ---
-    if (isset($_FILES["profile_photo"]) && $_FILES["profile_photo"]["error"] === UPLOAD_ERR_OK) {
+    // Injeta ID do Cliente (Tenant) para estrutura de pastas
+    // Prioriza o Token para segurança, mas aceita POST se necessário
+    $data['id_client'] = $decoded['id_client'] ?? ($_POST['id_client'] ?? 0);
 
-        // Valida se o ID do cliente foi enviado para criar a pasta correta
-        $id_client = isset($_POST["id_client"]) ? intval($_POST["id_client"]) : 0;
-
-        if ($id_client > 0) {
-            // Define diretório: modules/assets/img/{id_client}/people/
-            $targetDir = __DIR__ . "/../../assets/img/" . $id_client . "/people/";
-
-            // Cria a pasta se não existir
-            if (!is_dir($targetDir)) {
-                mkdir($targetDir, 0755, true);
-            }
-
-            // Gera nome único para evitar cache e colisão
-            $extension = pathinfo($_FILES["profile_photo"]["name"], PATHINFO_EXTENSION);
-            $filename = time() . "_" . uniqid() . "." . $extension;
-            $targetFile = $targetDir . $filename;
-
-            // Move o arquivo
-            if (move_uploaded_file($_FILES["profile_photo"]["tmp_name"], $targetFile)) {
-                // Salva o caminho relativo no banco
-                $data['profile_photo_url'] = "assets/img/" . $id_client . "/people/" . $filename;
-            } else {
-                // Se falhar o upload, avisa mas não impede o cadastro (opcional)
-                echo json_encode(failure("Falha ao salvar a foto de perfil."));
-                return;
-            }
-        }
-    }
-
-    // // --- LÓGICA DE UPLOAD DE FOTO (MELHORADA) ---
-    // // Verifica se foi enviado um ficheiro e se não é um erro de "nenhum ficheiro"
-    // if (isset($_FILES["profile_photo"]) && $_FILES["profile_photo"]["error"] !== UPLOAD_ERR_NO_FILE) {
-
-    //     // 1. Verificar Erros do PHP no Upload
-    //     if ($_FILES["profile_photo"]["error"] !== UPLOAD_ERR_OK) {
-    //         $msg = "Erro no envio do ficheiro. Código: " . $_FILES["profile_photo"]["error"];
-    //         echo json_encode(failure($msg));
-    //         return;
-    //     }
-
-    //     $id_client = isset($_POST["id_client"]) ? intval($_POST["id_client"]) : 0;
-
-    //     if ($id_client > 0) {
-    //         // 2. Definição do Caminho Absoluto
-    //         // Ajustamos para garantir que aponta para a raiz correta do projeto
-    //         // __DIR__ é a pasta onde está este ficheiro. O "../../../" volta para a raiz.
-    //         // Verifica se a estrutura de pastas corresponde a isso.
-    //         $basePath = __DIR__ . "/../../assets/img/" . $id_client . "/people/";
-
-    //         // 3. Criação de Pasta com Permissões Totais (0777)
-    //         if (!is_dir($basePath)) {
-    //             // O 'true' ativa o modo recursivo (cria as pastas pai se necessário)
-    //             if (!mkdir($basePath, 0777, true)) {
-    //                 // Se falhar, captura o erro nos logs do servidor
-    //                 error_log("Erro Crítico: Não foi possível criar a pasta em: " . $basePath);
-    //                 echo json_encode(failure("Falha interna: Não foi possível criar a diretoria de imagens."));
-    //                 return;
-    //             }
-    //             // Garante permissões mesmo se a pasta já existir mas estiver restrita
-    //             chmod($basePath, 0777);
-    //         }
-
-    //         // 4. Sanitização do Nome do Ficheiro
-    //         $extension = pathinfo($_FILES["profile_photo"]["name"], PATHINFO_EXTENSION);
-    //         // Nome seguro: timestamp + id único
-    //         $newFilename = time() . "_" . uniqid() . "." . strtolower($extension);
-    //         $targetFile = $basePath . $newFilename;
-
-    //         // 5. Mover o Ficheiro
-    //         if (move_uploaded_file($_FILES["profile_photo"]["tmp_name"], $targetFile)) {
-    //             // SUCESSO: Guarda o caminho relativo para o HTML acessar
-    //             $data['profile_photo_url'] = "assets/img/" . $id_client . "/people/" . $newFilename;
-    //         } else {
-    //             // FALHA: Diagnóstico
-    //             error_log("Falha no move_uploaded_file. Temp: " . $_FILES["profile_photo"]["tmp_name"] . " -> Destino: " . $targetFile);
-
-    //             // Verifica permissões da pasta para debug
-    //             $perms = substr(sprintf('%o', fileperms($basePath)), -4);
-    //             error_log("Permissões da pasta de destino: " . $perms);
-
-    //             echo json_encode(failure("Falha ao gravar o ficheiro no disco. Verifique o log de erros."));
-    //             return;
-    //         }
-    //     } else {
-    //         echo json_encode(failure("ID do cliente inválido para upload."));
-    //         return;
-    //     }
-    // }
-
-    echo json_encode(upsertPerson($data));
+    // Passamos $_FILES para que a função upsertPerson gerencie o upload
+    echo json_encode(upsertPerson($data, $_FILES));
 }
 
 /**
@@ -230,10 +143,68 @@ function togglePerson()
     echo json_encode(togglePersonStatus($data));
 }
 
+// =========================================================
+// GESTÃO DE DOCUMENTOS (ANEXOS)
+// =========================================================
+
 /**
- * Busca lista para o Select de Família (Busca Parente)
- * Diferente do getPeople, este é otimizado para dropdown (apenas ID e Nome)
+ * Upload de Anexo (Documento)
  */
+function uploadAttachment()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token não informado.", null, false, 401));
+        return;
+    }
+
+    $decoded = decodeAccessToken($_POST["token"]);
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Token inválido.", null, false, 401));
+        return;
+    }
+
+    getLocal($decoded["conexao"]);
+
+    $data = $_POST;
+    $data['user_id'] = $decoded['id_user']; // Auditoria
+
+    // Injeta ID do Cliente para estrutura de pastas
+    $data['id_client'] = $decoded['id_client'] ?? ($_POST['id_client'] ?? 0);
+
+    // O Model espera ($data, $files)
+    echo json_encode(savePersonAttachment($data, $_FILES));
+}
+
+/**
+ * Remove um Anexo
+ */
+function removeAttachment()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token não informado.", null, false, 401));
+        return;
+    }
+
+    $decoded = decodeAccessToken($_POST["token"]);
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Token inválido.", null, false, 401));
+        return;
+    }
+
+    getLocal($decoded["conexao"]);
+
+    $data = [
+        "attachment_id" => $_POST["id"] ?? 0,
+        "user_id" => $decoded["id_user"]
+    ];
+
+    echo json_encode(deletePersonAttachment($data));
+}
+
+// =========================================================
+// HELPERS DE SELEÇÃO (DROPDOWNS)
+// =========================================================
+
 function getRelativesList()
 {
     if (!isset($_POST["token"])) {
@@ -253,7 +224,6 @@ function getRelativesList()
 
     echo json_encode(searchPeopleForSelect($search));
 }
-
 
 function getStudentsList()
 {

@@ -107,6 +107,11 @@
                                 <i class="fas fa-church mr-2"></i> Sacramentos
                             </button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#tab-anexos" type="button" role="tab" aria-selected="false">
+                                <i class="fas fa-paperclip mr-2"></i> Documentos
+                            </button>
+                        </li>
                     </ul>
 
                     <div class="tab-content pt-3" id="pessoaTabContent">
@@ -314,6 +319,7 @@
                             <h6 class="txt-theme border-bottom pb-2 mb-3">Situação Canônica Atual</h6>
                             <div class="row g-3">
                                 <div class="col-md-12">
+
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" id="has_baptism">
                                         <label class="form-check-label fw-bold" for="has_baptism">Batizado na Igreja Católica</label>
@@ -331,7 +337,17 @@
 
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" id="has_eucharist">
-                                        <label class="form-check-label" for="has_eucharist">Recebeu Primeira Eucaristia</label>
+                                        <label class="form-check-label fw-bold" for="has_eucharist">Recebeu Primeira Eucaristia</label>
+                                    </div>
+                                    <div id="eucharist_details" class="ms-4 mb-3 d-none">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control form-control-sm" id="eucharist_place" placeholder="Paróquia da Eucaristia">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input type="date" class="form-control form-control-sm" id="eucharist_date">
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="form-check mb-2">
@@ -344,6 +360,45 @@
                                         <label class="form-check-label" for="has_marriage">Casado na Igreja (Matrimônio)</label>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-anexos" role="tabpanel">
+
+                            <div class="alert alert-light border shadow-sm mb-4">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold">Descrição do Documento <span class="text-danger">*</span></label>
+                                        <input type="text" id="new_attachment_desc" class="form-control form-control-sm" placeholder="Ex: Certidão de Batismo, RG...">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold">Arquivo (PDF, Imagem, Doc) <span class="text-danger">*</span></label>
+                                        <input type="file" id="new_attachment_file" class="form-control form-control-sm" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-sm btn-success w-100" id="btn-add-attachment" onclick="uploadAttachment()">
+                                            <i class="fas fa-plus mr-1"></i> Adicionar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-center" style="width: 50px;"><i class="fas fa-file"></i></th>
+                                            <th>Descrição / Arquivo</th>
+                                            <th>Data Upload</th>
+                                            <th class="text-end">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lista-anexos">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-4">Nenhum documento anexado.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 
@@ -360,7 +415,8 @@
     </div>
 
     <?php include "./assets/components/Modal-Faqs.php"; ?>
-    <?php include "./assets/components/Modal-Audit.php"; ?> <?php include "./assets/components/Scripts.php"; ?>
+    <?php include "./assets/components/Modal-Audit.php"; ?>
+    <?php include "./assets/components/Scripts.php"; ?>
 
     <script src="assets/js/pessoas.js?v=<?php echo time(); ?>"></script>
 

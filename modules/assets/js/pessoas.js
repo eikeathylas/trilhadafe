@@ -5,6 +5,7 @@ const defaultPeople = {
 };
 
 let currentFamilyList = [];
+let currentAttachmentsList = []; // [NOVO] Lista de Anexos
 
 // =========================================================
 // 1. LISTAGEM E FILTROS
@@ -12,7 +13,6 @@ let currentFamilyList = [];
 
 const getPessoas = async () => {
   try {
-    // Garante que a página nunca seja menor que 0 para o backend
     const page = Math.max(0, defaultPeople.currentPage - 1);
     const search = $("#busca-texto").val();
     const role = $("#filtro-role").val();
@@ -30,7 +30,6 @@ const getPessoas = async () => {
 
     if (result.status) {
       const total = result.data[0]?.total_registros || 0;
-      // Calcula total de páginas (mínimo 1)
       defaultPeople.totalPages = Math.max(1, Math.ceil(total / defaultPeople.rowsPerPage));
       renderTablePeople(result.data || []);
     } else {
@@ -108,7 +107,6 @@ const renderTablePeople = (data) => {
 
   container.html(`<table class="table-custom"><thead><tr><th colspan="2">Pessoa</th><th>Vínculos</th><th>Contato</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
 
-  // CORREÇÃO: Passamos 'changePage' para atualizar o estado antes de buscar
   _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "changePage", defaultPeople);
 };
 
@@ -120,7 +118,7 @@ window.modalPessoa = (id = null) => {
   const modal = $("#modalPessoa");
 
   $("#person_id").val("");
-  modal.find("input[type=text], input[type=email], input[type=date], select").val("");
+  modal.find("input[type=text], input[type=email], input[type=date], select, textarea").val("");
   modal.find("input[type=checkbox]").prop("checked", false);
 
   $("#img-preview").attr("src", "").hide();
@@ -128,19 +126,27 @@ window.modalPessoa = (id = null) => {
   $("#btn-remove-foto").addClass("d-none");
   $("#person_photo").val("");
 
+  // Limpa Listas
   currentFamilyList = [];
+  currentAttachmentsList = [];
   renderFamilyTable();
+  renderAttachmentsTable([]); // Limpa a tabela visualmente
+
   if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
 
+  // Esconde áreas condicionais
   $("#pcd_details").addClass("d-none");
   $("#baptism_details").addClass("d-none");
+  $("#eucharist_details").addClass("d-none"); // [NOVO]
 
   $("#pessoaTab button:first").tab("show");
 
   if (id) {
     loadPersonData(id);
+    $("#tab-anexos").removeClass("disabled"); // Habilita aba anexos na edição
   } else {
     $("#modalPessoaLabel").text("Nova Pessoa");
+    $("#tab-anexos").addClass("disabled"); // Desabilita aba anexos na criação
     modal.modal("show");
     initSelectRelatives();
     if (window.initMasks) window.initMasks();
@@ -188,18 +194,34 @@ const loadPersonData = async (id) => {
         if (d.roles.includes("PARENT")) $("#role_parent").prop("checked", true);
       }
 
+      // SACRAMENTOS
       const sac = d.sacraments_info || {};
+
+      // Batismo
       $("#has_baptism")
         .prop("checked", sac.baptism === true || sac.baptism === "true")
         .trigger("change");
       $("#baptism_date").val(sac.baptism_date);
       $("#baptism_place").val(sac.baptism_place);
-      $("#has_eucharist").prop("checked", sac.eucharist === true || sac.eucharist === "true");
+
+      // Eucaristia [NOVO]
+      $("#has_eucharist")
+        .prop("checked", sac.eucharist === true || sac.eucharist === "true")
+        .trigger("change");
+      $("#eucharist_date").val(sac.eucharist_date);
+      $("#eucharist_place").val(sac.eucharist_place);
+
+      // Outros
       $("#has_confirmation").prop("checked", sac.confirmation === true || sac.confirmation === "true");
       $("#has_marriage").prop("checked", sac.marriage === true || sac.marriage === "true");
 
+      // LISTAS
       currentFamilyList = d.family || [];
       renderFamilyTable();
+
+      currentAttachmentsList = d.attachments || []; // [NOVO]
+      renderAttachmentsTable(currentAttachmentsList);
+
       initSelectRelatives();
 
       $("#modalPessoaLabel").text("Editar Pessoa");
@@ -276,17 +298,14 @@ const initSelectRelatives = () => {
     },
     onChange: function (value) {
       if (value && this.options[value]) {
-        const text = this.options[value].title;
-        promptAddRelative(value, text);
+        promptAddRelative(value, this.options[value].title);
       }
     },
   });
 };
 
 const promptAddRelative = (id, name) => {
-
   $("#modalPessoa").modal("hide");
-
   Swal.fire({
     title: `Vincular ${name}`,
     html: `
@@ -313,7 +332,7 @@ const promptAddRelative = (id, name) => {
         `,
     showCancelButton: true,
     confirmButtonText: "Adicionar Vínculo",
-    focusConfirm: false, // Evita focar no botão e focar no input
+    focusConfirm: false,
     preConfirm: () => {
       const type = document.getElementById("swal-rel-type").value;
       if (!type) {
@@ -321,7 +340,7 @@ const promptAddRelative = (id, name) => {
         return false;
       }
       return {
-        type: type, // Pega valor dinâmico
+        type: type,
         fin: document.getElementById("swal-fin").checked,
         legal: document.getElementById("swal-legal").checked,
       };
@@ -330,7 +349,6 @@ const promptAddRelative = (id, name) => {
     $("#modalPessoa").modal("show");
     if (result.isConfirmed) {
       addRelativeToList(id, name, result.value);
-      // Limpa o selectize após adicionar
       const selectize = $("#search_relative")[0].selectize;
       if (selectize) selectize.clear();
     } else {
@@ -370,9 +388,126 @@ const renderFamilyTable = () => {
     if (fam.is_financial_responsible) badges += '<span class="badge bg-success me-1">$ Finan</span>';
     if (fam.is_legal_guardian) badges += '<span class="badge bg-primary">Legal</span>';
     container.append(
-      `<tr><td>${fam.relative_name}</td><td>${typeMap[fam.relationship_type] || fam.relationship_type
-      }</td><td class="text-center">${badges}</td><td class="text-center"><button class="btn btn-sm btn-outline-danger border-0" onclick="removeRelative(${index})"><i class="fas fa-times"></i></button></td></tr>`
+      `<tr><td>${fam.relative_name}</td><td>${typeMap[fam.relationship_type] || fam.relationship_type}</td><td class="text-center">${badges}</td><td class="text-center"><button class="btn btn-sm btn-outline-danger border-0" onclick="removeRelative(${index})"><i class="fas fa-times"></i></button></td></tr>`,
     );
+  });
+};
+
+// =========================================================
+// 3. GESTÃO DE ANEXOS (DOCUMENTOS) - [NOVO]
+// =========================================================
+
+const renderAttachmentsTable = (list) => {
+  const container = $("#lista-anexos");
+  container.empty();
+
+  if (!list || list.length === 0) {
+    container.html('<tr><td colspan="4" class="text-center text-muted py-3">Nenhum documento anexado.</td></tr>');
+    return;
+  }
+
+  list.forEach((att) => {
+    let icon = '<i class="fas fa-file text-secondary"></i>';
+    const ext = att.file_name.split(".").pop().toLowerCase();
+
+    if (["jpg", "jpeg", "png"].includes(ext)) icon = '<i class="fas fa-file-image text-info"></i>';
+    else if (ext === "pdf") icon = '<i class="fas fa-file-pdf text-danger"></i>';
+    else if (["doc", "docx"].includes(ext)) icon = '<i class="fas fa-file-word text-primary"></i>';
+
+    container.append(`
+            <tr>
+                <td class="text-center align-middle" style="font-size: 1.2rem;">${icon}</td>
+                <td class="align-middle">
+                    <span class="d-block fw-bold txt-theme">${att.description || "Sem descrição"}</span>
+                    <small class="text-muted">${att.file_name}</small>
+                </td>
+                <td class="align-middle text-muted small">${att.uploaded_at || "-"}</td>
+                <td class="text-end align-middle">
+                    <a href="../${att.file_path}" target="_blank" class="btn btn-sm btn-outline-primary border-0 me-1" title="Baixar/Visualizar"><i class="fas fa-download"></i></a>
+                    <button class="btn btn-sm btn-outline-danger border-0" onclick="removeAttachment(${att.attachment_id})"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `);
+  });
+};
+
+window.uploadAttachment = async () => {
+  const personId = $("#person_id").val();
+  const fileInput = $("#new_attachment_file")[0];
+  const desc = $("#new_attachment_desc").val().trim();
+
+  if (!personId) return window.alertDefault("Salve o cadastro da pessoa antes de adicionar anexos.", "warning");
+  if (!fileInput.files || fileInput.files.length === 0) return window.alertDefault("Selecione um arquivo.", "warning");
+  if (!desc) return window.alertDefault("Informe uma descrição para o documento.", "warning");
+
+  const btn = $("#btn-add-attachment");
+  window.setButton(true, btn, "Enviando...");
+
+  const formData = new FormData();
+  formData.append("validator", "uploadAttachment");
+  formData.append("token", defaultApp.userInfo.token);
+  formData.append("id_client", defaultApp.userInfo.id_client);
+  formData.append("person_id", personId);
+  formData.append("description", desc);
+  formData.append("file", fileInput.files[0]);
+
+  try {
+    const result = await (window.ajaxValidatorFoto
+      ? window.ajaxValidatorFoto(formData)
+      : $.ajax({
+          url: defaultApp.validator,
+          data: formData,
+          type: "POST",
+          processData: false,
+          contentType: false,
+          dataType: "json",
+        }));
+
+    const res = result.status !== undefined ? result : JSON.parse(result);
+    if (res.status) {
+      window.alertDefault("Arquivo anexado com sucesso!", "success");
+      // Limpa form
+      $("#new_attachment_file").val("");
+      $("#new_attachment_desc").val("");
+      // Recarrega apenas a lista
+      loadPersonData(personId);
+    } else {
+      window.alertDefault(res.alert, "error");
+    }
+  } catch (e) {
+    console.error(e);
+    window.alertDefault("Erro no upload.", "error");
+  } finally {
+    window.setButton(false, btn, '<i class="fas fa-plus"></i> Adicionar');
+  }
+};
+
+window.removeAttachment = (id) => {
+  Swal.fire({
+    title: "Excluir documento?",
+    text: "Essa ação não pode ser desfeita.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    confirmButtonText: "Sim, excluir",
+  }).then(async (r) => {
+    if (r.isConfirmed) {
+      try {
+        const res = await window.ajaxValidator({
+          validator: "removeAttachment",
+          token: defaultApp.userInfo.token,
+          id: id,
+        });
+        if (res.status) {
+          window.alertDefault("Documento removido.", "success");
+          loadPersonData($("#person_id").val());
+        } else {
+          window.alertDefault(res.alert, "error");
+        }
+      } catch (e) {
+        window.alertDefault("Erro ao excluir.", "error");
+      }
+    }
   });
 };
 
@@ -407,10 +542,12 @@ window.salvarPessoa = async () => {
       baptism: $("#has_baptism").is(":checked"),
       baptism_date: $("#baptism_date").val(),
       baptism_place: $("#baptism_place").val(),
-      eucharist: $("#has_eucharist").is(":checked"),
+      eucharist: $("#has_eucharist").is(":checked"), // [NOVO]
+      eucharist_date: $("#eucharist_date").val(), // [NOVO]
+      eucharist_place: $("#eucharist_place").val(), // [NOVO]
       confirmation: $("#has_confirmation").is(":checked"),
       marriage: $("#has_marriage").is(":checked"),
-    })
+    }),
   );
 
   const fileInput = $("#person_photo")[0];
@@ -420,13 +557,13 @@ window.salvarPessoa = async () => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-        url: defaultApp.validator,
-        data: formData,
-        type: "POST",
-        processData: false,
-        contentType: false,
-        dataType: "json",
-      }));
+          url: defaultApp.validator,
+          data: formData,
+          type: "POST",
+          processData: false,
+          contentType: false,
+          dataType: "json",
+        }));
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");
@@ -489,6 +626,8 @@ window.deletePerson = (id) => {
   });
 };
 
+// --- LISTENERS DE INTERFACE ---
+
 $("#is_pcd").change(function () {
   if ($(this).is(":checked")) $("#pcd_details").removeClass("d-none").focus();
   else $("#pcd_details").addClass("d-none");
@@ -497,6 +636,12 @@ $("#is_pcd").change(function () {
 $("#has_baptism").change(function () {
   if ($(this).is(":checked")) $("#baptism_details").removeClass("d-none");
   else $("#baptism_details").addClass("d-none");
+});
+
+// [NOVO] Listener Eucaristia
+$("#has_eucharist").change(function () {
+  if ($(this).is(":checked")) $("#eucharist_details").removeClass("d-none");
+  else $("#eucharist_details").addClass("d-none");
 });
 
 $("#filtro-role, #busca-texto").on("change keyup", function () {
@@ -513,7 +658,7 @@ window.changePage = (page) => {
   getPessoas();
 };
 
-window.getPessoas = getPessoas; // Torna acessível caso botões usem
+window.getPessoas = getPessoas;
 
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);
