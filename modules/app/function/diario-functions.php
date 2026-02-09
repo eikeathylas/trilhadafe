@@ -1,19 +1,16 @@
 <?php
 
 // =========================================================
-// DIÁRIO DE CLASSE (MODEL V3) - HISTÓRICO E DISCIPLINAS
+// DIÁRIO DE CLASSE (MODEL V5.1 - FIX DB COLUMNS)
 // =========================================================
 
 /**
  * 1. Lista as turmas disponíveis para o usuário logado
- * Regra: Filtra pelo Ano Letivo selecionado no Menu Global
  */
 function getTeacherClassesF($userId, $roleLevel, $yearId = null)
 {
     try {
         $conect = $GLOBALS["local"];
-
-        // Configura Filtro de Ano
         $yearFilter = "";
         $params = [];
 
@@ -24,71 +21,37 @@ function getTeacherClassesF($userId, $roleLevel, $yearId = null)
             $yearFilter = "AND ay.is_active IS TRUE";
         }
 
-        // LISTA DE PERMISSÃO TOTAL (Expandida)
-        // Se seu usuário for 'ROOT' ou 'COORD', ele agora vê tudo.
         $superUsers = ['ADMIN', 'MANAGER', 'SECRETARY', 'DEV', 'STAFF', 'ROOT', 'PAROCO', 'COORD'];
 
         if (in_array(strtoupper($roleLevel), $superUsers)) {
-            // ===================================
-            // MODO VISÃO GERAL (Vê tudo)
-            // ===================================
-            $sql = "
-                SELECT 
-                    c.class_id, 
-                    c.name as class_name, 
-                    co.name as course_name,
-                    ay.name as year_name,
-                    l.name as location_name
-                FROM education.classes c
-                JOIN education.courses co ON c.course_id = co.course_id
-                JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
-                LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
-                WHERE c.deleted IS FALSE 
-                  AND c.status = 'ACTIVE' 
-                  $yearFilter
-                ORDER BY c.name ASC
-            ";
+            // VISÃO GERAL
+            $sql = "SELECT c.class_id, c.name as class_name, co.name as course_name, ay.name as year_name, l.name as location_name
+                    FROM education.classes c
+                    JOIN education.courses co ON c.course_id = co.course_id
+                    JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
+                    LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
+                    WHERE c.deleted IS FALSE AND c.status = 'ACTIVE' $yearFilter
+                    ORDER BY c.name ASC";
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
         } else {
-            // ===================================
-            // MODO PROFESSOR (Vê apenas suas turmas)
-            // ===================================
-
+            // VISÃO PROFESSOR
             $stmtP = $conect->prepare("SELECT person_id FROM security.users WHERE user_id = :uid");
             $stmtP->execute(['uid' => $userId]);
             $personId = $stmtP->fetchColumn();
 
-            // CORREÇÃO: Se não tiver person_id, retorna vazio em vez de erro fatal
-            // Isso permite que o sistema carregue (mesmo que vazio) sem travar a tela
-            if (!$personId) {
-                return success("Usuário sem vínculo de pessoa (Nenhuma turma encontrada).", []);
-            }
+            if (!$personId) return success("Nenhuma turma encontrada.", []);
 
             $params['pid'] = $personId;
-
-            $sql = "
-                SELECT DISTINCT
-                    c.class_id, 
-                    c.name as class_name, 
-                    co.name as course_name,
-                    ay.name as year_name,
-                    l.name as location_name
-                FROM education.classes c
-                JOIN education.courses co ON c.course_id = co.course_id
-                JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
-                LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
-                LEFT JOIN education.class_schedules cs ON c.class_id = cs.class_id
-                WHERE c.deleted IS FALSE 
-                  AND c.status = 'ACTIVE' 
-                  $yearFilter
-                  AND (
-                      c.coordinator_id = :pid 
-                      OR c.class_assistant_id = :pid
-                      OR cs.instructor_id = :pid
-                  )
-                ORDER BY c.name ASC
-            ";
+            $sql = "SELECT DISTINCT c.class_id, c.name as class_name, co.name as course_name, ay.name as year_name, l.name as location_name
+                    FROM education.classes c
+                    JOIN education.courses co ON c.course_id = co.course_id
+                    JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
+                    LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
+                    LEFT JOIN education.class_schedules cs ON c.class_id = cs.class_id
+                    WHERE c.deleted IS FALSE AND c.status = 'ACTIVE' $yearFilter
+                    AND (c.coordinator_id = :pid OR c.class_assistant_id = :pid OR cs.instructor_id = :pid)
+                    ORDER BY c.name ASC";
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
         }
@@ -96,159 +59,180 @@ function getTeacherClassesF($userId, $roleLevel, $yearId = null)
         return success("Turmas carregadas.", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
         logSystemError("painel", "diario", "getTeacherClassesF", "sql", $e->getMessage(), ['user_id' => $userId]);
-        // Retorna array vazio em caso de erro SQL para não quebrar o selectize
         return success("Erro ao listar.", []);
     }
 }
 
 /**
- * 2. Lista as disciplinas vinculadas à turma
+ * 2. Lista as disciplinas da turma
  */
 function getClassSubjectsF($classId)
 {
     try {
         $conect = $GLOBALS["local"];
-
-        $sql = "
-            SELECT 
-                s.subject_id,
-                s.name as subject_name,
-                cur.workload_hours
-            FROM education.classes c
-            JOIN education.curriculum cur ON c.course_id = cur.course_id
-            JOIN education.subjects s ON cur.subject_id = s.subject_id
-            WHERE c.class_id = :cid 
-              AND s.deleted IS FALSE
-            ORDER BY s.name ASC
-        ";
-
+        $sql = "SELECT s.subject_id, s.name as subject_name, cur.workload_hours
+                FROM education.classes c
+                JOIN education.curriculum cur ON c.course_id = cur.course_id
+                JOIN education.subjects s ON cur.subject_id = s.subject_id
+                WHERE c.class_id = :cid AND s.deleted IS FALSE
+                ORDER BY s.name ASC";
         $stmt = $conect->prepare($sql);
         $stmt->execute(['cid' => $classId]);
-
         return success("Disciplinas carregadas.", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
+        logSystemError("painel", "diario", "getClassSubjectsF", "sql", $e->getMessage(), ['class_id' => $classId]);
         return failure("Erro ao carregar disciplinas.");
     }
 }
 
 /**
- * 3. Busca o histórico de aulas
+ * 3. SMART LOGIC: Metadados (Grade Horária e Limites)
  */
-function getClassHistoryF($data)
-{
-    try {
-        $conect = $GLOBALS["local"];
-
-        $params = [
-            'cid' => $data['class_id'],
-            'sid' => $data['subject_id'],
-            'limit' => (int)$data['limit'],
-            'offset' => (int)$data['page']
-        ];
-
-        $sql = "
-            SELECT 
-                COUNT(*) OVER() as total_registros,
-                sess.session_id,
-                sess.session_date,
-                sess.description,
-                sess.content_type,
-                (SELECT COUNT(*) FROM education.enrollments e WHERE e.class_id = sess.class_id AND e.status = 'ACTIVE') as total_students,
-                (SELECT COUNT(*) FROM education.attendance a WHERE a.session_id = sess.session_id AND a.is_present IS TRUE) as present_count
-            FROM education.class_sessions sess
-            WHERE sess.class_id = :cid 
-              AND sess.subject_id = :sid
-              AND sess.deleted IS FALSE
-            ORDER BY sess.session_date DESC
-            LIMIT :limit OFFSET :offset
-        ";
-
-        $stmt = $conect->prepare($sql);
-        $stmt->execute($params);
-
-        return success("Histórico carregado.", $stmt->fetchAll(PDO::FETCH_ASSOC));
-    } catch (Exception $e) {
-        logSystemError("painel", "diario", "getClassHistoryF", "sql", $e->getMessage(), $data);
-        return failure("Erro ao carregar histórico.");
-    }
-}
-
-/**
- * 4. Carrega dados para o Modal
- */
-function getClassDailyInfoF($data)
+function getDiarioMetadataF($data)
 {
     try {
         $conect = $GLOBALS["local"];
         $classId = (int)$data['class_id'];
         $subjectId = (int)$data['subject_id'];
-        $sessionId = !empty($data['session_id']) ? (int)$data['session_id'] : null;
 
-        // Ementa
-        $sqlInfo = "SELECT s.syllabus_summary FROM education.subjects s WHERE s.subject_id = :sid LIMIT 1";
-        $stmtInfo = $conect->prepare($sqlInfo);
-        $stmtInfo->execute(['sid' => $subjectId]);
-        $info = $stmtInfo->fetch(PDO::FETCH_ASSOC);
+        // [CORREÇÃO AQUI]
+        // 1. Alterado 'week_day' para 'day_of_week' (conforme seu SQL)
+        // 2. Alterado 'deleted IS FALSE' para 'is_active IS TRUE' (sua tabela não tem coluna deleted)
+        $sqlSched = "SELECT day_of_week, start_time, end_time 
+                     FROM education.class_schedules 
+                     WHERE class_id = :cid AND subject_id = :sid AND is_active IS TRUE";
 
-        // Sessão
-        $session = null;
-        if ($sessionId) {
-            $stmtSess = $conect->prepare("SELECT * FROM education.class_sessions WHERE session_id = :id AND deleted IS FALSE");
-            $stmtSess->execute(['id' => $sessionId]);
-            $session = $stmtSess->fetch(PDO::FETCH_ASSOC);
-        }
+        $stmt = $conect->prepare($sqlSched);
+        $stmt->execute(['cid' => $classId, 'sid' => $subjectId]);
+        $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Alunos
-        if ($sessionId) {
-            $sqlStudents = "
-                SELECT 
-                    p.person_id as student_id,
-                    p.full_name,
-                    p.profile_photo_url,
-                    a.is_present,
-                    a.absence_type,
-                    a.justification
-                FROM education.enrollments e
-                JOIN people.persons p ON e.student_id = p.person_id
-                LEFT JOIN education.attendance a ON a.student_id = e.student_id AND a.session_id = :sid
-                WHERE e.class_id = :cid AND e.status = 'ACTIVE' AND e.deleted IS FALSE
-                ORDER BY p.full_name ASC
-            ";
-            $stmtStd = $conect->prepare($sqlStudents);
-            $stmtStd->execute(['cid' => $classId, 'sid' => $sessionId]);
-        } else {
-            $sqlStudents = "
-                SELECT 
-                    p.person_id as student_id,
-                    p.full_name,
-                    p.profile_photo_url,
-                    NULL as is_present,
-                    NULL as absence_type,
-                    NULL as justification
-                FROM education.enrollments e
-                JOIN people.persons p ON e.student_id = p.person_id
-                WHERE e.class_id = :cid AND e.status = 'ACTIVE' AND e.deleted IS FALSE
-                ORDER BY p.full_name ASC
-            ";
-            $stmtStd = $conect->prepare($sqlStudents);
-            $stmtStd->execute(['cid' => $classId]);
-        }
+        // B. Limites do Ano Letivo
+        $sqlYear = "SELECT ay.start_date, ay.end_date 
+                    FROM education.classes c 
+                    JOIN education.academic_years ay ON ay.year_id = c.academic_year_id 
+                    WHERE c.class_id = :cid LIMIT 1";
+        $stmtY = $conect->prepare($sqlYear);
+        $stmtY->execute(['cid' => $classId]);
+        $limits = $stmtY->fetch(PDO::FETCH_ASSOC);
 
-        $students = $stmtStd->fetchAll(PDO::FETCH_ASSOC);
+        $minDate = $limits['start_date'] ?? date('Y-01-01');
+        $maxDate = $limits['end_date'] ?? date('Y-12-31');
 
-        return success("Dados carregados.", [
-            'info' => $info,
-            'session' => $session,
-            'students' => $students
+        return success("Configurações carregadas.", [
+            'schedules' => $schedules,
+            'min_date' => $minDate,
+            'max_date' => $maxDate
         ]);
     } catch (Exception $e) {
-        logSystemError("painel", "diario", "getClassDailyInfoF", "sql", $e->getMessage(), $data);
-        return failure("Erro ao carregar dados.");
+        logSystemError("painel", "diario", "getDiarioMetadataF", "sql", $e->getMessage(), $data);
+        return failure("Erro ao carregar configurações.");
     }
 }
 
 /**
- * 5. Salva a Aula
+ * 4. SMART LOGIC: Verifica Data (Com Hora), Feriados e Plano
+ */
+function checkDateContentF($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $classId = $data['class_id'];
+        $subjectId = $data['subject_id'];
+        $dateTime = $data['date']; // TIMESTAMP (YYYY-MM-DD THH:MM)
+
+        $dateOnly = substr($dateTime, 0, 10);
+        $orgId = 1;
+
+        // A. Verifica Feriados
+        $sqlEvent = "SELECT name FROM organization.events 
+                     WHERE org_id = :oid AND start_date <= :dt AND end_date >= :dt AND is_blocking IS TRUE AND deleted IS FALSE LIMIT 1";
+        $stmtEv = $conect->prepare($sqlEvent);
+        $stmtEv->execute(['oid' => $orgId, 'dt' => $dateOnly]);
+        $event = $stmtEv->fetch(PDO::FETCH_ASSOC);
+
+        if ($event) {
+            return success("Data bloqueada.", ['status' => 'BLOCKED', 'reason' => $event['name']]);
+        }
+
+        // B. Verifica se já existe aula
+        $sqlSession = "SELECT session_id, summary, content_type, session_date FROM education.class_sessions 
+                       WHERE class_id = :cid AND subject_id = :sid AND session_date = :dt AND deleted IS FALSE";
+        $stmtSess = $conect->prepare($sqlSession);
+        $stmtSess->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime]);
+        $existing = $stmtSess->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            // Busca Frequência
+            $sqlAtt = "SELECT student_id, is_present, justification FROM education.attendance WHERE session_id = :sid";
+            $stmtAtt = $conect->prepare($sqlAtt);
+            $stmtAtt->execute(['sid' => $existing['session_id']]);
+            $attendance = $stmtAtt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($attendance as &$att) {
+                $att['is_present'] = ($att['is_present'] === true || $att['is_present'] === 't');
+            }
+
+            return success("Aula existente.", [
+                'status' => 'EXISTING',
+                'session_id' => $existing['session_id'],
+                'content' => $existing['summary'],
+                'attendance' => $attendance
+            ]);
+        }
+
+        // C. Nova Aula: Busca Próximo Plano
+        $sqlCount = "SELECT COUNT(*) FROM education.class_sessions 
+                     WHERE class_id = :cid AND subject_id = :sid AND session_date < :dt AND deleted IS FALSE";
+        $stmtCount = $conect->prepare($sqlCount);
+        $stmtCount->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime]);
+        $prevCount = $stmtCount->fetchColumn();
+
+        $meetingNum = $prevCount + 1;
+
+        $sqlPlan = "SELECT cp.content 
+                    FROM education.curriculum_plans cp
+                    JOIN education.curriculum cur ON cp.curriculum_id = cur.curriculum_id
+                    JOIN education.classes c ON c.course_id = cur.course_id
+                    WHERE c.class_id = :cid AND cur.subject_id = :sid AND cp.meeting_number = :num AND cp.deleted IS FALSE
+                    LIMIT 1";
+        $stmtPlan = $conect->prepare($sqlPlan);
+        $stmtPlan->execute(['cid' => $classId, 'sid' => $subjectId, 'num' => $meetingNum]);
+        $template = $stmtPlan->fetchColumn();
+
+        return success("Nova aula.", [
+            'status' => 'NEW',
+            'sequence' => $meetingNum,
+            'template' => $template ?: ''
+        ]);
+    } catch (Exception $e) {
+        logSystemError("painel", "diario", "checkDateContentF", "sql", $e->getMessage(), $data);
+        return failure("Erro na verificação de conteúdo.");
+    }
+}
+
+/**
+ * 5. Lista Alunos para o Diário
+ */
+function getStudentsForDiaryF($classId)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $sql = "SELECT e.student_id, p.full_name, p.profile_photo_url 
+                FROM education.enrollments e
+                JOIN people.persons p ON p.person_id = e.student_id
+                WHERE e.class_id = :cid AND e.status = 'ACTIVE' AND e.deleted IS FALSE
+                ORDER BY p.full_name ASC";
+        $stmt = $conect->prepare($sql);
+        $stmt->execute(['cid' => $classId]);
+        return success("Alunos listados", $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (Exception $e) {
+        logSystemError("painel", "diario", "getStudentsForDiaryF", "sql", $e->getMessage(), ['class_id' => $classId]);
+        return failure("Erro ao buscar alunos.");
+    }
+}
+
+/**
+ * 6. Salvar Diário
  */
 function saveClassSessionF($data)
 {
@@ -260,64 +244,44 @@ function saveClassSessionF($data)
             $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
-        $classId = (int)$data['class_id'];
-        $subjectId = (int)$data['subject_id'];
         $sessionId = !empty($data['session_id']) ? (int)$data['session_id'] : null;
+        $classId = $data['class_id'];
+        $subjectId = $data['subject_id'];
+        $dateTime = $data['date'];
+        $content = $data['content'];
 
-        $date = $data['date'];
-        $desc = $data['description'];
-        $type = $data['content_type'] ?? 'DOCTRINAL';
-        $userId = $data['user_id'];
-
-        if ($sessionId) {
-            $sqlUp = "UPDATE education.class_sessions 
-                      SET session_date = :dt, description = :desc, content_type = :type, updated_at = CURRENT_TIMESTAMP 
-                      WHERE session_id = :sid";
-            $conect->prepare($sqlUp)->execute(['dt' => $date, 'desc' => $desc, 'type' => $type, 'sid' => $sessionId]);
-        } else {
-            // Validação de Duplicidade
-            $check = $conect->prepare("SELECT session_id FROM education.class_sessions WHERE class_id = :cid AND subject_id = :sub AND session_date = :dt AND deleted IS FALSE");
-            $check->execute(['cid' => $classId, 'sub' => $subjectId, 'dt' => $date]);
-
+        if (empty($sessionId)) {
+            $check = $conect->prepare("SELECT session_id FROM education.class_sessions WHERE class_id = :c AND subject_id = :s AND session_date = :d AND deleted IS FALSE");
+            $check->execute(['c' => $classId, 's' => $subjectId, 'd' => $dateTime]);
             if ($check->rowCount() > 0) {
                 $conect->rollBack();
-                return failure("Já existe uma aula registrada para esta disciplina nesta data.");
+                return failure("Já existe uma aula neste horário exato.");
             }
 
-            $sqlIns = "INSERT INTO education.class_sessions (class_id, subject_id, session_date, description, content_type, signed_by_user_id, signed_at) 
-                       VALUES (:cid, :sub, :dt, :desc, :type, :uid, CURRENT_TIMESTAMP) RETURNING session_id";
+            $sqlIns = "INSERT INTO education.class_sessions (class_id, subject_id, session_date, summary, content_type, signed_by_user_id, signed_at) 
+                       VALUES (:cid, :sid, :dt, :sum, 'DOCTRINAL', :uid, CURRENT_TIMESTAMP) RETURNING session_id";
             $stmt = $conect->prepare($sqlIns);
-            $stmt->execute(['cid' => $classId, 'sub' => $subjectId, 'dt' => $date, 'desc' => $desc, 'type' => $type, 'uid' => $userId]);
+            $stmt->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime, 'sum' => $content, 'uid' => $data['user_id']]);
             $sessionId = $stmt->fetchColumn();
+        } else {
+            $sqlUpd = "UPDATE education.class_sessions SET summary = :sum, session_date = :dt, updated_at = CURRENT_TIMESTAMP WHERE session_id = :id";
+            $conect->prepare($sqlUpd)->execute(['sum' => $content, 'dt' => $dateTime, 'id' => $sessionId]);
         }
 
-        // Chamada
         $attendanceList = json_decode($data['attendance_json'], true);
-
         if (is_array($attendanceList)) {
-            $sqlAtt = "
-                INSERT INTO education.attendance (session_id, student_id, is_present, absence_type, justification, updated_at)
-                VALUES (:sid, :stid, :pres, :atype, :just, CURRENT_TIMESTAMP)
-                ON CONFLICT (session_id, student_id) 
-                DO UPDATE SET 
-                    is_present = EXCLUDED.is_present, 
-                    absence_type = EXCLUDED.absence_type, 
-                    justification = EXCLUDED.justification, 
-                    updated_at = CURRENT_TIMESTAMP
-            ";
+            $sqlAtt = "INSERT INTO education.attendance (session_id, student_id, is_present, justification, updated_at) 
+                       VALUES (:sess, :stud, :pres, :just, CURRENT_TIMESTAMP)
+                       ON CONFLICT (session_id, student_id) 
+                       DO UPDATE SET is_present = EXCLUDED.is_present, justification = EXCLUDED.justification, updated_at = CURRENT_TIMESTAMP";
             $stmtAtt = $conect->prepare($sqlAtt);
 
             foreach ($attendanceList as $att) {
-                $isPresent = ($att['is_present'] === 'true' || $att['is_present'] === true) ? 'TRUE' : 'FALSE';
-                $absType = ($isPresent === 'TRUE') ? null : ($att['absence_type'] ?? null);
-                $just = ($isPresent === 'TRUE') ? null : ($att['justification'] ?? null);
-
                 $stmtAtt->execute([
-                    'sid' => $sessionId,
-                    'stid' => $att['student_id'],
-                    'pres' => $isPresent,
-                    'atype' => $absType,
-                    'just' => $just
+                    'sess' => $sessionId,
+                    'stud' => $att['student_id'],
+                    'pres' => ($att['present'] === 'true' || $att['present'] === true) ? 'TRUE' : 'FALSE',
+                    'just' => $att['justification'] ?? null
                 ]);
             }
         }
@@ -331,39 +295,62 @@ function saveClassSessionF($data)
     }
 }
 
+/**
+ * 7. Histórico Simplificado
+ */
+function getClassHistoryF($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $params = [
+            'cid' => $data['class_id'],
+            'sid' => $data['subject_id'],
+            'limit' => (int)$data['limit'],
+            'offset' => (int)$data['page']
+        ];
+
+        $sql = "SELECT 
+                    COUNT(*) OVER() as total_registros,
+                    sess.session_id,
+                    to_char(sess.session_date, 'YYYY-MM-DD HH24:MI') as session_date, 
+                    sess.summary,
+                    (SELECT COUNT(*) FROM education.attendance a WHERE a.session_id = sess.session_id AND a.is_present IS TRUE) as present_count,
+                    (SELECT COUNT(*) FROM education.enrollments e WHERE e.class_id = sess.class_id AND e.status = 'ACTIVE') as total_students
+                FROM education.class_sessions sess
+                WHERE sess.class_id = :cid AND sess.subject_id = :sid AND sess.deleted IS FALSE
+                ORDER BY sess.session_date DESC
+                LIMIT :limit OFFSET :offset";
+        $stmt = $conect->prepare($sql);
+        $stmt->execute($params);
+        return success("Histórico carregado.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (Exception $e) {
+        logSystemError("painel", "diario", "getClassHistoryF", "sql", $e->getMessage(), $data);
+        return failure("Erro ao carregar histórico.");
+    }
+}
+
+/**
+ * 8. Excluir Aula
+ */
 function deleteClassSessionF($data)
 {
     try {
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
-        // 1. Configura o Usuário da Sessão para a Trigger de Auditoria pegar
         if (!empty($data['user_id'])) {
-            $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
-            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
+            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
-        $sessionId = (int)$data['session_id'];
-
-        // 2. Realiza o Soft Delete (Update deleted = true)
-        // A Trigger "trg_audit_class_sessions" vai disparar aqui
-        $sql = "UPDATE education.class_sessions 
-                SET deleted = TRUE, updated_at = CURRENT_TIMESTAMP 
-                WHERE session_id = :sid";
-
+        $sql = "UPDATE education.class_sessions SET deleted = TRUE, updated_at = CURRENT_TIMESTAMP WHERE session_id = :sid";
         $stmt = $conect->prepare($sql);
-        $stmt->execute(['sid' => $sessionId]);
+        $stmt->execute(['sid' => $data['session_id']]);
 
-        if ($stmt->rowCount() > 0) {
-            $conect->commit();
-            return success("Aula excluída com sucesso.");
-        } else {
-            $conect->rollBack();
-            return failure("Registro não encontrado ou já excluído.");
-        }
+        $conect->commit();
+        return success("Aula removida.");
     } catch (Exception $e) {
         $conect->rollBack();
         logSystemError("painel", "diario", "deleteClassSessionF", "sql", $e->getMessage(), $data);
-        return failure("Erro ao excluir aula.");
+        return failure("Erro ao excluir.");
     }
 }

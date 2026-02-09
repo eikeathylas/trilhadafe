@@ -226,7 +226,7 @@ switch ($validator) {
 		break;
 
 	// =========================================================
-	// MÓDULO: DIÁRIO DE CLASSE (diario.js)
+	// MÓDULO: DIÁRIO DE CLASSE (diario.js) [ATUALIZADO]
 	// =========================================================
 	case "getMyClasses":
 		getMyClasses();
@@ -237,14 +237,24 @@ switch ($validator) {
 	case "getClassHistory":
 		getClassHistory();
 		break;
-	case "getClassDailyInfo":
-		getClassDailyInfo();
+
+	// Novas Rotas Smart Logic
+	case "getDiarioMetadata":
+		getDiarioMetadata();
 		break;
-	case "saveDailyLog":
-		saveDailyLog();
+	case "checkDateContent":
+		checkDateContent();
 		break;
-	case "deleteDailyLog":
-		deleteDailyLog();
+	case "getStudentsForDiary":
+		getStudentsForDiary();
+		break;
+
+	// Ações de Persistência
+	case "saveClassDiary":
+		saveClassDiary();
+		break;
+	case "deleteClassDiary":
+		deleteClassDiary();
 		break;
 
 	// =========================================================

@@ -402,14 +402,16 @@ COMMENT ON COLUMN education.classes.class_assistant_id IS 'Auxiliar ou monitor d
 CREATE TABLE education.class_schedules (
     schedule_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id) ON DELETE CASCADE,
-    week_day INT NOT NULL,
+    day_of_week INT NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     subject_id INT REFERENCES education.subjects(subject_id),
     location_id INT REFERENCES organization.locations(location_id),
     instructor_id INT REFERENCES people.persons(person_id),
     is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT check_day_of_week CHECK (day_of_week BETWEEN 0 AND 6)
 );
 COMMENT ON TABLE education.class_schedules IS 'Planejamento semanal fixo (Ex: Todo Sábado às 09:00).';
 
@@ -468,7 +470,7 @@ CREATE TABLE education.class_sessions (
     class_id INT NOT NULL REFERENCES education.classes(class_id),
     subject_id INT REFERENCES education.subjects(subject_id),
     
-    session_date DATE NOT NULL,
+    session_date TIMESTAMP NOT NULL,
     description TEXT, -- Conteúdo (Aqui entra o Plano de Aula preenchido)
     
     content_type VARCHAR(50) DEFAULT 'DOCTRINAL',
@@ -651,7 +653,7 @@ CREATE TABLE pastoral.schedules (
     type_id INT NOT NULL REFERENCES pastoral.celebration_types(type_id),
     location_id INT REFERENCES organization.locations(location_id),
     celebrant_id INT REFERENCES people.persons(person_id),
-    week_day INT NOT NULL,
+    day_of_week INT NOT NULL,
     start_time TIME NOT NULL,
     is_active BOOLEAN DEFAULT TRUE
 );
@@ -1193,7 +1195,7 @@ INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES
 INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, academic_year_id, status) VALUES 
 (1, 1, 1, 3, 3, 'Turma Sábado Manhã', 2025, 'ACTIVE');
 
-INSERT INTO education.class_schedules (class_id, week_day, start_time, end_time, subject_id, location_id, instructor_id) VALUES 
+INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, subject_id, location_id, instructor_id) VALUES 
 (1, 6, '09:00:00', '10:30:00', 1, 3, 3);
 
 INSERT INTO education.enrollments (class_id, student_id, status) VALUES 

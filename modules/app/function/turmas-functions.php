@@ -64,7 +64,7 @@ function getAllClasses($data)
                 -- Resumo da Grade (Sem segundos)
                 (
                     SELECT STRING_AGG(
-                        CASE cs.week_day 
+                        CASE cs.day_of_week 
                             WHEN 0 THEN 'Dom' WHEN 1 THEN 'Seg' WHEN 2 THEN 'Ter' 
                             WHEN 3 THEN 'Qua' WHEN 4 THEN 'Qui' WHEN 5 THEN 'Sex' WHEN 6 THEN 'Sáb' 
                         END || ' ' || TO_CHAR(cs.start_time, 'HH24:MI'), 
@@ -127,7 +127,7 @@ function getClassData($id)
         if (!$class) return failure("Turma não encontrada.");
 
         // Busca horários
-        $sqlSched = "SELECT schedule_id, week_day, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id FROM education.class_schedules WHERE class_id = :id AND is_active IS TRUE ORDER BY week_day, start_time";
+        $sqlSched = "SELECT schedule_id, day_of_week, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id FROM education.class_schedules WHERE class_id = :id AND is_active IS TRUE ORDER BY day_of_week, start_time";
         $stmtSched = $conect->prepare($sqlSched);
         $stmtSched->execute(['id' => $id]);
         $class['schedules'] = $stmtSched->fetchAll(PDO::FETCH_ASSOC);
@@ -180,13 +180,13 @@ function upsertClass($data)
         }
 
         // --- SMART SYNC DA GRADE HORÁRIA ---
-        $sqlGet = "SELECT schedule_id, week_day, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id FROM education.class_schedules WHERE class_id = :id";
+        $sqlGet = "SELECT schedule_id, day_of_week, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id FROM education.class_schedules WHERE class_id = :id";
         $stmtGet = $conect->prepare($sqlGet);
         $stmtGet->execute(['id' => $classId]);
 
         $existingItems = [];
         while ($row = $stmtGet->fetch(PDO::FETCH_ASSOC)) {
-            $key = $row['week_day'] . '-' . $row['start_time'] . '-' . $row['end_time'];
+            $key = $row['day_of_week'] . '-' . $row['start_time'] . '-' . $row['end_time'];
             $existingItems[$key] = $row;
         }
 
@@ -194,7 +194,7 @@ function upsertClass($data)
         $processedKeys = [];
 
         foreach ($incomingList as $sch) {
-            $wd = (int)$sch['week_day'];
+            $wd = (int)$sch['day_of_week'];
             $st = substr($sch['start_time'], 0, 5);
             $et = substr($sch['end_time'], 0, 5);
             $lid = !empty($sch['location_id']) ? $sch['location_id'] : null;
@@ -209,7 +209,7 @@ function upsertClass($data)
                         ->execute(['lid' => $lid, 'sid' => $current['schedule_id']]);
                 }
             } else {
-                $sqlIns = "INSERT INTO education.class_schedules (class_id, week_day, start_time, end_time, location_id) VALUES (:cid, :wd, :st, :et, :lid)";
+                $sqlIns = "INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, location_id) VALUES (:cid, :wd, :st, :et, :lid)";
                 $conect->prepare($sqlIns)->execute([
                     'cid' => $classId,
                     'wd' => $wd,

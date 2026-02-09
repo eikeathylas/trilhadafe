@@ -250,7 +250,7 @@ window.addSchedule = () => {
   if (!start || !end) return window.alertDefault("Informe horários.", "warning");
 
   currentSchedules.push({
-    week_day: parseInt(day),
+    day_of_week: parseInt(day),
     start_time: start,
     end_time: end,
     location_id: locId || null,
@@ -282,7 +282,7 @@ const renderSchedulesTable = () => {
 
     container.append(`
             <tr>
-                <td>${daysMap[item.week_day]}</td>
+                <td>${daysMap[item.day_of_week]}</td>
                 <td>${st} - ${et}</td>
                 <td><small class="text-muted">${locLabel}</small></td>
                 <td class="text-center">

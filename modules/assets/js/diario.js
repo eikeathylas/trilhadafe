@@ -1,5 +1,5 @@
 // =========================================================
-// GESTÃO DE DIÁRIO - LÓGICA V3.5 (YEAR RELOAD FIX)
+// GESTÃO DE DIÁRIO DE CLASSE (SMART LOGIC V5 - TIME AWARE)
 // =========================================================
 
 const defaultDiary = {
@@ -8,40 +8,57 @@ const defaultDiary = {
   totalPages: 1,
 };
 
-let currentStudents = [];
-let currentSessionId = null;
+// Estado Local
+const diarioState = {
+  classId: null,
+  subjectId: null,
+  schedules: [], // Guarda regras: [{day_of_week, start_time, end_time}, ...]
+  sessionId: null,
+  currentStudents: [],
+};
+
+// Configuração Summernote
+const summernoteConfig = {
+  height: 250,
+  lang: "pt-BR",
+  placeholder: "Descreva o conteúdo ministrado, observações...",
+  toolbar: [
+    ["style", ["bold", "italic", "underline", "clear"]],
+    ["para", ["ul", "ol", "paragraph"]],
+    ["insert", ["link", "picture"]],
+  ],
+  callbacks: {
+    onInit: function () {
+      // Ajustes visuais se necessário
+    },
+  },
+};
 
 $(document).ready(() => {
-  // --- CORREÇÃO 1: ESCUTA A MUDANÇA DE ANO NO MENU ---
+  // Escuta mudança de ano no menu global
   window.addEventListener("yearChanged", () => {
-    // 1. Limpa grids e botões
     resetInterface();
-
-    // 2. Destrói a instância do Selectize de Turma (se existir)
-    // Isso é crucial para que o 'preload' rode novamente com o novo ano
     const $selClass = $("#sel_filter_class");
     if ($selClass.length && $selClass[0].selectize) {
       $selClass[0].selectize.destroy();
     }
-
-    // 3. Recria os filtros (o load será disparado automaticamente)
     initFilters();
   });
 });
 
 // =========================================================
-// 1. FILTROS E SELETORES (CASCATA)
+// 1. FILTROS E SELETORES
 // =========================================================
 
 const initFilters = () => {
-  // 1.1 Seletor de Turma (Com Verificação de Existência)
+  // 1.1 Seletor de Turma
   if ($("#sel_filter_class").length && !$("#sel_filter_class")[0].selectize) {
     $("#sel_filter_class").selectize({
       valueField: "class_id",
       labelField: "class_name",
       searchField: ["class_name", "course_name"],
       placeholder: "Selecione a Turma...",
-      preload: true, // Carrega dados assim que é criado
+      preload: true,
       render: {
         option: function (item, escape) {
           return `<div class="py-1 px-2">
@@ -50,11 +67,8 @@ const initFilters = () => {
                             </div>`;
         },
       },
-      // AQUI A MÁGICA: O Selectize chama isso ao ser criado (devido ao preload)
       load: function (query, callback) {
         const globalYear = localStorage.getItem("sys_active_year");
-
-        // Se não tiver ano selecionado no menu, não carrega nada
         if (!globalYear) return callback();
 
         $.ajax({
@@ -65,38 +79,31 @@ const initFilters = () => {
             validator: "getMyClasses",
             token: defaultApp.userInfo.token,
             role: defaultApp.userInfo.office,
-            year: globalYear, // Passa o contexto global
+            year: globalYear,
           },
           success: (res) => {
             if (res.status && res.data.length > 0) {
               callback(res.data);
-
-              if (res.data.length === 1) {
-                this.setValue(res.data[0].class_id);
-              }
-
-            } else {
-              callback(); // Retorna vazio se não houver turmas
-            }
+              if (res.data.length === 1) this.setValue(res.data[0].class_id);
+            } else callback();
           },
           error: () => callback(),
         });
       },
       onChange: function (value) {
         if (value) {
+          diarioState.classId = value;
           loadSubjects(value);
-          // Habilita o próximo select se ele existir
-          if ($("#sel_filter_subject")[0].selectize) {
-            $("#sel_filter_subject")[0].selectize.enable();
-          }
+          if ($("#sel_filter_subject")[0].selectize) $("#sel_filter_subject")[0].selectize.enable();
         } else {
+          diarioState.classId = null;
           resetInterface();
         }
       },
     });
   }
 
-  // 1.2 Seletor de Disciplina (Com Verificação)
+  // 1.2 Seletor de Disciplina
   if ($("#sel_filter_subject").length && !$("#sel_filter_subject")[0].selectize) {
     $("#sel_filter_subject").selectize({
       valueField: "subject_id",
@@ -105,10 +112,12 @@ const initFilters = () => {
       placeholder: "Selecione a Disciplina...",
       onChange: function (value) {
         if (value) {
+          diarioState.subjectId = value;
           defaultDiary.currentPage = 1;
           getHistory();
           $("#btn_new_session").prop("disabled", false);
         } else {
+          diarioState.subjectId = null;
           $("#btn_new_session").prop("disabled", true);
           $(".list-table-diario").empty();
         }
@@ -133,16 +142,12 @@ const loadSubjects = async (classId) => {
     if (res.status && res.data.length > 0) {
       selSub.enable();
       res.data.forEach((item) => selSub.addOption(item));
-
-      // UX: Se só tiver uma disciplina, seleciona automático
-      if (res.data.length === 1) {
-        selSub.setValue(res.data[0].subject_id);
-      }
+      if (res.data.length === 1) selSub.setValue(res.data[0].subject_id);
     } else {
-      window.alertDefault("Esta turma não possui disciplinas vinculadas na grade.", "warning");
+      window.alertDefault("Esta turma não possui disciplinas.", "warning");
     }
   } catch (e) {
-    console.error("Erro ao carregar disciplinas", e);
+    console.error(e);
   }
 };
 
@@ -162,11 +167,6 @@ const resetInterface = () => {
 // =========================================================
 
 const getHistory = async () => {
-  const classId = $("#sel_filter_class").val();
-  const subjectId = $("#sel_filter_subject").val();
-
-  if (!classId || !subjectId) return;
-
   const page = Math.max(0, defaultDiary.currentPage - 1);
   $(".list-table-diario").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
@@ -174,8 +174,8 @@ const getHistory = async () => {
     const res = await window.ajaxValidator({
       validator: "getClassHistory",
       token: defaultApp.userInfo.token,
-      class_id: classId,
-      subject_id: subjectId,
+      class_id: diarioState.classId,
+      subject_id: diarioState.subjectId,
       page: page * defaultDiary.rowsPerPage,
       limit: defaultDiary.rowsPerPage,
     });
@@ -185,7 +185,7 @@ const getHistory = async () => {
       defaultDiary.totalPages = Math.max(1, Math.ceil(total / defaultDiary.rowsPerPage));
       renderTableHistory(res.data || []);
     } else {
-      $(".list-table-diario").html('<div class="text-center py-5 text-muted"><p>Nenhuma aula registrada para esta disciplina.</p></div>');
+      $(".list-table-diario").html('<div class="text-center py-5 text-muted"><p>Nenhuma aula registrada.</p></div>');
       $(".pagination-diario").empty();
     }
   } catch (e) {
@@ -195,34 +195,25 @@ const getHistory = async () => {
 
 const renderTableHistory = (data) => {
   const container = $(".list-table-diario");
-
   if (data.length === 0) {
-    container.html(`
-            <div class="text-center py-5">
-                <i class="fas fa-book-open fa-3x text-muted mb-3 opacity-25"></i>
-                <p class="text-muted">Nenhuma aula registrada nesta disciplina.</p>
-            </div>
-        `);
+    container.html(`<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-book-open fa-3x mb-3"></i><p>Nenhuma aula registrada.</p></div>`);
     return;
   }
 
-  const typeMap = {
-    DOCTRINAL: { l: "Doutrinal", c: "primary", i: "auto_stories" },
-    BIBLICAL: { l: "Bíblico", c: "info", i: "menu_book" },
-    LITURGICAL: { l: "Litúrgico", c: "warning", i: "church" },
-    EXPERIENTIAL: { l: "Vivencial", c: "success", i: "diversity_3" },
-    REVIEW: { l: "Avaliação", c: "danger", i: "quiz" },
-  };
-
   let rows = data
     .map((item) => {
-      const dateFmt = item.session_date.split("-").reverse().join("/");
-      const summary = item.description.length > 60 ? item.description.substring(0, 60) + "..." : item.description;
+      // Formatação visual da data
+      const dateParts = item.session_date.split(" "); // Separa Data e Hora
+      const dateFmt = dateParts[0].split("-").reverse().join("/");
+      const timeFmt = dateParts[1] || "";
 
-      // Configuração do Tipo (Badge + Ícone)
-      const typeConfig = typeMap[item.content_type] || { l: item.content_type, c: "secondary", i: "circle" };
+      // Data crua para passar ao modal (formato ISO para datetime-local: YYYY-MM-DDTHH:mm)
+      const rawIsoDate = item.session_date.replace(" ", "T");
 
-      // Barra de Progresso (Presença)
+      const cleanDesc = item.summary ? item.summary.replace(/<[^>]*>?/gm, "") : "";
+      const summary = cleanDesc.length > 60 ? cleanDesc.substring(0, 60) + "..." : cleanDesc;
+
+      // Barra de Progresso
       const total = parseInt(item.total_students);
       const present = parseInt(item.present_count);
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
@@ -231,37 +222,26 @@ const renderTableHistory = (data) => {
       return `
             <tr>
                 <td class="align-middle ps-3" width="60">
-                    <div class="icon-circle bg-${typeConfig.c} bg-opacity-10 text-${typeConfig.c}">
-                        <span class="material-symbols-outlined" style="font-size: 20px;">${typeConfig.i}</span>
+                    <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                        <span class="material-symbols-outlined">event_note</span>
                     </div>
                 </td>
                 <td class="align-middle">
-                    <div class="fw-bold text-dark">${dateFmt}</div>
-                    <span class="badge bg-${typeConfig.c} bg-opacity-10 text-${typeConfig.c} border border-${typeConfig.c} border-opacity-25 rounded-pill" style="font-size: 0.7rem;">
-                        ${typeConfig.l}
-                    </span>
-                </td>
-                <td class="align-middle">
-                    <span class="text-muted small">${summary}</span>
+                    <div class="fw-bold text-dark">${dateFmt} <span class="small text-muted fw-normal ms-1">${timeFmt}</span></div>
+                    <div class="small text-muted">${summary || "Sem descrição"}</div>
                 </td>
                 <td class="align-middle text-center" width="180">
                     <div class="d-flex flex-column align-items-center">
                         <small class="fw-bold text-muted mb-1">${present}/${total} Presentes (${pct}%)</small>
-                        <div class="progress w-100" style="height: 6px; background-color: #0080ff;">
+                        <div class="progress w-100" style="height: 6px; background-color: rgba(0,0,0,0.1);">
                             <div class="progress-bar ${progColor}" role="progressbar" style="width: ${pct}%"></div>
                         </div>
                     </div>
                 </td>
                 <td class="text-end align-middle pe-3">
-                    <button class="btn btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log de Alterações">
-                        <i class="fas fa-bolt"></i>
-                    </button>
-                    <button class="btn btn-icon-action text-primary" onclick="openSessionModal(${item.session_id})" title="Editar Aula">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="btn btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir Registro">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                    <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
+                    <button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `;
@@ -272,8 +252,7 @@ const renderTableHistory = (data) => {
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th colspan="2" class="ps-3">Data / Tipo</th>
-                    <th>Conteúdo Ministrado</th>
+                    <th colspan="2" class="ps-3">Data / Conteúdo</th>
                     <th class="text-center">Frequência</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
@@ -286,267 +265,348 @@ const renderTableHistory = (data) => {
 };
 
 // =========================================================
-// 3. MODAL DE AULA (LANÇAMENTO/EDIÇÃO)
+// 3. LÓGICA SMART (DATA E HORA)
 // =========================================================
 
-window.openSessionModal = async (sessionId = null) => {
-  const classId = $("#sel_filter_class").val();
-  const subjectId = $("#sel_filter_subject").val();
+// Gatilho Principal (Botão Nova Aula ou Edição)
+window.openSessionModal = async (sessionId = null, dateStr = null) => {
+  diarioState.sessionId = sessionId;
 
-  // Labels para o cabeçalho do modal
-  const classTxt = $("#sel_filter_class")[0].selectize.getItem(classId).text();
-  const subjectTxt = $("#sel_filter_subject")[0].selectize.getItem(subjectId).text();
-
-  currentSessionId = sessionId;
-  $("#session_id").val(sessionId || "");
-  $("#modal_subtitle").text(`Turma: ${classTxt} | Disciplina: ${subjectTxt}`);
-  $("#modalSessionLabel").text(sessionId ? "Editar Aula" : "Registrar Nova Aula");
-
-  // Limpa campos visuais
-  $("#session_date").val(new Date().toISOString().split("T")[0]);
-  $("#session_content").val("");
-  $("#session_type").val("DOCTRINAL");
-  $("#modal_syllabus_ref").html('<em class="small text-muted">Carregando...</em>');
-  $("#table_attendance_modal").html('<tr><td colspan="3" class="text-center py-5"><span class="loader-sm"></span> Carregando alunos...</td></tr>');
+  // Reset UI
+  const $dateInput = $("#diario_date");
+  $dateInput.val("").off("change"); // Limpa listeners antigos para não duplicar
+  $("#diario_content").summernote("destroy");
+  $("#diario_content").val("");
+  $("#lista-alunos").html('<div class="text-center py-5"><span class="loader"></span></div>');
+  $("#date-status-icon").empty();
+  $("#date-msg").text("").removeClass("text-danger text-success text-warning");
 
   $("#modalSession").modal("show");
 
-  // AJAX para buscar dados da sessão (se houver) e lista de alunos
+  // 1. Carrega Metadados (Grade Horária Completa e Limites)
   try {
-    const res = await window.ajaxValidator({
-      validator: "getClassDailyInfo",
+    const resMeta = await window.ajaxValidator({
+      validator: "getDiarioMetadata",
       token: defaultApp.userInfo.token,
-      class_id: classId,
-      subject_id: subjectId,
-      session_id: sessionId,
+      class_id: diarioState.classId,
+      subject_id: diarioState.subjectId,
     });
 
-    if (res.status) {
-      const data = res.data;
+    if (resMeta.status) {
+      diarioState.schedules = resMeta.data.schedules; // Guarda a grade para validação local
 
-      // 1. Ementa (Ajuda o professor)
-      if (data.info && data.info.syllabus_summary) {
-        $("#modal_syllabus_ref").html(data.info.syllabus_summary.replace(/\n/g, "<br>"));
+      // Configura limites do input datetime-local
+      $dateInput.attr("min", resMeta.data.min_date + "T00:00");
+      $dateInput.attr("max", resMeta.data.max_date + "T23:59");
+      $dateInput.prop("disabled", false); // Habilita o input
+
+      // 2. Define Valor Inicial
+      if (dateStr) {
+        // Modo Edição: Usa a data passada pela grid
+        $dateInput.val(dateStr);
+        checkDateLogic(dateStr); // Dispara a verificação imediatamente
       } else {
-        $("#modal_syllabus_ref").html('<em class="small text-muted">Nenhuma ementa cadastrada.</em>');
+        // Modo Novo: Não sugere data automática para obrigar a escolha consciente (ou sugere hoje se quiser)
+        // Se quisermos sugerir hoje:
+        // const now = new Date().toISOString().slice(0, 16);
+        // $dateInput.val(now);
       }
-
-      // 2. Dados da Aula (Se for edição)
-      if (data.session) {
-        $("#session_date").val(data.session.session_date);
-        $("#session_content").val(data.session.description);
-        $("#session_type").val(data.session.content_type);
-      }
-
-      // 3. Lista de Chamada
-      currentStudents = data.students || [];
-      renderModalAttendance();
     }
   } catch (e) {
-    window.alertDefault("Erro ao carregar dados do diário.", "error");
-    $("#modalSession").modal("hide");
-  }
-};
-
-const renderModalAttendance = () => {
-  const container = $("#table_attendance_modal");
-  container.empty();
-  $("#count_students").text(currentStudents.length + " Alunos");
-
-  if (currentStudents.length === 0) {
-    container.html('<tr><td colspan="3" class="text-center py-4 text-muted">Nenhum aluno ativo nesta turma.</td></tr>');
-    return;
+    console.error(e);
   }
 
-  currentStudents.forEach((student, index) => {
-    // Lógica bool do Postgres (t/f ou true/false)
-    const isPresent = student.is_present === true || student.is_present === "t" || student.is_present === "true";
-    const isAbsent = student.is_present === false || student.is_present === "f" || student.is_present === "false";
+  // Init Summernote
+  $("#diario_content").summernote(summernoteConfig);
 
-    // Se tem justificativa, ícone fica amarelo
-    let obsBtnClass = "text-muted opacity-25";
-    if (student.justification || student.absence_type) obsBtnClass = "text-warning opacity-100";
-
-    const html = `
-            <tr class="student-row">
-                <td class="align-middle ps-4">
-                    <div class="fw-bold text-muted" style="font-size: 0.9rem;">${student.full_name}</div>
-                </td>
-                <td class="align-middle text-center">
-                    <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="att_${student.student_id}" id="p_${student.student_id}" ${isPresent ? "checked" : ""} onchange="updateAtt(${index}, true)">
-                        <label class="btn btn-outline-success btn-sm btn-attendance" for="p_${student.student_id}">Presente</label>
-
-                        <input type="radio" class="btn-check" name="att_${student.student_id}" id="a_${student.student_id}" ${isAbsent ? "checked" : ""} onchange="updateAtt(${index}, false)">
-                        <label class="btn btn-outline-danger btn-sm btn-attendance" for="a_${student.student_id}">Ausente</label>
-                    </div>
-                </td>
-                <td class="align-middle text-end pe-3">
-                    <button class="btn btn-link btn-sm ${obsBtnClass}" onclick="openJustifyModal(${index})" title="Adicionar Observação/Justificativa">
-                        <i class="fas fa-comment-alt"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    container.append(html);
+  // Ativa Listener de mudança de data
+  $dateInput.on("change", function () {
+    checkDateLogic(this.value);
   });
 };
 
-// Atualiza o estado local ao clicar no radio button
-window.updateAtt = (index, status) => {
-  currentStudents[index].is_present = status;
+// =========================================================
+// VALIDAÇÃO DE DATA E HORA (CORE)
+// =========================================================
 
-  if (status === true) {
-    // Se marcou presente, limpa justificativas antigas (Regra de Negócio)
-    currentStudents[index].justification = null;
-    currentStudents[index].absence_type = null;
-    renderModalAttendance(); // Re-renderiza para atualizar a cor do ícone de obs
-  } else {
-    // Se marcou ausente, sugere abrir a modal de justificativa
-    openJustifyModal(index);
+const checkDateLogic = async (dateTimeStr) => {
+  if (!dateTimeStr) return;
+
+  const dateObj = new Date(dateTimeStr);
+  const dayOfWeek = dateObj.getDay(); // 0=Domingo, 6=Sábado
+
+  // Extrai a hora "HH:mm" do input
+  const timeStr = dateTimeStr.split("T")[1];
+
+  const $statusIcon = $("#date-status-icon");
+  const $msgContainer = $("#date-msg");
+
+  // Reset Visual
+  $statusIcon.html('<span class="loader-sm"></span>');
+  $msgContainer.text("").removeClass("text-danger text-success text-warning");
+
+  // 1. VALIDAÇÃO LOCAL: GRADE HORÁRIA
+  // Verifica se existe aula neste dia da semana
+  const validSchedule = diarioState.schedules.find((s) => parseInt(s.day_of_week) === dayOfWeek);
+
+  if (!validSchedule) {
+    window.alertDefault("Não há aula desta disciplina neste dia da semana.", "warning");
+    $("#diario_date").val("");
+    $statusIcon.html("");
+    return;
+  }
+
+  // Verifica Horário (Intervalo)
+  // O banco retorna start_time como "08:00:00". Pegamos os 5 primeiros chars "08:00"
+  const start = validSchedule.start_time.substring(0, 5);
+  const end = validSchedule.end_time.substring(0, 5);
+
+  if (timeStr < start || timeStr > end) {
+    window.alertDefault(`Horário inválido. A aula neste dia é das ${start} às ${end}.`, "warning");
+    $("#diario_date").val("");
+    $statusIcon.html("");
+    return;
+  }
+
+  // 2. VALIDAÇÃO BACKEND (Feriados, Duplicidade, Conteúdo)
+  try {
+    const res = await window.ajaxValidator({
+      validator: "checkDateContent",
+      token: defaultApp.userInfo.token,
+      class_id: diarioState.classId,
+      subject_id: diarioState.subjectId,
+      date: dateTimeStr, // Envia Data+Hora
+    });
+
+    if (res.status) {
+      const info = res.data;
+
+      if (info.status === "BLOCKED") {
+        $statusIcon.html('<i class="fas fa-ban text-danger"></i>');
+        $msgContainer.text(`Bloqueado: ${info.reason}`).addClass("text-danger");
+        $("#diario_content").summernote("disable");
+      } else if (info.status === "EXISTING") {
+        diarioState.sessionId = info.session_id;
+        $statusIcon.html('<i class="fas fa-edit text-primary"></i>');
+        $msgContainer.text("Editando aula já registrada.").addClass("text-primary");
+
+        $("#diario_content").summernote("enable");
+        $("#diario_content").summernote("code", info.content);
+
+        loadStudentsList(info.attendance);
+      } else if (info.status === "NEW") {
+        diarioState.sessionId = null;
+        $statusIcon.html('<i class="fas fa-check-circle text-success"></i>');
+        $msgContainer.text(`Novo Diário (Encontro #${info.sequence})`).addClass("text-success");
+
+        $("#diario_content").summernote("enable");
+        if (info.template) {
+          $("#diario_content").summernote("code", info.template);
+          window.toast("Plano de aula carregado!", "info");
+        } else {
+          $("#diario_content").summernote("code", "");
+        }
+
+        loadStudentsList(null); // Carrega alunos com presença padrão
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    $statusIcon.html('<i class="fas fa-exclamation-triangle text-warning"></i>');
   }
 };
 
 // =========================================================
-// 4. JUSTIFICATIVA (MODAL SATÉLITE)
+// LISTA DE ALUNOS (RESPONSIVA & FREQUÊNCIA)
 // =========================================================
 
-window.openJustifyModal = (index) => {
-  const s = currentStudents[index];
-  $("#just_student_index").val(index);
-  $("#just_student_name").text(s.full_name);
-  $("#just_type").val(s.absence_type || "UNJUSTIFIED"); // Padrão: Não justificada
-  $("#just_obs").val(s.justification || "");
+const loadStudentsList = async (existingAttendance = null) => {
+  try {
+    const res = await window.ajaxValidator({
+      validator: "getStudentsForDiary",
+      token: defaultApp.userInfo.token,
+      class_id: diarioState.classId,
+    });
 
-  // Abre o modal pequeno por cima do grande
-  $("#modalJustification").modal("show");
+    if (res.status) {
+      diarioState.currentStudents = res.data.map((std) => {
+        let isPresent = true; // Padrão: Presente
+        let justification = "";
+
+        if (existingAttendance) {
+          const match = existingAttendance.find((a) => a.student_id == std.student_id);
+          if (match) {
+            isPresent = match.is_present;
+            justification = match.justification || "";
+          }
+        }
+        return { ...std, is_present: isPresent, justification: justification };
+      });
+
+      renderStudents();
+    }
+  } catch (e) {
+    console.error(e);
+  }
 };
 
-window.confirmJustification = () => {
-  const idx = $("#just_student_index").val();
-  if (idx !== "") {
-    currentStudents[idx].absence_type = $("#just_type").val();
-    currentStudents[idx].justification = $("#just_obs").val();
+const renderStudents = () => {
+  const container = $("#lista-alunos");
+  const students = diarioState.currentStudents;
 
-    // Se abriu a modal de justificativa, assume que é falta
-    currentStudents[idx].is_present = false;
+  if (students.length === 0) {
+    container.html('<p class="text-center text-muted p-4">Nenhum aluno matriculado.</p>');
+    return;
   }
-  $("#modalJustification").modal("hide");
-  renderModalAttendance(); // Atualiza a lista principal com o ícone amarelo
+
+  let html = "";
+
+  // DESKTOP (TABELA)
+  html += `<div class="d-none d-md-block table-responsive"><table class="table table-hover align-middle table-custom"><thead><tr><th width="60" class="ps-3">Foto</th><th>Nome</th><th class="text-center" width="150">Presença</th><th width="200">Justificativa</th></tr></thead><tbody>`;
+
+  students.forEach((std, idx) => {
+    let avatarHtml = std.profile_photo_url
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover; cursor:pointer;" onclick="zoomAvatar('${std.profile_photo_url}')">`
+      : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold" style="width:35px; height:35px;">${std.full_name.charAt(0)}</div>`;
+
+    html += `
+            <tr>
+                <td class="ps-3">${avatarHtml}</td>
+                <td class="fw-bold text-dark small">${std.full_name}</td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-flex justify-content-center">
+                        <input class="form-check-input attendance-check" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
+                    </div>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm attendance-just" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="...">
+                </td>
+            </tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  // MOBILE (CARDS)
+  html += `<div class="d-md-none d-flex flex-column gap-2">`;
+  students.forEach((std, idx) => {
+    let avatarHtml = std.profile_photo_url
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:45px; height:45px; object-fit:cover;">`
+      : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:45px; height:45px;">${std.full_name.charAt(0)}</div>`;
+
+    html += `
+            <div class="card border shadow-sm p-2">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">${avatarHtml}</div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold small mb-1">${std.full_name}</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">Presença</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2 ${std.is_present ? "d-none" : ""}" id="just-box-${idx}">
+                    <input type="text" class="form-control form-control-sm" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Motivo da falta...">
+                </div>
+            </div>`;
+  });
+  html += `</div>`;
+
+  container.html(html);
+};
+
+window.updateAttendance = (idx, isPresent) => {
+  diarioState.currentStudents[idx].is_present = isPresent;
+  if (!isPresent) $(`#just-box-${idx}`).removeClass("d-none");
+  else $(`#just-box-${idx}`).addClass("d-none");
+};
+
+window.updateJustification = (idx, val) => {
+  diarioState.currentStudents[idx].justification = val;
+};
+
+window.zoomAvatar = (url) => {
+  Swal.fire({ imageUrl: url, imageHeight: 300, showConfirmButton: false, background: "transparent" });
 };
 
 // =========================================================
-// 5. SALVAR NO BACKEND
+// SALVAR E EXCLUIR
 // =========================================================
 
-const saveSession = async () => {
-  // Coleta dados
-  const classId = $("#sel_filter_class").val();
-  const subjectId = $("#sel_filter_subject").val();
-  const date = $("#session_date").val();
-  const content = $("#session_content").val();
-  const type = $("#session_type").val();
-  const sessionId = $("#session_id").val();
-  const btn = $(".btn-save");
+window.salvarDiario = async () => {
+  const date = $("#diario_date").val();
+  const content = $("#diario_content").summernote("code");
+  const btn = $("#btn-save-diario");
 
-  // Validações básicas
-  if (!date) return window.alertDefault("Por favor, informe a data da aula.", "warning");
-  //   if (!content.trim()) return window.alertDefault("Por favor, descreva o conteúdo ministrado.", "warning");
+  if (!date) return window.alertDefault("Selecione data e hora.", "warning");
+  if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data ou horário bloqueado.", "error");
 
-  // Valida se todos os alunos têm presença marcada (não pode ser null/undefined)
-  const pending = currentStudents.filter((s) => s.is_present === null || s.is_present === undefined);
-  if (pending.length > 0) {
-    return window.alertDefault(`Ainda há ${pending.length} alunos sem registro de frequência.`, "warning");
-  }
-
-  // Trava botão
-  setButton(true, btn, "Salvando...");
+  window.setButton(true, btn, "Salvando...");
 
   try {
     const res = await window.ajaxValidator({
-      validator: "saveDailyLog",
+      validator: "saveClassDiary",
       token: defaultApp.userInfo.token,
-      class_id: classId,
-      subject_id: subjectId,
-      session_id: sessionId,
-      date: date,
-      description: content,
-      content_type: type,
-      attendance_json: JSON.stringify(currentStudents), // Envia array completo
+      class_id: diarioState.classId,
+      subject_id: diarioState.subjectId,
+      session_id: diarioState.sessionId,
+      date: date, // Envia YYYY-MM-DDTHH:mm
+      content: content,
+      attendance_json: JSON.stringify(diarioState.currentStudents),
     });
 
     if (res.status) {
       window.alertDefault("Diário salvo com sucesso!", "success");
       $("#modalSession").modal("hide");
-      getHistory(); // Atualiza a grid principal
+      getHistory();
     } else {
       window.alertDefault(res.alert, "error");
     }
   } catch (e) {
-    window.alertDefault("Erro técnico ao salvar.", "error");
-    console.error(e);
+    window.alertDefault("Erro técnico.", "error");
   } finally {
-    window.setButton(false, btn, "Salvar Diário");
+    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Diário');
   }
 };
 
 window.deleteSession = (sessionId) => {
   Swal.fire({
-    title: "Excluir Diário?",
-    text: "Isso apagará o registro da aula e todas as presenças vinculadas.",
+    title: "Excluir?",
+    text: "A aula e presenças serão apagadas.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    confirmButtonText: "Sim, excluir",
-    cancelButtonText: "Cancelar",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        const res = await window.ajaxValidator({
-          validator: "deleteDailyLog",
-          token: defaultApp.userInfo.token,
-          session_id: sessionId,
-        });
-
-        if (res.status) {
-          window.alertDefault("Registro excluído com sucesso!", "success");
-          getHistory(); // Recarrega a tabela
-        } else {
-          window.alertDefault(res.alert, "error");
-        }
-      } catch (e) {
-        window.alertDefault("Erro ao excluir registro.", "error");
-      }
+    confirmButtonText: "Excluir",
+  }).then(async (r) => {
+    if (r.isConfirmed) {
+      const res = await window.ajaxValidator({
+        validator: "deleteClassDiary",
+        token: defaultApp.userInfo.token,
+        session_id: sessionId,
+      });
+      if (res.status) {
+        window.alertDefault("Excluído.", "success");
+        getHistory();
+      } else window.alertDefault(res.alert, "error");
     }
   });
 };
 
-// =========================================================
-// 6. PAGINAÇÃO (HELPER PADRÃO)
-// =========================================================
-
-window.changePage = (page) => {
-  defaultDiary.currentPage = page;
+// Paginação
+window.changePage = (p) => {
+  defaultDiary.currentPage = p;
   getHistory();
 };
-
-const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
-  let container = $(`.${containerClass}`);
+const _generatePaginationButtons = (c, k, t, f, o) => {
+  let container = $(`.${c}`);
   container.empty();
-  let total = contextObj[totalPagesKey];
-  let current = contextObj[currentPageKey];
-
-  // Botão Primeira
-  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary me-1" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
-
-  // Botões Numéricos (Lógica de Janela deslizante)
+  let total = o[t];
+  let current = o[k];
+  let html = `<button onclick="${f}(1)" class="btn btn-sm btn-secondary me-1" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
   for (let p = Math.max(1, current - 2); p <= Math.min(total, current + 2); p++) {
-    const activeClass = p === current ? "btn-primary" : "btn-secondary";
-    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${activeClass} me-1">${p}</button>`;
+    html += `<button onclick="${f}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1">${p}</button>`;
   }
-
-  // Botão Última
-  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary" ${current === total ? "disabled" : ""}>Última</button>`;
-
+  html += `<button onclick="${f}(${total})" class="btn btn-sm btn-secondary" ${current === total ? "disabled" : ""}>Última</button>`;
   container.html(html);
 };
