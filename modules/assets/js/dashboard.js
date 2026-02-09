@@ -170,10 +170,10 @@ function renderEvents(events) {
 
   events.forEach((ev) => {
     // Lógica de Destaque (Feriado/Sem Aula)
-    let iconHtml = '<i class="fas fa-calendar-day text-secondary opacity-25"></i>';
+    let iconHtml = '<i class="fas fa-calendar-day"></i>';
     let containerClass = "bg-transparent";
     let dateColorClass = "text-dark";
-    let titleColorClass = "text-dark";
+    let titleColorClass = "";
 
     if (ev.is_academic_blocker) {
       iconHtml = '<i class="fas fa-ban text-danger" title="Não haverá aula (Feriado/Evento)"></i>';

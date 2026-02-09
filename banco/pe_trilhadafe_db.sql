@@ -347,20 +347,27 @@ COMMENT ON TABLE education.curriculum IS 'Associação Curso x Disciplina. Defin
 COMMENT ON COLUMN education.curriculum.lesson_plan_template IS 'Modelo HTML (Summernote) usado como base para novas aulas desta disciplina.';
 
 
--- Tabela para armazenar o plano de cada encontro individualmente
 CREATE TABLE education.curriculum_plans (
     plan_id SERIAL PRIMARY KEY,
     curriculum_id INT NOT NULL REFERENCES education.curriculum(curriculum_id) ON DELETE CASCADE,
     meeting_number INT NOT NULL,
     title VARCHAR(255),
-    content TEXT, -- HTML do Summernote
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    content TEXT,
+    
+    -- Campos Padrão de Controle
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
-COMMENT ON TABLE education.curriculum_plans IS 'Plano de aula individual para cada encontro de uma disciplina de um curso.';
-COMMENT ON COLUMN education.curriculum_plans.content IS 'Conteúdo HTML do plano de aula.';
+-- Índices para performance
+CREATE INDEX idx_curriculum_plans_curr ON education.curriculum_plans(curriculum_id);
+CREATE INDEX idx_curriculum_plans_del ON education.curriculum_plans(deleted);
 
-CREATE INDEX idx_curriculum_plans ON education.curriculum_plans(curriculum_id);
+-- Comentários
+COMMENT ON TABLE education.curriculum_plans IS 'Detalhes de cada encontro/aula de uma disciplina.';
+COMMENT ON COLUMN education.curriculum_plans.content IS 'Conteúdo HTML do Summernote.';
 
 -- 5. Turmas
 CREATE TABLE education.classes (
@@ -919,7 +926,7 @@ COMMENT ON TABLE communication.banners IS 'Slideshow da Home do Site/App.';
 -- SCHEMA: SECURITY LOGS (AUDITORIA FINAL)
 -- ==========================================================
 
-CREATE TABLE security.users (
+CREATE TABLE IF NOT EXISTS security.users (
     user_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id) DEFAULT 1,
     person_id INT REFERENCES people.persons(person_id), 
@@ -944,7 +951,7 @@ COMMENT ON TABLE security.users IS 'Tabela de autenticação (Login). Vinculada 
 COMMENT ON COLUMN security.users.person_id IS 'Link com o cadastro completo da pessoa.';
 COMMENT ON COLUMN security.users.role_level IS 'Nível de permissão no sistema (ACL).';
 
-CREATE TABLE security.change_logs (
+CREATE TABLE IF NOT EXISTS security.change_logs (
     log_id BIGSERIAL PRIMARY KEY,
     schema_name TEXT NOT NULL,
     table_name TEXT NOT NULL,
@@ -958,7 +965,7 @@ CREATE TABLE security.change_logs (
 );
 COMMENT ON TABLE security.change_logs IS 'Audit Trail. Grava snapshot dos dados antes e depois de cada UPDATE/DELETE.';
 
-CREATE TABLE security.error_logs (
+CREATE TABLE IF NOT EXISTS security.error_logs (
     error_id BIGSERIAL PRIMARY KEY,
     org_id INT,
     user_id INT,
@@ -970,7 +977,7 @@ CREATE TABLE security.error_logs (
 );
 COMMENT ON TABLE security.error_logs IS 'Log de erros de aplicação (Backend Catch).';
 
-CREATE TABLE security.access_logs (
+CREATE TABLE IF NOT EXISTS security.access_logs (
     access_id BIGSERIAL PRIMARY KEY,
     user_id INT NOT NULL, 
     org_id INT NOT NULL,
@@ -1039,39 +1046,75 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- TRIGGERS DE AUDITORIA
+-- ============================================================================
+-- 2. TRIGGERS DE AUDITORIA
+-- ============================================================================
 
 -- Organização
+DROP TRIGGER IF EXISTS audit_trigger_organizations ON organization.organizations;
 CREATE TRIGGER audit_trigger_organizations AFTER INSERT OR UPDATE OR DELETE ON organization.organizations FOR EACH ROW EXECUTE FUNCTION security.log_changes('org_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_locations ON organization.locations;
 CREATE TRIGGER audit_trigger_locations AFTER INSERT OR UPDATE OR DELETE ON organization.locations FOR EACH ROW EXECUTE FUNCTION security.log_changes('location_id');
--- [NOVO] Eventos
+
+DROP TRIGGER IF EXISTS audit_trigger_org_events ON organization.events;
 CREATE TRIGGER audit_trigger_org_events AFTER INSERT OR UPDATE OR DELETE ON organization.events FOR EACH ROW EXECUTE FUNCTION security.log_changes('event_id');
 
 -- Pessoas
+DROP TRIGGER IF EXISTS audit_trigger_persons ON people.persons;
 CREATE TRIGGER audit_trigger_persons AFTER INSERT OR UPDATE OR DELETE ON people.persons FOR EACH ROW EXECUTE FUNCTION security.log_changes('person_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_person_roles ON people.person_roles;
 CREATE TRIGGER audit_trigger_person_roles AFTER INSERT OR UPDATE OR DELETE ON people.person_roles FOR EACH ROW EXECUTE FUNCTION security.log_changes('link_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_family_ties ON people.family_ties;
 CREATE TRIGGER audit_trigger_family_ties AFTER INSERT OR UPDATE OR DELETE ON people.family_ties FOR EACH ROW EXECUTE FUNCTION security.log_changes('tie_id');
--- [NOVO] Anexos
+
+DROP TRIGGER IF EXISTS audit_trigger_person_attachments ON people.person_attachments;
 CREATE TRIGGER audit_trigger_person_attachments AFTER INSERT OR UPDATE OR DELETE ON people.person_attachments FOR EACH ROW EXECUTE FUNCTION security.log_changes('attachment_id');
 
 -- Educacional (Geral)
+DROP TRIGGER IF EXISTS audit_trigger_academic_years ON education.academic_years;
 CREATE TRIGGER audit_trigger_academic_years AFTER INSERT OR UPDATE OR DELETE ON education.academic_years FOR EACH ROW EXECUTE FUNCTION security.log_changes('year_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_subjects ON education.subjects;
 CREATE TRIGGER audit_trigger_subjects AFTER INSERT OR UPDATE OR DELETE ON education.subjects FOR EACH ROW EXECUTE FUNCTION security.log_changes('subject_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_courses ON education.courses;
 CREATE TRIGGER audit_trigger_courses AFTER INSERT OR UPDATE OR DELETE ON education.courses FOR EACH ROW EXECUTE FUNCTION security.log_changes('course_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_curriculum ON education.curriculum;
 CREATE TRIGGER audit_trigger_curriculum AFTER INSERT OR UPDATE OR DELETE ON education.curriculum FOR EACH ROW EXECUTE FUNCTION security.log_changes('curriculum_id');
 
+-- [NOVO] Trigger para Planos de Aula (Importante para o novo módulo)
+DROP TRIGGER IF EXISTS audit_trigger_curriculum_plans ON education.curriculum_plans;
+CREATE TRIGGER audit_trigger_curriculum_plans AFTER INSERT OR UPDATE OR DELETE ON education.curriculum_plans FOR EACH ROW EXECUTE FUNCTION security.log_changes('plan_id');
+
 -- Turmas e Diário
+DROP TRIGGER IF EXISTS audit_trigger_classes ON education.classes;
 CREATE TRIGGER audit_trigger_classes AFTER INSERT OR UPDATE OR DELETE ON education.classes FOR EACH ROW EXECUTE FUNCTION security.log_changes('class_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_class_schedules ON education.class_schedules;
 CREATE TRIGGER audit_trigger_class_schedules AFTER INSERT OR UPDATE OR DELETE ON education.class_schedules FOR EACH ROW EXECUTE FUNCTION security.log_changes('schedule_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_enrollments ON education.enrollments;
 CREATE TRIGGER audit_trigger_enrollments AFTER INSERT OR UPDATE OR DELETE ON education.enrollments FOR EACH ROW EXECUTE FUNCTION security.log_changes('enrollment_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_class_sessions ON education.class_sessions;
 CREATE TRIGGER audit_trigger_class_sessions AFTER INSERT OR UPDATE OR DELETE ON education.class_sessions FOR EACH ROW EXECUTE FUNCTION security.log_changes('session_id');
 
 -- Frequência e Notas
+DROP TRIGGER IF EXISTS audit_trigger_attendance ON education.attendance;
 CREATE TRIGGER audit_trigger_attendance AFTER INSERT OR UPDATE OR DELETE ON education.attendance FOR EACH ROW EXECUTE FUNCTION security.log_changes('attendance_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_assessments ON education.assessments;
 CREATE TRIGGER audit_trigger_assessments AFTER INSERT OR UPDATE OR DELETE ON education.assessments FOR EACH ROW EXECUTE FUNCTION security.log_changes('assessment_id');
+
+DROP TRIGGER IF EXISTS audit_trigger_enrollment_history ON education.enrollment_history;
 CREATE TRIGGER audit_trigger_enrollment_history AFTER INSERT OR UPDATE OR DELETE ON education.enrollment_history FOR EACH ROW EXECUTE FUNCTION security.log_changes('history_id');
 
 -- Segurança
+DROP TRIGGER IF EXISTS audit_trigger_users ON security.users;
 CREATE TRIGGER audit_trigger_users AFTER INSERT OR UPDATE OR DELETE ON security.users FOR EACH ROW EXECUTE FUNCTION security.log_changes('user_id');
 
 

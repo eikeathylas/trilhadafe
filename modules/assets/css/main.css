@@ -2153,3 +2153,12 @@ canvas {
 [data-theme="escuro"] .event-date-box {
   background-color: rgba(255, 255, 255, 0.05);
 }
+
+.btn-hover-effect:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.table-custom thead th {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}

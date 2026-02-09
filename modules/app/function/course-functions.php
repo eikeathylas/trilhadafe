@@ -98,12 +98,13 @@ function getCourseData($courseId)
         $stmtCur->execute(['id' => $courseId]);
         $curriculum = $stmtCur->fetchAll(PDO::FETCH_ASSOC);
 
-        // 3. Planos de Aula (Busca relacional 1:N)
+        // 3. Planos de Aula
         foreach ($curriculum as &$item) {
             $item['is_mandatory'] = (bool)$item['is_mandatory'];
 
-            // Busca na tabela nova, ordenado pelo número do encontro
-            $sqlPlans = "SELECT title, content, meeting_number FROM education.curriculum_plans WHERE curriculum_id = :cid ORDER BY meeting_number ASC";
+            // [CORREÇÃO] Adicionado 'plan_id' na query
+            $sqlPlans = "SELECT plan_id, title, content, meeting_number FROM education.curriculum_plans WHERE curriculum_id = :cid AND deleted IS FALSE ORDER BY meeting_number ASC";
+
             $stmtPlans = $conect->prepare($sqlPlans);
             $stmtPlans->execute(['cid' => $item['curriculum_id']]);
             $item['plans'] = $stmtPlans->fetchAll(PDO::FETCH_ASSOC);
@@ -180,20 +181,56 @@ function upsertCourse($data)
 
             $processedIds[] = $curriculumId;
 
-            // --- 3. SALVAR PLANOS DE AULA (SUB-TABELA) ---
-            // Limpa planos antigos deste item e reinsere na ordem nova (meeting_number)
-            $conect->prepare("DELETE FROM education.curriculum_plans WHERE curriculum_id = :id")->execute(['id' => $curriculumId]);
+            // --- 3. SALVAR PLANOS DE AULA (SMART SYNC) ---
+
+            // A. Busca IDs existentes no banco para este item da grade
+            $stmtExisting = $conect->prepare("SELECT plan_id FROM education.curriculum_plans WHERE curriculum_id = :cid");
+            $stmtExisting->execute(['cid' => $curriculumId]);
+            $existingPlanIds = $stmtExisting->fetchAll(PDO::FETCH_COLUMN, 0); // Array [10, 11, 12...]
+
+            $processedPlanIds = []; // IDs que vieram do front e foram tratados
 
             if (!empty($item['plans']) && is_array($item['plans'])) {
-                $stmtPlan = $conect->prepare("INSERT INTO education.curriculum_plans (curriculum_id, meeting_number, title, content) VALUES (:cid, :num, :tit, :cont)");
                 foreach ($item['plans'] as $idx => $plan) {
-                    $stmtPlan->execute([
-                        'cid' => $curriculumId,
-                        'num' => $idx + 1, // Ordem = Índice + 1
-                        'tit' => $plan['title'] ?? ('Encontro ' . ($idx + 1)),
-                        'cont' => $plan['content'] ?? ''
-                    ]);
+                    $meetingNum = $idx + 1; // A ordem é definida pelo índice do array vindo do front
+                    $planTitle = $plan['title'] ?? ('Encontro ' . $meetingNum);
+                    $planContent = $plan['content'] ?? '';
+                    $planId = !empty($plan['plan_id']) ? $plan['plan_id'] : null;
+
+                    if ($planId && in_array($planId, $existingPlanIds)) {
+                        // --- UPDATE (Existe no front e no banco) ---
+                        $stmtUpdPlan = $conect->prepare("UPDATE education.curriculum_plans SET title = :t, content = :c, meeting_number = :nm, updated_at = CURRENT_TIMESTAMP WHERE plan_id = :id");
+                        $stmtUpdPlan->execute([
+                            't' => $planTitle,
+                            'c' => $planContent,
+                            'nm' => $meetingNum,
+                            'id' => $planId
+                        ]);
+                        $processedPlanIds[] = $planId;
+                    } else {
+                        // --- INSERT (Não tem ID ou é ID novo) ---
+                        $stmtInsPlan = $conect->prepare("INSERT INTO education.curriculum_plans (curriculum_id, meeting_number, title, content) VALUES (:cid, :nm, :t, :c)");
+                        $stmtInsPlan->execute([
+                            'cid' => $curriculumId,
+                            'nm' => $meetingNum,
+                            't' => $planTitle,
+                            'c' => $planContent
+                        ]);
+                        // Não precisamos guardar o ID do insert aqui para a lógica de delete
+                    }
                 }
+            }
+
+            // B. DELETE (Estava no banco, mas não veio no array do front)
+            // Diff: Tudo que estava no banco MENOS o que foi processado/atualizado
+            $idsToDelete = array_diff($existingPlanIds, $processedPlanIds);
+
+            if (!empty($idsToDelete)) {
+                $inQuery = implode(',', array_map('intval', $idsToDelete));
+
+                // Em vez de DELETE FROM, fazemos UPDATE deleted = TRUE
+                $sqlSoftDelete = "UPDATE education.curriculum_plans SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE plan_id IN ($inQuery)";
+                $conect->exec($sqlSoftDelete);
             }
         }
 

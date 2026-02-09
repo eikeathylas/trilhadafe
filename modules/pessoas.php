@@ -365,41 +365,46 @@
 
                         <div class="tab-pane fade" id="tab-anexos" role="tabpanel">
 
-                            <div class="alert alert-light border shadow-sm mb-4">
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-md-5">
-                                        <label class="form-label small fw-bold">Descrição do Documento <span class="text-danger">*</span></label>
-                                        <input type="text" id="new_attachment_desc" class="form-control form-control-sm" placeholder="Ex: Certidão de Batismo, RG...">
-                                    </div>
-                                    <div class="col-md-5">
-                                        <label class="form-label small fw-bold">Arquivo (PDF, Imagem, Doc) <span class="text-danger">*</span></label>
-                                        <input type="file" id="new_attachment_file" class="form-control form-control-sm" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button class="btn btn-sm btn-success w-100" id="btn-add-attachment" onclick="uploadAttachment()">
-                                            <i class="fas fa-plus mr-1"></i> Adicionar
-                                        </button>
-                                    </div>
+                            <div class="d-flex flex-wrap align-items-end gap-3 p-3 mb-4 rounded border border-dashed">
+
+                                <div class="flex-grow-1" style="min-width: 250px;">
+                                    <label class="form-label small mb-1 opacity-75 fw-bold">DESCRIÇÃO DO DOCUMENTO <span class="text-danger">*</span></label>
+                                    <input type="text" id="new_attachment_desc" class="form-control" placeholder="Ex: Certidão de Batismo, RG...">
+                                </div>
+
+                                <div class="flex-grow-1" style="min-width: 200px;">
+                                    <label class="form-label small mb-1 opacity-75 fw-bold">ARQUIVO <span class="text-danger">*</span></label>
+                                    <input type="file" id="new_attachment_file" class="form-control" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx">
+                                </div>
+
+                                <div>
+                                    <button class="btn btn-success btn-sm px-4 shadow-sm btn-hover-effect" id="btn-add-attachment" onclick="uploadAttachment()">
+                                        <i class="fas fa-cloud-upload-alt me-2"></i> Enviar
+                                    </button>
                                 </div>
                             </div>
 
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
-                                    <thead class="table-light">
+                            <div id="lista-anexos" class="table-responsive rounded border">
+                                <!-- <table class="table table-hover align-middle mb-0 table-custom">
+                                    <thead>
                                         <tr>
-                                            <th class="text-center" style="width: 50px;"><i class="fas fa-file"></i></th>
-                                            <th>Descrição / Arquivo</th>
-                                            <th>Data Upload</th>
-                                            <th class="text-end">Ações</th>
+                                            <th class="ps-3 py-3 border-0 small opacity-75" style="width: 70px;">TIPO</th>
+                                            <th class="py-3 border-0 small opacity-75">DOCUMENTO / ARQUIVO</th>
+                                            <th class="text-center py-3 border-0 small opacity-75">DATA ENVIO</th>
+                                            <th class="text-end pe-4 py-3 border-0 small opacity-75">AÇÕES</th>
                                         </tr>
                                     </thead>
                                     <tbody id="lista-anexos">
                                         <tr>
-                                            <td colspan="4" class="text-center text-muted py-4">Nenhum documento anexado.</td>
+                                            <td colspan="4" class="text-center text-muted py-5 opacity-50">
+                                                <span class="material-symbols-outlined" style="font-size: 48px;">folder_open</span>
+                                                <p class="mt-2 mb-0">Nenhum documento anexado.</p>
+                                            </td>
                                         </tr>
                                     </tbody>
-                                </table>
+                                </table> -->
                             </div>
+
                         </div>
 
                     </div>

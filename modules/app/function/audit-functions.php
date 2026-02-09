@@ -31,16 +31,16 @@ function getHistory($data)
         }
 
         // CURSOS (Grade Curricular + Planos de Aula)
+        // Se estiver vendo um CURSO, traz também a Grade e os Planos de Aula
         if ($table === 'courses') {
-            // A. Grade Curricular (education.curriculum)
-            // Aqui comparamos JSON texto com texto, sem problemas.
+            // A. Grade Curricular
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name 
                       FROM security.change_logs l 
                       WHERE l.schema_name = 'education' AND l.table_name = 'curriculum' 
                       AND (l.new_values->>'course_id' = :id OR l.old_values->>'course_id' = :id)";
 
-            // B. Planos de Aula (education.curriculum_plans)
-            // [CORREÇÃO] Adicionado CAST(:id AS INTEGER) nas subqueries
+            // B. Planos de Aula (education.curriculum_plans) - [NOVO]
+            // Busca logs onde o curriculum_id pertence a este curso
             $sql .= " UNION ALL 
                       SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name 
                       FROM security.change_logs l 
@@ -163,17 +163,17 @@ function getHistory($data)
 
                 $log['target_name'] = "Plano: " . $title;
 
-                // Mascara o conteúdo HTML
+                // Função para limpar HTML e chaves técnicas
                 $cleanContent = function ($vals) {
                     $arr = json_decode($vals, true);
                     if (is_array($arr)) {
-                        // Se tiver conteúdo, substitui por flag legível
+                        // Mascara o conteúdo HTML
                         if (isset($arr['content']) && !empty($arr['content'])) {
-                            $arr['content'] = "[Conteúdo HTML Definido]";
+                            $arr['content'] = "[Conteúdo HTML atualizado]";
                         } else if (isset($arr['content'])) {
                             $arr['content'] = "[Vazio]";
                         }
-                        // Remove IDs técnicos
+                        // Remove IDs técnicos que poluem a visão
                         unset($arr['curriculum_id'], $arr['plan_id'], $arr['created_at']);
                     }
                     return json_encode($arr);
@@ -182,8 +182,7 @@ function getHistory($data)
                 $log['old_values'] = $cleanContent($log['old_values']);
                 $log['new_values'] = $cleanContent($log['new_values']);
 
-                // Tipifica a operação para facilitar leitura
-                if ($log['operation'] === 'INSERT') $log['target_name'] .= " (Criado)";
+                if ($log['operation'] === 'INSERT') $log['target_name'] .= " (Adicionado)";
                 if ($log['operation'] === 'DELETE') $log['target_name'] .= " (Removido)";
             }
 

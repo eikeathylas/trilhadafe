@@ -398,41 +398,90 @@ const renderFamilyTable = () => {
 };
 
 // =========================================================
-// 3. GESTÃO DE ANEXOS (DOCUMENTOS) - [NOVO]
+// RENDERIZAÇÃO DE ANEXOS (PADRÃO TABLE-CUSTOM)
 // =========================================================
 
-const renderAttachmentsTable = (list) => {
-  const container = $("#lista-anexos");
-  container.empty();
+const renderAttachmentsTable = (data) => {
+  const container = $("#lista-anexos"); // O tbody ou div da tabela
 
-  if (!list || list.length === 0) {
-    container.html('<tr><td colspan="4" class="text-center text-muted py-3">Nenhum documento anexado.</td></tr>');
+  // State: Vazio
+  if (!data || data.length === 0) {
+    container.html(`
+            <div class="text-center py-5 opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 48px;">folder_open</span>
+                <p class="mt-2 text-muted">Nenhum documento anexado.</p>
+            </div>
+        `);
     return;
   }
 
-  list.forEach((att) => {
-    let icon = '<i class="fas fa-file text-secondary"></i>';
-    const ext = att.file_name.split(".").pop().toLowerCase();
+  // Helper para ícones de arquivo
+  const getFileIcon = (filename) => {
+    const ext = filename.split(".").pop().toLowerCase();
+    if (["pdf"].includes(ext)) return { icon: "picture_as_pdf", color: "text-danger", bg: "bg-danger" };
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return { icon: "image", color: "text-primary", bg: "bg-primary" };
+    if (["doc", "docx"].includes(ext)) return { icon: "description", color: "text-primary", bg: "bg-primary" };
+    if (["xls", "xlsx", "csv"].includes(ext)) return { icon: "table_view", color: "text-success", bg: "bg-success" };
+    if (["zip", "rar"].includes(ext)) return { icon: "folder_zip", color: "text-warning", bg: "bg-warning" };
+    return { icon: "insert_drive_file", color: "text-secondary", bg: "bg-secondary" };
+  };
 
-    if (["jpg", "jpeg", "png"].includes(ext)) icon = '<i class="fas fa-file-image text-info"></i>';
-    else if (ext === "pdf") icon = '<i class="fas fa-file-pdf text-danger"></i>';
-    else if (["doc", "docx"].includes(ext)) icon = '<i class="fas fa-file-word text-primary"></i>';
+  const rows = data
+    .map((item) => {
+      const fileStyle = getFileIcon(item.file_name);
 
-    container.append(`
+      // Formatação de data (ajuste conforme seu retorno do back)
+      const dateDisplay = item.uploaded_at;
+
+      return `
             <tr>
-                <td class="text-center align-middle" style="font-size: 1.2rem;">${icon}</td>
-                <td class="align-middle">
-                    <span class="d-block fw-bold txt-theme">${att.description || "Sem descrição"}</span>
-                    <small class="text-muted">${att.file_name}</small>
+                <td class="text-center align-middle ps-3" style="width: 60px;">
+                    <div class="icon-circle ${fileStyle.bg} bg-opacity-10 ${fileStyle.color}">
+                        <span class="material-symbols-outlined">${fileStyle.icon}</span>
+                    </div>
                 </td>
-                <td class="align-middle text-muted small">${att.uploaded_at || "-"}</td>
-                <td class="text-end align-middle">
-                    <a href="../${att.file_path}" target="_blank" class="btn btn-sm btn-outline-primary border-0 me-1" title="Baixar/Visualizar"><i class="fas fa-download"></i></a>
-                    <button class="btn btn-sm btn-outline-danger border-0" onclick="removeAttachment(${att.attachment_id})"><i class="fas fa-trash"></i></button>
+                <td class="align-middle">
+                    <div class="fw-bold text-body">${item.file_name}</div>
+                    <div class="small text-muted opacity-75">${item.description || "Sem descrição"}</div>
+                </td>
+                <td class="text-center align-middle">
+                    <span class="badge border text-body bg-transparent opacity-75">
+                        <i class="fas fa-calendar-alt me-1"></i> ${dateDisplay}
+                    </span>
+                </td>
+                <td class="text-end align-middle pe-4">
+                    <a href="${item.file_path}" target="_blank" class="btn-icon-action text-info me-2" title="Visualizar">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    
+                    <a href="${item.file_path}" download="${item.file_name}" class="btn-icon-action text-primary me-2" title="Baixar">
+                        <i class="fas fa-download"></i>
+                    </a>
+                    
+                    <button onclick="removeAttachment(${item.attachment_id})" class="btn-icon-action delete" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </td>
             </tr>
-        `);
-  });
+        `;
+    })
+    .join("");
+
+  // Estrutura Table Custom
+  container.html(`
+        <div class="table-responsive rounded border">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th colspan="2" class="ps-3 opacity-75">DOCUMENTOS</th>
+                        <th class="text-center opacity-75">DATA DE ENVIO</th>
+                        <th class="text-end pe-4 opacity-75">AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `);
 };
 
 window.uploadAttachment = async () => {

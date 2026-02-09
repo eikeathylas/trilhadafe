@@ -305,7 +305,7 @@ window.removeSubjectFromGrid = (index) => {
       currentCurriculumList.splice(index, 1);
       renderCurriculumTable();
       updateTotalHours();
-      window.toast("Disciplina removida.", "success");
+      window.alertDefault("Disciplina removida.", "success");
     }
   });
 };
