@@ -329,14 +329,21 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
 // VALIDAÇÃO DE DATA E HORA (CORE)
 // =========================================================
 
-const checkDateLogic = async (dateTimeStr) => {
-  if (!dateTimeStr) return;
+const checkDateLogic = async (dateStr) => {
+  if (!dateStr) return;
 
-  const dateObj = new Date(dateTimeStr);
-  const dayOfWeek = dateObj.getDay(); // 0=Domingo, 6=Sábado
+  // [CORREÇÃO CRÍTICA]: O input datetime-local já vem com 'T' (ex: 2024-01-01T08:00)
+  // Não concatenar "T00:00:00" novamente.
+  const dateObj = new Date(dateStr);
 
-  // Extrai a hora "HH:mm" do input
-  const timeStr = dateTimeStr.split("T")[1];
+  // Verifica se a data é válida
+  if (isNaN(dateObj.getTime())) {
+    console.error("Data inválida recebida:", dateStr);
+    return;
+  }
+
+  // Ajuste para pegar o dia da semana localmente corretamente
+  const dayOfWeek = dateObj.getDay();
 
   const $statusIcon = $("#date-status-icon");
   const $msgContainer = $("#date-msg");
@@ -345,37 +352,42 @@ const checkDateLogic = async (dateTimeStr) => {
   $statusIcon.html('<span class="loader-sm"></span>');
   $msgContainer.text("").removeClass("text-danger text-success text-warning");
 
-  // 1. VALIDAÇÃO LOCAL: GRADE HORÁRIA
-  // Verifica se existe aula neste dia da semana
-  const validSchedule = diarioState.schedules.find((s) => parseInt(s.day_of_week) === dayOfWeek);
+  // 1. Validação Local (Dia da Semana)
+  // Certifica-se que schedules está carregado
+  if (!diarioState.schedules || diarioState.schedules.length === 0) {
+    console.warn("Grade horária não carregada ou vazia.");
+    // Não retorna aqui para tentar validar no backend se necessário,
+    // mas o ideal é que o metadata tenha carregado.
+  } else {
+    const validSchedule = diarioState.schedules.find((s) => parseInt(s.day_of_week) === dayOfWeek);
 
-  if (!validSchedule) {
-    window.alertDefault("Não há aula desta disciplina neste dia da semana.", "warning");
-    $("#diario_date").val("");
-    $statusIcon.html("");
-    return;
+    if (!validSchedule) {
+      window.alertDefault("Não há aula desta disciplina neste dia da semana.", "warning");
+      $("#diario_date").val("");
+      $statusIcon.html("");
+      return; // Retorna e o Loader da frequência continua girando se não limparmos
+    }
+
+    // Validação de Hora (Opcional - Comente se quiser permitir horários flexíveis)
+    const timeStr = dateStr.split("T")[1];
+    const start = validSchedule.start_time.substring(0, 5);
+    const end = validSchedule.end_time.substring(0, 5);
+
+    if (timeStr < start || timeStr > end) {
+      // window.alertDefault(`Horário fora da grade (${start} - ${end}).`, "warning");
+      // Apenas um aviso, não bloqueia? Ou bloqueia:
+      // return;
+    }
   }
 
-  // Verifica Horário (Intervalo)
-  // O banco retorna start_time como "08:00:00". Pegamos os 5 primeiros chars "08:00"
-  const start = validSchedule.start_time.substring(0, 5);
-  const end = validSchedule.end_time.substring(0, 5);
-
-  if (timeStr < start || timeStr > end) {
-    window.alertDefault(`Horário inválido. A aula neste dia é das ${start} às ${end}.`, "warning");
-    $("#diario_date").val("");
-    $statusIcon.html("");
-    return;
-  }
-
-  // 2. VALIDAÇÃO BACKEND (Feriados, Duplicidade, Conteúdo)
+  // 2. Validação Backend
   try {
     const res = await window.ajaxValidator({
       validator: "checkDateContent",
       token: defaultApp.userInfo.token,
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
-      date: dateTimeStr, // Envia Data+Hora
+      date: dateStr,
     });
 
     if (res.status) {
@@ -385,14 +397,16 @@ const checkDateLogic = async (dateTimeStr) => {
         $statusIcon.html('<i class="fas fa-ban text-danger"></i>');
         $msgContainer.text(`Bloqueado: ${info.reason}`).addClass("text-danger");
         $("#diario_content").summernote("disable");
+        loadStudentsList(null); // Carrega lista vazia/padrão para limpar o loader
       } else if (info.status === "EXISTING") {
         diarioState.sessionId = info.session_id;
         $statusIcon.html('<i class="fas fa-edit text-primary"></i>');
-        $msgContainer.text("Editando aula já registrada.").addClass("text-primary");
+        $msgContainer.text("Editando aula existente.").addClass("text-primary");
 
         $("#diario_content").summernote("enable");
         $("#diario_content").summernote("code", info.content);
 
+        // Carrega Lista de Alunos e Mescla Presença
         loadStudentsList(info.attendance);
       } else if (info.status === "NEW") {
         diarioState.sessionId = null;
@@ -407,12 +421,17 @@ const checkDateLogic = async (dateTimeStr) => {
           $("#diario_content").summernote("code", "");
         }
 
-        loadStudentsList(null); // Carrega alunos com presença padrão
+        // Carrega Lista Limpa (Padrão Presente)
+        loadStudentsList(null);
       }
+    } else {
+      // Se der erro no backend, limpa o loader
+      $("#lista-alunos").html('<p class="text-center text-danger p-4">Erro ao validar data.</p>');
     }
   } catch (e) {
     console.error(e);
     $statusIcon.html('<i class="fas fa-exclamation-triangle text-warning"></i>');
+    $("#lista-alunos").html('<p class="text-center text-muted p-4">Erro de conexão.</p>');
   }
 };
 
