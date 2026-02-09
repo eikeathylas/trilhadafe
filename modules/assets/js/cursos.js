@@ -8,29 +8,32 @@ const defaultCourse = {
 let currentCurriculumList = [];
 let editingCurriculumIndex = -1;
 
-// [AUTO-SAVE] Salva Summernote antes de destruir/focar fora
+// [AUTO-SAVE] Salva Summernote antes de destruir ou perder foco
 window.saveActiveSummernote = () => {
   $(".summernote-dynamic").each(function () {
     const $textarea = $(this);
+    // Verifica se o editor está ativo
     if ($textarea.next(".note-editor").length > 0) {
       const idx = $textarea.data("index");
       const content = $textarea.summernote("code");
+
       if (editingCurriculumIndex > -1 && currentCurriculumList[editingCurriculumIndex]) {
         const item = currentCurriculumList[editingCurriculumIndex];
         if (!Array.isArray(item.plans)) item.plans = [];
         if (!item.plans[idx]) item.plans[idx] = { title: `Encontro ${idx + 1}`, content: "" };
+
         item.plans[idx].content = content;
       }
     }
   });
 };
 
-// Configuração Summernote
+// Configuração Summernote (Visual controlado pelo CSS no PHP)
 const summernoteConfig = {
-  height: 300,
+  height: 350,
   lang: "pt-BR",
-  placeholder: "Descreva o conteúdo planejado para este encontro...",
-  dialogsInBody: true,
+  placeholder: "Descreva o conteúdo do encontro...",
+  dialogsInBody: true, // Fix para funcionar dentro do Modal
   toolbar: [
     ["style", ["style", "bold", "italic", "underline", "clear"]],
     ["font", ["color", "fontsize"]],
@@ -42,9 +45,7 @@ const summernoteConfig = {
     onBlur: function () {
       window.saveActiveSummernote();
     },
-    onInit: function () {
-      $(".note-editor").addClass("bg-white text-dark");
-    },
+    // Removido onInit que forçava bg-white, para respeitar o tema Dark/Superhero
   },
 };
 
@@ -57,7 +58,6 @@ const getCursos = async () => {
     const page = Math.max(0, defaultCourse.currentPage - 1);
     const search = $("#busca-texto").val();
 
-    // Loader padrão
     $(".list-table-cursos").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
     const result = await window.ajaxValidator({
@@ -74,9 +74,9 @@ const getCursos = async () => {
       renderTableCourses(result.data || []);
     } else {
       $(".list-table-cursos").html(`
-            <div class="text-center py-5">
-                <span class="material-symbols-outlined text-muted opacity-25" style="font-size: 64px;">school</span>
-                <p class="text-muted mt-2">Nenhum curso encontrado.</p>
+            <div class="text-center py-5 opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 64px;">school</span>
+                <p class="mt-2">Nenhum curso encontrado.</p>
             </div>
         `);
     }
@@ -91,9 +91,9 @@ const renderTableCourses = (data) => {
 
   if (data.length === 0) {
     container.html(`
-            <div class="text-center py-5">
-                <span class="material-symbols-outlined text-muted opacity-25" style="font-size: 64px;">school</span>
-                <p class="text-muted mt-2">Nenhum curso cadastrado.</p>
+            <div class="text-center py-5 opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 64px;">school</span>
+                <p class="mt-2">Nenhum curso cadastrado.</p>
             </div>
         `);
     return;
@@ -111,17 +111,17 @@ const renderTableCourses = (data) => {
 
       return `
         <tr>
-            <td class="text-center align-middle" style="width: 60px;">
-                <div class="icon-circle bg-light text-primary">
+            <td class="text-center align-middle ps-3" style="width: 60px;">
+                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
                     <span class="material-symbols-outlined">school</span>
                 </div>
             </td>
             <td class="align-middle">
-                <div class="fw-bold text-dark">${item.name}</div>
-                <div class="text-muted small">${ageLabel}</div>
+                <div class="fw-bold">${item.name}</div>
+                <div class="small opacity-75">${ageLabel}</div>
             </td>
             <td class="text-center align-middle">
-                <span class="badge bg-light text-dark border">
+                <span class="badge border text-body bg-transparent">
                     <i class="fas fa-clock me-1"></i> ${item.total_workload_hours || 0}h
                 </span>
             </td>
@@ -142,12 +142,12 @@ const renderTableCourses = (data) => {
     })
     .join("");
 
-  // [PADRÃO] Usa table-custom para o estilo animado
+  // Estrutura table-custom para manter o padrão animado
   container.html(`
     <table class="table-custom">
         <thead>
             <tr>
-                <th colspan="2">Curso</th>
+                <th colspan="2" class="ps-3">Curso</th>
                 <th class="text-center">Carga Horária</th>
                 <th class="text-center">Grade</th>
                 <th class="text-center">Ativo</th>
@@ -207,6 +207,7 @@ const loadCourseData = async (id) => {
       $("#total_workload").val(d.total_workload_hours);
 
       currentCurriculumList = d.curriculum || [];
+      // Garante que 'plans' seja array
       currentCurriculumList.forEach((item) => {
         if (!Array.isArray(item.plans)) item.plans = [];
       });
@@ -292,7 +293,7 @@ window.addSubjectToGrid = () => {
 window.removeSubjectFromGrid = (index) => {
   Swal.fire({
     title: "Remover da grade?",
-    text: "O planejamento será perdido.",
+    text: "O planejamento de aulas desta disciplina será perdido.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
@@ -323,22 +324,23 @@ const renderCurriculumTable = () => {
 
     let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
     const btnClass = plansCount > 0 ? "btn-primary" : "btn-outline-secondary";
-    const infoText = plansCount > 0 ? `<div class="mt-1 small text-success"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas planejadas</div>` : `<div class="mt-1 small text-muted fst-italic">Sem planejamento</div>`;
+    const infoText = plansCount > 0 ? `<div class="mt-1 small text-success fw-bold"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas planejadas</div>` : `<div class="mt-1 small text-muted fst-italic opacity-75">Sem planejamento</div>`;
 
+    // Visual Clean sem bordas laterais
     container.append(`
-            <tr class="align-middle border-0">
-                <td class="ps-3 border-0">
-                    <span class="fw-bold fs-6">${item.subject_name}</span>
-                    ${infoText}
-                </td>
-                <td class="text-center border-0"><span class="badge bg-light text-dark border">${item.workload_hours}h</span></td>
-                <td class="text-center border-0">${mandatoryBadge}</td>
-                <td class="text-end pe-3 border-0">
-                    <button class="btn btn-sm ${btnClass} me-2 shadow-sm" onclick="configureTemplate(${index})" title="Planejar Aulas"><i class="fas fa-book-reader"></i></button>
-                    <button class="btn btn-sm btn-outline-danger border-0" onclick="removeSubjectFromGrid(${index})" title="Remover"><i class="fas fa-trash-alt"></i></button>
-                </td>
-            </tr>
-        `);
+        <tr class="align-middle border-bottom">
+            <td class="ps-3 border-0 py-3">
+                <div class="fw-bold fs-6">${item.subject_name}</div>
+                ${infoText}
+            </td>
+            <td class="text-center border-0"><span class="badge border text-body bg-transparent opacity-75">${item.workload_hours}h</span></td>
+            <td class="text-center border-0">${mandatoryBadge}</td>
+            <td class="text-end pe-3 border-0">
+                <button class="btn btn-sm ${btnClass} me-2 shadow-sm" onclick="configureTemplate(${index})" title="Planejar Aulas"><i class="fas fa-book-reader"></i></button>
+                <button class="btn btn-sm btn-outline-danger border-0" onclick="removeSubjectFromGrid(${index})" title="Remover"><i class="fas fa-trash-alt"></i></button>
+            </td>
+        </tr>
+    `);
   });
 };
 
@@ -355,6 +357,7 @@ window.configureTemplate = (index) => {
   editingCurriculumIndex = index;
   const item = currentCurriculumList[index];
   if (!Array.isArray(item.plans)) item.plans = [];
+
   renderAccordionList();
   $("#modalTemplateAulaLabel").html(`<i class="fas fa-book-reader me-2"></i> Planejamento: <strong>${item.subject_name}</strong>`);
   $("#modalTemplateAula").css("z-index", 1060);
@@ -368,12 +371,15 @@ const renderAccordionList = () => {
 
   if (plans.length === 0) {
     container.html(`
-            <div class="text-center py-5 text-muted">
-                <i class="fas fa-calendar-plus fa-3x mb-3 opacity-25"></i>
-                <p>Nenhum encontro planejado.</p>
-                <button class="btn btn-success btn-sm mt-2" onclick="addPlan()"><i class="fas fa-plus me-1"></i> Criar 1º Encontro</button>
+        <div class="text-center py-5 opacity-50">
+            <span class="material-symbols-outlined" style="font-size: 48px;">calendar_month</span>
+            <p class="mt-2">Nenhum encontro planejado.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-success btn-sm" onclick="addPlan()"><i class="fas fa-plus me-1"></i> Criar 1º Encontro</button>
+                <button class="btn btn-primary btn-sm" onclick="addDefaultModel()"><i class="fas fa-magic me-1"></i> Modelo Padrão</button>
             </div>
-        `);
+        </div>
+    `);
     return;
   }
 
@@ -387,27 +393,27 @@ const renderAccordionList = () => {
     const downBtn = `<button class="btn btn-sm btn-link text-secondary p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
 
     const html = `
-            <div class="plan-item border-bottom">
-                <div class="accordion-header" id="${headingId}">
-                    <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                        <div class="me-3 d-flex align-items-center" style="min-width: 40px;">${upBtn}${downBtn}</div>
-                        <div class="me-3"><span class="badge rounded-pill bg-secondary bg-opacity-25 text-body fw-normal" style="min-width: 30px;">#${i + 1}</span></div>
-                        <div class="flex-grow-1 me-3">
-                            <input type="text" class="form-control form-control-sm input-transparent" value="${plan.title || "Encontro " + (i + 1)}" onclick="event.stopPropagation()" onchange="updatePlanTitle(${i}, this.value)" placeholder="Título do Encontro">
-                        </div>
-                        <div class="ms-auto d-flex align-items-center">
-                            <i class="fas fa-chevron-down text-muted small me-3 transition-icon"></i>
-                            <button class="btn btn-sm btn-link text-danger p-0" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir"><i class="fas fa-trash-alt"></i></button>
-                        </div>
+        <div class="plan-item">
+            <div class="accordion-header" id="${headingId}">
+                <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                    <div class="me-3 d-flex align-items-center text-muted" style="min-width: 40px;">${upBtn}${downBtn}</div>
+                    <div class="me-3"><span class="badge rounded-pill bg-secondary bg-opacity-25 text-body fw-normal border">#${i + 1}</span></div>
+                    <div class="flex-grow-1 me-3">
+                        <input type="text" class="form-control form-control-sm input-ghost" value="${plan.title || "Encontro " + (i + 1)}" onclick="event.stopPropagation()" onchange="updatePlanTitle(${i}, this.value)" placeholder="Título do Encontro">
                     </div>
-                </div>
-                <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" data-bs-parent="#accordionPlans">
-                    <div class="p-0 border-top">
-                        <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
+                    <div class="ms-auto d-flex align-items-center">
+                        <i class="fas fa-chevron-down text-muted small me-3 transition-icon"></i>
+                        <button class="btn btn-sm btn-link text-danger p-0" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
             </div>
-        `;
+            <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionPlans">
+                <div class="p-0 border-top">
+                    <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
+                </div>
+            </div>
+        </div>
+    `;
     container.append(html);
   });
 
@@ -431,22 +437,64 @@ const renderAccordionList = () => {
 };
 
 window.addPlan = () => {
-  currentCurriculumList[editingCurriculumIndex].plans.push({ title: `Encontro ${currentCurriculumList[editingCurriculumIndex].plans.length + 1}`, content: "" });
+  currentCurriculumList[editingCurriculumIndex].plans.push({ title: `${currentCurriculumList[editingCurriculumIndex].plans.length + 1}º encontro`, content: "" });
   renderAccordionList();
   setTimeout(() => {
     $(`#accordionPlans .accordion-collapse:last`).collapse("show");
   }, 150);
 };
 
+// [NOVO] Modelo Padrão
+window.addDefaultModel = () => {
+  const defaultHtml = `
+        <p><strong>TEMA:</strong> ...</p>
+        <hr>
+        <p><strong>1️⃣ ACOLHIDA</strong></p>
+        <ul>
+            <li><strong>Pergunta inicial:</strong> 👉 ...</li>
+        </ul>
+        <br>
+        <p><strong>2️⃣ ORAÇÃO INICIAL</strong></p>
+        <ul>
+            <li><strong>Pergunta provocativa:</strong> 👉 ...</li>
+        </ul>
+        <br>
+        <p><strong>3️⃣ PALAVRA DE DEUS</strong> 📖</p>
+        <blockquote>“...”</blockquote>
+        <br>
+        <p><strong>4️⃣ REFLEXÃO</strong></p>
+        <ul>
+            <li><strong>Pergunta para partilha:</strong> 👉 ...</li>
+        </ul>
+        <br>
+        <p><strong>5️⃣ DINÂMICA</strong></p>
+        <p>...</p>
+        <br>
+        <p><strong>6️⃣ COMPROMISSO</strong></p>
+        <p>...</p>
+        <br>
+        <p><strong>7️⃣ ORAÇÃO FINAL</strong></p>
+        <p>...</p>
+    `;
+  currentCurriculumList[editingCurriculumIndex].plans.push({
+    title: `${currentCurriculumList[editingCurriculumIndex].plans.length + 1}º encontro`,
+    content: defaultHtml,
+  });
+  renderAccordionList();
+  setTimeout(() => {
+    $(`#accordionPlans .accordion-collapse:last`).collapse("show");
+  }, 150);
+  window.alertDefault("Modelo adicionado!", "success");
+};
+
 window.removePlan = (index) => {
   Swal.fire({
-    title: "Excluir Encontro?",
-    text: "O conteúdo será perdido permanentemente.",
+    title: "Excluir o encontro?",
+    text: "Conteúdo será perdido.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Sim, excluir",
+    confirmButtonText: "Sim",
     cancelButtonText: "Cancelar",
   }).then((r) => {
     if (r.isConfirmed) {
@@ -474,65 +522,151 @@ window.updatePlanTitle = (index, value) => {
   currentCurriculumList[editingCurriculumIndex].plans[index].title = value;
 };
 
-// --- IMPORTAR / EXPORTAR ---
-window.exportPlans = () => {
+// =========================================================
+// IMPORTAR / EXPORTAR (EXCELJS)
+// =========================================================
+
+// Exportar .xlsx
+window.exportPlansXlsx = async () => {
   const item = currentCurriculumList[editingCurriculumIndex];
-  if (!item.plans || item.plans.length === 0) return window.alertDefault("Nada para exportar.", "warning");
-  const dataStr = JSON.stringify(item.plans, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `Plano_${item.subject_name.replace(/\s+/g, "_")}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+
+  // Validação
+  if (!item.plans || item.plans.length === 0) {
+    return window.alertDefault("Não há planos de aula para exportar.", "warning");
+  }
+
+  try {
+    // 1. Cria o Workbook e a Planilha
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Planos de Aula");
+
+    // 2. Define as Colunas
+    worksheet.columns = [
+      { header: "Título do Encontro", key: "title", width: 40 },
+      { header: "Conteúdo (HTML)", key: "content", width: 100 }, // HTML fica como texto puro para reimportação
+    ];
+
+    // 3. Adiciona os Dados
+    item.plans.forEach((plan) => {
+      worksheet.addRow({
+        title: plan.title,
+        content: plan.content || "",
+      });
+    });
+
+    // 4. Estiliza o Cabeçalho (Opcional, mas fica bonito)
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4e73df" }, // Cor primária do seu tema (Azul)
+    };
+    headerRow.alignment = { vertical: "middle", horizontal: "center" };
+
+    // 5. Gera o Buffer e Salva com FileSaver
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+    // Nome do arquivo limpo
+    const safeName = item.subject_name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    saveAs(blob, `planejamento_${safeName}.xlsx`);
+
+    window.alertDefault("Planilha gerada com sucesso!", "success");
+  } catch (e) {
+    console.error(e);
+    window.alertDefault("Erro ao gerar planilha.", "error");
+  }
 };
 
-window.importPlans = () => {
-  $("#importFile").click();
+// Gatilho do Input File
+window.importPlansXlsx = () => {
+  $("#importFileXlsx").val(""); // Limpa seleção anterior
+  $("#importFileXlsx").click();
 };
 
-$("#importFile").on("change", function (e) {
+// Listener do Input File (Processamento)
+$("#importFileXlsx").on("change", async function (e) {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    try {
-      const json = JSON.parse(e.target.result);
-      if (Array.isArray(json)) {
+
+  try {
+    const reader = new FileReader();
+
+    // ExcelJS precisa de ArrayBuffer
+    reader.readAsArrayBuffer(file);
+
+    reader.onload = async (e) => {
+      const buffer = e.target.result;
+      const workbook = new ExcelJS.Workbook();
+
+      await workbook.xlsx.load(buffer);
+
+      // Pega a primeira aba
+      const worksheet = workbook.getWorksheet(1);
+      if (!worksheet) throw new Error("Planilha inválida ou vazia.");
+
+      const newPlans = [];
+
+      // Itera sobre as linhas (ExcelJS começa índice em 1)
+      worksheet.eachRow((row, rowNumber) => {
+        // Pula o cabeçalho (linha 1)
+        if (rowNumber > 1) {
+          // Tenta ler texto ou value (segurança contra células ricas)
+          const cellTitle = row.getCell(1).value;
+          const cellContent = row.getCell(2).value;
+
+          // Normaliza para string
+          const titleStr = cellTitle ? String(cellTitle) : `Encontro ${rowNumber - 1}`;
+          const contentStr = cellContent ? String(cellContent) : "";
+
+          newPlans.push({
+            title: titleStr,
+            content: contentStr,
+          });
+        }
+      });
+
+      if (newPlans.length > 0) {
+        // Pergunta ao usuário como prosseguir
         Swal.fire({
-          title: "Importar Plano",
-          text: "Deseja substituir o plano atual ou adicionar ao final?",
+          title: "Importar Excel",
+          html: `Encontrados <b>${newPlans.length}</b> encontros.<br>Como deseja prosseguir?`,
           icon: "question",
           showDenyButton: true,
           showCancelButton: true,
           confirmButtonText: "Substituir Tudo",
+          confirmButtonColor: "#d33",
           denyButtonText: "Adicionar ao Final",
+          denyButtonColor: "#3085d6",
           cancelButtonText: "Cancelar",
         }).then((r) => {
           if (r.isConfirmed) {
-            currentCurriculumList[editingCurriculumIndex].plans = json;
+            // Substituir
+            currentCurriculumList[editingCurriculumIndex].plans = newPlans;
+            renderAccordionList();
+            window.alertDefault("Planejamento substituído!", "success");
           } else if (r.isDenied) {
-            currentCurriculumList[editingCurriculumIndex].plans = currentCurriculumList[editingCurriculumIndex].plans.concat(json);
-          } else {
-            $("#importFile").val("");
-            return;
+            // Adicionar (Merge)
+            currentCurriculumList[editingCurriculumIndex].plans = currentCurriculumList[editingCurriculumIndex].plans.concat(newPlans);
+            renderAccordionList();
+            window.alertDefault("Planos adicionados ao final!", "success");
           }
-          renderAccordionList();
-          window.toast("Importado!", "success");
+          // Se cancelar, não faz nada
+          $("#importFileXlsx").val("");
         });
       } else {
-        window.alertDefault("Formato inválido. Use um arquivo JSON exportado do sistema.", "error");
+        window.alertDefault("A planilha parece estar vazia.", "warning");
       }
-    } catch (err) {
-      window.alertDefault("Erro ao ler.", "error");
-    }
-    $("#importFile").val("");
-  };
-  reader.readAsText(file);
+    };
+  } catch (err) {
+    console.error(err);
+    window.alertDefault("Erro ao ler o arquivo Excel. Verifique o formato.", "error");
+    $("#importFileXlsx").val("");
+  }
 });
 
+// Outros
 window.closeTemplateModal = () => {
   window.saveActiveSummernote();
   $(".accordion-collapse.show").collapse("hide");
@@ -542,15 +676,10 @@ window.closeTemplateModal = () => {
   }, 200);
 };
 
-// =========================================================
-// 5. SALVAR CURSO (FINAL)
-// =========================================================
-
 window.salvarCurso = async () => {
   const name = $("#course_name").val().trim();
   if (!name) return window.alertDefault("Nome do curso é obrigatório.", "warning");
 
-  // Garante save do editor aberto
   window.saveActiveSummernote();
   $(".accordion-collapse.show").collapse("hide");
 
@@ -565,17 +694,11 @@ window.salvarCurso = async () => {
       min_age: $("#min_age").val(),
       max_age: $("#max_age").val(),
       total_workload_hours: $("#total_workload").val(),
-      // Envia o objeto completo com os planos
       curriculum_json: JSON.stringify(currentCurriculumList),
     };
 
     try {
-      const result = await window.ajaxValidator({
-        validator: "saveCourse",
-        token: defaultApp.userInfo.token,
-        data: data,
-      });
-
+      const result = await window.ajaxValidator({ validator: "saveCourse", token: defaultApp.userInfo.token, data: data });
       if (result.status) {
         window.alertDefault("Curso salvo com sucesso!", "success");
         $("#modalCurso").modal("hide");
@@ -591,10 +714,6 @@ window.salvarCurso = async () => {
     }
   }, 300);
 };
-
-// =========================================================
-// 5. AÇÕES (TOGGLE / DELETE)
-// =========================================================
 
 window.toggleCourse = async (id, element) => {
   if (window.handleToggle) {
@@ -618,6 +737,7 @@ window.deleteCourse = (id) => {
     showCancelButton: true,
     confirmButtonColor: "#d33",
     confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       const res = await window.ajaxValidator({ validator: "deleteCourse", token: defaultApp.userInfo.token, id: id });
@@ -630,10 +750,6 @@ window.deleteCourse = (id) => {
     }
   });
 };
-
-// =========================================================
-// UTILITÁRIOS
-// =========================================================
 
 $("#busca-texto").on("change keyup", function () {
   clearTimeout(window.searchTimeout);

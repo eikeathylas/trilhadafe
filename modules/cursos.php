@@ -11,6 +11,7 @@
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
     <style>
         /* =================================================================
@@ -106,7 +107,7 @@
         }
 
         /* =================================================================
-           UI TWEAKS
+           UI TWEAKS & DARK MODE COMPATIBILITY
            ================================================================= */
 
         /* Modal Limpo */
@@ -124,7 +125,7 @@
             background: transparent;
         }
 
-        /* Inputs no modo noturno */
+        /* Inputs adaptáveis */
         .form-control,
         .form-select {
             background-color: var(--bs-body-bg);
@@ -133,14 +134,13 @@
         }
 
         /* Accordion "Clean Line" */
-        .plan-row {
+        .plan-item {
             border-bottom: 1px solid rgba(128, 128, 128, 0.1);
             transition: all 0.2s;
         }
 
-        .plan-row:hover {
+        .plan-item:hover {
             background-color: rgba(128, 128, 128, 0.05);
-            /* Hover sutil adaptável */
         }
 
         /* Input transparente para títulos */
@@ -154,7 +154,12 @@
 
         .input-ghost:focus {
             border-bottom: 1px solid #df691a !important;
-            /* Laranja ao focar */
+        }
+
+        /* Efeito de Hover nos Botões */
+        .btn-hover-effect:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -276,7 +281,7 @@
                                         <input class="form-check-input" type="checkbox" id="curr_mandatory" checked>
                                         <label class="form-check-label small" for="curr_mandatory">Obrigatória</label>
                                     </div>
-                                    <button class="btn btn-primary btn-sm px-3" onclick="addSubjectToGrid()">
+                                    <button class="btn btn-primary btn-sm px-3 shadow-sm btn-hover-effect" onclick="addSubjectToGrid()">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
@@ -300,8 +305,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary px-4 btn-save" onclick="salvarCurso()">
+                    <button type="button" class="btn btn-outline-secondary btn-hover-effect" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4 btn-save btn-hover-effect" onclick="salvarCurso()">
                         <i class="fas fa-save me-2"></i> Salvar Curso
                     </button>
                 </div>
@@ -322,26 +327,31 @@
 
                 <div class="modal-body p-0 bg-body">
                     <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="background-color: rgba(128,128,128, 0.05);">
-                        <button class="btn btn-success btn-sm shadow-sm" onclick="addPlan()">
-                            <i class="fas fa-plus-circle me-1"></i> Adicionar Encontro
-                        </button>
-
-                        <div class="btn-group shadow-sm">
-                            <button class="btn btn-outline-secondary btn-sm border bg-body" onclick="importPlans()">
-                                <i class="fas fa-file-upload me-1"></i> Importar
+                        <div>
+                            <button class="btn btn-success btn-sm shadow-sm btn-hover-effect me-2" onclick="addPlan()">
+                                <i class="fas fa-plus-circle me-1"></i> Adicionar Encontro
                             </button>
-                            <button class="btn btn-outline-secondary btn-sm border bg-body" onclick="exportPlans()">
-                                <i class="fas fa-file-download me-1"></i> Baixar
+                            <button class="btn btn-outline-primary btn-sm shadow-sm btn-hover-effect" onclick="addDefaultModel()">
+                                <i class="fas fa-magic me-1"></i> Modelo Padrão
                             </button>
                         </div>
-                        <input type="file" id="importFile" accept=".json" class="d-none">
+
+                        <!-- <div class="btn-group shadow-sm">
+                            <button class="btn btn-outline-secondary btn-sm border bg-body btn-hover-effect" onclick="importPlansXlsx()">
+                                <i class="fas fa-file-excel text-success me-1"></i> Importar XLSX
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm border bg-body btn-hover-effect" onclick="exportPlansXlsx()">
+                                <i class="fas fa-download text-primary me-1"></i> Baixar XLSX
+                            </button>
+                        </div> -->
+                        <input type="file" id="importFileXlsx" accept=".xlsx" class="d-none">
                     </div>
 
                     <div id="accordionPlans" class="accordion accordion-flush"></div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary px-4" onclick="closeTemplateModal()">
+                    <button type="button" class="btn btn-primary px-4 btn-hover-effect" onclick="closeTemplateModal()">
                         <i class="fas fa-check me-2"></i> Concluir Planejamento
                     </button>
                 </div>

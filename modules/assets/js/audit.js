@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V27 (ARRAY DIFF FIX)
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V28
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -73,6 +73,7 @@ const renderTimeline = (logs, container) => {
     "org_id_origin",
     "link_id",
     "tie_id",
+    "plan_id", // ID técnico do plano
     "notes",
     "start_date",
     "end_date",
@@ -99,7 +100,6 @@ const renderTimeline = (logs, container) => {
     if (!val) return [];
     if (Array.isArray(val)) return val;
     if (typeof val === "object") {
-      // Retorna chaves onde o valor é true
       return Object.keys(val).filter((k) => {
         const v = val[k];
         return v === true || v === "true" || v === 1 || v === "1";
@@ -119,7 +119,6 @@ const renderTimeline = (logs, container) => {
     } catch (e) {}
 
     const op = (log.operation || "").toUpperCase().trim();
-    // ... (Definições de isInsert, isHardDelete, etc. iguais) ...
     const isInsert = op === "INSERT" || op === "ADD VÍNCULO";
     const isHardDelete = op === "DELETE" || op === "RMV VÍNCULO";
     const isSoftDelete = op === "UPDATE" && isTrue(newVal.deleted) && !isTrue(oldVal.deleted);
@@ -131,15 +130,22 @@ const renderTimeline = (logs, container) => {
     let hasVisibleChanges = false;
 
     let headerText = log.target_name || "Atualização";
+
+    // Mapeamento de Tabelas para Títulos Amigáveis
     if (log.table_name === "person_roles") headerText = "Cargos e Funções";
     else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
     else if (log.table_name === "locations") headerText = "Espaço / Sala";
     else if (log.table_name === "curriculum") headerText = "Grade Curricular";
+    else if (log.table_name === "curriculum_plans")
+      headerText = "Planejamento de Ensino"; // [NOVO]
     else if (log.table_name === "class_sessions") headerText = "Dados da Aula";
     else if (log.table_name === "attendance") headerText = "Frequência";
     else if (log.table_name === "person_attachments") headerText = "Arquivos";
 
+    // Tenta encontrar um nome legível para o item afetado
     let itemName =
+      oldVal.title ||
+      newVal.title || // [NOVO] Para Planos de Aula
       oldVal.description ||
       newVal.description ||
       oldVal.file_name ||
@@ -170,6 +176,10 @@ const renderTimeline = (logs, container) => {
       else if (log.table_name === "person_attachments") {
         icon = "attach_file";
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-paperclip me-2"></i> Adicionado: ${itemName}</div>`;
+      } else if (log.table_name === "curriculum_plans") {
+        // [NOVO]
+        icon = "event_note";
+        diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Plano Adicionado: ${itemName}</div>`;
       } else if (["persons", "organizations", "courses", "classes"].includes(log.table_name)) {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro mestre criado no sistema.</div>';
         headerText = "Criação";
@@ -192,6 +202,7 @@ const renderTimeline = (logs, container) => {
       diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-recycle me-2"></i> <strong>${itemName}</strong> restaurado(a).</div>`;
       hasVisibleChanges = true;
     } else {
+      // UPDATE
       let rows = "";
       const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
 
@@ -201,16 +212,13 @@ const renderTimeline = (logs, container) => {
         const vOld = oldVal[key];
         const vNew = newVal[key];
 
-        // [CORREÇÃO] LÓGICA DE DIFF PARA ARRAYS/OBJETOS DE RECURSOS
+        // LÓGICA DE DIFF PARA RECURSOS (JSON/ARRAY)
         if (key === "resources" || key === "resources_detail") {
           const listOld = normalizeResources(vOld);
           const listNew = normalizeResources(vNew);
-
-          // Ordena para garantir comparação justa
           listOld.sort();
           listNew.sort();
 
-          // Se forem idênticos, ignora
           if (JSON.stringify(listOld) === JSON.stringify(listNew)) return;
 
           const added = listNew.filter((x) => !listOld.includes(x));
@@ -238,15 +246,10 @@ const renderTimeline = (logs, container) => {
           if (removed.length > 0) listHtml += removed.map((x) => `<div class="text-danger small fw-bold"><i class="fas fa-minus-circle me-1"></i> Removido: ${resMap[x] || x}</div>`).join("");
           if (added.length > 0) listHtml += added.map((x) => `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-1"></i> Adicionado: ${resMap[x] || x}</div>`).join("");
 
-          rows += `
-                <tr>
-                    <td class="diff-field text-muted align-top pt-2">Recursos Extras</td>
-                    <td colspan="3" class="diff-new pt-2">${listHtml}</td>
-                </tr>`;
-          return; // Retorna para não cair na lógica padrão
+          rows += `<tr><td class="diff-field text-muted align-top pt-2">Recursos Extras</td><td colspan="3" class="diff-new pt-2">${listHtml}</td></tr>`;
+          return;
         }
 
-        // Lógica Padrão para outros campos
         const displayOld = formatValue(vOld, key);
         const displayNew = formatValue(vNew, key);
 
@@ -303,7 +306,12 @@ const renderTimeline = (logs, container) => {
 
 const formatKey = (key) => {
   const map = {
-    // --- ANEXOS (NOVO) ---
+    // --- PLANOS DE AULA (NOVO) ---
+    meeting_number: "Nº do Encontro",
+    title: "Tema / Título",
+    content: "Conteúdo",
+
+    // --- ANEXOS ---
     file_name: "Nome do Arquivo",
     description: "Descrição",
     file_path: "Caminho",
@@ -327,7 +335,7 @@ const formatKey = (key) => {
     location_id: "Local / Sala",
     academic_year_id: "Ano Letivo",
 
-    // Cursos
+    // --- CURSOS ---
     min_age: "Idade Mínima",
     max_age: "Idade Máxima",
     total_workload_hours: "Carga Horária Total",
@@ -336,7 +344,7 @@ const formatKey = (key) => {
     is_mandatory: "Obrigatória",
     disciplina: "Matéria",
 
-    // Geral
+    // --- GERAL ---
     name: "Nome",
     description: "Descrição",
     is_active: "Ativo",
@@ -386,8 +394,6 @@ const formatKey = (key) => {
     eucharist_place: "Local Eucaristia",
     phone_mobile: "Celular / WhatsApp",
     phone_landline: "Telefone Fixo",
-
-    // Sub-tabelas
     vinculo: "Cargo / Função",
     relationship_type: "Grau de Parentesco",
     is_financial_responsible: "Responsável Financeiro",
@@ -439,7 +445,11 @@ const formatValue = (val, key = "") => {
   if (val === true || val === "t" || val === "true") return '<span class="badge bg-success-subtle text-success border border-success">Sim</span>';
   if (val === false || val === "f" || val === "false") return '<span class="badge bg-secondary-subtle text-secondary border">Não</span>';
 
-  // TRADUÇÃO DE STATUS
+  // [NOVO] Exibição simplificada para conteúdo mascarado
+  if (key === "content" && typeof val === "string" && val.includes("Oculto")) {
+    return '<span class="badge bg-light text-secondary border">Conteúdo HTML (Texto Longo)</span>';
+  }
+
   const statusMap = {
     ACTIVE: "Ativa",
     PLANNED: "Planejada",
