@@ -1,7 +1,7 @@
 <?php
 
 // =========================================================
-// DIÁRIO DE CLASSE (MODEL V5.1 - FIX DB COLUMNS)
+// DIÁRIO DE CLASSE (MODEL V5.2 - FIX COLUMN NAME)
 // =========================================================
 
 /**
@@ -95,13 +95,11 @@ function getDiarioMetadataF($data)
         $classId = (int)$data['class_id'];
         $subjectId = (int)$data['subject_id'];
 
-        // [CORREÇÃO AQUI]
-        // 1. Alterado 'week_day' para 'day_of_week' (conforme seu SQL)
-        // 2. Alterado 'deleted IS FALSE' para 'is_active IS TRUE' (sua tabela não tem coluna deleted)
+        // A. Busca a Grade de Horários
+        // Nota: day_of_week no banco, is_active para status
         $sqlSched = "SELECT day_of_week, start_time, end_time 
                      FROM education.class_schedules 
                      WHERE class_id = :cid AND subject_id = :sid AND is_active IS TRUE";
-
         $stmt = $conect->prepare($sqlSched);
         $stmt->execute(['cid' => $classId, 'sid' => $subjectId]);
         $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -138,7 +136,7 @@ function checkDateContentF($data)
         $conect = $GLOBALS["local"];
         $classId = $data['class_id'];
         $subjectId = $data['subject_id'];
-        $dateTime = $data['date']; // TIMESTAMP (YYYY-MM-DD THH:MM)
+        $dateTime = $data['date']; // TIMESTAMP
 
         $dateOnly = substr($dateTime, 0, 10);
         $orgId = 1;
@@ -154,8 +152,8 @@ function checkDateContentF($data)
             return success("Data bloqueada.", ['status' => 'BLOCKED', 'reason' => $event['name']]);
         }
 
-        // B. Verifica se já existe aula
-        $sqlSession = "SELECT session_id, summary, content_type, session_date FROM education.class_sessions 
+        // B. Verifica se já existe aula (CORREÇÃO: usa 'description' ao invés de 'summary')
+        $sqlSession = "SELECT session_id, description, content_type, session_date FROM education.class_sessions 
                        WHERE class_id = :cid AND subject_id = :sid AND session_date = :dt AND deleted IS FALSE";
         $stmtSess = $conect->prepare($sqlSession);
         $stmtSess->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime]);
@@ -175,7 +173,7 @@ function checkDateContentF($data)
             return success("Aula existente.", [
                 'status' => 'EXISTING',
                 'session_id' => $existing['session_id'],
-                'content' => $existing['summary'],
+                'content' => $existing['description'], // CORRIGIDO
                 'attendance' => $attendance
             ]);
         }
@@ -258,14 +256,16 @@ function saveClassSessionF($data)
                 return failure("Já existe uma aula neste horário exato.");
             }
 
-            $sqlIns = "INSERT INTO education.class_sessions (class_id, subject_id, session_date, summary, content_type, signed_by_user_id, signed_at) 
-                       VALUES (:cid, :sid, :dt, :sum, 'DOCTRINAL', :uid, CURRENT_TIMESTAMP) RETURNING session_id";
+            // CORREÇÃO: trocado 'summary' por 'description'
+            $sqlIns = "INSERT INTO education.class_sessions (class_id, subject_id, session_date, description, content_type, signed_by_user_id, signed_at) 
+                       VALUES (:cid, :sid, :dt, :desc, 'DOCTRINAL', :uid, CURRENT_TIMESTAMP) RETURNING session_id";
             $stmt = $conect->prepare($sqlIns);
-            $stmt->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime, 'sum' => $content, 'uid' => $data['user_id']]);
+            $stmt->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime, 'desc' => $content, 'uid' => $data['user_id']]);
             $sessionId = $stmt->fetchColumn();
         } else {
-            $sqlUpd = "UPDATE education.class_sessions SET summary = :sum, session_date = :dt, updated_at = CURRENT_TIMESTAMP WHERE session_id = :id";
-            $conect->prepare($sqlUpd)->execute(['sum' => $content, 'dt' => $dateTime, 'id' => $sessionId]);
+            // CORREÇÃO: trocado 'summary' por 'description'
+            $sqlUpd = "UPDATE education.class_sessions SET description = :desc, session_date = :dt, updated_at = CURRENT_TIMESTAMP WHERE session_id = :id";
+            $conect->prepare($sqlUpd)->execute(['desc' => $content, 'dt' => $dateTime, 'id' => $sessionId]);
         }
 
         $attendanceList = json_decode($data['attendance_json'], true);
@@ -309,11 +309,12 @@ function getClassHistoryF($data)
             'offset' => (int)$data['page']
         ];
 
+        // CORREÇÃO: Trocado sess.summary por sess.description
         $sql = "SELECT 
                     COUNT(*) OVER() as total_registros,
                     sess.session_id,
                     to_char(sess.session_date, 'YYYY-MM-DD HH24:MI') as session_date, 
-                    sess.summary,
+                    sess.description, 
                     (SELECT COUNT(*) FROM education.attendance a WHERE a.session_id = sess.session_id AND a.is_present IS TRUE) as present_count,
                     (SELECT COUNT(*) FROM education.enrollments e WHERE e.class_id = sess.class_id AND e.status = 'ACTIVE') as total_students
                 FROM education.class_sessions sess
