@@ -133,7 +133,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body bg-light">
+                <div class="modal-body">
                     <input type="hidden" id="session_id">
                     <div class="row g-3">
 
@@ -144,9 +144,8 @@
                                         <div class="col-md-7">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-1">Data e Hora da Aula</label>
                                             <div class="input-group">
-                                                <input type="datetime-local" id="diario_date" class="form-control fw-bold text-primary border-end-0">
-                                                <span class="input-group-text bg-white border-start-0 text-muted" id="date-status-icon">
-                                                </span>
+                                                <input type="datetime-local" id="diario_date" class="form-control fw-bold text-primary border-end-0" step="60">
+                                                <span class="input-group-text bg-white border-start-0 text-muted" id="date-status-icon"></span>
                                             </div>
                                             <small id="date-msg" class="d-block mt-1 fw-bold" style="font-size: 0.8rem;"></small>
                                         </div>
@@ -165,7 +164,7 @@
 
                         <div class="col-lg-4">
                             <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-bottom py-3">
+                                <div class="card-header border-bottom py-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="m-0 fw-bold text-secondary"><i class="fas fa-user-check me-2"></i>Frequência</h6>
                                         <small class="text-muted">Padrão: Presente</small>
@@ -178,7 +177,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-footer bg-white border-top p-3">
+                                <div class="card-footer border-top p-3">
                                     <button class="btn btn-primary w-100 shadow-sm py-2" id="btn-save-diario" onclick="salvarDiario()">
                                         <i class="fas fa-save me-2"></i> Salvar Diário
                                     </button>

@@ -19,18 +19,20 @@ const diarioState = {
 
 // Configuração Summernote
 const summernoteConfig = {
-  height: 250,
+  height: 350,
   lang: "pt-BR",
-  placeholder: "Descreva o conteúdo ministrado, observações...",
+  placeholder: "Descreva o conteúdo do encontro...",
+  dialogsInBody: true, // Fix para funcionar dentro do Modal
   toolbar: [
-    ["style", ["bold", "italic", "underline", "clear"]],
+    ["style", ["style", "bold", "italic", "underline", "clear"]],
+    ["font", ["color", "fontsize"]],
     ["para", ["ul", "ol", "paragraph"]],
-    ["insert", ["link", "picture"]],
+    ["insert", ["link", "emoji", "hr", "table", "picture"]],
+    ["view", ["fullscreen", "codeview", "help"]],
   ],
   callbacks: {
-    onInit: function () {
-      // Ajustes visuais se necessário
-    },
+    onBlur: function () {},
+    // Removido onInit que forçava bg-white, para respeitar o tema Dark/Superhero
   },
 };
 
@@ -274,7 +276,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
 
   // Reset UI
   const $dateInput = $("#diario_date");
-  $dateInput.val("").off("change"); // Limpa listeners antigos para não duplicar
+  $dateInput.val("").off("change");
   $("#diario_content").summernote("destroy");
   $("#diario_content").val("");
   $("#lista-alunos").html('<div class="text-center py-5"><span class="loader"></span></div>');
@@ -283,7 +285,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
 
   $("#modalSession").modal("show");
 
-  // 1. Carrega Metadados (Grade Horária Completa e Limites)
+  // 1. Carrega Metadados
   try {
     const resMeta = await window.ajaxValidator({
       validator: "getDiarioMetadata",
@@ -293,71 +295,50 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
     });
 
     if (resMeta.status) {
-      diarioState.schedules = resMeta.data.schedules; // Guarda a grade para validação local
+      diarioState.schedules = resMeta.data.schedules;
 
-      // Configura limites do input datetime-local
-      $dateInput.attr("min", resMeta.data.min_date + "T00:00");
-      $dateInput.attr("max", resMeta.data.max_date + "T23:59");
-      $dateInput.prop("disabled", false); // Habilita o input
+      // Define min/max no input (Formato: YYYY-MM-DDTHH:mm)
+      if (resMeta.data.min_date) $dateInput.attr("min", resMeta.data.min_date + "T00:00");
+      if (resMeta.data.max_date) $dateInput.attr("max", resMeta.data.max_date + "T23:59");
 
-      // 2. Define Valor Inicial
+      $dateInput.prop("disabled", false);
+
       if (dateStr) {
-        // Modo Edição: Usa a data passada pela grid
+        // Modo Edição
         $dateInput.val(dateStr);
-        checkDateLogic(dateStr); // Dispara a verificação imediatamente
-      } else {
-        // Modo Novo: Não sugere data automática para obrigar a escolha consciente (ou sugere hoje se quiser)
-        // Se quisermos sugerir hoje:
-        // const now = new Date().toISOString().slice(0, 16);
-        // $dateInput.val(now);
+        checkDateLogic(dateStr);
       }
     }
   } catch (e) {
     console.error(e);
   }
 
-  // Init Summernote
   $("#diario_content").summernote(summernoteConfig);
 
-  // Ativa Listener de mudança de data
   $dateInput.on("change", function () {
     checkDateLogic(this.value);
   });
 };
 
-// =========================================================
-// VALIDAÇÃO DE DATA E HORA (CORE)
-// =========================================================
+const checkDateLogic = async (dateTimeStr) => {
+  if (!dateTimeStr) return;
 
-const checkDateLogic = async (dateStr) => {
-  if (!dateStr) return;
-
-  // [CORREÇÃO CRÍTICA]: O input datetime-local já vem com 'T' (ex: 2024-01-01T08:00)
-  // Não concatenar "T00:00:00" novamente.
-  const dateObj = new Date(dateStr);
+  const dateObj = new Date(dateTimeStr);
 
   // Verifica se a data é válida
-  if (isNaN(dateObj.getTime())) {
-    console.error("Data inválida recebida:", dateStr);
-    return;
-  }
+  if (isNaN(dateObj.getTime())) return;
 
-  // Ajuste para pegar o dia da semana localmente corretamente
   const dayOfWeek = dateObj.getDay();
-
   const $statusIcon = $("#date-status-icon");
   const $msgContainer = $("#date-msg");
 
-  // Reset Visual
   $statusIcon.html('<span class="loader-sm"></span>');
   $msgContainer.text("").removeClass("text-danger text-success text-warning");
 
-  // 1. Validação Local (Dia da Semana)
-  // Certifica-se que schedules está carregado
+  // 1. VALIDAÇÃO LOCAL: GRADE HORÁRIA
   if (!diarioState.schedules || diarioState.schedules.length === 0) {
-    console.warn("Grade horária não carregada ou vazia.");
-    // Não retorna aqui para tentar validar no backend se necessário,
-    // mas o ideal é que o metadata tenha carregado.
+    // Se não tiver grade carregada, avisa no console mas deixa prosseguir para backend
+    console.warn("Sem grade horária definida.");
   } else {
     const validSchedule = diarioState.schedules.find((s) => parseInt(s.day_of_week) === dayOfWeek);
 
@@ -365,29 +346,18 @@ const checkDateLogic = async (dateStr) => {
       window.alertDefault("Não há aula desta disciplina neste dia da semana.", "warning");
       $("#diario_date").val("");
       $statusIcon.html("");
-      return; // Retorna e o Loader da frequência continua girando se não limparmos
-    }
-
-    // Validação de Hora (Opcional - Comente se quiser permitir horários flexíveis)
-    const timeStr = dateStr.split("T")[1];
-    const start = validSchedule.start_time.substring(0, 5);
-    const end = validSchedule.end_time.substring(0, 5);
-
-    if (timeStr < start || timeStr > end) {
-      // window.alertDefault(`Horário fora da grade (${start} - ${end}).`, "warning");
-      // Apenas um aviso, não bloqueia? Ou bloqueia:
-      // return;
+      return;
     }
   }
 
-  // 2. Validação Backend
+  // 2. VALIDAÇÃO BACKEND
   try {
     const res = await window.ajaxValidator({
       validator: "checkDateContent",
       token: defaultApp.userInfo.token,
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
-      date: dateStr,
+      date: dateTimeStr,
     });
 
     if (res.status) {
@@ -397,16 +367,15 @@ const checkDateLogic = async (dateStr) => {
         $statusIcon.html('<i class="fas fa-ban text-danger"></i>');
         $msgContainer.text(`Bloqueado: ${info.reason}`).addClass("text-danger");
         $("#diario_content").summernote("disable");
-        loadStudentsList(null); // Carrega lista vazia/padrão para limpar o loader
+        // Limpa lista para não confundir
+        $("#lista-alunos").html('<p class="text-center text-muted p-4">Data bloqueada.</p>');
       } else if (info.status === "EXISTING") {
         diarioState.sessionId = info.session_id;
         $statusIcon.html('<i class="fas fa-edit text-primary"></i>');
-        $msgContainer.text("Editando aula existente.").addClass("text-primary");
+        $msgContainer.text("Editando aula já registrada.").addClass("text-primary");
 
         $("#diario_content").summernote("enable");
         $("#diario_content").summernote("code", info.content);
-
-        // Carrega Lista de Alunos e Mescla Presença
         loadStudentsList(info.attendance);
       } else if (info.status === "NEW") {
         diarioState.sessionId = null;
@@ -420,23 +389,17 @@ const checkDateLogic = async (dateStr) => {
         } else {
           $("#diario_content").summernote("code", "");
         }
-
-        // Carrega Lista Limpa (Padrão Presente)
         loadStudentsList(null);
       }
-    } else {
-      // Se der erro no backend, limpa o loader
-      $("#lista-alunos").html('<p class="text-center text-danger p-4">Erro ao validar data.</p>');
     }
   } catch (e) {
     console.error(e);
     $statusIcon.html('<i class="fas fa-exclamation-triangle text-warning"></i>');
-    $("#lista-alunos").html('<p class="text-center text-muted p-4">Erro de conexão.</p>');
   }
 };
 
 // =========================================================
-// LISTA DE ALUNOS (RESPONSIVA & FREQUÊNCIA)
+// LISTA DE ALUNOS (LAYOUT NOVO - SÓ MOSTRA JUSTIF SE FALTAR)
 // =========================================================
 
 const loadStudentsList = async (existingAttendance = null) => {
@@ -449,17 +412,25 @@ const loadStudentsList = async (existingAttendance = null) => {
 
     if (res.status) {
       diarioState.currentStudents = res.data.map((std) => {
-        let isPresent = true; // Padrão: Presente
+        let isPresent = true;
         let justification = "";
+        let absenceType = "UNJUSTIFIED";
 
         if (existingAttendance) {
           const match = existingAttendance.find((a) => a.student_id == std.student_id);
           if (match) {
             isPresent = match.is_present;
             justification = match.justification || "";
+            // Se tiver campo absence_type no futuro, mapeie aqui
+            // absenceType = match.absence_type || 'UNJUSTIFIED';
           }
         }
-        return { ...std, is_present: isPresent, justification: justification };
+        return {
+          ...std,
+          is_present: isPresent,
+          justification: justification,
+          absence_type: absenceType,
+        };
       });
 
       renderStudents();
@@ -480,36 +451,48 @@ const renderStudents = () => {
 
   let html = "";
 
-  // DESKTOP (TABELA)
-  html += `<div class="d-none d-md-block table-responsive"><table class="table table-hover align-middle table-custom"><thead><tr><th width="60" class="ps-3">Foto</th><th>Nome</th><th class="text-center" width="150">Presença</th><th width="200">Justificativa</th></tr></thead><tbody>`;
+  // DESKTOP
+  html += `<div class="d-none d-md-block table-responsive"><table class="table table-hover align-middle table-custom"><thead><tr><th width="50" class="ps-3">Foto</th><th>Nome</th><th class="text-center" width="100">Presença</th><th>Motivo / Justificativa</th></tr></thead><tbody>`;
 
   students.forEach((std, idx) => {
     let avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover; cursor:pointer;" onclick="zoomAvatar('${std.profile_photo_url}')">`
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover;">`
       : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold" style="width:35px; height:35px;">${std.full_name.charAt(0)}</div>`;
+
+    // Layout Condicional: Só mostra inputs se is_present for FALSE
+    const visibilityClass = std.is_present ? "d-none" : "";
 
     html += `
             <tr>
                 <td class="ps-3">${avatarHtml}</td>
-                <td class="fw-bold text-dark small">${std.full_name}</td>
+                <td class="fw-bold small">${std.full_name}</td>
                 <td class="text-center">
                     <div class="form-check form-switch d-flex justify-content-center">
                         <input class="form-check-input attendance-check" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
                     </div>
                 </td>
                 <td>
-                    <input type="text" class="form-control form-control-sm attendance-just" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="...">
+                    <div id="just-area-${idx}" class="d-flex gap-2 ${visibilityClass}">
+                        <select class="form-select form-select-sm" style="width: 140px;" onchange="updateAbsenceType(${idx}, this.value)">
+                            <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
+                            <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
+                            <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
+                    </div>
                 </td>
             </tr>`;
   });
   html += `</tbody></table></div>`;
 
-  // MOBILE (CARDS)
+  // MOBILE
   html += `<div class="d-md-none d-flex flex-column gap-2">`;
   students.forEach((std, idx) => {
     let avatarHtml = std.profile_photo_url
       ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:45px; height:45px; object-fit:cover;">`
       : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:45px; height:45px;">${std.full_name.charAt(0)}</div>`;
+
+    const visibilityClass = std.is_present ? "d-none" : "";
 
     html += `
             <div class="card border shadow-sm p-2">
@@ -525,8 +508,13 @@ const renderStudents = () => {
                         </div>
                     </div>
                 </div>
-                <div class="mt-2 ${std.is_present ? "d-none" : ""}" id="just-box-${idx}">
-                    <input type="text" class="form-control form-control-sm" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Motivo da falta...">
+                <div class="mt-2 ${visibilityClass}" id="just-box-mob-${idx}">
+                    <select class="form-select form-select-sm mb-2" onchange="updateAbsenceType(${idx}, this.value)">
+                        <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
+                        <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
+                        <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
+                    </select>
+                    <input type="text" class="form-control form-control-sm" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes da falta...">
                 </div>
             </div>`;
   });
@@ -537,12 +525,25 @@ const renderStudents = () => {
 
 window.updateAttendance = (idx, isPresent) => {
   diarioState.currentStudents[idx].is_present = isPresent;
-  if (!isPresent) $(`#just-box-${idx}`).removeClass("d-none");
-  else $(`#just-box-${idx}`).addClass("d-none");
+
+  // Toggle visibilidade Desktop e Mobile
+  if (isPresent) {
+    $(`#just-area-${idx}`).addClass("d-none");
+    $(`#just-box-mob-${idx}`).addClass("d-none");
+    // Limpa dados se marcou presença? Opcional.
+    // diarioState.currentStudents[idx].justification = '';
+  } else {
+    $(`#just-area-${idx}`).removeClass("d-none");
+    $(`#just-box-mob-${idx}`).removeClass("d-none");
+  }
 };
 
 window.updateJustification = (idx, val) => {
   diarioState.currentStudents[idx].justification = val;
+};
+
+window.updateAbsenceType = (idx, val) => {
+  diarioState.currentStudents[idx].absence_type = val;
 };
 
 window.zoomAvatar = (url) => {

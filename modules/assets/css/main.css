@@ -2162,3 +2162,151 @@ canvas {
   font-weight: 600;
   letter-spacing: 0.5px;
 }
+
+/* =================================================================
+           SUMMERNOTE THEME: SUPERHERO (FORÇADO)
+           Garante visual Dark/Azulado independente do tema do sistema
+           ================================================================= */
+.note-editor.note-frame {
+  border: 1px solid #4e5d6c;
+  background-color: #2b3e50;
+  /* Fundo Base */
+  color: #fff;
+}
+
+/* Toolbar (Topo) */
+.note-editor .note-toolbar {
+  background-color: #4e5d6c;
+  border-bottom: 1px solid #20374c;
+  color: #fff;
+}
+
+/* Área de Edição */
+.note-editor .note-editing-area {
+  background-color: #2b3e50 !important;
+  color: #fff !important;
+}
+
+.note-editable {
+  background-color: #2b3e50 !important;
+  color: #fff !important;
+}
+
+/* Botões do Toolbar */
+.note-btn {
+  background-color: #2b3e50;
+  border: 1px solid #20374c;
+  color: #fff;
+}
+
+.note-btn:hover,
+.note-btn.active {
+  background-color: #df691a !important;
+  /* Laranja Destaque */
+  border-color: #df691a !important;
+  color: #fff !important;
+}
+
+/* Status Bar (Rodapé do editor) */
+.note-statusbar {
+  background-color: #4e5d6c;
+}
+
+.note-statusbar .note-resizebar .note-icon-bar {
+  border-top: 1px solid #fff;
+}
+
+/* Modais Internos do Summernote (Link, Imagem) */
+.note-modal-content {
+  background-color: #2b3e50;
+  color: #fff;
+  border: 1px solid #4e5d6c;
+}
+
+.note-modal-header {
+  border-bottom: 1px solid #4e5d6c;
+}
+
+.note-modal-footer {
+  border-top: 1px solid #4e5d6c;
+  background-color: transparent;
+}
+
+.note-input {
+  background-color: #4e5d6c;
+  border: 1px solid #20374c;
+  color: #fff;
+}
+
+.note-input:focus {
+  border-color: #df691a;
+}
+
+/* Fix Z-Index */
+.note-modal-backdrop {
+  z-index: 1065 !important;
+}
+
+.note-modal-content {
+  z-index: 1070 !important;
+}
+
+.note-editor.fullscreen {
+  z-index: 1070 !important;
+}
+
+/* =================================================================
+           UI TWEAKS & DARK MODE COMPATIBILITY
+           ================================================================= */
+
+/* Modal Limpo */
+.modal-content {
+  border: none;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.modal-footer {
+  border-top: none;
+  background: transparent;
+}
+
+/* Inputs adaptáveis */
+.form-control,
+.form-select {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border-color: rgba(128, 128, 128, 0.3);
+}
+
+/* Accordion "Clean Line" */
+.plan-item {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+  transition: all 0.2s;
+}
+
+.plan-item:hover {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+/* Input transparente para títulos */
+.input-ghost {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: inherit !important;
+  font-weight: 600;
+  box-shadow: none !important;
+}
+
+.input-ghost:focus {
+  border-bottom: 1px solid #df691a !important;
+}
+
+/* Efeito de Hover nos Botões */
+.btn-hover-effect:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
