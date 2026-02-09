@@ -416,7 +416,7 @@ const checkDateLogic = async (dateStr) => {
         $("#diario_content").summernote("enable");
         if (info.template) {
           $("#diario_content").summernote("code", info.template);
-          window.toast("Plano de aula carregado!", "info");
+          window.alertDefault("Plano de aula carregado!", "info");
         } else {
           $("#diario_content").summernote("code", "");
         }

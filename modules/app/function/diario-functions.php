@@ -1,7 +1,7 @@
 <?php
 
 // =========================================================
-// DIÁRIO DE CLASSE (MODEL V5.2 - FIX COLUMN NAME)
+// DIÁRIO DE CLASSE (MODEL V5.4 - FIX EVENT COLUMNS)
 // =========================================================
 
 /**
@@ -96,7 +96,7 @@ function getDiarioMetadataF($data)
         $subjectId = (int)$data['subject_id'];
 
         // A. Busca a Grade de Horários
-        // Nota: day_of_week no banco, is_active para status
+        // Mapeia week_day (DB) -> day_of_week (JS)
         $sqlSched = "SELECT day_of_week, start_time, end_time 
                      FROM education.class_schedules 
                      WHERE class_id = :cid AND subject_id = :sid AND is_active IS TRUE";
@@ -136,23 +136,29 @@ function checkDateContentF($data)
         $conect = $GLOBALS["local"];
         $classId = $data['class_id'];
         $subjectId = $data['subject_id'];
-        $dateTime = $data['date']; // TIMESTAMP
+        $dateTime = $data['date']; // TIMESTAMP (YYYY-MM-DD HH:MM)
 
         $dateOnly = substr($dateTime, 0, 10);
         $orgId = 1;
 
-        // A. Verifica Feriados
-        $sqlEvent = "SELECT name FROM organization.events 
-                     WHERE org_id = :oid AND start_date <= :dt AND end_date >= :dt AND is_blocking IS TRUE AND deleted IS FALSE LIMIT 1";
+        // [CORREÇÃO AQUI]: Ajustado para as colunas reais da tabela organization.events
+        // title (não name), event_date (não start/end), is_academic_blocker (não is_blocking)
+        $sqlEvent = "SELECT title FROM organization.events 
+                     WHERE org_id = :oid 
+                       AND event_date = :dt 
+                       AND is_academic_blocker IS TRUE 
+                       AND deleted IS FALSE 
+                     LIMIT 1";
+
         $stmtEv = $conect->prepare($sqlEvent);
         $stmtEv->execute(['oid' => $orgId, 'dt' => $dateOnly]);
         $event = $stmtEv->fetch(PDO::FETCH_ASSOC);
 
         if ($event) {
-            return success("Data bloqueada.", ['status' => 'BLOCKED', 'reason' => $event['name']]);
+            return success("Data bloqueada.", ['status' => 'BLOCKED', 'reason' => $event['title']]);
         }
 
-        // B. Verifica se já existe aula (CORREÇÃO: usa 'description' ao invés de 'summary')
+        // B. Verifica se já existe aula (Edição)
         $sqlSession = "SELECT session_id, description, content_type, session_date FROM education.class_sessions 
                        WHERE class_id = :cid AND subject_id = :sid AND session_date = :dt AND deleted IS FALSE";
         $stmtSess = $conect->prepare($sqlSession);
@@ -173,7 +179,7 @@ function checkDateContentF($data)
             return success("Aula existente.", [
                 'status' => 'EXISTING',
                 'session_id' => $existing['session_id'],
-                'content' => $existing['description'], // CORRIGIDO
+                'content' => $existing['description'],
                 'attendance' => $attendance
             ]);
         }
@@ -256,14 +262,12 @@ function saveClassSessionF($data)
                 return failure("Já existe uma aula neste horário exato.");
             }
 
-            // CORREÇÃO: trocado 'summary' por 'description'
             $sqlIns = "INSERT INTO education.class_sessions (class_id, subject_id, session_date, description, content_type, signed_by_user_id, signed_at) 
                        VALUES (:cid, :sid, :dt, :desc, 'DOCTRINAL', :uid, CURRENT_TIMESTAMP) RETURNING session_id";
             $stmt = $conect->prepare($sqlIns);
             $stmt->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime, 'desc' => $content, 'uid' => $data['user_id']]);
             $sessionId = $stmt->fetchColumn();
         } else {
-            // CORREÇÃO: trocado 'summary' por 'description'
             $sqlUpd = "UPDATE education.class_sessions SET description = :desc, session_date = :dt, updated_at = CURRENT_TIMESTAMP WHERE session_id = :id";
             $conect->prepare($sqlUpd)->execute(['desc' => $content, 'dt' => $dateTime, 'id' => $sessionId]);
         }
@@ -309,7 +313,6 @@ function getClassHistoryF($data)
             'offset' => (int)$data['page']
         ];
 
-        // CORREÇÃO: Trocado sess.summary por sess.description
         $sql = "SELECT 
                     COUNT(*) OVER() as total_registros,
                     sess.session_id,
