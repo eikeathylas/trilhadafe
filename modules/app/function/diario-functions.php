@@ -83,9 +83,8 @@ function getClassSubjectsF($classId)
     }
 }
 
-/**
- * 3. SMART LOGIC: Metadados (Grade, Datas Calculadas e Feriados DINÂMICOS)
- */
+
+
 /**
  * 3. SMART LOGIC: Metadados (Grade, Datas Calculadas, Feriados e Existentes)
  */
@@ -149,12 +148,13 @@ function getDiarioMetadataF($data)
 
         // 3. Busca Feriados
         $holidays = [];
+        $orgId = 2;
         if ($orgId && $minDate && $maxDate) {
             $sqlHol = "SELECT to_char(event_date, 'YYYY-MM-DD') as date, title 
                        FROM organization.events 
                        WHERE org_id = :oid 
                          AND event_date BETWEEN :start AND :end 
-                         AND is_academic_blocker IS TRUE 
+                         --AND is_academic_blocker IS TRUE 
                          AND deleted IS FALSE";
             $stmtHol = $conect->prepare($sqlHol);
             $stmtHol->execute(['oid' => $orgId, 'start' => $minDate, 'end' => $maxDate]);

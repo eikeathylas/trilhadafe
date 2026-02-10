@@ -196,7 +196,10 @@ const renderTableHistory = (data) => {
 window.openSessionModal = async (sessionId = null, dateStr = null) => {
   diarioState.sessionId = sessionId;
 
-  // Reset Visual
+  // Reset UI
+  const $dateInput = $("#diario_date");
+  $dateInput.val("").prop("disabled", true);
+
   $("#diario_content").summernote("destroy");
   $("#diario_content").val("");
   $("#lista-alunos").html('<div class="text-center py-5"><span class="loader"></span></div>');
@@ -210,6 +213,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
 
   $("#modalSession").modal("show");
 
+  // 1. Carrega Metadados
   try {
     const resMeta = await window.ajaxValidator({
       validator: "getDiarioMetadata",
@@ -221,16 +225,18 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
     if (resMeta.status) {
       diarioState.schedules = resMeta.data.schedules;
 
-      // DADOS VINDOS DO BACKEND
-      const validDates = resMeta.data.valid_dates || [];
-      const holidays = resMeta.data.holidays || {};
-      // [NOVO] Mapa de aulas já registradas: { '2026-02-10': { id: 1, tooltip: 'Aula já registrada (1º Encontro)' } }
-      const registeredSessions = resMeta.data.registered_sessions || {};
+      const validDates = resMeta.data.valid_dates || []; // Grade teórica
+      const existingDates = resMeta.data.existing_dates || []; // Aulas dadas
+      const holidays = resMeta.data.holidays || {}; // Feriados
 
-      // Garante que a data de edição esteja habilitada
+      // IMPORTANTE: Habilitar tanto os dias da grade quanto os dias já lançados (exceções)
+      // Usa Set para remover duplicatas
+      const enableDates = [...new Set([...validDates, ...existingDates])];
+
+      // Se for edição de uma data antiga que não está mais na grade, adiciona ela
       if (dateStr) {
         const currentDate = dateStr.split("T")[0];
-        if (!validDates.includes(currentDate)) validDates.push(currentDate);
+        if (!enableDates.includes(currentDate)) enableDates.push(currentDate);
       }
 
       fpInstance = flatpickr("#diario_date", {
@@ -240,34 +246,24 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
         minDate: resMeta.data.min_date,
         maxDate: resMeta.data.max_date,
         locale: "pt",
-        enable: validDates, // Lista Branca (Datas calculadas)
+        enable: enableDates, // Lista Branca combinada
 
-        // PINTA O CALENDÁRIO
         onDayCreate: function (dObj, dStr, fp, dayElem) {
-          // Ajuste de fuso para pegar a chave YYYY-MM-DD correta
           const offsetDate = new Date(dayElem.dateObj.getTime() - dayElem.dateObj.getTimezoneOffset() * 60000);
           const dateKey = offsetDate.toISOString().split("T")[0];
 
-          // 1. Prioridade: Feriado
           if (holidays[dateKey]) {
-            dayElem.classList.add("flatpickr-disabled", "has-tooltip");
+            // FERIADO (Vermelho)
+            dayElem.classList.add("flatpickr-disabled");
             dayElem.setAttribute("title", holidays[dateKey]);
-            dayElem.innerHTML += "<span class='event busy'></span>"; // Vermelho
-          }
-          // 2. Prioridade: Aula Já Registrada [NOVO]
-          else if (registeredSessions[dateKey]) {
-            const sessionInfo = registeredSessions[dateKey];
-
-            // Adiciona Tooltip com a sequência (ex: "Aula já registrada (1º Encontro)")
-            dayElem.setAttribute("title", sessionInfo.tooltip);
-            dayElem.classList.add("has-tooltip");
-
-            // Adiciona Bolinha Verde
-            dayElem.innerHTML += "<span class='event registered'></span>";
-          }
-          // 3. Prioridade: Dia de Aula Disponível
-          else if (validDates.includes(dateKey)) {
-            dayElem.innerHTML += "<span class='event'></span>"; // Azul
+            dayElem.innerHTML += "<span class='event busy'></span>";
+          } else if (existingDates.includes(dateKey)) {
+            // AULA JÁ DADA (Verde)
+            dayElem.innerHTML += "<span class='event existing'></span>";
+            dayElem.setAttribute("title", "Diário preenchido");
+          } else if (validDates.includes(dateKey)) {
+            // DIA DE AULA PREVISTO (Azul)
+            dayElem.innerHTML += "<span class='event'></span>";
           }
         },
         onChange: function (selectedDates, dateStr, instance) {
@@ -275,17 +271,17 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
         },
       });
 
-      $("#diario_date").prop("disabled", false);
+      $dateInput.prop("disabled", false);
 
       if (dateStr) {
         fpInstance.setDate(dateStr, true);
       }
     } else {
-      window.alertDefault(resMeta.alert, "warning");
+      window.alertDefault(resMeta.alert || "Erro ao carregar dados.", "warning");
     }
   } catch (e) {
     console.error(e);
-    window.alertDefault("Erro ao carregar calendário.", "error");
+    window.alertDefault("Erro de conexão.", "error");
   }
 
   $("#diario_content").summernote(summernoteConfig);
