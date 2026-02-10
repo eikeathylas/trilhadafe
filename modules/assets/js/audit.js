@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V28
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V29
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -73,7 +73,7 @@ const renderTimeline = (logs, container) => {
     "org_id_origin",
     "link_id",
     "tie_id",
-    "plan_id", // ID técnico do plano
+    "plan_id",
     "notes",
     "start_date",
     "end_date",
@@ -95,7 +95,6 @@ const renderTimeline = (logs, container) => {
   const isTrue = (v) => v === true || v === "t" || v === "true" || v === 1;
   const isFalse = (v) => v === false || v === "f" || v === "false" || v === 0 || v === null;
 
-  // Helper para normalizar objetos de recursos em arrays de chaves ativas
   const normalizeResources = (val) => {
     if (!val) return [];
     if (Array.isArray(val)) return val;
@@ -131,21 +130,18 @@ const renderTimeline = (logs, container) => {
 
     let headerText = log.target_name || "Atualização";
 
-    // Mapeamento de Tabelas para Títulos Amigáveis
     if (log.table_name === "person_roles") headerText = "Cargos e Funções";
     else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
     else if (log.table_name === "locations") headerText = "Espaço / Sala";
     else if (log.table_name === "curriculum") headerText = "Grade Curricular";
-    else if (log.table_name === "curriculum_plans")
-      headerText = "Planejamento de Ensino"; // [NOVO]
+    else if (log.table_name === "curriculum_plans") headerText = "Planejamento de Ensino";
     else if (log.table_name === "class_sessions") headerText = "Dados da Aula";
     else if (log.table_name === "attendance") headerText = "Frequência";
     else if (log.table_name === "person_attachments") headerText = "Arquivos";
 
-    // Tenta encontrar um nome legível para o item afetado
     let itemName =
       oldVal.title ||
-      newVal.title || // [NOVO] Para Planos de Aula
+      newVal.title ||
       oldVal.description ||
       newVal.description ||
       oldVal.file_name ||
@@ -172,12 +168,14 @@ const renderTimeline = (logs, container) => {
     if (isInsert) {
       icon = "add";
       colorClass = "INSERT";
-      if (log.table_name === "attendance") diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro de presença criado.</div>`;
-      else if (log.table_name === "person_attachments") {
+      if (log.table_name === "attendance") {
+        // [AJUSTE] Detalhe visual para inserção de frequência
+        const statusBadge = isTrue(newVal.is_present) ? '<span class="badge bg-success ms-1">Presente</span>' : '<span class="badge bg-danger ms-1">Ausente</span>';
+        diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro criado: ${statusBadge}</div>`;
+      } else if (log.table_name === "person_attachments") {
         icon = "attach_file";
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-paperclip me-2"></i> Adicionado: ${itemName}</div>`;
       } else if (log.table_name === "curriculum_plans") {
-        // [NOVO]
         icon = "event_note";
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Plano Adicionado: ${itemName}</div>`;
       } else if (["persons", "organizations", "courses", "classes"].includes(log.table_name)) {
@@ -212,7 +210,6 @@ const renderTimeline = (logs, container) => {
         const vOld = oldVal[key];
         const vNew = newVal[key];
 
-        // LÓGICA DE DIFF PARA RECURSOS (JSON/ARRAY)
         if (key === "resources" || key === "resources_detail") {
           const listOld = normalizeResources(vOld);
           const listNew = normalizeResources(vNew);
@@ -229,7 +226,6 @@ const renderTimeline = (logs, container) => {
           hasVisibleChanges = true;
           let listHtml = "";
 
-          // Mapeamento de nomes de recursos
           const resMap = {
             wifi: "Wi-Fi",
             projector: "Projetor/TV",
@@ -306,26 +302,20 @@ const renderTimeline = (logs, container) => {
 
 const formatKey = (key) => {
   const map = {
-    // --- PLANOS DE AULA (NOVO) ---
     meeting_number: "Nº do Encontro",
     title: "Tema / Título",
     content: "Conteúdo",
-
-    // --- ANEXOS ---
     file_name: "Nome do Arquivo",
     description: "Descrição",
     file_path: "Caminho",
-
-    // --- DIÁRIO ---
     session_date: "Data da Aula",
     content_type: "Tipo de Conteúdo",
     signed_at: "Assinado em",
     is_present: "Presença",
     justification: "Justificativa",
     absence_type: "Motivo da Falta",
+    student_observation: "Observação", // [NOVO]
     aluno: "Aluno",
-
-    // --- TURMAS ---
     coordinator_id: "Coordenador",
     class_assistant_id: "Auxiliar de Turma",
     class_name: "Nome da Turma",
@@ -334,8 +324,6 @@ const formatKey = (key) => {
     end_time: "Horário de Término",
     location_id: "Local / Sala",
     academic_year_id: "Ano Letivo",
-
-    // --- CURSOS ---
     min_age: "Idade Mínima",
     max_age: "Idade Máxima",
     total_workload_hours: "Carga Horária Total",
@@ -343,11 +331,8 @@ const formatKey = (key) => {
     workload_hours: "Horas/Aula",
     is_mandatory: "Obrigatória",
     disciplina: "Matéria",
-
-    // --- GERAL ---
     name: "Nome",
-    description: "Descrição",
-    is_active: "Ativo",
+    is_active: "Status (Ativo)",
     display_name: "Nome Fantasia",
     legal_name: "Razão Social",
     phone_main: "Telefone Principal",
@@ -367,9 +352,6 @@ const formatKey = (key) => {
     decree_number: "Decreto Canônico",
     foundation_date: "Data de Fundação",
     instituicao: "Instituição Vinculada",
-
-    // --- LOCAIS & SALAS ---
-    name: "Nome",
     capacity: "Capacidade (Pessoas)",
     has_ac: "Ar-Condicionado",
     has_ceiling_fan: "Ventilador de Teto",
@@ -379,8 +361,6 @@ const formatKey = (key) => {
     is_lodging: "Possui Alojamento",
     resources_detail: "Recursos Extras",
     responsible_id: "ID Responsável",
-
-    // --- PESSOAS & FAMÍLIA ---
     full_name: "Nome Completo",
     religious_name: "Nome Religioso/Social",
     birth_date: "Data de Nascimento",
@@ -400,14 +380,8 @@ const formatKey = (key) => {
     is_legal_guardian: "Responsável Legal",
     relative_id: "ID Parente",
     relative_name: "Nome do Parente",
-
-    // --- ACADÊMICO (CURSOS E GRADE) ---
-    subject_id: "Disciplina",
     syllabus_summary: "Ementa / Conteúdo",
     course_id: "Curso",
-    min_age: "Idade Mínima (Anos)",
-    max_age: "Idade Máxima (Anos)",
-    total_workload_hours: "Carga Horária Total",
     class_id: "Turma",
     year_cycle: "Ano Letivo",
     semester: "Semestre/Módulo",
@@ -424,7 +398,6 @@ const formatKey = (key) => {
     start_time: "Horário Inicial",
     end_time: "Horário Final",
     location_id: "Sala / Local",
-    description: "Descrição / Objetivo",
 
     // --- SISTEMA ---
     is_active: "Status (Ativo)",
@@ -438,6 +411,22 @@ const formatKey = (key) => {
 const formatValue = (val, key = "") => {
   const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory"];
 
+  // [AJUSTE] Lógica específica para Frequência (Is_Present)
+  if (key === "is_present") {
+    if (val === true || val === "t" || val === "true") return '<span class="badge bg-success">Presente</span>';
+    if (val === false || val === "f" || val === "false") return '<span class="badge bg-danger">Ausente</span>';
+  }
+
+  // [AJUSTE] Tradução do Motivo da Falta
+  if (key === "absence_type") {
+    const absMap = {
+      UNJUSTIFIED: "Não Justificada",
+      JUSTIFIED: "Justificada",
+      RECURRENT: "Recorrente",
+    };
+    if (absMap[val]) return absMap[val];
+  }
+
   if (!boolKeys.includes(key)) {
     if (isEffectivelyEmpty(val)) return '<em class="text-muted opacity-75">vazio</em>';
   }
@@ -445,7 +434,6 @@ const formatValue = (val, key = "") => {
   if (val === true || val === "t" || val === "true") return '<span class="badge bg-success-subtle text-success border border-success">Sim</span>';
   if (val === false || val === "f" || val === "false") return '<span class="badge bg-secondary-subtle text-secondary border">Não</span>';
 
-  // [NOVO] Exibição simplificada para conteúdo mascarado
   if (key === "content" && typeof val === "string" && val.includes("Oculto")) {
     return '<span class="badge bg-light text-secondary border">Conteúdo HTML (Texto Longo)</span>';
   }
@@ -459,7 +447,6 @@ const formatValue = (val, key = "") => {
   };
   if (statusMap[val]) return statusMap[val];
 
-  // Mapas
   const relMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
   if (relMap[val]) return relMap[val];
 
@@ -468,9 +455,6 @@ const formatValue = (val, key = "") => {
 
   const contentTypeMap = { DOCTRINAL: "Doutrinal", BIBLICAL: "Bíblico", LITURGICAL: "Litúrgico", EXPERIENTIAL: "Vivencial", REVIEW: "Avaliação" };
   if (contentTypeMap[val]) return contentTypeMap[val];
-
-  const classMap = { UNJUSTIFIED: "Não Justificada", JUSTIFIED: "Justificada", MEDICAL: "Atestado Médico", OTHER: "Outro", RECURRENT: "Recorrente" };
-  if (classMap[val]) return classMap[val];
 
   // Data
   if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
@@ -554,7 +538,7 @@ window.doRollback = (logId, dateStr = "") => {
     if (result.isConfirmed) {
       try {
         Swal.fire({ title: "Restaurando...", didOpen: () => Swal.showLoading() });
-        const res = await ajaxValidator({ validator: "rollbackAuditLog", token: defaultApp.userInfo.token, log_id: logId });
+        const res = await ajaxValidator({ validator: "rollbackChange", token: defaultApp.userInfo.token, log_id: logId });
         if (res.status) {
           Swal.fire({ title: "Restaurado!", icon: "success", timer: 2000, showConfirmButton: false }).then(() => {
             $("#modalAudit").modal("hide");
