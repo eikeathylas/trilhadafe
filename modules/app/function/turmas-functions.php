@@ -4,19 +4,7 @@
 // GESTÃO DE TURMAS (MODEL / FUNCTIONS)
 // =========================================================
 
-// 1. Lista os Anos Letivos para o Filtro
-function getAcademicYearsF()
-{
-    try {
-        $conect = $GLOBALS["local"];
-        // Busca anos ativos e não deletados, ordenados do mais recente
-        $sql = "SELECT year_id, name, is_active, (CASE WHEN year_id = EXTRACT(YEAR FROM CURRENT_DATE) THEN TRUE ELSE FALSE END) as now FROM education.academic_years WHERE deleted IS FALSE ORDER BY name ASC";
-        $stmt = $conect->query($sql);
-        return success("Anos listados", $stmt->fetchAll(PDO::FETCH_ASSOC));
-    } catch (Exception $e) {
-        return failure("Erro ao listar anos letivos.");
-    }
-}
+
 
 // 2. Listagem Principal de Turmas (Grid)
 function getAllClasses($data)

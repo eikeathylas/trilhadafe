@@ -1,13 +1,10 @@
 <?php
 
-// Inclui as funções criadas acima
 include '../function/session-functions.php';
 
-/**
- * Chamado a cada 5 minutos pelo JS
- * Verifica se pode continuar logado
- */
-function validateSessionToken() {
+
+function validateSessionToken()
+{
     if (!isset($_POST['token'])) {
         echo json_encode(failure("Token não informado."));
         return;
@@ -18,10 +15,8 @@ function validateSessionToken() {
     if ($check['valid']) {
         echo json_encode(success("Sessão ativa.", ['logout' => false]));
     } else {
-        // Se caiu aqui, o front deve deslogar
         $motivo = $check['reason'] ?? 'unknown';
-        
-        // Mensagem personalizada para bloqueio financeiro
+
         if ($motivo === 'financial_block') {
             echo json_encode(success("Acesso suspenso. Contate o financeiro.", ['logout' => true, 'reason' => 'financial']));
         } else {
@@ -30,11 +25,8 @@ function validateSessionToken() {
     }
 }
 
-/**
- * Chamado a cada 10 minutos pelo JS
- * Apenas diz ao banco "Estou vivo"
- */
-function confirmSessionToken() {
+function confirmSessionToken()
+{
     if (!isset($_POST['token'])) {
         echo json_encode(failure("Token não informado."));
         return;
@@ -45,7 +37,23 @@ function confirmSessionToken() {
     if ($refreshed) {
         echo json_encode(success("Sessão renovada."));
     } else {
-        // Se não renovou, provavelmente o token já caiu
         echo json_encode(failure("Falha ao renovar sessão.", null, false, 401));
     }
+}
+
+function getGlobalContext()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token não informado.", null, false, 401));
+        return;
+    }
+    $decoded = decodeAccessToken($_POST["token"]);
+    if (!$decoded) {
+        echo json_encode(failure("Token inválido.", null, false, 401));
+        return;
+    }
+
+    getLocal($decoded["conexao"]);
+
+    echo json_encode(getGlobalContextF($decoded['id_user']));
 }

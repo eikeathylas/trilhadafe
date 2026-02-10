@@ -208,7 +208,6 @@ window.ajaxValidatorFoto = (data) => {
   });
 };
 
-
 // =========================================================
 // 5. MOTOR DE SESSÃO
 // =========================================================
@@ -232,6 +231,129 @@ const keepAlive = () => {
   ajaxValidator({ validator: "confirm", token: defaultApp.userInfo.token });
 };
 
+window.initGlobalContext = async () => {
+  // Se não tiver token, não tenta carregar (ex: na tela de login)
+  if (!defaultApp.userInfo.token) return;
+
+  // Elementos Selectize (se existirem na página)
+  const $elParish = $("#global_parish");
+  const $elYear = $("#global_year");
+
+  if (!$elParish.length || !$elYear.length) return;
+
+  // Inicializa Selectize (Vazio)
+  const selParish = $elParish.selectize({
+    create: false,
+    sortField: "text",
+    searchField: ["text"],
+    placeholder: "Carregando...",
+    dropdownParent: "body",
+    onChange: function (val) {
+      if (!val) return;
+      const current = localStorage.getItem("tf_active_parish");
+      if (current != val) {
+        localStorage.setItem("tf_active_parish", val);
+        $(".sidebar-context-card.top-card").css("border-color", "var(--padrao2)");
+        window.location.reload();
+      }
+    },
+    render: { option: (item, escape) => `<div class="option"><span>${escape(item.text)}</span></div>` },
+  })[0].selectize;
+
+  const selYear = $elYear.selectize({
+    create: false,
+    sortField: "text",
+    searchField: ["text"],
+    placeholder: "Carregando...",
+    dropdownParent: "body",
+    onChange: function (val) {
+      if (!val) return;
+      localStorage.setItem("sys_active_year", val);
+      window.dispatchEvent(new CustomEvent("yearChanged", { detail: val }));
+      // Feedback Visual
+      const card = document.querySelector(".sidebar-context-card.bottom-card");
+      if (card) {
+        card.style.borderColor = "var(--padrao2)";
+        setTimeout(() => (card.style.borderColor = "rgba(255,255,255,0.1)"), 800);
+      }
+    },
+    render: { option: (item, escape) => `<div class="option"><span>${escape(item.text)}</span></div>` },
+  })[0].selectize;
+
+  selParish.disable();
+  selYear.disable();
+
+  // Requisição Única (Otimizada)
+  try {
+    const res = await ajaxValidator({
+      validator: "getGlobalContext",
+      token: defaultApp.userInfo.token,
+    });
+
+    if (res.status) {
+      const data = res.data;
+
+      // 1. Popula Paróquias
+      selParish.clearOptions();
+      selParish.enable();
+      selParish.settings.placeholder = "Selecione...";
+      selParish.updatePlaceholder();
+
+      if (data.parishes && data.parishes.length > 0) {
+        const savedParish = localStorage.getItem("tf_active_parish");
+        let isActiveSet = false;
+
+        data.parishes.forEach((p) => {
+          selParish.addOption({ value: p.id, text: p.name });
+          if (savedParish && p.id == savedParish) isActiveSet = true;
+        });
+
+        if (isActiveSet) selParish.setValue(savedParish, true);
+        else {
+          const firstId = data.parishes[0].id;
+          localStorage.setItem("tf_active_parish", firstId);
+          selParish.setValue(firstId, true);
+        }
+      } else {
+        selParish.disable();
+        selParish.settings.placeholder = "Sem acesso";
+        selParish.updatePlaceholder();
+      }
+
+      // 2. Popula Anos
+      selYear.clearOptions();
+      selYear.enable();
+      selYear.settings.placeholder = "Selecione...";
+      selYear.updatePlaceholder();
+
+      if (data.years && data.years.length > 0) {
+        let activeYear = null;
+        const cachedYear = localStorage.getItem("sys_active_year");
+
+        data.years.forEach((y) => {
+          selYear.addOption({ value: y.year_id, text: y.name });
+          if (y.now && y.is_active && !activeYear) activeYear = y.year_id;
+        });
+
+        if (cachedYear) selYear.setValue(cachedYear, true);
+        else if (activeYear) {
+          selYear.setValue(activeYear, true);
+          localStorage.setItem("sys_active_year", activeYear);
+        }
+
+        // Dispara evento inicial para carregar grids dependentes
+        if (selYear.getValue()) {
+          window.dispatchEvent(new CustomEvent("yearChanged", { detail: selYear.getValue() }));
+        }
+      }
+    } else {
+      console.warn("Falha ao carregar contexto global:", res.alert);
+    }
+  } catch (e) {
+    console.error("Erro no contexto global:", e);
+  }
+};
+
 $(document).ready(() => {
   checkSessionStatus();
   setInterval(checkSessionStatus, 600000); // 10 min
@@ -243,4 +365,5 @@ $(document).ready(() => {
 
   // Inicializa máscaras globais ao carregar
   initMasks();
+  initGlobalContext();
 });

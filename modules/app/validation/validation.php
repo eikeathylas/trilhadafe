@@ -1,30 +1,24 @@
 <?php
-// Configurações de Erro (Útil para debug)
 error_reporting(0);
 
-// Headers
 header('Access-Control-Allow-Origin: *');
 
-// 1. Dependências Essenciais
-include "../tools/tools.php";       // Ferramentas (success, failure, getIp, decodeAccessToken)
-include "../database/database.php"; // Conexão com Banco (getStaff, getLocal)
+include "../tools/tools.php";
+include "../database/database.php";
 
-// 2. Controllers do Trilha da Fé
-include "../controller/session-controller.php";       // Sessão e Login
-include "../controller/dashboard-controller.php";     // Tela Inicial
-include "../controller/audit-controller.php";         // Auditoria (Raio)
-include "../controller/organization-controller.php";  // Organização e Salas
-include "../controller/people-controller.php";        // Pessoas
-include "../controller/academic-controller.php";      // Disciplinas
-include "../controller/course-controller.php";        // Cursos
-include "../controller/turmas-controller.php";        // Turmas
-include "../controller/diario-controller.php";        // Diário de Classe
-include "../controller/events-controller.php";        // Eventos
+include "../controller/session-controller.php";
+include "../controller/audit-controller.php";
+include "../controller/dashboard-controller.php";
+include "../controller/organization-controller.php";
+include "../controller/people-controller.php";
+include "../controller/academic-controller.php";
+include "../controller/course-controller.php";
+include "../controller/turmas-controller.php";
+include "../controller/diario-controller.php";
+include "../controller/events-controller.php";
 
-// 3. Captura da Ação
 $validator = $_POST["validator"] ?? null;
 
-// 4. Roteamento
 switch ($validator) {
 
 	// =========================================================
@@ -36,6 +30,9 @@ switch ($validator) {
 	case "confirm":
 		confirmSessionToken();
 		break;
+	case "getGlobalContext":
+		getGlobalContext();
+		break;
 
 	// =========================================================
 	// MÓDULO: DASHBOARD (dashboard.js)
@@ -43,10 +40,7 @@ switch ($validator) {
 	case "getDashboardStats":
 		getDashboardStats();
 		break;
-	case "getMyParishes": // [NOVO] Seletor de Paróquias
-		getMyParishes();
-		break;
-	case "getUpcomingEvents": // [NOVO] Widget de Agenda
+	case "getUpcomingEvents":
 		getUpcomingEvents();
 		break;
 
@@ -98,7 +92,7 @@ switch ($validator) {
 		toggleLocation();
 		break;
 	case "getResponsiblesList":
-		getResponsiblesList(); // Preenche select de responsáveis
+		getResponsiblesList();
 		break;
 
 	// =========================================================
@@ -166,7 +160,6 @@ switch ($validator) {
 	case "toggleCourse":
 		toggleCourse();
 		break;
-	// Auxiliares usados por Cursos e Turmas
 	case "getCoursesList":
 		getCoursesList();
 		break;
@@ -192,19 +185,12 @@ switch ($validator) {
 	case "toggleClass":
 		toggleClass();
 		break;
-
-	// Filtros e Selects do Módulo Turmas
-	case "getAcademicYearsList":
-		getAcademicYearsList();
-		break;
 	case "getStudentsList":
 		getStudentsList();
 		break;
 	case "getCatechistsList":
 		getCatechistsList();
 		break;
-
-	// Sub-rotas de Alunos da Turma
 	case "getClassStudents":
 		getClassStudents();
 		break;
@@ -214,8 +200,6 @@ switch ($validator) {
 	case "deleteEnrollment":
 		deleteEnrollment();
 		break;
-
-	// Histórico de Matrícula
 	case "getEnrollmentHistory":
 		getEnrollmentHistory();
 		break;
@@ -239,7 +223,6 @@ switch ($validator) {
 		getClassHistory();
 		break;
 
-	// Novas Rotas Smart Logic
 	case "getDiarioMetadata":
 		getDiarioMetadata();
 		break;
@@ -249,8 +232,6 @@ switch ($validator) {
 	case "getStudentsForDiary":
 		getStudentsForDiary();
 		break;
-
-	// Ações de Persistência
 	case "saveClassDiary":
 		saveClassDiary();
 		break;
@@ -360,7 +341,7 @@ function ping()
 
 	return success("Sistema operacional", [
 		"status" => "ok",
-		"version" => "2.0.0",
+		"version" => "1.0.0",
 		"server_time" => date("Y-m-d H:i:s")
 	]);
 }

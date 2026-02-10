@@ -1,6 +1,5 @@
 <?php
 
-// CONFIGURAÇÃO DE FUSO HORÁRIO E IDIOMA
 date_default_timezone_set('America/Recife');
 setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
 
@@ -19,7 +18,6 @@ function executeSQL($dados, $idConexao = "local")
     }
     return true;
 }
-
 
 function success($alert, $data = null, $access = null, $encod = false)
 {

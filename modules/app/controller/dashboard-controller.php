@@ -38,37 +38,6 @@ function getDashboardStats()
 }
 
 /**
- * 2. Rota: Listar Paróquias (Seletor do Menu)
- * Busca no banco STAFF quais paróquias este usuário tem acesso.
- */
-function getMyParishes()
-{
-    // 1. Validação básica
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-
-    if (!$decoded) {
-        echo json_encode(failure("Token inválido ou expirado.", null, false, 401));
-        return;
-    }
-
-    // [CORREÇÃO] Não conectamos mais no Local (getLocal).
-    // A função getMyParishesData conecta direto no Staff para verificar se é DEV/ROOT.
-
-    getLocal($decoded["conexao"]);
-
-    $data = [
-        "user_id" => $decoded["id_user"] // ID Global do usuário
-    ];
-
-    echo json_encode(getMyParishesData($data));
-}
-
-/**
  * 3. Rota: Agenda de Eventos (Widget)
  * Busca os próximos eventos na tabela organization.events
  */

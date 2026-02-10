@@ -85,3 +85,85 @@ function refreshSession($token)
         return false;
     }
 }
+
+function getMyParishesData($data)
+{
+    try {
+        if (!isset($GLOBALS["local"])) return failure("Erro: Conexão local não estabelecida.");
+        $conectLocal = $GLOBALS["local"];
+
+        $conectStaff = getStaff();
+        if (!$conectStaff) return failure("Erro de conexão com o servidor central.");
+
+        $userId = $data['user_id'];
+
+        $sqlUser = "SELECT staff FROM users WHERE id = :uid";
+        $stmtUser = $conectStaff->prepare($sqlUser);
+        $stmtUser->execute(['uid' => $userId]);
+        $resStaff = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+        $isGlobalAdmin = ($resStaff && ($resStaff['staff'] === true || $resStaff['staff'] === 't' || $resStaff['staff'] === 1));
+        $parishes = [];
+
+        if ($isGlobalAdmin) {
+            $sql = "SELECT org_id as id, display_name as name 
+                    FROM organization.organizations 
+                    WHERE is_active IS TRUE AND deleted IS FALSE AND org_type = 'PARISH'
+                    ORDER BY display_name ASC";
+            $stmt = $conectLocal->prepare($sql);
+            $stmt->execute();
+            $parishes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            $stmtP = $conectLocal->prepare("SELECT person_id FROM security.users WHERE user_id = :uid");
+            $stmtP->execute(['uid' => $userId]);
+            $personId = $stmtP->fetchColumn();
+
+            if (!$personId) return success("Nenhum vínculo local encontrado.", []);
+
+            $sql = "SELECT DISTINCT o.org_id as id, o.display_name as name
+                    FROM organization.organizations o
+                    JOIN people.person_roles pr ON o.org_id = pr.org_id
+                    WHERE pr.person_id = :pid 
+                    AND pr.is_active IS TRUE AND pr.deleted IS FALSE
+                    AND o.is_active IS TRUE AND o.deleted IS FALSE
+                    AND org_type = 'PARISH'
+                    ORDER BY o.display_name ASC";
+            $stmt = $conectLocal->prepare($sql);
+            $stmt->execute(['pid' => $personId]);
+            $parishes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        return success("Unidades carregadas.", $parishes);
+    } catch (Exception $e) {
+        return failure("Erro ao carregar lista de unidades.");
+    }
+}
+
+function getAcademicYearsF()
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $sql = "SELECT year_id, name, is_active, (CASE WHEN year_id = EXTRACT(YEAR FROM CURRENT_DATE) THEN TRUE ELSE FALSE END) as now FROM education.academic_years WHERE deleted IS FALSE ORDER BY name ASC";
+        $stmt = $conect->query($sql);
+        return success("Anos listados", $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (Exception $e) {
+        return failure("Erro ao listar anos letivos.");
+    }
+}
+
+function getGlobalContextF($userId)
+{
+    // Reutiliza as lógicas existentes para garantir consistência
+    $resParishes = getMyParishesData(['user_id' => $userId]);
+    $resYears = getAcademicYearsF();
+
+    // Se alguma falhar, retornamos erro geral
+    if (!$resParishes['status'] || !$resYears['status']) {
+        return failure("Erro ao carregar contexto inicial.");
+    }
+
+    return success("Contexto carregado.", [
+        'parishes' => $resParishes['data'],
+        'years' => $resYears['data']
+    ]);
+}

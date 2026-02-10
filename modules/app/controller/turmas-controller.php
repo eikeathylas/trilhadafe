@@ -62,15 +62,6 @@ function toggleClass()
     echo json_encode(toggleClassStatus($data));
 }
 
-// =========================================================
-// 2. AUXILIARES E FILTROS
-// =========================================================
-
-function getAcademicYearsList()
-{
-    if (!verifyToken()) return;
-    echo json_encode(getAcademicYearsF());
-}
 
 // =========================================================
 // 3. GESTÃO DE ALUNOS (MATRÍCULAS)
