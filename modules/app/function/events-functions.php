@@ -1,34 +1,22 @@
 <?php
 
-// =========================================================
-// GESTÃO DE EVENTOS E AGENDA (ORGANIZATION.EVENTS)
-// =========================================================
-
 function getAllEventsF($data)
 {
     try {
         $conect = $GLOBALS["local"];
-        $orgId = 1; // Ajuste para pegar da sessão se necessário
+        $orgId = 1;
 
         $params = [
             ':limit' => (int)$data['limit'],
             ':offset' => (int)$data['page'],
-            ':oid' => 2 //$orgId
+            ':oid' => 2
         ];
 
         $where = "WHERE org_id = :oid AND deleted IS FALSE";
 
-        // Filtro de Busca
         if (!empty($data['search'])) {
             $where .= " AND (title ILIKE :search OR description ILIKE :search)";
             $params[':search'] = "%" . $data['search'] . "%";
-        }
-
-        // Filtro de Data (Opcional, ex: Mês atual)
-        if (!empty($data['month']) && !empty($data['year'])) {
-            $where .= " AND EXTRACT(MONTH FROM event_date) = :month AND EXTRACT(YEAR FROM event_date) = :year";
-            $params[':month'] = $data['month'];
-            $params[':year'] = $data['year'];
         }
 
         $sql = <<<SQL
@@ -44,7 +32,7 @@ function getAllEventsF($data)
                 is_academic_blocker
             FROM organization.events
             $where
-            ORDER BY event_date DESC
+            ORDER BY event_date ASC
             LIMIT :limit OFFSET :offset
         SQL;
 
@@ -56,7 +44,6 @@ function getAllEventsF($data)
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Cast boolean
         foreach ($result as &$row) {
             $row['is_academic_blocker'] = ($row['is_academic_blocker'] === true || $row['is_academic_blocker'] === 't');
         }
@@ -105,15 +92,13 @@ function upsertEventF($data)
         ];
 
         if (!empty($data['event_id'])) {
-            // UPDATE
             $sql = "UPDATE organization.events 
                     SET title=:title, description=:desc, event_date=:dt, start_time=:st, end_time=:et, is_academic_blocker=:block, updated_at=CURRENT_TIMESTAMP 
                     WHERE event_id=:id";
             $params['id'] = $data['event_id'];
             $msg = "Evento atualizado com sucesso!";
         } else {
-            // INSERT
-            $params['org_id'] = 1; // Ajuste conforme sessão
+            $params['org_id'] = 1;
             $sql = "INSERT INTO organization.events (org_id, title, description, event_date, start_time, end_time, is_academic_blocker) 
                     VALUES (:org_id, :title, :desc, :dt, :st, :et, :block)";
             $msg = "Evento criado com sucesso!";
@@ -147,5 +132,32 @@ function removeEventF($data)
     } catch (Exception $e) {
         $conect->rollBack();
         return failure("Erro ao excluir evento.");
+    }
+}
+
+// [NOVO] Função para o Toggle da Listagem
+function toggleEventBlockerF($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $conect->beginTransaction();
+
+        if (!empty($data['user_id'])) {
+            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
+        }
+
+        $sql = "UPDATE organization.events SET is_academic_blocker = :block, updated_at = CURRENT_TIMESTAMP WHERE event_id = :id";
+        $status = ($data['is_blocker'] === 'true' || $data['is_blocker'] === true) ? 'TRUE' : 'FALSE';
+
+        $conect->prepare($sql)->execute([
+            'block' => $status,
+            'id' => $data['id']
+        ]);
+
+        $conect->commit();
+        return success("Status atualizado.");
+    } catch (Exception $e) {
+        $conect->rollBack();
+        return failure("Erro ao atualizar status.");
     }
 }

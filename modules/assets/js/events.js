@@ -1,5 +1,5 @@
 // =========================================================
-// GESTÃO DE EVENTOS (FRONTEND LOGIC)
+// GESTÃO DE EVENTOS (FRONTEND LOGIC) - V4 (Layout Fixed)
 // =========================================================
 
 const defaultEvents = { currentPage: 1, rowsPerPage: 10, totalPages: 1 };
@@ -18,9 +18,11 @@ $(document).ready(() => {
     }, 500);
   });
 
-  // Inicializa Flatpickr no Modal
+  // Inicializa Flatpickr
   fpEventDate = flatpickr("#evt_date", {
     dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "d/m/Y",
     locale: "pt",
     allowInput: true,
   });
@@ -67,7 +69,10 @@ const renderTableEvents = (data) => {
 
   let rows = data
     .map((item) => {
+      // Definição do Badge solicitado
       const isBlocker = item.is_academic_blocker ? '<span class="badge bg-danger-subtle text-danger border border-danger"><i class="fas fa-ban me-1"></i> Feriado Escolar</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda Comum</span>';
+
+      const isChecked = item.is_academic_blocker ? "checked" : "";
 
       const timeInfo = item.start_time && item.end_time ? `<small class="text-muted d-block"><i class="far fa-clock me-1"></i> ${item.start_time} às ${item.end_time}</small>` : "";
 
@@ -80,16 +85,24 @@ const renderTableEvents = (data) => {
                 </td>
                 <td class="align-middle">
                     <div class="fw-bold text-dark">${item.title}</div>
-                    <div class="small text-muted">${item.description || "Sem descrição"}</div>
+                    <div class="small text-muted text-truncate" style="max-width: 300px;">${item.description || "Sem descrição"}</div>
                 </td>
                 <td class="align-middle">
                     <div class="fw-bold text-dark">${item.date_fmt}</div>
                     ${timeInfo}
                 </td>
-                <td class="align-middle text-center">
-                    ${isBlocker}
+                <td class="align-middle text-center" width="200">
+                    <div class="form-check form-switch d-flex justify-content-center align-items-center">
+                        <input class="form-check-input" type="checkbox" role="switch" 
+                               id="sw_${item.event_id}" ${isChecked} 
+                               onchange="toggleBlocker(${item.event_id}, this.checked)">
+                        <label class="form-check-label ms-2" for="sw_${item.event_id}" id="lbl_${item.event_id}">
+                            ${isBlocker}
+                        </label>
+                    </div>
                 </td>
                 <td class="align-middle text-end pe-3">
+                    <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Histórico"><i class="fas fa-bolt"></i></button>
                     <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
                     <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
                 </td>
@@ -98,13 +111,14 @@ const renderTableEvents = (data) => {
     })
     .join("");
 
+  // Retorna ao padrão "table-custom" original
   container.html(`
         <table class="table-custom">
             <thead>
                 <tr>
                     <th colspan="2" class="ps-3">Evento</th>
                     <th>Data/Hora</th>
-                    <th class="text-center">Tipo</th>
+                    <th class="text-center">Tipo (Bloqueio)</th>
                     <th class="text-end pe-4">Ações</th>
                 </tr>
             </thead>
@@ -113,6 +127,39 @@ const renderTableEvents = (data) => {
     `);
 
   _generatePaginationButtons("pagination-events", "currentPage", "totalPages", "changePage", defaultEvents);
+};
+
+// [NOVO] Função do Toggle
+window.toggleBlocker = async (id, status) => {
+  // Feedback visual imediato no label
+  const label = $(`#lbl_${id}`);
+  if (status) {
+    label.html('<span class="badge bg-danger-subtle text-danger border border-danger"><i class="fas fa-ban me-1"></i> Feriado Escolar</span>');
+  } else {
+    label.html('<span class="badge bg-success-subtle text-success border border-success">Agenda Comum</span>');
+  }
+
+  try {
+    const res = await ajaxValidator({
+      validator: "toggleEventBlocker",
+      token: defaultApp.userInfo.token,
+      id: id,
+      is_blocker: status,
+    });
+
+    if (res.status) {
+      window.toast("Status atualizado.", "success");
+    } else {
+      window.alertDefault(res.msg, "error");
+      $(`#sw_${id}`).prop("checked", !status); // Reverte switch
+      // Reverte label (recarregar seria mais seguro, mas aqui é visual rápido)
+      loadEvents();
+    }
+  } catch (e) {
+    window.alertDefault("Erro de conexão.", "error");
+    $(`#sw_${id}`).prop("checked", !status);
+    loadEvents();
+  }
 };
 
 // 2. CADASTRO / EDIÇÃO
@@ -137,7 +184,9 @@ window.editEvent = async (id) => {
       $("#event_id").val(d.event_id);
       $("#evt_title").val(d.title);
       $("#evt_desc").val(d.description);
+
       fpEventDate.setDate(d.event_date);
+
       $("#evt_start").val(d.start_time);
       $("#evt_end").val(d.end_time);
       $("#evt_blocker").prop("checked", d.is_academic_blocker === true || d.is_academic_blocker === "t");
@@ -171,7 +220,7 @@ window.saveEvent = async () => {
       start_time: $("#evt_start").val(),
       end_time: $("#evt_end").val(),
       is_academic_blocker: $("#evt_blocker").is(":checked"),
-      user_id: defaultApp.userInfo.id, // Auditoria
+      user_id: defaultApp.userInfo.id,
     });
 
     if (res.status) {

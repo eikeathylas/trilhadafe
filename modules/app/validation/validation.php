@@ -274,6 +274,9 @@ switch ($validator) {
 	case "removeEvent":
 		removeEvent();
 		break;
+	case "toggleEventBlocker":
+		toggleEventBlocker();
+		break;
 	// =========================================================
 	// ROTAS PADRÃO
 	// =========================================================

@@ -43,6 +43,12 @@
                         <span class="text-only">Dashboard</span>
                     </a>
                 </li>
+                <li>
+                    <a href="eventos.php" class="<?= basename($_SERVER['PHP_SELF']) == 'eventos.php' ? 'active' : '' ?>">
+                        <span class="material-symbols-outlined icon-only">event</span>
+                        <span class="text-only">Eventos</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
