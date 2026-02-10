@@ -148,7 +148,7 @@ window.toggleBlocker = async (id, status) => {
     });
 
     if (res.status) {
-      window.toast("Status atualizado.", "success");
+      window.alertDefault("Status atualizado.", "success");
     } else {
       window.alertDefault(res.msg, "error");
       $(`#sw_${id}`).prop("checked", !status); // Reverte switch
