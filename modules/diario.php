@@ -10,10 +10,12 @@
     <?php include "./assets/components/Head.php"; ?>
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
 
     <style>
-        /* Ajuste do Summernote */
+        /* Ajustes do Editor de Texto */
         .note-editor.note-frame {
             border: 1px solid #dee2e6;
             box-shadow: none;
@@ -24,21 +26,14 @@
             border-bottom: 1px solid #dee2e6;
         }
 
-        /* Scroll interno na lista de presença */
+        /* Scroll da Lista de Frequência */
         .attendance-scroll {
             max-height: 500px;
             overflow-y: auto;
             scrollbar-width: thin;
         }
 
-        /* Ajuste Responsivo para Lista de Alunos */
-        @media (max-width: 992px) {
-            .student-row {
-                font-size: 0.9rem;
-            }
-        }
-
-        /* Loader pequeno para inputs */
+        /* Loader pequeno para validações assíncronas */
         .loader-sm {
             width: 16px;
             height: 16px;
@@ -58,6 +53,18 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Ajuste Crucial para o Flatpickr: Fundo branco mesmo readonly */
+        .flatpickr-input[readonly] {
+            background-color: #fff !important;
+            cursor: pointer;
+        }
+
+        /* Ajuste de inputs na tabela */
+        .table-custom input.form-control-sm,
+        .table-custom select.form-select-sm {
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 
@@ -66,9 +73,7 @@
     <div id="div-loader" class="div-loader d-none"><span class="loader"></span></div>
 
     <div id="sidebar-only" class="sidebar-only">
-        <div class="menu-btn-only">
-            <span class="material-symbols-outlined">chevron_left</span>
-        </div>
+        <div class="menu-btn-only"><span class="material-symbols-outlined">chevron_left</span></div>
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
@@ -133,8 +138,9 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body">
+                <div class="modal-body bg-light">
                     <input type="hidden" id="session_id">
+
                     <div class="row g-3">
 
                         <div class="col-lg-8">
@@ -144,14 +150,14 @@
                                         <div class="col-md-7">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-1">Data e Hora da Aula</label>
                                             <div class="input-group">
-                                                <input type="datetime-local" id="diario_date" class="form-control fw-bold text-primary border-end-0" step="60">
+                                                <input type="text" id="diario_date" class="form-control fw-bold text-primary border-end-0 bg-white" placeholder="Toque para selecionar..." readonly>
                                                 <span class="input-group-text bg-white border-start-0 text-muted" id="date-status-icon"></span>
                                             </div>
                                             <small id="date-msg" class="d-block mt-1 fw-bold" style="font-size: 0.8rem;"></small>
                                         </div>
                                         <div class="col-md-5 text-end d-none d-md-block">
                                             <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">
-                                                <i class="fas fa-info-circle me-1"></i> Preenchimento Automático
+                                                <i class="fas fa-info-circle me-1"></i> Auto-Plano
                                             </span>
                                         </div>
                                     </div>
@@ -164,7 +170,7 @@
 
                         <div class="col-lg-4">
                             <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header border-bottom py-3">
+                                <div class="card-header bg-white border-bottom py-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="m-0 fw-bold text-secondary"><i class="fas fa-user-check me-2"></i>Frequência</h6>
                                         <small class="text-muted">Padrão: Presente</small>
@@ -172,12 +178,10 @@
                                 </div>
                                 <div class="card-body p-0 attendance-scroll bg-body-tertiary">
                                     <div id="lista-alunos" class="p-2">
-                                        <div class="text-center py-4 text-muted small">
-                                            Carregando lista...
-                                        </div>
+                                        <div class="text-center py-4 text-muted small">Carregando lista...</div>
                                     </div>
                                 </div>
-                                <div class="card-footer border-top p-3">
+                                <div class="card-footer bg-white border-top p-3">
                                     <button class="btn btn-primary w-100 shadow-sm py-2" id="btn-save-diario" onclick="salvarDiario()">
                                         <i class="fas fa-save me-2"></i> Salvar Diário
                                     </button>
@@ -191,42 +195,16 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalJustification" tabindex="-1" style="z-index: 1060;">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fs-6">Justificar Ausência</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="just_student_index">
-                    <p class="mb-3">Aluno: <strong id="just_student_name"></strong></p>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Motivo</label>
-                        <select id="just_type" class="form-select">
-                            <option value="UNJUSTIFIED">Não Justificada</option>
-                            <option value="JUSTIFIED">Justificada (Atestado/Pais)</option>
-                            <option value="RECURRENT">Falta Recorrente</option>
-                        </select>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small fw-bold">Observação</label>
-                        <textarea id="just_obs" class="form-control" rows="3" placeholder="Detalhes..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer p-2">
-                    <button type="button" class="btn btn-sm btn-primary w-100" onclick="confirmJustification()">Confirmar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <?php include "./assets/components/Modal-Faqs.php"; ?>
     <?php include "./assets/components/Modal-Audit.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-pt-BR.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+
     <script src="assets/js/diario.js?v=<?php echo time(); ?>"></script>
 
 </body>

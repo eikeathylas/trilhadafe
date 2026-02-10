@@ -2310,3 +2310,15 @@ canvas {
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+/* Bolinha Verde: Aula Já Registrada */
+.event.registered {
+  background: #1cc88a; /* Verde Sucesso */
+  width: 5px;
+  height: 5px;
+}
+
+/* Ajuste para o tooltip nativo aparecer melhor */
+.flatpickr-day.has-tooltip {
+  cursor: help;
+}

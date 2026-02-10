@@ -1,7 +1,7 @@
 <?php
 
 // =========================================================
-// DIÁRIO DE CLASSE (MODEL V5.4 - FIX EVENT COLUMNS)
+// DIÁRIO DE CLASSE (MODEL V5.9 - DYNAMIC ORG)
 // =========================================================
 
 /**
@@ -24,7 +24,6 @@ function getTeacherClassesF($userId, $roleLevel, $yearId = null)
         $superUsers = ['ADMIN', 'MANAGER', 'SECRETARY', 'DEV', 'STAFF', 'ROOT', 'PAROCO', 'COORD'];
 
         if (in_array(strtoupper($roleLevel), $superUsers)) {
-            // VISÃO GERAL
             $sql = "SELECT c.class_id, c.name as class_name, co.name as course_name, ay.name as year_name, l.name as location_name
                     FROM education.classes c
                     JOIN education.courses co ON c.course_id = co.course_id
@@ -35,7 +34,6 @@ function getTeacherClassesF($userId, $roleLevel, $yearId = null)
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
         } else {
-            // VISÃO PROFESSOR
             $stmtP = $conect->prepare("SELECT person_id FROM security.users WHERE user_id = :uid");
             $stmtP->execute(['uid' => $userId]);
             $personId = $stmtP->fetchColumn();
@@ -86,7 +84,10 @@ function getClassSubjectsF($classId)
 }
 
 /**
- * 3. SMART LOGIC: Metadados (Grade Horária e Limites)
+ * 3. SMART LOGIC: Metadados (Grade, Datas Calculadas e Feriados DINÂMICOS)
+ */
+/**
+ * 3. SMART LOGIC: Metadados (Grade, Datas Calculadas, Feriados e Existentes)
  */
 function getDiarioMetadataF($data)
 {
@@ -95,31 +96,89 @@ function getDiarioMetadataF($data)
         $classId = (int)$data['class_id'];
         $subjectId = (int)$data['subject_id'];
 
-        // A. Busca a Grade de Horários
-        // Mapeia week_day (DB) -> day_of_week (JS)
+        // 1. Busca Dados da Turma (Org e Datas Limites)
+        $sqlClass = "SELECT c.org_id, ay.start_date, ay.end_date 
+                     FROM education.classes c
+                     JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
+                     WHERE c.class_id = :cid LIMIT 1";
+        $stmtClass = $conect->prepare($sqlClass);
+        $stmtClass->execute(['cid' => $classId]);
+        $classData = $stmtClass->fetch(PDO::FETCH_ASSOC);
+
+        if (!$classData) return failure("Dados da turma não encontrados.");
+
+        $orgId = $classData['org_id'];
+        $minDate = $classData['start_date'];
+        $maxDate = $classData['end_date'];
+
+        // 2. Busca Grade Horária
         $sqlSched = "SELECT day_of_week, start_time, end_time 
                      FROM education.class_schedules 
-                     WHERE class_id = :cid AND subject_id = :sid AND is_active IS TRUE";
-        $stmt = $conect->prepare($sqlSched);
-        $stmt->execute(['cid' => $classId, 'sid' => $subjectId]);
-        $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                     WHERE class_id = :cid AND is_active IS TRUE";
+        $stmtSched = $conect->prepare($sqlSched);
+        $stmtSched->execute(['cid' => $classId]);
+        $rawSchedules = $stmtSched->fetchAll(PDO::FETCH_ASSOC);
 
-        // B. Limites do Ano Letivo
-        $sqlYear = "SELECT ay.start_date, ay.end_date 
-                    FROM education.classes c 
-                    JOIN education.academic_years ay ON ay.year_id = c.academic_year_id 
-                    WHERE c.class_id = :cid LIMIT 1";
-        $stmtY = $conect->prepare($sqlYear);
-        $stmtY->execute(['cid' => $classId]);
-        $limits = $stmtY->fetch(PDO::FETCH_ASSOC);
+        $schedules = [];
+        $validDates = [];
 
-        $minDate = $limits['start_date'] ?? date('Y-01-01');
-        $maxDate = $limits['end_date'] ?? date('Y-12-31');
+        if (!empty($rawSchedules)) {
+            // Formata Grade
+            $schedules = array_map(function ($row) {
+                return [
+                    'day_of_week' => $row['day_of_week'],
+                    'start_time' => $row['start_time'],
+                    'end_time' => $row['end_time']
+                ];
+            }, $rawSchedules);
+
+            // GERA AS DATAS VÁLIDAS (Generate Series)
+            $daysOfWeek = array_column($rawSchedules, 'day_of_week');
+            $dowString = implode(',', array_unique($daysOfWeek));
+
+            if (!empty($dowString) && $minDate && $maxDate) {
+                $sqlGen = "SELECT DISTINCT to_char(serie.data, 'YYYY-MM-DD') as valid_date
+                           FROM generate_series(:start::date, :end::date, '1 day'::interval) AS serie(data)
+                           WHERE EXTRACT(DOW FROM serie.data) IN ($dowString)
+                           ORDER BY 1";
+                $stmtGen = $conect->prepare($sqlGen);
+                $stmtGen->execute(['start' => $minDate, 'end' => $maxDate]);
+                $validDates = $stmtGen->fetchAll(PDO::FETCH_COLUMN);
+            }
+        }
+
+        // 3. Busca Feriados
+        $holidays = [];
+        if ($orgId && $minDate && $maxDate) {
+            $sqlHol = "SELECT to_char(event_date, 'YYYY-MM-DD') as date, title 
+                       FROM organization.events 
+                       WHERE org_id = :oid 
+                         AND event_date BETWEEN :start AND :end 
+                         AND is_academic_blocker IS TRUE 
+                         AND deleted IS FALSE";
+            $stmtHol = $conect->prepare($sqlHol);
+            $stmtHol->execute(['oid' => $orgId, 'start' => $minDate, 'end' => $maxDate]);
+            while ($row = $stmtHol->fetch(PDO::FETCH_ASSOC)) {
+                $holidays[$row['date']] = $row['title'];
+            }
+        }
+
+        // 4. [NOVO] Busca Registros Existentes (Diários já lançados)
+        $existingDates = [];
+        $sqlExist = "SELECT to_char(session_date, 'YYYY-MM-DD') as date 
+                     FROM education.class_sessions 
+                     WHERE class_id = :cid AND subject_id = :sid AND deleted IS FALSE";
+        $stmtExist = $conect->prepare($sqlExist);
+        $stmtExist->execute(['cid' => $classId, 'sid' => $subjectId]);
+        $existingDates = $stmtExist->fetchAll(PDO::FETCH_COLUMN);
 
         return success("Configurações carregadas.", [
             'schedules' => $schedules,
-            'min_date' => $minDate,
-            'max_date' => $maxDate
+            'valid_dates' => $validDates,   // Dias teóricos (Grade)
+            'existing_dates' => $existingDates, // Dias com aula lançada (Real)
+            'holidays' => $holidays,
+            'min_date' => $minDate ?? date('Y-01-01'),
+            'max_date' => $maxDate ?? date('Y-12-31')
         ]);
     } catch (Exception $e) {
         logSystemError("painel", "diario", "getDiarioMetadataF", "sql", $e->getMessage(), $data);
@@ -128,7 +187,7 @@ function getDiarioMetadataF($data)
 }
 
 /**
- * 4. SMART LOGIC: Verifica Data (Com Hora), Feriados e Plano
+ * 4. SMART LOGIC: Validação Final (Com Org ID dinâmico)
  */
 function checkDateContentF($data)
 {
@@ -136,20 +195,19 @@ function checkDateContentF($data)
         $conect = $GLOBALS["local"];
         $classId = $data['class_id'];
         $subjectId = $data['subject_id'];
-        $dateTime = $data['date']; // TIMESTAMP (YYYY-MM-DD HH:MM)
-
+        $dateTime = $data['date'];
         $dateOnly = substr($dateTime, 0, 10);
-        $orgId = 1;
 
-        // [CORREÇÃO AQUI]: Ajustado para as colunas reais da tabela organization.events
-        // title (não name), event_date (não start/end), is_academic_blocker (não is_blocking)
+        // 1. Busca o ID da Organização da Turma
+        $stmtOrg = $conect->prepare("SELECT org_id FROM education.classes WHERE class_id = :cid");
+        $stmtOrg->execute(['cid' => $classId]);
+        $orgId = $stmtOrg->fetchColumn();
+
+        if (!$orgId) return failure("Erro: Turma sem organização vinculada.");
+
+        // A. Verifica Feriados
         $sqlEvent = "SELECT title FROM organization.events 
-                     WHERE org_id = :oid 
-                       AND event_date = :dt 
-                       AND is_academic_blocker IS TRUE 
-                       AND deleted IS FALSE 
-                     LIMIT 1";
-
+                     WHERE org_id = :oid AND event_date = :dt AND is_academic_blocker IS TRUE AND deleted IS FALSE LIMIT 1";
         $stmtEv = $conect->prepare($sqlEvent);
         $stmtEv->execute(['oid' => $orgId, 'dt' => $dateOnly]);
         $event = $stmtEv->fetch(PDO::FETCH_ASSOC);
@@ -158,7 +216,7 @@ function checkDateContentF($data)
             return success("Data bloqueada.", ['status' => 'BLOCKED', 'reason' => $event['title']]);
         }
 
-        // B. Verifica se já existe aula (Edição)
+        // B. Verifica Aula Existente
         $sqlSession = "SELECT session_id, description, content_type, session_date FROM education.class_sessions 
                        WHERE class_id = :cid AND subject_id = :sid AND session_date = :dt AND deleted IS FALSE";
         $stmtSess = $conect->prepare($sqlSession);
@@ -166,7 +224,6 @@ function checkDateContentF($data)
         $existing = $stmtSess->fetch(PDO::FETCH_ASSOC);
 
         if ($existing) {
-            // Busca Frequência
             $sqlAtt = "SELECT student_id, is_present, justification FROM education.attendance WHERE session_id = :sid";
             $stmtAtt = $conect->prepare($sqlAtt);
             $stmtAtt->execute(['sid' => $existing['session_id']]);
@@ -184,7 +241,7 @@ function checkDateContentF($data)
             ]);
         }
 
-        // C. Nova Aula: Busca Próximo Plano
+        // C. Nova Aula
         $sqlCount = "SELECT COUNT(*) FROM education.class_sessions 
                      WHERE class_id = :cid AND subject_id = :sid AND session_date < :dt AND deleted IS FALSE";
         $stmtCount = $conect->prepare($sqlCount);
@@ -210,12 +267,12 @@ function checkDateContentF($data)
         ]);
     } catch (Exception $e) {
         logSystemError("painel", "diario", "checkDateContentF", "sql", $e->getMessage(), $data);
-        return failure("Erro na verificação de conteúdo.");
+        return failure("Erro na verificação.");
     }
 }
 
 /**
- * 5. Lista Alunos para o Diário
+ * 5. Lista Alunos
  */
 function getStudentsForDiaryF($classId)
 {
@@ -251,25 +308,25 @@ function saveClassSessionF($data)
         $sessionId = !empty($data['session_id']) ? (int)$data['session_id'] : null;
         $classId = $data['class_id'];
         $subjectId = $data['subject_id'];
-        $dateTime = $data['date'];
+        $date = $data['date'];
         $content = $data['content'];
 
         if (empty($sessionId)) {
             $check = $conect->prepare("SELECT session_id FROM education.class_sessions WHERE class_id = :c AND subject_id = :s AND session_date = :d AND deleted IS FALSE");
-            $check->execute(['c' => $classId, 's' => $subjectId, 'd' => $dateTime]);
+            $check->execute(['c' => $classId, 's' => $subjectId, 'd' => $date]);
             if ($check->rowCount() > 0) {
                 $conect->rollBack();
-                return failure("Já existe uma aula neste horário exato.");
+                return failure("Já existe uma aula nesta data.");
             }
 
             $sqlIns = "INSERT INTO education.class_sessions (class_id, subject_id, session_date, description, content_type, signed_by_user_id, signed_at) 
                        VALUES (:cid, :sid, :dt, :desc, 'DOCTRINAL', :uid, CURRENT_TIMESTAMP) RETURNING session_id";
             $stmt = $conect->prepare($sqlIns);
-            $stmt->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime, 'desc' => $content, 'uid' => $data['user_id']]);
+            $stmt->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $date, 'desc' => $content, 'uid' => $data['user_id']]);
             $sessionId = $stmt->fetchColumn();
         } else {
             $sqlUpd = "UPDATE education.class_sessions SET description = :desc, session_date = :dt, updated_at = CURRENT_TIMESTAMP WHERE session_id = :id";
-            $conect->prepare($sqlUpd)->execute(['desc' => $content, 'dt' => $dateTime, 'id' => $sessionId]);
+            $conect->prepare($sqlUpd)->execute(['desc' => $content, 'dt' => $date, 'id' => $sessionId]);
         }
 
         $attendanceList = json_decode($data['attendance_json'], true);
@@ -300,7 +357,7 @@ function saveClassSessionF($data)
 }
 
 /**
- * 7. Histórico Simplificado
+ * 7. Histórico
  */
 function getClassHistoryF($data)
 {
@@ -334,7 +391,7 @@ function getClassHistoryF($data)
 }
 
 /**
- * 8. Excluir Aula
+ * 8. Excluir
  */
 function deleteClassSessionF($data)
 {

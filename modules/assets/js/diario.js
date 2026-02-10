@@ -1,5 +1,5 @@
 // =========================================================
-// GESTÃO DE DIÁRIO DE CLASSE (SMART LOGIC V5 - TIME AWARE)
+// GESTÃO DE DIÁRIO DE CLASSE (SMART LOGIC V6 - FINAL)
 // =========================================================
 
 const defaultDiary = {
@@ -12,32 +12,32 @@ const defaultDiary = {
 const diarioState = {
   classId: null,
   subjectId: null,
-  schedules: [], // Guarda regras: [{day_of_week, start_time, end_time}, ...]
+  schedules: [], // Regras de horário
   sessionId: null,
   currentStudents: [],
 };
+
+let fpInstance = null; // Instância Global do Flatpickr
 
 // Configuração Summernote
 const summernoteConfig = {
   height: 350,
   lang: "pt-BR",
   placeholder: "Descreva o conteúdo do encontro...",
-  dialogsInBody: true, // Fix para funcionar dentro do Modal
+  dialogsInBody: true,
   toolbar: [
     ["style", ["style", "bold", "italic", "underline", "clear"]],
-    ["font", ["color", "fontsize"]],
     ["para", ["ul", "ol", "paragraph"]],
-    ["insert", ["link", "emoji", "hr", "table", "picture"]],
-    ["view", ["fullscreen", "codeview", "help"]],
+    ["insert", ["link", "picture"]],
+    ["view", ["fullscreen", "codeview"]],
   ],
   callbacks: {
-    onBlur: function () {},
-    // Removido onInit que forçava bg-white, para respeitar o tema Dark/Superhero
+    // Ajustes se necessário
   },
 };
 
 $(document).ready(() => {
-  // Escuta mudança de ano no menu global
+  // Escuta mudança de ano no menu global para resetar filtros
   window.addEventListener("yearChanged", () => {
     resetInterface();
     const $selClass = $("#sel_filter_class");
@@ -49,11 +49,10 @@ $(document).ready(() => {
 });
 
 // =========================================================
-// 1. FILTROS E SELETORES
+// 1. FILTROS E SELETORES (CASCATA)
 // =========================================================
 
 const initFilters = () => {
-  // 1.1 Seletor de Turma
   if ($("#sel_filter_class").length && !$("#sel_filter_class")[0].selectize) {
     $("#sel_filter_class").selectize({
       valueField: "class_id",
@@ -63,26 +62,17 @@ const initFilters = () => {
       preload: true,
       render: {
         option: function (item, escape) {
-          return `<div class="py-1 px-2">
-                                <div class="fw-bold">${escape(item.class_name)}</div>
-                                <div class="small text-muted">${escape(item.course_name)}</div>
-                            </div>`;
+          return `<div class="py-1 px-2"><div class="fw-bold">${escape(item.class_name)}</div><div class="small text-muted">${escape(item.course_name)}</div></div>`;
         },
       },
       load: function (query, callback) {
         const globalYear = localStorage.getItem("sys_active_year");
         if (!globalYear) return callback();
-
         $.ajax({
           url: defaultApp.validator,
           type: "POST",
           dataType: "json",
-          data: {
-            validator: "getMyClasses",
-            token: defaultApp.userInfo.token,
-            role: defaultApp.userInfo.office,
-            year: globalYear,
-          },
+          data: { validator: "getMyClasses", token: defaultApp.userInfo.token, role: defaultApp.userInfo.office, year: globalYear },
           success: (res) => {
             if (res.status && res.data.length > 0) {
               callback(res.data);
@@ -104,8 +94,6 @@ const initFilters = () => {
       },
     });
   }
-
-  // 1.2 Seletor de Disciplina
   if ($("#sel_filter_subject").length && !$("#sel_filter_subject")[0].selectize) {
     $("#sel_filter_subject").selectize({
       valueField: "subject_id",
@@ -133,14 +121,8 @@ const loadSubjects = async (classId) => {
   selSub.clear();
   selSub.clearOptions();
   selSub.disable();
-
   try {
-    const res = await window.ajaxValidator({
-      validator: "getClassSubjects",
-      token: defaultApp.userInfo.token,
-      class_id: classId,
-    });
-
+    const res = await window.ajaxValidator({ validator: "getClassSubjects", token: defaultApp.userInfo.token, class_id: classId });
     if (res.status && res.data.length > 0) {
       selSub.enable();
       res.data.forEach((item) => selSub.addOption(item));
@@ -164,24 +146,11 @@ const resetInterface = () => {
   $(".pagination-diario").empty();
 };
 
-// =========================================================
-// 2. LISTAGEM DE HISTÓRICO (GRID)
-// =========================================================
-
 const getHistory = async () => {
   const page = Math.max(0, defaultDiary.currentPage - 1);
   $(".list-table-diario").html('<div class="text-center py-5"><span class="loader"></span></div>');
-
   try {
-    const res = await window.ajaxValidator({
-      validator: "getClassHistory",
-      token: defaultApp.userInfo.token,
-      class_id: diarioState.classId,
-      subject_id: diarioState.subjectId,
-      page: page * defaultDiary.rowsPerPage,
-      limit: defaultDiary.rowsPerPage,
-    });
-
+    const res = await window.ajaxValidator({ validator: "getClassHistory", token: defaultApp.userInfo.token, class_id: diarioState.classId, subject_id: diarioState.subjectId, page: page * defaultDiary.rowsPerPage, limit: defaultDiary.rowsPerPage });
     if (res.status) {
       const total = res.data[0]?.total_registros || 0;
       defaultDiary.totalPages = Math.max(1, Math.ceil(total / defaultDiary.rowsPerPage));
@@ -201,91 +170,46 @@ const renderTableHistory = (data) => {
     container.html(`<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-book-open fa-3x mb-3"></i><p>Nenhuma aula registrada.</p></div>`);
     return;
   }
-
   let rows = data
     .map((item) => {
-      // Formatação visual da data
-      const dateParts = item.session_date.split(" "); // Separa Data e Hora
+      const dateParts = item.session_date.split(" ");
       const dateFmt = dateParts[0].split("-").reverse().join("/");
-      const timeFmt = dateParts[1] || "";
-
-      // Data crua para passar ao modal (formato ISO para datetime-local: YYYY-MM-DDTHH:mm)
-      const rawIsoDate = item.session_date.replace(" ", "T");
-
-      const cleanDesc = item.summary ? item.summary.replace(/<[^>]*>?/gm, "") : "";
+      const timeFmt = dateParts[1] ? dateParts[1].substring(0, 5) : "";
+      const rawIsoDate = item.session_date.substring(0, 16).replace(" ", "T");
+      const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
       const summary = cleanDesc.length > 60 ? cleanDesc.substring(0, 60) + "..." : cleanDesc;
-
-      // Barra de Progresso
       const total = parseInt(item.total_students);
       const present = parseInt(item.present_count);
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       let progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
-
-      return `
-            <tr>
-                <td class="align-middle ps-3" width="60">
-                    <div class="icon-circle bg-primary bg-opacity-10 text-primary">
-                        <span class="material-symbols-outlined">event_note</span>
-                    </div>
-                </td>
-                <td class="align-middle">
-                    <div class="fw-bold text-dark">${dateFmt} <span class="small text-muted fw-normal ms-1">${timeFmt}</span></div>
-                    <div class="small text-muted">${summary || "Sem descrição"}</div>
-                </td>
-                <td class="align-middle text-center" width="180">
-                    <div class="d-flex flex-column align-items-center">
-                        <small class="fw-bold text-muted mb-1">${present}/${total} Presentes (${pct}%)</small>
-                        <div class="progress w-100" style="height: 6px; background-color: rgba(0,0,0,0.1);">
-                            <div class="progress-bar ${progColor}" role="progressbar" style="width: ${pct}%"></div>
-                        </div>
-                    </div>
-                </td>
-                <td class="text-end align-middle pe-3">
-                    <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                    <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
-                    <button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `;
+      return `<tr><td class="align-middle ps-3" width="60"><div class="icon-circle bg-primary bg-opacity-10 text-primary"><span class="material-symbols-outlined">event_note</span></div></td><td class="align-middle"><div class="fw-bold text-dark">${dateFmt} <span class="small text-muted fw-normal ms-1">${timeFmt}</span></div><div class="small text-muted">${summary || "Sem descrição"}</div></td><td class="align-middle text-center" width="180"><div class="d-flex flex-column align-items-center"><small class="fw-bold text-muted mb-1">${present}/${total} Presentes (${pct}%)</small><div class="progress w-100" style="height: 6px; background-color: rgba(0,0,0,0.1);"><div class="progress-bar ${progColor}" role="progressbar" style="width: ${pct}%"></div></div></div></td><td class="text-end align-middle pe-3"><button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button><button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button><button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button></td></tr>`;
     })
     .join("");
-
-  container.html(`
-        <table class="table-custom">
-            <thead>
-                <tr>
-                    <th colspan="2" class="ps-3">Data / Conteúdo</th>
-                    <th class="text-center">Frequência</th>
-                    <th class="text-end pe-4">Ações</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
-    `);
-
+  container.html(`<table class="table-custom"><thead><tr><th colspan="2" class="ps-3">Data / Conteúdo</th><th class="text-center">Frequência</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
   _generatePaginationButtons("pagination-diario", "currentPage", "totalPages", "changePage", defaultDiary);
 };
 
 // =========================================================
-// 3. LÓGICA SMART (DATA E HORA)
+// 3. MODAL E LÓGICA DE DATA (FLATPICKR INTELIGENTE)
 // =========================================================
 
-// Gatilho Principal (Botão Nova Aula ou Edição)
 window.openSessionModal = async (sessionId = null, dateStr = null) => {
   diarioState.sessionId = sessionId;
 
-  // Reset UI
-  const $dateInput = $("#diario_date");
-  $dateInput.val("").off("change");
+  // Reset Visual
   $("#diario_content").summernote("destroy");
   $("#diario_content").val("");
   $("#lista-alunos").html('<div class="text-center py-5"><span class="loader"></span></div>');
   $("#date-status-icon").empty();
-  $("#date-msg").text("").removeClass("text-danger text-success text-warning");
+  $("#date-msg").text("");
+
+  if (fpInstance) {
+    fpInstance.destroy();
+    fpInstance = null;
+  }
 
   $("#modalSession").modal("show");
 
-  // 1. Carrega Metadados
   try {
     const resMeta = await window.ajaxValidator({
       validator: "getDiarioMetadata",
@@ -297,82 +221,127 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
     if (resMeta.status) {
       diarioState.schedules = resMeta.data.schedules;
 
-      // Define min/max no input (Formato: YYYY-MM-DDTHH:mm)
-      if (resMeta.data.min_date) $dateInput.attr("min", resMeta.data.min_date + "T00:00");
-      if (resMeta.data.max_date) $dateInput.attr("max", resMeta.data.max_date + "T23:59");
+      // DADOS VINDOS DO BACKEND
+      const validDates = resMeta.data.valid_dates || [];
+      const holidays = resMeta.data.holidays || {};
+      // [NOVO] Mapa de aulas já registradas: { '2026-02-10': { id: 1, tooltip: 'Aula já registrada (1º Encontro)' } }
+      const registeredSessions = resMeta.data.registered_sessions || {};
 
-      $dateInput.prop("disabled", false);
+      // Garante que a data de edição esteja habilitada
+      if (dateStr) {
+        const currentDate = dateStr.split("T")[0];
+        if (!validDates.includes(currentDate)) validDates.push(currentDate);
+      }
+
+      fpInstance = flatpickr("#diario_date", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+        minDate: resMeta.data.min_date,
+        maxDate: resMeta.data.max_date,
+        locale: "pt",
+        enable: validDates, // Lista Branca (Datas calculadas)
+
+        // PINTA O CALENDÁRIO
+        onDayCreate: function (dObj, dStr, fp, dayElem) {
+          // Ajuste de fuso para pegar a chave YYYY-MM-DD correta
+          const offsetDate = new Date(dayElem.dateObj.getTime() - dayElem.dateObj.getTimezoneOffset() * 60000);
+          const dateKey = offsetDate.toISOString().split("T")[0];
+
+          // 1. Prioridade: Feriado
+          if (holidays[dateKey]) {
+            dayElem.classList.add("flatpickr-disabled", "has-tooltip");
+            dayElem.setAttribute("title", holidays[dateKey]);
+            dayElem.innerHTML += "<span class='event busy'></span>"; // Vermelho
+          }
+          // 2. Prioridade: Aula Já Registrada [NOVO]
+          else if (registeredSessions[dateKey]) {
+            const sessionInfo = registeredSessions[dateKey];
+
+            // Adiciona Tooltip com a sequência (ex: "Aula já registrada (1º Encontro)")
+            dayElem.setAttribute("title", sessionInfo.tooltip);
+            dayElem.classList.add("has-tooltip");
+
+            // Adiciona Bolinha Verde
+            dayElem.innerHTML += "<span class='event registered'></span>";
+          }
+          // 3. Prioridade: Dia de Aula Disponível
+          else if (validDates.includes(dateKey)) {
+            dayElem.innerHTML += "<span class='event'></span>"; // Azul
+          }
+        },
+        onChange: function (selectedDates, dateStr, instance) {
+          checkDateLogic(dateStr);
+        },
+      });
+
+      $("#diario_date").prop("disabled", false);
 
       if (dateStr) {
-        // Modo Edição
-        $dateInput.val(dateStr);
-        checkDateLogic(dateStr);
+        fpInstance.setDate(dateStr, true);
       }
+    } else {
+      window.alertDefault(resMeta.alert, "warning");
     }
   } catch (e) {
     console.error(e);
+    window.alertDefault("Erro ao carregar calendário.", "error");
   }
 
   $("#diario_content").summernote(summernoteConfig);
-
-  $dateInput.on("change", function () {
-    checkDateLogic(this.value);
-  });
 };
 
 const checkDateLogic = async (dateTimeStr) => {
   if (!dateTimeStr) return;
 
-  const dateObj = new Date(dateTimeStr);
-
-  // Verifica se a data é válida
-  if (isNaN(dateObj.getTime())) return;
-
-  const dayOfWeek = dateObj.getDay();
   const $statusIcon = $("#date-status-icon");
   const $msgContainer = $("#date-msg");
 
   $statusIcon.html('<span class="loader-sm"></span>');
-  $msgContainer.text("").removeClass("text-danger text-success text-warning");
+  $msgContainer.text("");
 
-  // 1. VALIDAÇÃO LOCAL: GRADE HORÁRIA
-  if (!diarioState.schedules || diarioState.schedules.length === 0) {
-    // Se não tiver grade carregada, avisa no console mas deixa prosseguir para backend
-    console.warn("Sem grade horária definida.");
-  } else {
-    const validSchedule = diarioState.schedules.find((s) => parseInt(s.day_of_week) === dayOfWeek);
+  // 1. Validação de Hora (Local)
+  // O calendário já garantiu o dia correto via 'enable', agora checamos a hora
+  const dateObj = new Date(dateTimeStr);
+  const dayOfWeek = dateObj.getDay(); // 0-6
 
-    if (!validSchedule) {
-      window.alertDefault("Não há aula desta disciplina neste dia da semana.", "warning");
-      $("#diario_date").val("");
-      $statusIcon.html("");
-      return;
+  if (diarioState.schedules.length > 0) {
+    const schedule = diarioState.schedules.find((s) => parseInt(s.day_of_week) === dayOfWeek);
+    if (schedule) {
+      const timeStr = dateTimeStr.split(" ")[1] || ""; // HH:MM
+      const start = schedule.start_time.substring(0, 5);
+      const end = schedule.end_time.substring(0, 5);
+
+      if (timeStr && (timeStr < start || timeStr > end)) {
+        // Apenas aviso, não bloqueia (flexibilidade)
+        $msgContainer.text(`Atenção: Horário fora da grade (${start} - ${end})`).addClass("text-warning");
+      }
     }
   }
 
-  // 2. VALIDAÇÃO BACKEND
+  // 2. Validação de Conteúdo (Backend)
   try {
     const res = await window.ajaxValidator({
       validator: "checkDateContent",
       token: defaultApp.userInfo.token,
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
-      date: dateTimeStr,
+      date: dateTimeStr.replace(" ", "T"), // Padroniza ISO
     });
 
     if (res.status) {
       const info = res.data;
 
       if (info.status === "BLOCKED") {
+        // Caso raro onde o usuário consegue burlar o calendário
         $statusIcon.html('<i class="fas fa-ban text-danger"></i>');
-        $msgContainer.text(`Bloqueado: ${info.reason}`).addClass("text-danger");
+        $msgContainer.text(`Bloqueado: ${info.reason}`).removeClass("text-warning").addClass("text-danger");
         $("#diario_content").summernote("disable");
-        // Limpa lista para não confundir
         $("#lista-alunos").html('<p class="text-center text-muted p-4">Data bloqueada.</p>');
       } else if (info.status === "EXISTING") {
         diarioState.sessionId = info.session_id;
         $statusIcon.html('<i class="fas fa-edit text-primary"></i>');
-        $msgContainer.text("Editando aula já registrada.").addClass("text-primary");
+        $msgContainer.text("Editando aula já registrada.").removeClass("text-warning").addClass("text-primary");
 
         $("#diario_content").summernote("enable");
         $("#diario_content").summernote("code", info.content);
@@ -380,12 +349,12 @@ const checkDateLogic = async (dateTimeStr) => {
       } else if (info.status === "NEW") {
         diarioState.sessionId = null;
         $statusIcon.html('<i class="fas fa-check-circle text-success"></i>');
-        $msgContainer.text(`Novo Diário (Encontro #${info.sequence})`).addClass("text-success");
+        $msgContainer.text(`Nova Aula (Encontro #${info.sequence})`).removeClass("text-warning").addClass("text-success");
 
         $("#diario_content").summernote("enable");
         if (info.template) {
           $("#diario_content").summernote("code", info.template);
-          window.alertDefault("Plano de aula carregado!", "info");
+          window.alertDefault("Plano de aula sugerido carregado!", "info");
         } else {
           $("#diario_content").summernote("code", "");
         }
@@ -399,7 +368,7 @@ const checkDateLogic = async (dateTimeStr) => {
 };
 
 // =========================================================
-// LISTA DE ALUNOS (LAYOUT NOVO - SÓ MOSTRA JUSTIF SE FALTAR)
+// LISTA DE ALUNOS (LAYOUT OTIMIZADO)
 // =========================================================
 
 const loadStudentsList = async (existingAttendance = null) => {
@@ -421,8 +390,6 @@ const loadStudentsList = async (existingAttendance = null) => {
           if (match) {
             isPresent = match.is_present;
             justification = match.justification || "";
-            // Se tiver campo absence_type no futuro, mapeie aqui
-            // absenceType = match.absence_type || 'UNJUSTIFIED';
           }
         }
         return {
@@ -452,33 +419,33 @@ const renderStudents = () => {
   let html = "";
 
   // DESKTOP
-  html += `<div class="d-none d-md-block table-responsive"><table class="table table-hover align-middle table-custom"><thead><tr><th width="50" class="ps-3">Foto</th><th>Nome</th><th class="text-center" width="100">Presença</th><th>Motivo / Justificativa</th></tr></thead><tbody>`;
+  html += `<div class="d-none d-md-block table-responsive"><table class="table table-hover align-middle table-custom"><thead><tr><th width="50" class="ps-3">Foto</th><th>Nome</th><th class="text-center" width="80">Presença</th><th>Motivo / Justificativa</th></tr></thead><tbody>`;
 
   students.forEach((std, idx) => {
     let avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover;">`
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover; cursor:pointer;" onclick="zoomAvatar('${std.profile_photo_url}')">`
       : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold" style="width:35px; height:35px;">${std.full_name.charAt(0)}</div>`;
 
-    // Layout Condicional: Só mostra inputs se is_present for FALSE
+    // Layout Condicional
     const visibilityClass = std.is_present ? "d-none" : "";
 
     html += `
             <tr>
                 <td class="ps-3">${avatarHtml}</td>
-                <td class="fw-bold small">${std.full_name}</td>
+                <td class="fw-bold small text-dark">${std.full_name}</td>
                 <td class="text-center">
                     <div class="form-check form-switch d-flex justify-content-center">
                         <input class="form-check-input attendance-check" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
                     </div>
                 </td>
                 <td>
-                    <div id="just-area-${idx}" class="d-flex gap-2 ${visibilityClass}">
-                        <select class="form-select form-select-sm" style="width: 140px;" onchange="updateAbsenceType(${idx}, this.value)">
-                            <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
+                    <div id="just-area-${idx}" class="d-flex gap-2 w-100 ${visibilityClass}">
+                        <select class="form-select form-select-sm" style="width: 130px; flex-shrink: 0;" onchange="updateAbsenceType(${idx}, this.value)">
+                            <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justif.</option>
                             <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
                             <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
                         </select>
-                        <input type="text" class="form-control form-control-sm" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
+                        <input type="text" class="form-control form-control-sm flex-grow-1" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
                     </div>
                 </td>
             </tr>`;
@@ -509,12 +476,12 @@ const renderStudents = () => {
                     </div>
                 </div>
                 <div class="mt-2 ${visibilityClass}" id="just-box-mob-${idx}">
-                    <select class="form-select form-select-sm mb-2" onchange="updateAbsenceType(${idx}, this.value)">
+                    <select class="form-select form-select-sm mb-2 w-100" onchange="updateAbsenceType(${idx}, this.value)">
                         <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
                         <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
                         <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
                     </select>
-                    <input type="text" class="form-control form-control-sm" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes da falta...">
+                    <input type="text" class="form-control form-control-sm w-100" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo...">
                 </div>
             </div>`;
   });
@@ -526,12 +493,10 @@ const renderStudents = () => {
 window.updateAttendance = (idx, isPresent) => {
   diarioState.currentStudents[idx].is_present = isPresent;
 
-  // Toggle visibilidade Desktop e Mobile
+  // Toggle Visual
   if (isPresent) {
     $(`#just-area-${idx}`).addClass("d-none");
     $(`#just-box-mob-${idx}`).addClass("d-none");
-    // Limpa dados se marcou presença? Opcional.
-    // diarioState.currentStudents[idx].justification = '';
   } else {
     $(`#just-area-${idx}`).removeClass("d-none");
     $(`#just-box-mob-${idx}`).removeClass("d-none");
@@ -559,8 +524,8 @@ window.salvarDiario = async () => {
   const content = $("#diario_content").summernote("code");
   const btn = $("#btn-save-diario");
 
-  if (!date) return window.alertDefault("Selecione data e hora.", "warning");
-  if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data ou horário bloqueado.", "error");
+  if (!date) return window.alertDefault("Selecione a data e hora da aula.", "warning");
+  if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data bloqueada para registro.", "error");
 
   window.setButton(true, btn, "Salvando...");
 
@@ -571,7 +536,7 @@ window.salvarDiario = async () => {
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
       session_id: diarioState.sessionId,
-      date: date, // Envia YYYY-MM-DDTHH:mm
+      date: date, // Envia String YYYY-MM-DD HH:MM
       content: content,
       attendance_json: JSON.stringify(diarioState.currentStudents),
     });
@@ -584,7 +549,8 @@ window.salvarDiario = async () => {
       window.alertDefault(res.alert, "error");
     }
   } catch (e) {
-    window.alertDefault("Erro técnico.", "error");
+    window.alertDefault("Erro técnico ao salvar.", "error");
+    console.error(e);
   } finally {
     window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Diário');
   }
@@ -592,32 +558,39 @@ window.salvarDiario = async () => {
 
 window.deleteSession = (sessionId) => {
   Swal.fire({
-    title: "Excluir?",
-    text: "A aula e presenças serão apagadas.",
+    title: "Excluir Diário?",
+    text: "O registro da aula e a frequência serão removidos.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
     confirmButtonText: "Excluir",
   }).then(async (r) => {
     if (r.isConfirmed) {
-      const res = await window.ajaxValidator({
-        validator: "deleteClassDiary",
-        token: defaultApp.userInfo.token,
-        session_id: sessionId,
-      });
-      if (res.status) {
-        window.alertDefault("Excluído.", "success");
-        getHistory();
-      } else window.alertDefault(res.alert, "error");
+      try {
+        const res = await window.ajaxValidator({
+          validator: "deleteClassDiary",
+          token: defaultApp.userInfo.token,
+          session_id: sessionId,
+        });
+        if (res.status) {
+          window.alertDefault("Excluído com sucesso.", "success");
+          getHistory();
+        } else {
+          window.alertDefault(res.alert, "error");
+        }
+      } catch (e) {
+        window.alertDefault("Erro ao excluir.", "error");
+      }
     }
   });
 };
 
-// Paginação
+// Paginação e Utilitários
 window.changePage = (p) => {
   defaultDiary.currentPage = p;
   getHistory();
 };
+
 const _generatePaginationButtons = (c, k, t, f, o) => {
   let container = $(`.${c}`);
   container.empty();
