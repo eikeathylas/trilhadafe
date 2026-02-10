@@ -18,7 +18,8 @@ include "../controller/people-controller.php";        // Pessoas
 include "../controller/academic-controller.php";      // Disciplinas
 include "../controller/course-controller.php";        // Cursos
 include "../controller/turmas-controller.php";        // Turmas
-include "../controller/diario-controller.php";        // Diário de Classe (Novo)
+include "../controller/diario-controller.php";        // Diário de Classe
+include "../controller/events-controller.php";        // Eventos
 
 // 3. Captura da Ação
 $validator = $_POST["validator"] ?? null;
@@ -257,6 +258,22 @@ switch ($validator) {
 		deleteClassDiary();
 		break;
 
+	// =========================================================
+	// Eventos
+	// =========================================================
+
+	case "getAllEvents":
+		getAllEvents();
+		break;
+	case "getEventData":
+		getEventData();
+		break;
+	case "upsertEvent":
+		upsertEvent();
+		break;
+	case "removeEvent":
+		removeEvent();
+		break;
 	// =========================================================
 	// ROTAS PADRÃO
 	// =========================================================
