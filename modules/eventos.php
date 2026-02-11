@@ -71,7 +71,7 @@
                     <h5 class="modal-title" id="modalEventTitle">Novo Evento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body bg-light">
+                <div class="modal-body">
                     <form id="formEvent">
                         <input type="hidden" id="event_id">
 
@@ -93,7 +93,7 @@
                                 <div class="row g-2">
                                     <div class="col-12">
                                         <label class="form-label small fw-bold text-uppercase">Data *</label>
-                                        <input type="text" id="evt_date" class="form-control bg-white" readonly required>
+                                        <input type="text" id="evt_date" class="form-control" readonly required>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label small fw-bold text-uppercase">Início</label>
@@ -110,10 +110,12 @@
                         <div class="card border-0 shadow-sm border-start border-4 border-danger">
                             <div class="card-body">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="evt_blocker">
-                                    <label class="form-check-label fw-bold text-danger" for="evt_blocker">
-                                        Bloquear Aulas e Diários?
-                                    </label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggleSwitch" type="checkbox" id="evt_blocker">
+                                        <label class="form-check-label fw-bold text-danger ml-3 mt-1" for="evt_blocker">
+                                            Bloquear Aulas e Diários?
+                                        </label>
+                                    </div>
                                 </div>
                                 <small class="text-muted d-block mt-1">
                                     Se marcado, este dia será considerado "Feriado/Recesso" e impedirá o lançamento de aulas no sistema acadêmico.
@@ -130,7 +132,10 @@
         </div>
     </div>
 
+    <?php include "./assets/components/Modal-Faqs.php"; ?>
+    <?php include "./assets/components/Modal-Audit.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
     <script src="assets/js/events.js?v=<?php echo time(); ?>"></script>

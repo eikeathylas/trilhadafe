@@ -2343,3 +2343,95 @@ canvas {
 .flatpickr-day.has-tooltip {
   cursor: help;
 }
+
+/* =========================================================
+   FLATPICKR - MODO ESCURO (Correção do Calendário)
+   ========================================================= */
+
+/* Fundo e Borda do Calendário */
+[data-bs-theme="dark"] .flatpickr-calendar {
+  background: #2b3035 !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.5),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid #495057 !important;
+}
+
+/* Seta (Triângulo) do Calendário - Parte superior */
+[data-bs-theme="dark"] .flatpickr-calendar.arrowTop:before,
+[data-bs-theme="dark"] .flatpickr-calendar.arrowTop:after {
+  border-bottom-color: #2b3035 !important;
+}
+[data-bs-theme="dark"] .flatpickr-calendar.arrowBottom:before,
+[data-bs-theme="dark"] .flatpickr-calendar.arrowBottom:after {
+  border-top-color: #2b3035 !important;
+}
+
+/* Cabeçalho (Mês e Ano) */
+[data-bs-theme="dark"] .flatpickr-calendar .flatpickr-header,
+[data-bs-theme="dark"] .flatpickr-calendar .flatpickr-months,
+[data-bs-theme="dark"] .flatpickr-calendar .flatpickr-weekdays {
+  background: #2b3035 !important;
+  color: #fff !important;
+  fill: #fff !important; /* Ícones SVG */
+}
+
+[data-bs-theme="dark"] span.flatpickr-weekday {
+  color: #adb5bd !important; /* Texto dos dias da semana (Seg, Ter...) */
+}
+
+/* Dias do Mês */
+[data-bs-theme="dark"] .flatpickr-day {
+  color: #e9ecef !important;
+}
+
+/* Hover nos dias */
+[data-bs-theme="dark"] .flatpickr-day:hover,
+[data-bs-theme="dark"] .flatpickr-day.prevMonthDay:hover,
+[data-bs-theme="dark"] .flatpickr-day.nextMonthDay:hover,
+[data-bs-theme="dark"] .flatpickr-day:focus {
+  background: #343a40 !important;
+  border-color: #495057 !important;
+}
+
+/* Dia Selecionado (Azul Primário) */
+[data-bs-theme="dark"] .flatpickr-day.selected,
+[data-bs-theme="dark"] .flatpickr-day.startRange,
+[data-bs-theme="dark"] .flatpickr-day.endRange,
+[data-bs-theme="dark"] .flatpickr-day.selected.inRange,
+[data-bs-theme="dark"] .flatpickr-day.startRange.inRange,
+[data-bs-theme="dark"] .flatpickr-day.endRange.inRange,
+[data-bs-theme="dark"] .flatpickr-day.selected:focus,
+[data-bs-theme="dark"] .flatpickr-day.startRange:focus,
+[data-bs-theme="dark"] .flatpickr-day.endRange:focus,
+[data-bs-theme="dark"] .flatpickr-day.selected:hover,
+[data-bs-theme="dark"] .flatpickr-day.startRange:hover,
+[data-bs-theme="dark"] .flatpickr-day.endRange:hover {
+  background: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: #fff !important;
+}
+
+/* Dias de outros meses (acinzentados) */
+[data-bs-theme="dark"] .flatpickr-day.prevMonthDay,
+[data-bs-theme="dark"] .flatpickr-day.nextMonthDay,
+[data-bs-theme="dark"] .flatpickr-day.flatpickr-disabled {
+  color: #6c757d !important;
+}
+
+/* Input de horário (Time picker) */
+[data-bs-theme="dark"] .flatpickr-time {
+  border-top: 1px solid #495057 !important;
+}
+[data-bs-theme="dark"] .flatpickr-time .numInputWrapper span.arrowUp:after {
+  border-bottom-color: #adb5bd !important;
+}
+[data-bs-theme="dark"] .flatpickr-time .numInputWrapper span.arrowDown:after {
+  border-top-color: #adb5bd !important;
+}
+[data-bs-theme="dark"] .flatpickr-time input {
+  color: #e9ecef !important;
+}
+[data-bs-theme="dark"] .flatpickr-time .flatpickr-time-separator {
+  color: #e9ecef !important;
+}

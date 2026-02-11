@@ -40,6 +40,8 @@ const loadEvents = async () => {
       limit: defaultEvents.rowsPerPage,
       page: (defaultEvents.currentPage - 1) * defaultEvents.rowsPerPage,
       search: $("#search_event").val(),
+      org_id: localStorage.getItem("tf_active_parish"),
+      year: localStorage.getItem("sys_active_year"),
     });
 
     if (res.status) {
@@ -93,9 +95,7 @@ const renderTableEvents = (data) => {
                 </td>
                 <td class="align-middle text-center" width="200">
                     <div class="form-check form-switch d-flex justify-content-center align-items-center">
-                        <input class="form-check-input" type="checkbox" role="switch" 
-                               id="sw_${item.event_id}" ${isChecked} 
-                               onchange="toggleBlocker(${item.event_id}, this.checked)">
+                        ${window.renderToggle(item.event_id, item.is_academic_blocker, "toggleBlocker")}
                         <label class="form-check-label ms-2" for="sw_${item.event_id}" id="lbl_${item.event_id}">
                             ${isBlocker}
                         </label>
@@ -103,7 +103,7 @@ const renderTableEvents = (data) => {
                 </td>
                 <td class="align-middle text-end pe-3">
                     <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Histórico"><i class="fas fa-bolt"></i></button>
-                    <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                    <button class="btn-icon-action" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
                     <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
@@ -130,7 +130,9 @@ const renderTableEvents = (data) => {
 };
 
 // [NOVO] Função do Toggle
-window.toggleBlocker = async (id, status) => {
+window.toggleBlocker = async (id, element) => {
+  const $chk = $(element);
+  const status = $chk.is(":checked");
   // Feedback visual imediato no label
   const label = $(`#lbl_${id}`);
   if (status) {
@@ -221,6 +223,7 @@ window.saveEvent = async () => {
       end_time: $("#evt_end").val(),
       is_academic_blocker: $("#evt_blocker").is(":checked"),
       user_id: defaultApp.userInfo.id,
+      org_id: localStorage.getItem("tf_active_parish"),
     });
 
     if (res.status) {

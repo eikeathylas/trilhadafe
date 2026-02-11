@@ -4,19 +4,27 @@ function getAllEventsF($data)
 {
     try {
         $conect = $GLOBALS["local"];
-        $orgId = 1;
+        $orgId = (int)$data['org_id'];
+        $year = (int)$data['year'];
 
         $params = [
             ':limit' => (int)$data['limit'],
             ':offset' => (int)$data['page'],
-            ':oid' => 2
+            ':oid' => $orgId
         ];
 
         $where = "WHERE org_id = :oid AND deleted IS FALSE";
 
+        // Filtro de Texto
         if (!empty($data['search'])) {
             $where .= " AND (title ILIKE :search OR description ILIKE :search)";
             $params[':search'] = "%" . $data['search'] . "%";
+        }
+
+        // Filtro de Ano (Obrigatório para não misturar agendas)
+        if ($year > 0) {
+            $where .= " AND EXTRACT(YEAR FROM event_date) = :year";
+            $params[':year'] = $year;
         }
 
         $sql = <<<SQL
@@ -57,15 +65,14 @@ function getAllEventsF($data)
 
 function getEventDataF($id)
 {
+    // ... (Mantém inalterado, pois busca por ID primário) ...
     try {
         $conect = $GLOBALS["local"];
         $sql = "SELECT * FROM organization.events WHERE event_id = :id AND deleted IS FALSE LIMIT 1";
         $stmt = $conect->prepare($sql);
         $stmt->execute(['id' => $id]);
         $event = $stmt->fetch(PDO::FETCH_ASSOC);
-
         if (!$event) return failure("Evento não encontrado.");
-
         return success("Dados carregados.", $event);
     } catch (Exception $e) {
         return failure("Erro ao carregar evento.");
@@ -92,13 +99,19 @@ function upsertEventF($data)
         ];
 
         if (!empty($data['event_id'])) {
+            // UPDATE
             $sql = "UPDATE organization.events 
                     SET title=:title, description=:desc, event_date=:dt, start_time=:st, end_time=:et, is_academic_blocker=:block, updated_at=CURRENT_TIMESTAMP 
                     WHERE event_id=:id";
             $params['id'] = $data['event_id'];
             $msg = "Evento atualizado com sucesso!";
         } else {
-            $params['org_id'] = 1;
+            // INSERT (Usa org_id do contexto)
+            if (empty($data['org_id'])) {
+                $conect->rollBack();
+                return failure("Erro: Organização não identificada.");
+            }
+            $params['org_id'] = $data['org_id'];
             $sql = "INSERT INTO organization.events (org_id, title, description, event_date, start_time, end_time, is_academic_blocker) 
                     VALUES (:org_id, :title, :desc, :dt, :st, :et, :block)";
             $msg = "Evento criado com sucesso!";
@@ -135,7 +148,6 @@ function removeEventF($data)
     }
 }
 
-// [NOVO] Função para o Toggle da Listagem
 function toggleEventBlockerF($data)
 {
     try {

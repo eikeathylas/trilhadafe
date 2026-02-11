@@ -398,8 +398,7 @@ const formatKey = (key) => {
     start_time: "Horário Inicial",
     end_time: "Horário Final",
     location_id: "Sala / Local",
-
-    // --- SISTEMA ---
+    is_academic_blocker: "Bloqueio Acadêmico",
     is_active: "Status (Ativo)",
     deleted: "Excluído",
     active: "Ativo",
