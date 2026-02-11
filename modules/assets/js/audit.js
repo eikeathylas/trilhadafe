@@ -178,7 +178,7 @@ const renderTimeline = (logs, container) => {
       } else if (log.table_name === "curriculum_plans") {
         icon = "event_note";
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Plano Adicionado: ${itemName}</div>`;
-      } else if (["persons", "organizations", "courses", "classes"].includes(log.table_name)) {
+      } else if (["persons", "organizations", "courses", "classes", "subjects", "curriculum", "events"].includes(log.table_name)) {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro mestre criado no sistema.</div>';
         headerText = "Criação";
       } else diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Adicionado: ${itemName}</div>`;

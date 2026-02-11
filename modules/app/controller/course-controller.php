@@ -27,6 +27,7 @@ function getCourses()
     $data = [
         "limit" => $_POST["limit"] ?? 10,
         "page" => $_POST["page"] ?? 0,
+        "org_id" => $_POST["org_id"] ?? 0,
         "search" => $_POST["search"] ?? ""
     ];
 
@@ -79,6 +80,7 @@ function saveCourse()
 
     // Injeta ID do usuário para auditoria
     $data['user_id'] = $decoded['id_user'];
+    $data['org_id'] = $_POST["org_id"] ?? 0;
 
     echo json_encode(upsertCourse($data));
 }

@@ -66,6 +66,7 @@ const getCursos = async () => {
       limit: defaultCourse.rowsPerPage,
       page: page * defaultCourse.rowsPerPage,
       search: search,
+      org_id: localStorage.getItem("tf_active_parish")
     });
 
     if (result.status) {
@@ -698,7 +699,7 @@ window.salvarCurso = async () => {
     };
 
     try {
-      const result = await window.ajaxValidator({ validator: "saveCourse", token: defaultApp.userInfo.token, data: data });
+      const result = await window.ajaxValidator({ validator: "saveCourse", token: defaultApp.userInfo.token, data: data, org_id: localStorage.getItem("tf_active_parish") });
       if (result.status) {
         window.alertDefault("Curso salvo com sucesso!", "success");
         $("#modalCurso").modal("hide");
