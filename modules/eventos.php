@@ -35,7 +35,7 @@
                         <div class="col-md-8">
                             <label class="form-label fw-bold text-secondary small text-uppercase">Buscar Evento</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                <span class="input-group-text border-end-0"><i class="fas fa-search text-muted"></i></span>
                                 <input type="text" id="search_event" class="form-control border-start-0" placeholder="Digite o nome ou descrição...">
                             </div>
                         </div>
