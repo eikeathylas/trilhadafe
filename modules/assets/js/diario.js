@@ -525,7 +525,7 @@ const renderStudents = () => {
     const nameParts = std.full_name.trim().split(" ");
     const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
     let avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover;">`
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover; cursor:pointer;" onclick="zoomAvatar('${std.profile_photo_url}')">`
       : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold" style="width:35px; height:35px; font-size:12px;">${initials}</div>`;
 
     const isP = std.is_present;
@@ -538,7 +538,7 @@ const renderStudents = () => {
                 <td class="text-center">
                     <div class="d-flex align-items-center justify-content-center gap-2">
                         <div class="form-check form-switch mb-0">
-                            <input class="form-check-input toggleSwitch" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
+                            <input class="form-check-input" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
                         </div>
                         <div class="status-container-${idx}">${statusBadge}</div>
                     </div>
