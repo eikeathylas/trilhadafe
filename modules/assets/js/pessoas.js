@@ -163,6 +163,7 @@ const renderTablePeople = (data) => {
       }
 
       const toggleHtml = window.renderToggle ? window.renderToggle(item.person_id, item.is_active, "togglePerson") : `<input type="checkbox" class="form-check-input" ${item.is_active ? "checked" : ""} onchange="togglePerson(${item.person_id}, this)">`;
+      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
 
       return `
         <div class="card border shadow-sm mb-3">
@@ -170,12 +171,13 @@ const renderTablePeople = (data) => {
                 <div class="d-flex align-items-center mb-3">
                     <div class="me-3">${avatarHtml}</div>
                     <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-0 text-dark">${item.full_name}</h6>
+                        <h6 class="fw-bold mb-0">${item.full_name}</h6>
                         <small class="text-muted d-block">${item.religious_name || ""}</small>
                         <div class="mt-1">${rolesHtml}</div>
                     </div>
-                    <div class="ms-2">
+                    <div class="d-flex align-items-center">
                         ${toggleHtml}
+                        ${statusText}
                     </div>
                 </div>
                 
@@ -184,9 +186,9 @@ const renderTablePeople = (data) => {
                          ${item.phone_mobile ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="text-success fw-bold text-decoration-none"><i class="fab fa-whatsapp me-1"></i>WhatsApp</a>` : ""}
                     </div>
                     <div>
-                        <button onclick="openAudit('people.persons', ${item.person_id})" class="btn btn-sm btn-light text-warning border" title="Histórico"><i class="fas fa-bolt"></i></button>
-                        <button onclick="modalPessoa(${item.person_id})" class="btn btn-sm btn-light text-primary border ms-1" title="Editar"><i class="fas fa-pen"></i></button>
-                        <button onclick="deletePerson(${item.person_id})" class="btn btn-sm btn-light text-danger border ms-1" title="Excluir"><i class="fas fa-trash"></i></button>
+                        <button onclick="openAudit('people.persons', ${item.person_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
+                        <button onclick="modalPessoa(${item.person_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
+                        <button onclick="deletePerson(${item.person_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
             </div>
@@ -751,6 +753,7 @@ window.togglePerson = async (id, element) => {
     try {
       await window.ajaxValidator({ validator: "togglePerson", token: defaultApp.userInfo.token, id: id, active: $chk.is(":checked") });
       window.alertDefault("Status atualizado.");
+      getPessoas();
     } catch (e) {
       $chk.prop("checked", !$chk.is(":checked"));
       window.alertDefault("Erro.", "error");

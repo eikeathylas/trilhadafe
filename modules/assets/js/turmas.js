@@ -662,6 +662,7 @@ window.toggleTurma = async (id, element) => {
   try {
     await window.ajaxValidator({ validator: "toggleClass", token: defaultApp.userInfo.token, id: id, active: $chk.is(":checked") });
     window.alertDefault("Status atualizado.");
+    getTurmas();
   } catch (e) {
     $chk.prop("checked", !$chk.is(":checked"));
   }

@@ -60,71 +60,67 @@ const renderTableEvents = (data) => {
   const container = $(".list-table-events");
 
   if (data.length === 0) {
-    container.html(`
-            <div class="text-center py-5 text-muted opacity-50">
-                <span class="material-symbols-outlined fs-1">event_busy</span>
-                <p class="mt-2">Nenhum evento encontrado.</p>
-            </div>
-        `);
+    container.html(`<div class="text-center py-5 text-muted opacity-50"><span class="material-symbols-outlined fs-1">event_busy</span><p class="mt-2">Nenhum evento encontrado.</p></div>`);
     return;
   }
 
-  let rows = data
+  // Helper de Toggle
+  const getToggle = (item) => window.renderToggle(item.event_id, item.is_academic_blocker, "toggleBlocker");
+  const getBlockerLabel = (is) => (is ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>');
+
+  // DESKTOP
+  let desktopRows = data
     .map((item) => {
-      // Definição do Badge solicitado
-      const isBlocker = item.is_academic_blocker ? '<span class="badge bg-danger-subtle text-danger border border-danger"><i class="fas fa-ban me-1"></i> Feriado Escolar</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda Comum</span>';
-
-      const isChecked = item.is_academic_blocker ? "checked" : "";
-
-      const timeInfo = item.start_time && item.end_time ? `<small class="text-muted d-block"><i class="far fa-clock me-1"></i> ${item.start_time} às ${item.end_time}</small>` : "";
-
-      return `
-            <tr>
-                <td class="align-middle ps-3" width="60">
-                    <div class="icon-circle bg-primary bg-opacity-10 text-primary">
-                        <span class="material-symbols-outlined">event</span>
-                    </div>
-                </td>
-                <td class="align-middle">
-                    <div class="fw-bold text-dark">${item.title}</div>
-                    <div class="small text-muted text-truncate" style="max-width: 300px;">${item.description || "Sem descrição"}</div>
-                </td>
-                <td class="align-middle">
-                    <div class="fw-bold text-dark">${item.date_fmt}</div>
-                    ${timeInfo}
-                </td>
-                <td class="align-middle text-center" width="200">
-                    <div class="form-check form-switch d-flex justify-content-center align-items-center">
-                        ${window.renderToggle(item.event_id, item.is_academic_blocker, "toggleBlocker")}
-                        <label class="form-check-label ms-2" for="sw_${item.event_id}" id="lbl_${item.event_id}">
-                            ${isBlocker}
-                        </label>
-                    </div>
-                </td>
-                <td class="align-middle text-end pe-3">
-                    <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Histórico"><i class="fas fa-bolt"></i></button>
-                    <button class="btn-icon-action" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                    <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `;
+      const timeInfo = item.start_time ? `<small class="text-muted d-block"><i class="far fa-clock me-1"></i> ${item.start_time}</small>` : "";
+      return `<tr>
+            <td class="align-middle ps-3" width="60"><div class="icon-circle bg-primary bg-opacity-10 text-primary"><span class="material-symbols-outlined">event</span></div></td>
+            <td class="align-middle"><div class="fw-bold ">${item.title}</div><div class="small text-muted text-truncate" style="max-width: 300px;">${item.description || "Sem descrição"}</div></td>
+            <td class="align-middle"><div class="fw-bold ">${item.date_fmt}</div>${timeInfo}</td>
+            <td class="align-middle text-center" width="200"><div class="form-check form-switch d-flex justify-content-center align-items-center">${getToggle(item)}<label class="form-check-label ms-2" id="lbl_${item.event_id}">${getBlockerLabel(item.is_academic_blocker)}</label></div></td>
+            <td class="align-middle text-end pe-3">
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action" onclick="editEvent(${item.event_id})"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
     })
     .join("");
 
-  // Retorna ao padrão "table-custom" original
+  // MOBILE
+  let mobileRows = data
+    .map((item) => {
+      const toggleHtml = window.renderToggle ? window.renderToggle(item.event_id, item.is_academic_blocker, "toggleBlocker") : `<input type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">`;
+      const statusText = item.is_academic_blocker ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
+
+      return `
+        <div class="mobile-card p-3">
+            <div class="d-flex align-items-center mb-3">
+                <div class="event-date-box me-3 text-center border p-2 rounded" style="min-width: 60px;">
+                    <div class="text-uppercase small fw-bold text-secondary">${item.day_week || "DIA"}</div>
+                    <div class="h4 fw-bold mb-0">${item.date_fmt.split("/")[0]}</div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">${item.title}</div>
+                    <div class="small text-muted">${item.start_time ? item.start_time : "Dia todo"}</div>
+                </div>
+                <div class="d-flex align-items-center">
+                    ${toggleHtml}
+                    ${statusText}
+                </div>
+            </div>
+            <div class="mobile-actions">
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action" onclick="editEvent(${item.event_id})"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
   container.html(`
-        <table class="table-custom">
-            <thead>
-                <tr>
-                    <th colspan="2" class="ps-3">Evento</th>
-                    <th>Data/Hora</th>
-                    <th class="text-center">Tipo (Bloqueio)</th>
-                    <th class="text-end pe-4">Ações</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
-    `);
+    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2" class="ps-3">Evento</th><th>Data/Hora</th><th class="text-center">Tipo (Bloqueio)</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
+    <div class="d-md-none">${mobileRows}</div>
+  `);
 
   _generatePaginationButtons("pagination-events", "currentPage", "totalPages", "changePage", defaultEvents);
 };
@@ -151,11 +147,10 @@ window.toggleBlocker = async (id, element) => {
 
     if (res.status) {
       window.alertDefault("Status atualizado.", "success");
+      loadEvents();
     } else {
       window.alertDefault(res.msg, "error");
-      $(`#sw_${id}`).prop("checked", !status); // Reverte switch
-      // Reverte label (recarregar seria mais seguro, mas aqui é visual rápido)
-      loadEvents();
+      $(`#sw_${id}`).prop("checked", !status);
     }
   } catch (e) {
     window.alertDefault("Erro de conexão.", "error");

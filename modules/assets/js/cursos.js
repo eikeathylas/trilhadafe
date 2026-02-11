@@ -148,6 +148,7 @@ const renderTableCourses = (data) => {
   let mobileRows = data
     .map((item) => {
       const toggleHtml = window.renderToggle ? window.renderToggle(item.course_id, item.is_active, "toggleCourse") : `<div class="form-check form-switch"><input class="form-check-input" type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)"></div>`;
+      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
 
       return `
         <div class="mobile-card p-3">
@@ -157,7 +158,9 @@ const renderTableCourses = (data) => {
                     <div class="badge bg-light text-secondary border">${item.total_workload_hours || 0}h</div>
                     <div class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 ms-1">${item.subjects_count || 0} Matérias</div>
                 </div>
-                <div>${toggleHtml}</div>
+                <div class="d-flex align-items-center">
+                  ${toggleHtml}${statusText}
+                </div>
             </div>
             <div class="mobile-actions">
                 <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id})"><i class="fas fa-bolt"></i></button>
@@ -743,6 +746,7 @@ window.toggleCourse = async (id, element) => {
     try {
       await window.ajaxValidator({ validator: "toggleCourse", token: defaultApp.userInfo.token, id: id, active: $chk.is(":checked") });
       window.alertDefault("Status atualizado.");
+      getCursos();
     } catch (e) {
       $chk.prop("checked", !$chk.is(":checked"));
     }

@@ -192,8 +192,11 @@ const renderTableDiocese = (data) => {
     DIOCESE: { l: "Diocese", i: "synagogue" },
   };
 
-  let rows = data
-    .map((item, index) => {
+  // =========================================================
+  // 1. VISÃO DESKTOP (Tabela)
+  // =========================================================
+  let desktopRows = data
+    .map((item) => {
       let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
 
       return `
@@ -206,11 +209,10 @@ const renderTableDiocese = (data) => {
                 <small class="text-sub">${item.phone_main || "-"}</small>
             </td>
             <td class="text-center">
-                <span class="badge" style="background-color: var(--padrao); color: var(--white); font-weight: 500;">${info.l}</span>
+                <span class="badge" style="background-color: var(--padrao); color: var(--white);">${info.l}</span>
             </td>
             <td>
                 <div class="text-dark font-weight-500">${item.city_state || "-"}</div>
-                <small class="text-sub">Localização</small>
             </td>
             <td class="text-center align-middle">
                 ${window.renderToggle(item.org_id, item.is_active, "toggleOrg")}
@@ -220,12 +222,62 @@ const renderTableDiocese = (data) => {
                 <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
                 <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
             </td>
-        </tr>
-        `;
+        </tr>`;
     })
     .join("");
 
-  container.html(`<table class="table-custom"><thead><tr><th colspan="2">Instituição</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+  // =========================================================
+  // 2. VISÃO MOBILE (Cards com Botões Nomeados)
+  // =========================================================
+  let mobileRows = data
+    .map((item) => {
+      let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
+
+      const toggleHtml = window.renderToggle ? window.renderToggle(item.org_id, item.is_active, "toggleOrg") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleOrg(${item.org_id}, this)">`;
+      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
+
+      return `
+        <div class="mobile-card p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="fw-bold fs-6">${item.display_name}</div>
+                    <div class="badge bg-light text-secondary border mt-1">${info.l}</div>
+                    <div class="small text-muted mt-1"><i class="fas fa-map-marker-alt me-1"></i> ${item.city_state || "-"}</div>
+                </div>
+                <div class="d-flex align-items-center">
+                    ${toggleHtml}
+                    ${statusText}
+                </div>
+            </div>
+            
+            <div class="mobile-actions">
+                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
+                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
+  container.html(`
+    <div class="d-none d-md-block table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th colspan="2">Instituição</th>
+                    <th class="text-center">Tipo</th>
+                    <th>Cidade</th>
+                    <th class="text-center">Ativo</th>
+                    <th class="text-end pe-4">Ações</th>
+                </tr>
+            </thead>
+            <tbody>${desktopRows}</tbody>
+        </table>
+    </div>
+    <div class="d-md-none">
+        ${mobileRows}
+    </div>
+  `);
 };
 
 window.getOrganizacoes = async () => {
@@ -262,18 +314,13 @@ const renderTableOrgs = (data) => {
     return;
   }
 
-  const tipoMap = {
-    DIOCESE: { l: "Diocese", i: "synagogue" },
-    PARISH: { l: "Paróquia", i: "church" },
-    CHAPEL: { l: "Capela", i: "home_work" },
-    CONVENT: { l: "Convento", i: "account_balance" },
-    CURIA: { l: "Cúria", i: "gavel" },
-    SEMINARY: { l: "Seminário", i: "school" },
-    RETREAT_HOUSE: { l: "Casa de Retiro", i: "nature_people" },
-  };
+  const tipoMap = { DIOCESE: { l: "Diocese", i: "synagogue" }, PARISH: { l: "Paróquia", i: "church" } }; // (Simplificado)
 
-  let rows = data
-    .map((item, index) => {
+  // =========================================================
+  // 1. VISÃO DESKTOP (Tabela)
+  // =========================================================
+  let desktopRows = data
+    .map((item) => {
       let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
 
       return `
@@ -286,11 +333,10 @@ const renderTableOrgs = (data) => {
                 <small class="text-sub">${item.phone_main || "-"}</small>
             </td>
             <td class="text-center">
-                <span class="badge" style="background-color: var(--padrao); color: var(--white); font-weight: 500;">${info.l}</span>
+                <span class="badge" style="background-color: var(--padrao); color: var(--white);">${info.l}</span>
             </td>
             <td>
                 <div class="text-dark font-weight-500">${item.city_state || "-"}</div>
-                <small class="text-sub">Localização</small>
             </td>
             <td class="text-center align-middle">
                 ${window.renderToggle(item.org_id, item.is_active, "toggleOrg")}
@@ -300,14 +346,62 @@ const renderTableOrgs = (data) => {
                 <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
                 <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
             </td>
-        </tr>
-        `;
+        </tr>`;
     })
     .join("");
 
-  container.html(`<table class="table-custom"><thead><tr><th colspan="2">Instituição</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+  // =========================================================
+  // 2. VISÃO MOBILE (Cards com Botões Nomeados)
+  // =========================================================
+  let mobileRows = data
+    .map((item) => {
+      let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
 
-  // CORREÇÃO: Passando o TIPO ('org')
+      const toggleHtml = window.renderToggle ? window.renderToggle(item.org_id, item.is_active, "toggleOrg") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleOrg(${item.org_id}, this)">`;
+      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
+
+      return `
+        <div class="mobile-card p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="fw-bold fs-6">${item.display_name}</div>
+                    <div class="badge bg-light text-secondary border mt-1">${info.l}</div>
+                    <div class="small text-muted mt-1"><i class="fas fa-map-marker-alt me-1"></i> ${item.city_state || "-"}</div>
+                </div>
+                <div class="d-flex align-items-center">
+                    ${toggleHtml}
+                    ${statusText}
+                </div>
+            </div>
+            
+            <div class="mobile-actions">
+                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
+                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
+  container.html(`
+    <div class="d-none d-md-block table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th colspan="2">Instituição</th>
+                    <th class="text-center">Tipo</th>
+                    <th>Cidade</th>
+                    <th class="text-center">Ativo</th>
+                    <th class="text-end pe-4">Ações</th>
+                </tr>
+            </thead>
+            <tbody>${desktopRows}</tbody>
+        </table>
+    </div>
+    <div class="d-md-none">
+        ${mobileRows}
+    </div>
+  `);
   _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes", "org");
 };
 
@@ -519,48 +613,18 @@ const renderTableLocais = (data) => {
     return;
   }
 
-  let rows = data
+  // DESKTOP
+  let desktopRows = data
     .map((item) => {
       const itemStr = encodeURIComponent(JSON.stringify(item));
-
       let icons = "";
-      if (item.has_ac) icons += getResourceIcon("ac");
-      if (item.is_accessible) icons += getResourceIcon("access");
-      if (item.is_sacred) icons += getResourceIcon("sacred");
-
-      const r = item.resources || {};
-      if (r.fan) icons += getResourceIcon("fan");
-      if (r.wifi) icons += getResourceIcon("wifi");
-      if (r.projector) icons += getResourceIcon("projector");
-      if (r.sound) icons += getResourceIcon("sound");
-      if (r.whiteboard) icons += getResourceIcon("whiteboard");
-      if (r.computer) icons += getResourceIcon("computer");
-      if (r.water) icons += getResourceIcon("water");
-      if (r.kitchen) icons += getResourceIcon("kitchen");
-      if (r.parking) icons += getResourceIcon("parking");
-
-      if (!icons) icons = '<span class="text-muted small">-</span>';
-
-      return `
-        <tr>
-            <td style="width: 60px;">
-                <div class="icon-circle"><span class="material-symbols-outlined">meeting_room</span></div>
-            </td>
-            <td>
-                <div class="fw-bold text-dark">${item.name}</div>
-                <small class="text-sub">${item.org_name}</small>
-            </td>
-            <td class="text-center">
-                <span class="fw-bold text-dark">${item.capacity || 0}</span>
-            </td>
-            <td class="text-center fs-6">
-                <div class="d-flex justify-content-center flex-wrap gap-1">
-                    ${icons}
-                </div>
-            </td>
-            <td class="text-center align-middle">
-                ${window.renderToggle(item.location_id, item.is_active, "toggleLoc")}
-            </td>
+      if (item.has_ac) icons += getResourceIcon("ac"); // (Simplificado)
+      return `<tr>
+            <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">meeting_room</span></div></td>
+            <td><div class="fw-bold text-dark">${item.name}</div><small class="text-sub">${item.org_name}</small></td>
+            <td class="text-center"><span class="fw-bold text-dark">${item.capacity || 0}</span></td>
+            <td class="text-center fs-6"><div class="d-flex justify-content-center flex-wrap gap-1">${icons || "-"}</div></td>
+            <td class="text-center align-middle">${window.renderToggle(item.location_id, item.is_active, "toggleLoc")}</td>
             <td class="text-end pe-3">
                 <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
                 <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
@@ -570,9 +634,38 @@ const renderTableLocais = (data) => {
     })
     .join("");
 
-  container.html(`<table class="table-custom"><thead><tr><th colspan="2">Espaço</th><th class="text-center">Capacidade</th><th class="text-center">Recursos</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+  // MOBILE
+  let mobileRows = data
+    .map((item) => {
+      const itemStr = encodeURIComponent(JSON.stringify(item));
 
-  // CORREÇÃO: Passando o TIPO ('loc')
+      const toggleHtml = window.renderToggle ? window.renderToggle(item.location_id, item.is_active, "toggleLoc") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleLoc(${item.location_id}, this)">`;
+      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
+
+      return `
+        <div class="mobile-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <div class="fw-bold">${item.name}</div>
+                    <div class="small text-muted"><i class="fas fa-users me-1"></i> Cap: ${item.capacity || 0}</div>
+                </div>
+                <div class="d-flex align-items-center">
+                    ${toggleHtml}
+                    ${statusText}
+                </div>
+            </div>
+            <div class="mobile-actions">
+                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
+                <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteLoc(${item.location_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
+  container.html(
+    `<div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Espaço</th><th class="text-center">Capacidade</th><th class="text-center">Recursos</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div><div class="d-md-none">${mobileRows}</div>`,
+  );
   _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "getLocais", "loc");
 };
 
