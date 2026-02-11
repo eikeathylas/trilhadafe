@@ -1,20 +1,29 @@
 <?php
 
-// =========================================================
-// GESTÃO DE PESSOAS (MODEL) - V4.5 (Fixed Catch Returns)
-// =========================================================
 
 function getAllPeople($data)
 {
     try {
         $conect = $GLOBALS["local"];
+        $orgId = (int)$data['org_id'];
 
         $params = [
             ':limit' => (int)$data['limit'],
-            ':page' => (int)$data['page']
+            ':page' => (int)$data['page'],
+            ':oid' => $orgId
         ];
 
-        $where = "WHERE p.deleted IS FALSE";
+        // Filtro de Organização: Origem OU Vínculo Ativo
+        $where = "WHERE p.deleted IS FALSE 
+                  AND (
+                      p.org_id_origin = :oid 
+                      OR EXISTS (
+                          SELECT 1 FROM people.person_roles pr 
+                          WHERE pr.person_id = p.person_id 
+                          AND pr.org_id = :oid 
+                          AND pr.deleted IS FALSE
+                      )
+                  )";
 
         if (!empty($data['search'])) {
             $where .= " AND (p.full_name ILIKE :search OR p.tax_id ILIKE :search OR p.email ILIKE :search)";
@@ -164,6 +173,7 @@ function upsertPerson($data, $files = [])
             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
         }
 
+        // ... (Sanitização e lógica de Eucaristia igual ao anterior) ...
         $sanitize = function ($val) {
             if (is_string($val)) {
                 $val = trim(preg_replace('/\s+/', ' ', $val));
@@ -171,25 +181,18 @@ function upsertPerson($data, $files = [])
             }
             return $val;
         };
-
-        // Extração de dados da Eucaristia do JSON
         $sacramentsJson = $data['sacraments_info'] ?? null;
         $sacArray = [];
         if ($sacramentsJson) {
             $sacArray = json_decode($sacramentsJson, true);
             if (is_array($sacArray)) {
-                // Remove valores vazios
                 foreach ($sacArray as $k => $v) if ($v === "" || $v === null || $v === 'null') unset($sacArray[$k]);
             }
         }
-
         $eucDate = !empty($data['eucharist_date']) ? $data['eucharist_date'] : ($sacArray['eucharist_date'] ?? null);
         $eucPlace = !empty($data['eucharist_place']) ? $sanitize($data['eucharist_place']) : ($sanitize($sacArray['eucharist_place'] ?? null));
-
-        // Reconstrói JSON limpo para salvar
         $sacramentsJson = !empty($sacArray) ? json_encode($sacArray) : null;
 
-        // --- 1. SALVAR DADOS PESSOAIS ---
         $paramsPerson = [
             'full_name' => $sanitize($data['full_name']),
             'religious_name' => $sanitize($data['religious_name'] ?? null),
@@ -216,41 +219,26 @@ function upsertPerson($data, $files = [])
 
         $personId = null;
         if (!empty($data['person_id'])) {
-            // UPDATE
-            $sql = <<<'SQL'
-                UPDATE people.persons SET
-                    full_name = :full_name, religious_name = :religious_name, birth_date = :birth_date,
-                    gender = :gender, tax_id = :tax_id, national_id = :national_id, email = :email,
-                    phone_mobile = :phone_mobile, phone_landline = :phone_landline, zip_code = :zip_code,
-                    address_street = :address_street, address_number = :address_number, address_district = :address_district,
-                    address_city = :address_city, address_state = :address_state, is_pcd = :is_pcd,
-                    pcd_details = :pcd_details, sacraments_info = :sacraments_info, 
-                    eucharist_date = :eucharist_date, eucharist_place = :eucharist_place,
-                    updated_at = CURRENT_TIMESTAMP
-            SQL;
-
+            // UPDATE (Mantém org_origin original)
+            $sql = "UPDATE people.persons SET full_name=:full_name, religious_name=:religious_name, birth_date=:birth_date, gender=:gender, tax_id=:tax_id, national_id=:national_id, email=:email, phone_mobile=:phone_mobile, phone_landline=:phone_landline, zip_code=:zip_code, address_street=:address_street, address_number=:address_number, address_district=:address_district, address_city=:address_city, address_state=:address_state, is_pcd=:is_pcd, pcd_details=:pcd_details, sacraments_info=:sacraments_info, eucharist_date=:eucharist_date, eucharist_place=:eucharist_place, updated_at=CURRENT_TIMESTAMP";
             if (!empty($data['profile_photo_url'])) {
                 $sql .= ", profile_photo_url = :profile_photo_url";
             } else {
                 unset($paramsPerson['profile_photo_url']);
             }
-
             $sql .= " WHERE person_id = :person_id";
             $paramsPerson['person_id'] = $data['person_id'];
             $conect->prepare($sql)->execute($paramsPerson);
             $personId = $data['person_id'];
             $msg = "Cadastro atualizado!";
         } else {
-            // INSERT
-            $orgId = 1;
-            $sql = <<<'SQL'
-                INSERT INTO people.persons 
-                (org_id_origin, full_name, religious_name, birth_date, gender, tax_id, national_id, email, phone_mobile, phone_landline, zip_code, address_street, address_number, address_district, address_city, address_state, is_pcd, pcd_details, profile_photo_url, sacraments_info, eucharist_date, eucharist_place)
-                VALUES 
-                (:org_id, :full_name, :religious_name, :birth_date, :gender, :tax_id, :national_id, :email, :phone_mobile, :phone_landline, :zip_code, :address_street, :address_number, :address_district, :address_city, :address_state, :is_pcd, :pcd_details, :profile_photo_url, :sacraments_info, :eucharist_date, :eucharist_place)
-                RETURNING person_id
-            SQL;
-            $paramsPerson['org_id'] = $orgId;
+            // INSERT (Usa org_id)
+            if (empty($data['org_id'])) {
+                $conect->rollBack();
+                return failure("Organização de origem não definida.");
+            }
+            $sql = "INSERT INTO people.persons (org_id_origin, full_name, religious_name, birth_date, gender, tax_id, national_id, email, phone_mobile, phone_landline, zip_code, address_street, address_number, address_district, address_city, address_state, is_pcd, pcd_details, profile_photo_url, sacraments_info, eucharist_date, eucharist_place) VALUES (:org_id, :full_name, :religious_name, :birth_date, :gender, :tax_id, :national_id, :email, :phone_mobile, :phone_landline, :zip_code, :address_street, :address_number, :address_district, :address_city, :address_state, :is_pcd, :pcd_details, :profile_photo_url, :sacraments_info, :eucharist_date, :eucharist_place) RETURNING person_id";
+            $paramsPerson['org_id'] = $data['org_id'];
             $stmt = $conect->prepare($sql);
             $stmt->execute($paramsPerson);
             $personId = $stmt->fetchColumn();
@@ -298,10 +286,11 @@ function upsertPerson($data, $files = [])
                 $stmtGetId = $conect->prepare("SELECT role_id FROM people.roles WHERE role_name = ?");
                 $stmtGetId->execute([$roleName]);
                 $rid = $stmtGetId->fetchColumn();
-
                 if ($rid) {
                     if ($shouldBeActive) {
-                        $conect->prepare("INSERT INTO people.person_roles (person_id, org_id, role_id, is_active, deleted) VALUES (:pid, 1, :rid, TRUE, FALSE) ON CONFLICT (person_id, role_id) DO UPDATE SET is_active = TRUE, deleted = FALSE, updated_at = CURRENT_TIMESTAMP")->execute(['pid' => $personId, 'rid' => $rid]);
+                        // [FIX] Usa org_id dinâmica no vínculo
+                        $oid = !empty($data['org_id']) ? $data['org_id'] : 1;
+                        $conect->prepare("INSERT INTO people.person_roles (person_id, org_id, role_id, is_active, deleted) VALUES (:pid, :oid, :rid, TRUE, FALSE) ON CONFLICT (person_id, role_id) DO UPDATE SET is_active = TRUE, deleted = FALSE, updated_at = CURRENT_TIMESTAMP")->execute(['pid' => $personId, 'oid' => $oid, 'rid' => $rid]);
                     } else {
                         $conect->prepare("UPDATE people.person_roles SET is_active = FALSE, deleted = TRUE WHERE person_id = :pid AND role_id = :rid")->execute(['pid' => $personId, 'rid' => $rid]);
                     }
@@ -347,10 +336,7 @@ function upsertPerson($data, $files = [])
         }
 
         $conect->commit();
-
-        // Sincroniza Login
         syncUserLogin($personId);
-
         return success($msg, ['person_id' => $personId]);
     } catch (Exception $e) {
         if ($conect->inTransaction()) $conect->rollBack();
@@ -601,6 +587,7 @@ function getCatechistsForSelect($search = "")
         return failure("Erro na busca de catequistas.", null, false, 500);
     }
 }
+
 function syncUserLogin($personId)
 {
     try {

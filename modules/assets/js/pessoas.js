@@ -26,6 +26,7 @@ const getPessoas = async () => {
       page: page * defaultPeople.rowsPerPage,
       search: search,
       role_filter: role,
+      org_id: localStorage.getItem("tf_active_parish"),
     });
 
     if (result.status) {
@@ -576,6 +577,7 @@ window.salvarPessoa = async () => {
   formData.append("validator", "savePerson");
   formData.append("token", defaultApp.userInfo.token);
   formData.append("id_client", defaultApp.userInfo.id_client);
+  formData.append("org_id", localStorage.getItem("tf_active_parish"));
 
   // Mapeamento de campos
   const fields = ["person_id", "religious_name", "birth_date", "tax_id", "national_id", "gender", "email", "phone_mobile", "phone_landline", "zip_code", "address_street", "address_number", "address_district", "address_city", "address_state", "pcd_details"];

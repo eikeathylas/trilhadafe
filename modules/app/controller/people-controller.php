@@ -27,6 +27,7 @@ function getPeople()
     $data = [
         "limit" => $_POST["limit"] ?? 20,
         "page" => $_POST["page"] ?? 0,
+        "org_id" => $_POST["org_id"] ?? 0,
         "search" => $_POST["search"] ?? "",
         "role_filter" => $_POST["role_filter"] ?? ""
     ];
