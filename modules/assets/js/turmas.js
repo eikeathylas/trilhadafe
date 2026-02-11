@@ -77,36 +77,42 @@ const renderTableClasses = (data) => {
     return;
   }
 
-  let rows = data
+  // Helper para barra de progresso (Reutilizável)
+  const getProgressHtml = (enrolled, cap) => {
+    if (!cap || parseInt(cap) === 0) return '<span class="badge bg-light text-dark border">Ilimitado</span>';
+
+    const e = parseInt(enrolled || 0);
+    const c = parseInt(cap);
+    const percent = Math.min(100, Math.round((e / c) * 100));
+
+    let color = "bg-success";
+    if (percent >= 80) color = "bg-warning";
+    if (percent >= 100) color = "bg-danger";
+
+    return `
+        <div class="w-100" style="max-width: 120px;">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>${e}/${c}</span>
+                <span>${percent}%</span>
+            </div>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar ${color}" role="progressbar" style="width: ${percent}%"></div>
+            </div>
+        </div>`;
+  };
+
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA)
+  // =========================================================
+  let desktopRows = data
     .map((item) => {
+      // Avatar do Coordenador
       let avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border small fw-bold" style="width:32px; height:32px;">?</div>`;
       if (item.coordinator_photo) {
         avatarHtml = `<img src="${item.coordinator_photo}" class="rounded-circle border" style="width:32px; height:32px; object-fit:cover;">`;
       } else if (item.coordinator_name) {
         const ini = item.coordinator_name.substring(0, 2).toUpperCase();
         avatarHtml = `<div class="rounded-circle bg-primary bg-opacity-10 text-primary border border-primary-subtle d-flex align-items-center justify-content-center fw-bold" style="width:32px; height:32px; font-size:12px">${ini}</div>`;
-      }
-
-      const enrolled = parseInt(item.enrolled_count || 0);
-      const cap = parseInt(item.max_capacity || 0);
-      let progressHtml = '<span class="badge bg-light text-dark border">Ilimitado</span>';
-
-      if (cap > 0) {
-        const percent = Math.min(100, Math.round((enrolled / cap) * 100));
-        let color = "bg-success";
-        if (percent >= 80) color = "bg-warning";
-        if (percent >= 100) color = "bg-danger";
-
-        progressHtml = `
-            <div style="width:100px">
-                <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span>${enrolled}/${cap}</span>
-                    <span>${percent}%</span>
-                </div>
-                <div class="progress" style="height: 6px;">
-                    <div class="progress-bar ${color}" role="progressbar" style="width: ${percent}%"></div>
-                </div>
-            </div>`;
       }
 
       const isActive = item.is_active === true || item.is_active === "t";
@@ -130,7 +136,7 @@ const renderTableClasses = (data) => {
                     <span class="badge bg-light text-dark border w-auto text-start"><i class="fas fa-map-marker-alt me-2 text-muted"></i> ${item.location_name || "Sem local"}</span>
                 </div>
             </td>
-            <td class="text-center align-middle">${progressHtml}</td>
+            <td class="text-center align-middle d-flex justify-content-center">${getProgressHtml(item.enrolled_count, item.max_capacity)}</td>
             <td class="text-center align-middle">${toggleHtml}</td>
             <td class="text-end align-middle pe-3">
                 <button onclick="openAudit('education.classes', ${item.class_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
@@ -141,13 +147,81 @@ const renderTableClasses = (data) => {
     })
     .join("");
 
-  container.html(`<table class="table-custom"><thead><tr><th>Turma / Curso</th><th>Coordenação</th><th>Horário / Local</th><th class="text-center">Lotação</th><th class="text-center">Ativa</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+  // =========================================================
+  // 2. VISÃO MOBILE (CARDS OTIMIZADOS)
+  // =========================================================
+  let mobileRows = data
+    .map((item) => {
+      const isActive = item.is_active === true || item.is_active === "t";
+      // Toggle simplificado
+      const toggleHtml = window.renderToggle ? window.renderToggle(item.class_id, isActive, "toggleTurma") : `<input type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)">`;
+      const statusText = isActive ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
+
+      return `
+        <div class="mobile-card p-3 mb-3 border rounded shadow-sm">
+            
+            <div class="mb-3">
+                <div class="fw-bold fs-6">${item.name}</div>
+                <div class="small text-primary">${item.course_name}</div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded border">
+                <div class="d-flex align-items-center text-muted small">
+                    <i class="fas fa-clock me-2 text-secondary"></i> 
+                    ${item.schedule_summary || "Sem horário"}
+                </div>
+                <div class="d-flex align-items-center">
+                    ${toggleHtml}
+                    ${statusText}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                 <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span class="text-uppercase fw-bold" style="font-size: 0.7rem;">Ocupação</span>
+                 </div>
+                 ${getProgressHtml(item.enrolled_count, item.max_capacity).replace("max-width: 120px;", "max-width: 100%;")} 
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id})">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action" onclick="modalTurma(${item.class_id})">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action delete" onclick="deleteTurma(${item.class_id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
+  // Renderiza HTML Híbrido
+  container.html(`
+    <div class="d-none d-md-block table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th>Turma / Curso</th>
+                    <th>Coordenação</th>
+                    <th>Horário / Local</th>
+                    <th class="text-center">Lotação</th>
+                    <th class="text-center">Ativa</th>
+                    <th class="text-end pe-4">Ações</th>
+                </tr>
+            </thead>
+            <tbody>${desktopRows}</tbody>
+        </table>
+    </div>
+    <div class="d-md-none">
+        ${mobileRows}
+    </div>
+  `);
 
   _generatePaginationButtons("pagination-turmas", "currentPage", "totalPages", "getTurmas", defaultClass);
 };
-
-// ... (RESTO DAS FUNÇÕES: modalTurma, loadClassData, addSchedule, saveTurma, etc. MANTIDAS IGUAIS AO ARQUIVO ORIGINAL) ...
-// Certifique-se de manter o restante do arquivo JS original abaixo desta linha.
 
 // =========================================================
 // 3. CADASTRO E EDIÇÃO
@@ -409,7 +483,7 @@ window.matricularAluno = async () => {
       window.alertDefault("Catequizando matriculado!", "success");
       $("#sel_new_student")[0].selectize.clear();
       loadClassStudents(classId);
-      getTurmas(); // Atualiza contador na tabela
+      getTurmas();
     } else {
       window.alertDefault(result.alert, "error");
     }
