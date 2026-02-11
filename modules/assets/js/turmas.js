@@ -53,7 +53,8 @@ const getTurmas = async () => {
       limit: defaultClass.rowsPerPage,
       page: page * defaultClass.rowsPerPage,
       search: search,
-      year: year, // Envia o ano global
+      org_id: localStorage.getItem("tf_active_parish"),
+      year: year,
     });
 
     if (result.status) {
@@ -329,6 +330,7 @@ window.salvarTurma = async () => {
       validator: "saveClass",
       token: defaultApp.userInfo.token,
       data: data,
+      org_id: localStorage.getItem("tf_active_parish"),
     });
 
     if (result.status) {

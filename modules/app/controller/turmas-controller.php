@@ -15,6 +15,7 @@ function getClasses()
         "limit" => $_POST["limit"] ?? 10,
         "page" => $_POST["page"] ?? 0,
         "search" => $_POST["search"] ?? "",
+        "org_id" => $_POST["org_id"] ?? 0,
         "year" => $_POST["year"] ?? null
     ];
 
