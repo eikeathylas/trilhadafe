@@ -4,9 +4,10 @@ function getAllSubjects($data)
 {
     try {
         $conect = $GLOBALS["local"];
+        $orgId = (int)$data['org_id'];
 
-        $where = "WHERE deleted IS FALSE";
-        $params = [':limit' => $data['limit'], ':page' => $data['page']];
+        $where = "WHERE deleted IS FALSE AND org_id = :oid";
+        $params = [':limit' => $data['limit'], ':page' => $data['page'], ':oid' => $orgId];
 
         if (!empty($data['search'])) {
             $where .= " AND name ILIKE :search";
@@ -34,9 +35,7 @@ function getAllSubjects($data)
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        foreach ($result as &$row) {
-            $row['is_active'] = (bool)$row['is_active'];
-        }
+        foreach ($result as &$row) $row['is_active'] = (bool)$row['is_active'];
 
         return success("Disciplinas listadas.", $result);
     } catch (Exception $e) {
@@ -68,8 +67,7 @@ function upsertSubject($data)
         $conect->beginTransaction();
 
         if (!empty($data['user_id'])) {
-            $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
-            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
+            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
         $params = [
@@ -80,11 +78,15 @@ function upsertSubject($data)
         if (!empty($data['subject_id'])) {
             $sql = "UPDATE education.subjects SET name=:name, syllabus_summary=:syllabus WHERE subject_id=:id";
             $params['id'] = $data['subject_id'];
-            $msg = "Disciplina atualizada com sucesso!";
+            $msg = "Disciplina atualizada!";
         } else {
-            // Org ID fixo em 1 por enquanto (ou pegar de sessão se tiver)
-            $sql = "INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES (1, :name, :syllabus)";
-            $msg = "Disciplina criada com sucesso!";
+            if (empty($data['org_id'])) {
+                $conect->rollBack();
+                return failure("Organização não definida.");
+            }
+            $sql = "INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES (:oid, :name, :syllabus)";
+            $params['oid'] = $data['org_id'];
+            $msg = "Disciplina criada!";
         }
 
         $stmt = $conect->prepare($sql);

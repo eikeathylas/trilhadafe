@@ -22,6 +22,7 @@ function getSubjects()
     $data = [
         "limit" => $_POST["limit"] ?? 10,
         "page" => $_POST["page"] ?? 0,
+        "org_id" => $_POST["org_id"] ?? 0,
         "search" => $_POST["search"] ?? ""
     ];
 
@@ -59,6 +60,7 @@ function saveSubject()
 
     $data = $_POST['data'] ?? [];
     $data['user_id'] = $decoded['id_user']; // Auditoria
+    $data['org_id'] = $_POST["org_id"] ?? 0;
 
     echo json_encode(upsertSubject($data));
 }

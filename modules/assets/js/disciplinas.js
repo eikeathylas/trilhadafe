@@ -22,6 +22,7 @@ const getDisciplinas = async () => {
       limit: defaultSubject.rowsPerPage,
       page: page * defaultSubject.rowsPerPage,
       search: search,
+      org_id: localStorage.getItem("tf_active_parish"),
     });
 
     if (result.status) {
@@ -148,6 +149,7 @@ window.salvarDisciplina = async () => {
       validator: "saveSubject",
       token: defaultApp.userInfo.token,
       data: data,
+      org_id: localStorage.getItem("tf_active_parish")
     });
 
     if (result.status) {
