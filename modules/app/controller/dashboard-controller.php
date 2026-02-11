@@ -30,7 +30,9 @@ function getDashboardStats()
 
     // 5. Preparação dos dados para a função
     $data = [
-        "id_user" => $decoded["id_user"] // ID do usuário logado (tabela security.users)
+        "id_user" => $decoded["id_user"],
+        "org_id" => $_POST["org_id"],
+        "year_id" => $_POST["year_id"],
     ];
 
     // 6. Chamada da Função Model e Retorno JSON
@@ -59,7 +61,8 @@ function getUpcomingEvents()
     getLocal($decoded["conexao"]);
 
     $data = [
-        "user_id" => $decoded["id_user"]
+        "user_id" => $decoded["id_user"],
+        "org_id" => $_POST["org_id"],
     ];
 
     echo json_encode(getUpcomingEventsData($data));

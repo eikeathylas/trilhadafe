@@ -77,6 +77,8 @@ async function getDashboardStats() {
     const result = await ajaxValidator({
       validator: "getDashboardStats",
       token: defaultApp.userInfo.token,
+      org_id: localStorage.getItem("tf_active_parish"),
+      year_id: localStorage.getItem("sys_active_year"),
     });
 
     if (result.status) {
@@ -109,6 +111,7 @@ async function getUpcomingEvents() {
     const resEvents = await ajaxValidator({
       validator: "getUpcomingEvents",
       token: defaultApp.userInfo.token,
+      org_id: localStorage.getItem("tf_active_parish"),
     });
 
     if (resEvents.status) {
