@@ -135,7 +135,7 @@ const renderTableEvents = (data) => {
             <div class="d-flex align-items-center mb-3">
                 <div class="event-date-box me-3 text-center border p-2 rounded" style="min-width: 60px;">
                     <div class="text-uppercase small fw-bold text-secondary">${item.day_week || "DIA"}</div>
-                    <div class="h4 fw-bold mb-0">${item.date_fmt.split("/")[0]}</div>
+                    <div class="h4 fw-bold mb-0">${item.date_fmt.split("/")[0]}/${item.date_fmt.split("/")[1]}</div>
                 </div>
                 <div class="flex-grow-1">
                     <div class="fw-bold">${item.title}</div>
