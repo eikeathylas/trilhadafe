@@ -588,7 +588,7 @@ const renderStudents = () => {
                     </div>
                 </div>
                 
-                <div id="just-box-mob-${idx}" class="mt-2 p-2 bg-light rounded ${isP ? "d-none" : ""}">
+                <div id="just-box-mob-${idx}" class="mt-2 p-2 rounded ${isP ? "d-none" : ""}">
                     <select class="form-select form-select-sm mb-2 w-100" onchange="updateAbsenceType(${idx}, this.value)">
                         <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
                         <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
