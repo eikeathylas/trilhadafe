@@ -1,5 +1,5 @@
 // =========================================================
-// CONFIGURAÇÕES DO DASHBOARD - V4.1
+// CONFIGURAÇÕES DO DASHBOARD - V4.2
 // =========================================================
 const dashboardConfig = {
   refreshInterval: 60000, // Atualização automática (60s)
@@ -216,25 +216,30 @@ function renderAniversariantes(aniversariantes) {
   container.empty();
 
   if (!aniversariantes || aniversariantes.length === 0) {
-    container.html('<li class="list-group-item text-center text-muted">Nenhum aniversariante neste mês.</li>');
+    container.html('<li class="list-group-item text-center text-muted py-4">Nenhum aniversariante neste mês.</li>');
     return;
   }
 
   aniversariantes.forEach((pessoa) => {
     let avatarHtml = "";
     if (pessoa.photo_url) {
-      avatarHtml = `<img src="${pessoa.photo_url}?v=${new Date().getTime()}" class="rounded-circle border" style="width:40px; height:40px; margin: 0 10px 0 0; object-fit:cover;">`;
+      avatarHtml = `<img src="${pessoa.photo_url}?v=${new Date().getTime()}" 
+                         class="rounded-circle border shadow-sm" 
+                         style="width:40px; height:40px; margin: 0 10px 0 0; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                         onclick="zoomAvatar('${pessoa.photo_url}', '${pessoa.name.replace(/'/g, "\\'")}')"
+                         onmouseover="this.style.transform='scale(1.1)'" 
+                         onmouseout="this.style.transform='scale(1)'">`;
     } else {
       const nameParts = pessoa.name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
       avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px; margin: 0 10px 0 0;">${initials}</div>`;
     }
     const html = `
-            <li class="list-group-item d-flex align-items-center">
+            <li class="list-group-item d-flex align-items-center px-3 py-2">
                 ${avatarHtml}
                 <div>
-                    <h6 class="mb-0 txt-theme">${pessoa.name}</h6>
-                    <small class="text-muted">Aniversário: ${pessoa.birth_date}</small>
+                    <h6 class="mb-0 txt-theme font-weight-bold" style="font-size: 0.9rem;">${pessoa.name}</h6>
+                    <small class="text-muted" style="font-size: 0.8rem;"><i class="fas fa-birthday-cake text-danger me-1"></i> ${pessoa.birth_date}</small>
                 </div>
             </li>
         `;

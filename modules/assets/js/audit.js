@@ -172,7 +172,9 @@ const renderTimeline = (logs, container) => {
       icon = "add";
       colorClass = "INSERT";
       if (log.table_name === "attendance") {
-        const statusBadge = isTrue(newVal.is_present) ? '<span class="badge bg-success ms-1">Presente</span>' : '<span class="badge bg-danger ms-1">Ausente</span>';
+        // const statusBadge = isTrue(newVal.is_present) ? '<span class="badge bg-success ms-1">Presente</span>' : '<span class="badge bg-danger ms-1">Ausente</span>';
+        console.log(newVal);
+        const statusBadge = newVal["Presença"];
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro criado: ${statusBadge}</div>`;
       } else if (log.table_name === "person_attachments") {
         icon = "attach_file";
@@ -180,7 +182,7 @@ const renderTimeline = (logs, container) => {
       } else if (log.table_name === "curriculum_plans") {
         icon = "event_note";
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Plano Adicionado: ${itemName}</div>`;
-      } else if (["persons", "organizations", "courses", "classes"].includes(log.table_name)) {
+      } else if (["persons", "organizations", "courses", "classes", "subjects", "events"].includes(log.table_name)) {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro mestre criado no sistema.</div>';
         headerText = "Criação";
       } else diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Adicionado: ${itemName}</div>`;

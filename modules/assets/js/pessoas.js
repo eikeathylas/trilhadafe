@@ -55,17 +55,28 @@ const renderTablePeople = (data) => {
     return;
   }
 
-  let rows = data
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA)
+  // =========================================================
+  let desktopRows = data
     .map((item) => {
+      // Lógica do Avatar (Com Zoom)
       let avatarHtml = "";
       if (item.profile_photo_url) {
-        avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border" style="width:40px; height:40px; object-fit:cover;">`;
+        // Adicionado: Zoom, cursor pointer e efeito hover
+        avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
+                           class="rounded-circle border shadow-sm" 
+                           style="width:40px; height:40px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                           onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')"
+                           onmouseover="this.style.transform='scale(1.1)'" 
+                           onmouseout="this.style.transform='scale(1)'">`;
       } else {
         const nameParts = item.full_name.trim().split(" ");
         const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
         avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px;">${initials}</div>`;
       }
 
+      // Badges de Funções
       let rolesHtml = "";
       const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "dark", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
       const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
@@ -76,6 +87,7 @@ const renderTablePeople = (data) => {
         });
       }
 
+      // Contatos
       let contactHtml = "";
       if (item.phone_mobile) {
         const whatsLink = `https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}`;
@@ -83,11 +95,12 @@ const renderTablePeople = (data) => {
       }
       contactHtml += item.email || '<span class="text-muted small">-</span>';
 
+      // Toggle Ativo/Inativo
       const toggleHtml = window.renderToggle ? window.renderToggle(item.person_id, item.is_active, "togglePerson") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="togglePerson(${item.person_id}, this)">`;
 
       return `
         <tr>
-            <td class="text-center align-middle" style="width: 60px;">${avatarHtml}</td>
+            <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
             <td class="align-middle">
                 <div class="fw-bold text-dark">${item.full_name}</div>
                 <small class="text-muted">${item.religious_name || ""}</small>
@@ -95,7 +108,7 @@ const renderTablePeople = (data) => {
             <td class="align-middle">${rolesHtml}</td>
             <td class="align-middle">${contactHtml}</td>
             <td class="text-center align-middle">
-                ${toggleHtml}
+                <div class="d-flex justify-content-center">${toggleHtml}</div>
             </td>
             <td class="text-end align-middle pe-3">
                 <button onclick="openAudit('people.persons', ${item.person_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
@@ -106,7 +119,85 @@ const renderTablePeople = (data) => {
     })
     .join("");
 
-  container.html(`<table class="table-custom"><thead><tr><th colspan="2">Pessoa</th><th>Vínculos</th><th>Contato</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+  const tableHtml = `<div class="d-none d-md-block table-responsive">
+                        <table class="table-custom">
+                            <thead>
+                                <tr>
+                                    <th colspan="2" class="ps-3">Pessoa</th>
+                                    <th>Vínculos</th>
+                                    <th>Contato</th>
+                                    <th class="text-center">Ativo</th>
+                                    <th class="text-end pe-4">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>${desktopRows}</tbody>
+                        </table>
+                     </div>`;
+
+  // =========================================================
+  // 2. VISÃO MOBILE (CARDS)
+  // =========================================================
+  const mobileRows = data
+    .map((item) => {
+      // Avatar Mobile
+      let avatarHtml = "";
+      if (item.profile_photo_url) {
+        avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
+                           class="rounded-circle border shadow-sm" 
+                           style="width:50px; height:50px; object-fit:cover; cursor: pointer;"
+                           onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`;
+      } else {
+        const nameParts = item.full_name.trim().split(" ");
+        const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+        avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border fw-bold fs-5" style="width:50px; height:50px;">${initials}</div>`;
+      }
+
+      // Roles Mobile
+      let rolesHtml = "";
+      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "dark", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
+      const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
+      if (item.roles_array) {
+        item.roles_array.forEach((r) => {
+          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-dark border"} me-1 mb-1">${roleNames[r] || r}</span>`;
+        });
+      }
+
+      const toggleHtml = window.renderToggle ? window.renderToggle(item.person_id, item.is_active, "togglePerson") : `<input type="checkbox" class="form-check-input" ${item.is_active ? "checked" : ""} onchange="togglePerson(${item.person_id}, this)">`;
+
+      return `
+        <div class="card border shadow-sm mb-3">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">${avatarHtml}</div>
+                    <div class="flex-grow-1">
+                        <h6 class="fw-bold mb-0 text-dark">${item.full_name}</h6>
+                        <small class="text-muted d-block">${item.religious_name || ""}</small>
+                        <div class="mt-1">${rolesHtml}</div>
+                    </div>
+                    <div class="ms-2">
+                        ${toggleHtml}
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                    <div class="text-muted small">
+                         ${item.phone_mobile ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="text-success fw-bold text-decoration-none"><i class="fab fa-whatsapp me-1"></i>WhatsApp</a>` : ""}
+                    </div>
+                    <div>
+                        <button onclick="openAudit('people.persons', ${item.person_id})" class="btn btn-sm btn-light text-warning border" title="Histórico"><i class="fas fa-bolt"></i></button>
+                        <button onclick="modalPessoa(${item.person_id})" class="btn btn-sm btn-light text-primary border ms-1" title="Editar"><i class="fas fa-pen"></i></button>
+                        <button onclick="deletePerson(${item.person_id})" class="btn btn-sm btn-light text-danger border ms-1" title="Excluir"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    })
+    .join("");
+
+  const mobileHtml = `<div class="d-md-none">${mobileRows}</div>`;
+
+  // Renderiza ambos (O CSS do Bootstrap d-none/d-block cuida de mostrar o correto)
+  container.html(tableHtml + mobileHtml);
 
   _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "changePage", defaultPeople);
 };

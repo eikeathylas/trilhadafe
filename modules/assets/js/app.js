@@ -129,6 +129,30 @@ window.renderToggle = (id, isChecked, onChangeFunction) => {
 };
 
 // =========================================================
+// FUNÇÕES GLOBAIS DE UI (Adicione no seu app.js ou footer)
+// =========================================================
+
+window.zoomAvatar = (url, altText = "Foto de Perfil") => {
+  if (!url) return;
+
+  Swal.fire({
+    imageUrl: url,
+    imageAlt: altText,
+    // imageHeight: 400, // Comentei para deixar responsivo (auto-height)
+    imageWidth: "auto", // Se adapta a largura da imagem ou da tela
+    customClass: {
+      image: "rounded-4 shadow-lg border border-white", // Borda branca e sombra para destaque
+      popup: "bg-transparent shadow-none", // Remove o fundo padrão do card
+    },
+    showConfirmButton: false,
+    showCloseButton: true, // Botão X útil no mobile
+    backdrop: `rgba(0,0,0,0.85)`, // Fundo mais escuro para focar na foto
+    scrollbarPadding: false,
+    animation: true, // Garante a animação de entrada
+  });
+};
+
+// =========================================================
 // 4. FUNÇÕES CORE (LOGOUT, LOAD, ALERTAS)
 // =========================================================
 

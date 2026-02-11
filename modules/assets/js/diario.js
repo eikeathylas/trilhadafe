@@ -553,10 +553,6 @@ window.updateAbsenceType = (idx, val) => {
   diarioState.currentStudents[idx].absence_type = val;
 };
 
-window.zoomAvatar = (url) => {
-  Swal.fire({ imageUrl: url, imageHeight: 300, showConfirmButton: false, background: "transparent" });
-};
-
 // =========================================================
 // SALVAR E EXCLUIR
 // =========================================================
