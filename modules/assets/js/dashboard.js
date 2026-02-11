@@ -192,7 +192,7 @@ function renderEvents(events) {
             <div class="list-group-item d-flex align-items-center border-0 border-bottom py-3 px-4 ${containerClass}">
                 <div class="event-date-box me-3">
                     <div class="event-day">${ev.day_week}</div>
-                    <div class="event-num">${ev.date_fmt.substr(0, 2)}</div>
+                    <div class="event-num">${ev.date_fmt.substr(0, 2)}/${ev.date_fmt.substr(3, 2)}</div>
                 </div>
 
                 <div class="flex-grow-1 overflow-hidden">

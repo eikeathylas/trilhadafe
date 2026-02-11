@@ -11,15 +11,32 @@ const defaultOrg = {
 // FUNÇÕES AUXILIARES GLOBAIS DO MÓDULO
 // =========================================================
 
-const handleToggle = async (validator, id, element, successMsg = "Status atualizado.") => {
+// Atualizado para aceitar seletor de label global (sincroniza mobile/desktop)
+const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
   const $chk = $(element);
-  const $loader = $chk.siblings(".toggle-loader");
+  const $wrapper = $chk.closest(".form-check");
+  const $loader = $wrapper.find(".toggle-loader");
+  const $labels = $(labelSelector); // Seleciona todas as ocorrências (Desk e Mobile)
   const status = $chk.is(":checked");
 
+  // [ATUALIZADO] Define os estados visuais com BADGES
+  const setVisualState = (isActive) => {
+    if (isActive) {
+      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
+    } else {
+      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
+    }
+  };
+
   try {
+    // 1. Bloqueia e mostra loader local
     $chk.prop("disabled", true);
     $loader.removeClass("d-none");
 
+    // 2. Atualiza visualmente (Otimista)
+    setVisualState(status);
+
+    // 3. Chamada API
     const result = await ajaxValidator({
       validator: validator,
       token: defaultApp.userInfo.token,
@@ -30,21 +47,23 @@ const handleToggle = async (validator, id, element, successMsg = "Status atualiz
     if (result.status) {
       alertDefault(successMsg, "success");
     } else {
-      $chk.prop("checked", !status);
-      alertDefault(result.alert, "error");
+      throw new Error(result.alert || "Erro ao atualizar");
     }
   } catch (e) {
     console.error(e);
+    // Reverte estado
     $chk.prop("checked", !status);
-    alertDefault("Erro de conexão.", "error");
+    setVisualState(!status);
+    alertDefault(e.message || "Erro de conexão.", "error");
   } finally {
+    // 4. Libera
     $chk.prop("disabled", false);
     $loader.addClass("d-none");
   }
 };
 
-window.toggleOrg = (id, element) => handleToggle("toggleOrganization", id, element, "Instituição atualizada.");
-window.toggleLoc = (id, element) => handleToggle("toggleLocation", id, element, "Local atualizado.");
+window.toggleOrg = (id, element) => handleToggle("toggleOrganization", id, element, "Instituição atualizada.", `.status-text-org-${id}`);
+window.toggleLoc = (id, element) => handleToggle("toggleLocation", id, element, "Local atualizado.", `.status-text-loc-${id}`);
 
 // =========================================================
 // 1. INSTITUIÇÕES (PARÓQUIAS)
@@ -83,18 +102,14 @@ const limpa_formulário_cep = () => {
   $("#org_street, #org_district, #org_city, #org_state").val("").prop("disabled", false);
 };
 
-// --- ATUALIZAÇÃO: Função Genérica Blindada ---
 const modalInstituicao = (id = null) => {
   const modal = $("#modalInstituicao");
-
-  // 1. Limpa campos de texto
   modal.find("input").val("");
 
-  // 2. RESET TOTAL DO SELECTIZE (AQUI ESTÁ A CORREÇÃO)
   const selectize = $("#org_type")[0].selectize;
   if (selectize) {
-    selectize.clear(true); // Limpa a seleção anterior (true = sem disparar change)
-    selectize.enable(); // FORÇA O DESTRAVAMENTO
+    selectize.clear(true);
+    selectize.enable();
   }
 
   if (id) {
@@ -106,18 +121,13 @@ const modalInstituicao = (id = null) => {
   }
 };
 
-// --- Função Específica para Diocese ---
 window.modalDiocese = () => {
-  // 1. Abre o modal padrão (que vai limpar e destravar tudo primeiro)
   modalInstituicao();
-
-  // 2. Aplica as regras de bloqueio da Diocese
   $("#modalInstituicaoLabel").text("Nova Diocese");
-
   const selectize = $("#org_type")[0].selectize;
   if (selectize) {
-    selectize.setValue("DIOCESE"); // Define o valor
-    selectize.disable(); // Trava novamente apenas para este caso
+    selectize.setValue("DIOCESE");
+    selectize.disable();
   }
 };
 
@@ -138,7 +148,6 @@ const loadOrgData = async (id) => {
       $("#org_decree").val(data.decree_number);
       $("#org_diocese").val(data.diocese_name);
       $("#org_foundation").val(data.foundation_date);
-
       $("#org_zip").val(data.zip_code);
       $("#org_street").val(data.address_street);
       $("#org_number").val(data.address_number);
@@ -150,7 +159,6 @@ const loadOrgData = async (id) => {
 
       $("#modalInstituicaoLabel").text("Editar Instituição");
       $("#org_tax_id, #org_phone, #org_phone2, #org_zip").trigger("input");
-
       $("#modalInstituicao").modal("show");
     } else {
       alertDefault(result.alert, "error");
@@ -160,10 +168,11 @@ const loadOrgData = async (id) => {
   }
 };
 
+// --- GETTERS & RENDERS ---
+
 window.getDiocese = async () => {
   try {
     $(".list-table-diocese").html('<div class="text-center py-5"><span class="loader"></span></div>');
-
     const result = await ajaxValidator({
       validator: "getDiocese",
       token: defaultApp.userInfo.token,
@@ -188,35 +197,47 @@ const renderTableDiocese = (data) => {
     return;
   }
 
-  const tipoMap = {
-    DIOCESE: { l: "Diocese", i: "synagogue" },
+  const tipoMap = { DIOCESE: { l: "Diocese", i: "synagogue" } };
+
+  // Helper para o HTML do Toggle (Com BADGE)
+  const getToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex align-items-center justify-content-center">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleOrg(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <span class="status-text-org-${id} ms-2">${statusBadge}</span>
+    </div>`;
   };
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (Tabela)
-  // =========================================================
+  // Helper Mobile (Com BADGE)
+  const getMobileToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex flex-column align-items-end">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleOrg(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <div class="status-text-org-${id} mt-1">${statusBadge}</div>
+    </div>`;
+  };
+
+  // DESKTOP
   let desktopRows = data
     .map((item) => {
       let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
-
       return `
         <tr>
-            <td style="width: 60px;">
-                <div class="icon-circle"><span class="material-symbols-outlined">${info.i}</span></div>
-            </td>
-            <td>
-                <div class="fw-bold text-dark">${item.display_name}</div>
-                <small class="text-sub">${item.phone_main || "-"}</small>
-            </td>
-            <td class="text-center">
-                <span class="badge" style="background-color: var(--padrao); color: var(--white);">${info.l}</span>
-            </td>
-            <td>
-                <div class="text-dark font-weight-500">${item.city_state || "-"}</div>
-            </td>
-            <td class="text-center align-middle">
-                ${window.renderToggle(item.org_id, item.is_active, "toggleOrg")}
-            </td>
+            <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">${info.i}</span></div></td>
+            <td><div class="fw-bold text-dark">${item.display_name}</div><small class="text-sub">${item.phone_main || "-"}</small></td>
+            <td class="text-center"><span class="badge" style="background-color: var(--padrao); color: var(--white);">${info.l}</span></td>
+            <td><div class="text-dark font-weight-500">${item.city_state || "-"}</div></td>
+            <td class="text-center align-middle">${getToggleHtml(item.org_id, item.is_active)}</td>
             <td class="text-end pe-3">
                 <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
                 <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
@@ -226,64 +247,39 @@ const renderTableDiocese = (data) => {
     })
     .join("");
 
-  // =========================================================
-  // 2. VISÃO MOBILE (Cards com Botões Nomeados)
-  // =========================================================
+  // MOBILE
   let mobileRows = data
     .map((item) => {
       let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
-
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.org_id, item.is_active, "toggleOrg") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleOrg(${item.org_id}, this)">`;
-      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
-
       return `
         <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
                     <div class="fw-bold fs-6">${item.display_name}</div>
                     <div class="badge bg-light text-secondary border mt-1">${info.l}</div>
                     <div class="small text-muted mt-1"><i class="fas fa-map-marker-alt me-1"></i> ${item.city_state || "-"}</div>
                 </div>
-                <div class="d-flex align-items-center">
-                    ${toggleHtml}
-                    ${statusText}
-                </div>
+                ${getMobileToggleHtml(item.org_id, item.is_active)}
             </div>
             
-            <div class="mobile-actions">
-                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
+                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning"><i class="fas fa-bolt"></i></button>
+                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })
     .join("");
 
   container.html(`
-    <div class="d-none d-md-block table-responsive">
-        <table class="table-custom">
-            <thead>
-                <tr>
-                    <th colspan="2">Instituição</th>
-                    <th class="text-center">Tipo</th>
-                    <th>Cidade</th>
-                    <th class="text-center">Ativo</th>
-                    <th class="text-end pe-4">Ações</th>
-                </tr>
-            </thead>
-            <tbody>${desktopRows}</tbody>
-        </table>
-    </div>
-    <div class="d-md-none">
-        ${mobileRows}
-    </div>
+    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Instituição</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
+    <div class="d-md-none">${mobileRows}</div>
   `);
 };
 
 window.getOrganizacoes = async () => {
   try {
     let page = Math.max(0, defaultOrg.orgCurrentPage - 1);
-
     $(".list-table-orgs").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
     const result = await ajaxValidator({
@@ -314,33 +310,46 @@ const renderTableOrgs = (data) => {
     return;
   }
 
-  const tipoMap = { DIOCESE: { l: "Diocese", i: "synagogue" }, PARISH: { l: "Paróquia", i: "church" } }; // (Simplificado)
+  const tipoMap = { DIOCESE: { l: "Diocese", i: "synagogue" }, PARISH: { l: "Paróquia", i: "church" } };
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (Tabela)
-  // =========================================================
+  // Helper Desktop (Com BADGE)
+  const getToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex align-items-center justify-content-center">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleOrg(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <span class="status-text-org-${id} ms-2">${statusBadge}</span>
+    </div>`;
+  };
+
+  // Helper Mobile (Com BADGE)
+  const getMobileToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex flex-column align-items-end">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleOrg(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <div class="status-text-org-${id} mt-1">${statusBadge}</div>
+    </div>`;
+  };
+
   let desktopRows = data
     .map((item) => {
       let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
-
       return `
         <tr>
-            <td style="width: 60px;">
-                <div class="icon-circle"><span class="material-symbols-outlined">${info.i}</span></div>
-            </td>
-            <td>
-                <div class="fw-bold text-dark">${item.display_name}</div>
-                <small class="text-sub">${item.phone_main || "-"}</small>
-            </td>
-            <td class="text-center">
-                <span class="badge" style="background-color: var(--padrao); color: var(--white);">${info.l}</span>
-            </td>
-            <td>
-                <div class="text-dark font-weight-500">${item.city_state || "-"}</div>
-            </td>
-            <td class="text-center align-middle">
-                ${window.renderToggle(item.org_id, item.is_active, "toggleOrg")}
-            </td>
+            <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">${info.i}</span></div></td>
+            <td><div class="fw-bold text-dark">${item.display_name}</div><small class="text-sub">${item.phone_main || "-"}</small></td>
+            <td class="text-center"><span class="badge" style="background-color: var(--padrao); color: var(--white);">${info.l}</span></td>
+            <td><div class="text-dark font-weight-500">${item.city_state || "-"}</div></td>
+            <td class="text-center align-middle">${getToggleHtml(item.org_id, item.is_active)}</td>
             <td class="text-end pe-3">
                 <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
                 <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
@@ -350,61 +359,147 @@ const renderTableOrgs = (data) => {
     })
     .join("");
 
-  // =========================================================
-  // 2. VISÃO MOBILE (Cards com Botões Nomeados)
-  // =========================================================
   let mobileRows = data
     .map((item) => {
       let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
-
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.org_id, item.is_active, "toggleOrg") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleOrg(${item.org_id}, this)">`;
-      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
-
       return `
         <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
                     <div class="fw-bold fs-6">${item.display_name}</div>
                     <div class="badge bg-light text-secondary border mt-1">${info.l}</div>
                     <div class="small text-muted mt-1"><i class="fas fa-map-marker-alt me-1"></i> ${item.city_state || "-"}</div>
                 </div>
-                <div class="d-flex align-items-center">
-                    ${toggleHtml}
-                    ${statusText}
-                </div>
+                <div>${getMobileToggleHtml(item.org_id, item.is_active)}</div>
             </div>
-            
-            <div class="mobile-actions">
-                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
+                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning"><i class="fas fa-bolt"></i></button>
+                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })
     .join("");
 
   container.html(`
-    <div class="d-none d-md-block table-responsive">
-        <table class="table-custom">
-            <thead>
-                <tr>
-                    <th colspan="2">Instituição</th>
-                    <th class="text-center">Tipo</th>
-                    <th>Cidade</th>
-                    <th class="text-center">Ativo</th>
-                    <th class="text-end pe-4">Ações</th>
-                </tr>
-            </thead>
-            <tbody>${desktopRows}</tbody>
-        </table>
-    </div>
-    <div class="d-md-none">
-        ${mobileRows}
-    </div>
+    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Instituição</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
+    <div class="d-md-block d-md-none">${mobileRows}</div>
   `);
   _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes", "org");
 };
 
+// =========================================================
+// 2. LOCAIS / SALAS (RENDER)
+// =========================================================
+
+const getLocais = async () => {
+  try {
+    let page = Math.max(0, defaultOrg.locCurrentPage - 1);
+    $(".list-table-locais").html('<div class="text-center py-5"><span class="loader"></span></div>');
+
+    const result = await ajaxValidator({
+      validator: "getLocations",
+      token: defaultApp.userInfo.token,
+      limit: defaultOrg.locRowsPerPage,
+      page: page * defaultOrg.locRowsPerPage,
+      org_id: $("#filtro-org-locais").val(),
+    });
+    if (result.status) {
+      defaultOrg.locTotalPages = Math.max(1, Math.ceil((result.data[0]?.total_registros || 0) / defaultOrg.locRowsPerPage));
+      renderTableLocais(result.data || []);
+    } else {
+      $(".list-table-locais").html('<p class="text-center py-3">Nenhum local encontrado.</p>');
+    }
+  } catch (e) {
+    console.error(e);
+    $(".list-table-locais").html('<p class="text-center py-3 text-danger">Erro ao carregar.</p>');
+  }
+};
+
+const renderTableLocais = (data) => {
+  const container = $(".list-table-locais");
+  if (data.length === 0) {
+    container.html('<p class="text-center py-3">Nenhum local encontrado.</p>');
+    return;
+  }
+
+  // Helper Desktop (Com BADGE)
+  const getToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex align-items-center justify-content-center">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleLoc(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <span class="status-text-loc-${id} ms-2">${statusBadge}</span>
+    </div>`;
+  };
+
+  // Helper Mobile (Com BADGE)
+  const getMobileToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex flex-column align-items-end">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleLoc(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <div class="status-text-loc-${id} mt-1">${statusBadge}</div>
+    </div>`;
+  };
+
+  let desktopRows = data
+    .map((item) => {
+      const itemStr = encodeURIComponent(JSON.stringify(item));
+      let icons = "";
+      if (item.has_ac) icons += getResourceIcon("ac");
+      return `<tr>
+            <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">meeting_room</span></div></td>
+            <td><div class="fw-bold text-dark">${item.name}</div><small class="text-sub">${item.org_name}</small></td>
+            <td class="text-center"><span class="fw-bold text-dark">${item.capacity || 0}</span></td>
+            <td class="text-center fs-6"><div class="d-flex justify-content-center flex-wrap gap-1">${icons || "-"}</div></td>
+            <td class="text-center align-middle">${getToggleHtml(item.location_id, item.is_active)}</td>
+            <td class="text-end pe-3">
+                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
+                <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteLoc(${item.location_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
+    })
+    .join("");
+
+  let mobileRows = data
+    .map((item) => {
+      const itemStr = encodeURIComponent(JSON.stringify(item));
+      return `
+        <div class="mobile-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <div class="fw-bold">${item.name}</div>
+                    <div class="small text-muted"><i class="fas fa-users me-1"></i> Cap: ${item.capacity || 0}</div>
+                </div>
+                <div>${getMobileToggleHtml(item.location_id, item.is_active)}</div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
+                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning"><i class="fas fa-bolt"></i></button>
+                <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteLoc(${item.location_id})" class="btn-icon-action delete"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
+  container.html(`
+    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Espaço</th><th class="text-center">Capacidade</th><th class="text-center">Recursos</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
+    <div class="d-md-none">${mobileRows}</div>
+  `);
+  _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "getLocais", "loc");
+};
+
+// Funções de CRUD (Mantidas as originais)
 const salvarInstituicao = async () => {
   const nome = $("#org_display_name").val();
   if (!nome) return alertDefault("Nome Fantasia é obrigatório.", "warning");
@@ -482,10 +577,6 @@ const deleteOrg = (id) => {
   });
 };
 
-// =========================================================
-// 2. LOCAIS / SALAS
-// =========================================================
-
 const toggleLocAddress = () => {
   if ($("#loc_diff_address").is(":checked")) $("#loc_address_block").removeClass("d-none").hide().slideDown();
   else $("#loc_address_block").slideUp();
@@ -532,7 +623,6 @@ const modalLocal = (id = null) => {
       if ($("#loc_responsible")[0].selectize) $("#loc_responsible")[0].selectize.clear();
       const filter = $("#filtro-org-locais").val();
       if (filter && $("#loc_org_id")[0].selectize) $("#loc_org_id")[0].selectize.setValue(filter);
-
       modal.modal("show");
       if (window.initMasks) window.initMasks();
     }
@@ -581,94 +671,6 @@ const editarLocalObj = (item) => {
   });
 };
 
-const getLocais = async () => {
-  try {
-    let page = Math.max(0, defaultOrg.locCurrentPage - 1);
-
-    $(".list-table-locais").html('<div class="text-center py-5"><span class="loader"></span></div>');
-
-    const result = await ajaxValidator({
-      validator: "getLocations",
-      token: defaultApp.userInfo.token,
-      limit: defaultOrg.locRowsPerPage,
-      page: page * defaultOrg.locRowsPerPage,
-      org_id: $("#filtro-org-locais").val(),
-    });
-    if (result.status) {
-      defaultOrg.locTotalPages = Math.max(1, Math.ceil((result.data[0]?.total_registros || 0) / defaultOrg.locRowsPerPage));
-      renderTableLocais(result.data || []);
-    } else {
-      $(".list-table-locais").html('<p class="text-center py-3">Nenhum local encontrado.</p>');
-    }
-  } catch (e) {
-    console.error(e);
-    $(".list-table-locais").html('<p class="text-center py-3 text-danger">Erro ao carregar.</p>');
-  }
-};
-
-const renderTableLocais = (data) => {
-  const container = $(".list-table-locais");
-  if (data.length === 0) {
-    container.html('<p class="text-center py-3">Nenhum local encontrado.</p>');
-    return;
-  }
-
-  // DESKTOP
-  let desktopRows = data
-    .map((item) => {
-      const itemStr = encodeURIComponent(JSON.stringify(item));
-      let icons = "";
-      if (item.has_ac) icons += getResourceIcon("ac"); // (Simplificado)
-      return `<tr>
-            <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">meeting_room</span></div></td>
-            <td><div class="fw-bold text-dark">${item.name}</div><small class="text-sub">${item.org_name}</small></td>
-            <td class="text-center"><span class="fw-bold text-dark">${item.capacity || 0}</span></td>
-            <td class="text-center fs-6"><div class="d-flex justify-content-center flex-wrap gap-1">${icons || "-"}</div></td>
-            <td class="text-center align-middle">${window.renderToggle(item.location_id, item.is_active, "toggleLoc")}</td>
-            <td class="text-end pe-3">
-                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteLoc(${item.location_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>`;
-    })
-    .join("");
-
-  // MOBILE
-  let mobileRows = data
-    .map((item) => {
-      const itemStr = encodeURIComponent(JSON.stringify(item));
-
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.location_id, item.is_active, "toggleLoc") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleLoc(${item.location_id}, this)">`;
-      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
-
-      return `
-        <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                    <div class="fw-bold">${item.name}</div>
-                    <div class="small text-muted"><i class="fas fa-users me-1"></i> Cap: ${item.capacity || 0}</div>
-                </div>
-                <div class="d-flex align-items-center">
-                    ${toggleHtml}
-                    ${statusText}
-                </div>
-            </div>
-            <div class="mobile-actions">
-                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteLoc(${item.location_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>`;
-    })
-    .join("");
-
-  container.html(
-    `<div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Espaço</th><th class="text-center">Capacidade</th><th class="text-center">Recursos</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div><div class="d-md-none">${mobileRows}</div>`,
-  );
-  _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "getLocais", "loc");
-};
-
 const salvarLocal = async () => {
   const id = $("#loc_id").val();
   const nome = $("#loc_name").val().trim();
@@ -689,7 +691,6 @@ const salvarLocal = async () => {
       has_ac: $("#loc_ac").is(":checked"),
       is_accessible: $("#loc_access").is(":checked"),
       is_consecrated: $("#loc_sacred").is(":checked"),
-
       has_whiteboard: $("#loc_whiteboard").is(":checked"),
       has_projector: $("#loc_projector").is(":checked"),
       has_sound: $("#loc_sound").is(":checked"),
@@ -699,7 +700,6 @@ const salvarLocal = async () => {
       has_fan: $("#loc_fan").is(":checked"),
       has_water: $("#loc_water").is(":checked"),
       has_computer: $("#loc_computer").is(":checked"),
-
       address_street: $("#loc_diff_address").is(":checked") ? $("#loc_street").val() : "",
       address_number: $("#loc_diff_address").is(":checked") ? $("#loc_number").val() : "",
       address_district: $("#loc_diff_address").is(":checked") ? $("#loc_district").val() : "",
@@ -743,9 +743,6 @@ window.deleteLoc = (id) => {
   });
 };
 
-// =========================================================
-// UTILITÁRIOS
-// =========================================================
 const populateOrgSelects = (data) => {
   const options = data.map((org) => ({ id: org.org_id, title: org.display_name }));
   const initSelect = (selector) => {
@@ -767,18 +764,10 @@ const initStaticSelects = () => {
   $("#org_type").selectize({ create: false, placeholder: "Selecione o Tipo..." });
 };
 
-// =========================================================
-// PAGINAÇÃO CORRIGIDA
-// =========================================================
-
-// Wrapper Global de Paginação
 window.paginateWrapper = (page, funcName, type) => {
-  // 1. Atualiza a página no objeto de configuração
   if (type === "org") defaultOrg.orgCurrentPage = page;
   if (type === "loc") defaultOrg.locCurrentPage = page;
 
-  // 2. Chama a função de recarregamento
-  // Verifica se está no window (global) ou tenta chamar direto (local)
   if (funcName === "getDiocese") {
     typeof window.getDiocese === "function" ? window.getDiocese() : getDiocese();
   } else if (funcName === "getOrganizacoes") {
@@ -795,22 +784,16 @@ window.paginateWrapper = (page, funcName, type) => {
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, type) => {
   let container = $(`.${containerClass}`);
   container.empty();
-
   let total = defaultOrg[totalPagesKey];
   let current = defaultOrg[currentPageKey];
-
   let html = `<button onclick="paginateWrapper(1, '${funcName}', '${type}')" class="btn btn-sm btn-secondary">Primeira</button>`;
-
   let startPage = Math.max(1, current - 1);
   let endPage = Math.min(total, startPage + 4);
-
   for (let p = startPage; p <= endPage; p++) {
     let btnClass = p === current ? "btn-primary" : "btn-secondary";
     html += `<button onclick="paginateWrapper(${p}, '${funcName}', '${type}')" class="btn btn-sm ${btnClass}">${p}</button>`;
   }
-
   html += `<button onclick="paginateWrapper(${total}, '${funcName}', '${type}')" class="btn btn-sm btn-secondary">Última</button>`;
-
   container.html(html);
 };
 
