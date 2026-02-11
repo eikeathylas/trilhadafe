@@ -1,5 +1,5 @@
 // =========================================================
-// GESTÃO DE EVENTOS (FRONTEND LOGIC) - V4 (Layout Fixed)
+// GESTÃO DE EVENTOS (FRONTEND LOGIC) - V5 (Spinner & Labels)
 // =========================================================
 
 const defaultEvents = { currentPage: 1, rowsPerPage: 10, totalPages: 1 };
@@ -60,36 +60,74 @@ const renderTableEvents = (data) => {
   const container = $(".list-table-events");
 
   if (data.length === 0) {
-    container.html(`<div class="text-center py-5 text-muted opacity-50"><span class="material-symbols-outlined fs-1">event_busy</span><p class="mt-2">Nenhum evento encontrado.</p></div>`);
+    container.html(`
+            <div class="text-center py-5 text-muted opacity-50">
+                <span class="material-symbols-outlined fs-1">event_busy</span>
+                <p class="mt-2">Nenhum evento encontrado.</p>
+            </div>
+        `);
     return;
   }
 
-  // Helper de Toggle
-  const getToggle = (item) => window.renderToggle(item.event_id, item.is_academic_blocker, "toggleBlocker");
+  // Helper de Label
   const getBlockerLabel = (is) => (is ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>');
 
-  // DESKTOP
+  // =========================================================
+  // 1. VISÃO DESKTOP
+  // =========================================================
   let desktopRows = data
     .map((item) => {
       const timeInfo = item.start_time ? `<small class="text-muted d-block"><i class="far fa-clock me-1"></i> ${item.start_time}</small>` : "";
-      return `<tr>
-            <td class="align-middle ps-3" width="60"><div class="icon-circle bg-primary bg-opacity-10 text-primary"><span class="material-symbols-outlined">event</span></div></td>
-            <td class="align-middle"><div class="fw-bold ">${item.title}</div><div class="small text-muted text-truncate" style="max-width: 300px;">${item.description || "Sem descrição"}</div></td>
-            <td class="align-middle"><div class="fw-bold ">${item.date_fmt}</div>${timeInfo}</td>
-            <td class="align-middle text-center" width="200"><div class="form-check form-switch d-flex justify-content-center align-items-center">${getToggle(item)}<label class="form-check-label ms-2" id="lbl_${item.event_id}">${getBlockerLabel(item.is_academic_blocker)}</label></div></td>
+
+      // HTML do Toggle com Spinner
+      const toggleHtml = `
+        <div class="form-check form-switch d-flex justify-content-center align-items-center">
+            <input class="form-check-input" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+            <label class="form-check-label ms-2" id="lbl_${item.event_id}">
+                ${getBlockerLabel(item.is_academic_blocker)}
+            </label>
+        </div>`;
+
+      return `
+        <tr>
+            <td class="align-middle ps-3" width="60">
+                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                    <span class="material-symbols-outlined">event</span>
+                </div>
+            </td>
+            <td class="align-middle">
+                <div class="fw-bold text-dark">${item.title}</div>
+                <div class="small text-muted text-truncate" style="max-width: 300px;">${item.description || "Sem descrição"}</div>
+            </td>
+            <td class="align-middle">
+                <div class="fw-bold text-dark">${item.date_fmt}</div>
+                ${timeInfo}
+            </td>
+            <td class="align-middle text-center" width="200">
+                ${toggleHtml}
+            </td>
             <td class="align-middle text-end pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action" onclick="editEvent(${item.event_id})"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Histórico"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
     .join("");
 
-  // MOBILE
+  // =========================================================
+  // 2. VISÃO MOBILE (Cards Híbridos)
+  // =========================================================
   let mobileRows = data
     .map((item) => {
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.event_id, item.is_academic_blocker, "toggleBlocker") : `<input type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">`;
+      // Toggle Mobile com Spinner
+      const toggleHtml = `
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none" role="status"></span>
+        </div>`;
+
       const statusText = item.is_academic_blocker ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
 
       return `
@@ -103,41 +141,62 @@ const renderTableEvents = (data) => {
                     <div class="fw-bold">${item.title}</div>
                     <div class="small text-muted">${item.start_time ? item.start_time : "Dia todo"}</div>
                 </div>
-                <div class="d-flex align-items-center">
+                <div class="d-flex flex-column align-items-end">
                     ${toggleHtml}
-                    ${statusText}
+                    <div id="lbl_mob_${item.event_id}" class="mt-1">${statusText}</div>
                 </div>
             </div>
-            <div class="mobile-actions">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action" onclick="editEvent(${item.event_id})"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})"><i class="fas fa-trash"></i></button>
+            
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action" onclick="editEvent(${item.event_id})">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })
     .join("");
 
   container.html(`
-    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2" class="ps-3">Evento</th><th>Data/Hora</th><th class="text-center">Tipo (Bloqueio)</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
+    <div class="d-none d-md-block table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th colspan="2" class="ps-3">Evento</th>
+                    <th>Data/Hora</th>
+                    <th class="text-center">Tipo (Bloqueio)</th>
+                    <th class="text-end pe-4">Ações</th>
+                </tr>
+            </thead>
+            <tbody>${desktopRows}</tbody>
+        </table>
+    </div>
     <div class="d-md-none">${mobileRows}</div>
   `);
 
   _generatePaginationButtons("pagination-events", "currentPage", "totalPages", "changePage", defaultEvents);
 };
 
-// [NOVO] Função do Toggle
+// [ATUALIZADO] Função do Toggle com Spinner e Legenda
 window.toggleBlocker = async (id, element) => {
   const $chk = $(element);
+  const $loader = $chk.siblings(".toggle-loader");
   const status = $chk.is(":checked");
-  // Feedback visual imediato no label
-  const label = $(`#lbl_${id}`);
-  if (status) {
-    label.html('<span class="badge bg-danger-subtle text-danger border border-danger"><i class="fas fa-ban me-1"></i> Feriado Escolar</span>');
-  } else {
-    label.html('<span class="badge bg-success-subtle text-success border border-success">Agenda Comum</span>');
-  }
+
+  // Labels (Desktop e Mobile)
+  const $labelDesk = $(`#lbl_${id}`);
+  const $labelMob = $(`#lbl_mob_${id}`);
 
   try {
+    // Bloqueia e mostra loader
+    $chk.prop("disabled", true);
+    $loader.removeClass("d-none");
+
     const res = await ajaxValidator({
       validator: "toggleEventBlocker",
       token: defaultApp.userInfo.token,
@@ -147,15 +206,23 @@ window.toggleBlocker = async (id, element) => {
 
     if (res.status) {
       window.alertDefault("Status atualizado.", "success");
-      loadEvents();
+
+      // Atualiza Labels Visualmente
+      const newBadge = status ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
+
+      $labelDesk.html(newBadge);
+      $labelMob.html(newBadge);
     } else {
       window.alertDefault(res.msg, "error");
-      $(`#sw_${id}`).prop("checked", !status);
+      $chk.prop("checked", !status); // Reverte
     }
   } catch (e) {
     window.alertDefault("Erro de conexão.", "error");
-    $(`#sw_${id}`).prop("checked", !status);
-    loadEvents();
+    $chk.prop("checked", !status); // Reverte
+  } finally {
+    // Libera e esconde loader
+    $chk.prop("disabled", false);
+    $loader.addClass("d-none");
   }
 };
 
