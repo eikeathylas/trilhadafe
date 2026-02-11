@@ -222,10 +222,10 @@ function getClassStudentsF($data)
         SQL;
         $stmt = $conect->prepare($sql);
         $stmt->execute(['cid' => $data['class_id']]);
-        return success("Alunos listados.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        return success("Catequizandos listados.", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
         logSystemError("painel", "education", "getClassStudentsF", "sql", $e->getMessage(), $data);
-        return failure("Erro ao listar alunos.");
+        return failure("Erro ao listar catequizandos.");
     }
 }
 
@@ -243,7 +243,7 @@ function enrollStudentF($data)
         $check->execute(['cid' => $data['class_id'], 'sid' => $data['student_id']]);
         if ($check->fetch()) {
             $conect->rollBack();
-            return failure("Este aluno já está matriculado nesta turma.");
+            return failure("Este catequizando já está matriculado nesta turma.");
         }
 
         // Validação Capacidade
@@ -266,11 +266,11 @@ function enrollStudentF($data)
         $conect->prepare($sqlHist)->execute(['eid' => $enrollId, 'uid' => $data['user_id']]);
 
         $conect->commit();
-        return success("Aluno matriculado com sucesso!");
+        return success("Catequizando matriculado com sucesso!");
     } catch (Exception $e) {
         $conect->rollBack();
         logSystemError("painel", "education", "enrollStudentF", "sql", $e->getMessage(), $data);
-        return failure("Erro ao matricular aluno.");
+        return failure("Erro ao matricular catequizando.");
     }
 }
 

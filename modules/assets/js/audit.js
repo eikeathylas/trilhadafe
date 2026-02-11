@@ -318,7 +318,7 @@ const formatKey = (key) => {
     justification: "Justificativa",
     absence_type: "Motivo da Falta",
     student_observation: "Observação",
-    aluno: "Aluno",
+    aluno: "Catequizando",
     coordinator_id: "Coordenador",
     class_assistant_id: "Auxiliar de Turma",
     class_name: "Nome da Turma",

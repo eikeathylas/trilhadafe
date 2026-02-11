@@ -169,7 +169,7 @@ window.modalTurma = (id = null) => {
 
   currentSchedules = [];
   renderSchedulesTable();
-  $("#lista-alunos").html('<tr><td colspan="5" class="text-center text-muted py-4">Salve a turma para gerenciar alunos.</td></tr>');
+  $("#lista-alunos").html('<tr><td colspan="5" class="text-center text-muted py-4">Salve a turma para gerenciar catequizandos.</td></tr>');
 
   if (id) {
     $("#alunos-tab").removeClass("disabled");
@@ -360,10 +360,10 @@ const loadClassStudents = async (classId) => {
       container.empty();
       renderStudentsList(result.data);
     } else {
-      container.html('<tr><td colspan="5" class="text-center text-muted py-4">Nenhum aluno matriculado nesta turma.</td></tr>');
+      container.html('<tr><td colspan="5" class="text-center text-muted py-4">Nenhum catequizando matriculado nesta turma.</td></tr>');
     }
   } catch (e) {
-    container.html('<tr><td colspan="5" class="text-center text-danger">Erro ao carregar alunos.</td></tr>');
+    container.html('<tr><td colspan="5" class="text-center text-danger">Erro ao carregar catequizandos.</td></tr>');
   }
 };
 
@@ -400,13 +400,13 @@ window.matricularAluno = async () => {
   const studentId = $("#sel_new_student").val();
 
   if (!classId) return window.alertDefault("Salve a turma antes de matricular.", "warning");
-  if (!studentId) return window.alertDefault("Selecione um aluno.", "warning");
+  if (!studentId) return window.alertDefault("Selecione um catequizando.", "warning");
 
   try {
     const result = await window.ajaxValidator({ validator: "enrollStudent", token: defaultApp.userInfo.token, class_id: classId, student_id: studentId });
 
     if (result.status) {
-      window.alertDefault("Aluno matriculado!", "success");
+      window.alertDefault("Catequizando matriculado!", "success");
       $("#sel_new_student")[0].selectize.clear();
       loadClassStudents(classId);
       getTurmas(); // Atualiza contador na tabela
@@ -420,8 +420,8 @@ window.matricularAluno = async () => {
 
 window.deleteEnrollment = (id) => {
   Swal.fire({
-    title: "Remover Aluno?",
-    text: "O aluno será desvinculado desta turma.",
+    title: "Remover Catequizando?",
+    text: "O catequizando será desvinculado desta turma.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
@@ -563,7 +563,7 @@ const initSelects = () => {
     { id: "#sel_assistant", val: "getCatechistsList", ph: "Busque o auxiliar..." },
     { id: "#sel_location", val: "getLocations", ph: "Sala Principal..." },
     { id: "#sel_location_sched", val: "getLocations", ph: "Sala Específica..." },
-    { id: "#sel_new_student", val: "getStudentsList", ph: "Busque o aluno...", search: ["title", "tax_id"] },
+    { id: "#sel_new_student", val: "getStudentsList", ph: "Busque o catequizando...", search: ["title", "tax_id"] },
   ];
 
   selects.forEach((s) => {
@@ -596,7 +596,7 @@ window.toggleTurma = async (id, element) => {
 window.deleteTurma = (id) => {
   Swal.fire({
     title: "Excluir Turma?",
-    text: "Isso não apaga o histórico dos alunos, mas remove a turma da lista.",
+    text: "Isso não apaga o histórico dos catequizandos, mas remove a turma da lista.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",

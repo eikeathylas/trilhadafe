@@ -82,7 +82,7 @@
                         </li>
                         <li class="nav-item">
                             <button class="nav-link" id="alunos-tab" data-bs-toggle="tab" data-bs-target="#tab-alunos" type="button">
-                                <i class="fas fa-user-graduate mr-2"></i> Alunos e Matrículas
+                                <i class="fas fa-user-graduate mr-2"></i> Catequizandos
                             </button>
                         </li>
                     </ul>
@@ -190,7 +190,7 @@
                                     <div class="row g-2 align-items-end">
                                         <div class="col-md-9">
                                             <label class="form-label small fw-bold">Nova Matrícula:</label>
-                                            <select id="sel_new_student" class="form-control" placeholder="Busque o aluno..."></select>
+                                            <select id="sel_new_student" class="form-control" placeholder="Busque o catequizando..."></select>
                                         </div>
                                         <div class="col-md-3">
                                             <button class="btn btn-success w-100" onclick="matricularAluno()">
@@ -205,7 +205,7 @@
                                 <table class="table table-hover align-middle">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>Aluno</th>
+                                            <th>Catequizando</th>
                                             <th>Data Matrícula</th>
                                             <th class="text-center">Status Atual</th>
                                             <th class="text-center">Média</th>
@@ -214,7 +214,7 @@
                                     </thead>
                                     <tbody id="lista-alunos">
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted py-4">Nenhum aluno matriculado nesta turma.</td>
+                                            <td colspan="5" class="text-center text-muted py-4">Nenhum catequizando matriculado nesta turma.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -252,7 +252,7 @@
                                 <div class="col-md-4">
                                     <select id="hist_action" class="form-select form-select-sm">
                                         <option value="COMMENT">Apenas Observação</option>
-                                        <option value="SUSPENDED">Suspender Aluno</option>
+                                        <option value="SUSPENDED">Suspender Catequizando</option>
                                         <option value="DROPPED">Desistência / Abandono</option>
                                         <option value="TRANSFERRED">Transferido</option>
                                         <option value="ACTIVE">Reativar Matrícula</option>

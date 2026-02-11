@@ -278,10 +278,10 @@ function getStudentsForDiaryF($classId)
                 ORDER BY p.full_name ASC";
         $stmt = $conect->prepare($sql);
         $stmt->execute(['cid' => $classId]);
-        return success("Alunos listados", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        return success("Catequizando listados", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
         logSystemError("painel", "diario", "getStudentsForDiaryF", "sql", $e->getMessage(), ['class_id' => $classId]);
-        return failure("Erro ao buscar alunos.");
+        return failure("Erro ao buscar catequizandos.");
     }
 }
 

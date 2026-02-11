@@ -68,7 +68,7 @@ const renderTablePeople = (data) => {
 
       let rolesHtml = "";
       const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "dark", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
-      const roleNames = { STUDENT: "Aluno", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
+      const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
 
       if (item.roles_array) {
         item.roles_array.forEach((r) => {
@@ -331,7 +331,7 @@ const promptAddRelative = (id, name) => {
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="swal-legal">
-                    <label class="form-check-label" for="swal-legal">Responsável Legal (Pode retirar o aluno)?</label>
+                    <label class="form-check-label" for="swal-legal">Responsável Legal (Pode retirar o catequizando)?</label>
                 </div>
             </div>
         `,

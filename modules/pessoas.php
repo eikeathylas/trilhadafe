@@ -267,7 +267,7 @@
                                             </div>
                                             <div>
                                                 <h6 class="mb-1 fw-bold text-success">Responsável / Pai</h6>
-                                                <small class="text-muted">Para vínculo financeiro e autorizações de alunos.</small>
+                                                <small class="text-muted">Para vínculo financeiro e autorizações de catequizando.</small>
                                             </div>
                                         </div>
                                     </div>

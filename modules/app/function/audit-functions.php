@@ -175,7 +175,7 @@ function getHistory($data)
 
                 // Define o título do log
                 if ($sid && isset($peopleMap[$sid])) $log['target_name'] = $peopleMap[$sid];
-                else $log['target_name'] = "Aluno (ID $sid)";
+                else $log['target_name'] = "Catequizando (ID $sid)";
 
                 // Função "Humanizadora" para Frequência
                 $humanizeAttendance = function ($json) use ($peopleMap) {

@@ -14,12 +14,12 @@
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
-                <i class="fas fa-user m-2 txt-theme"></i> Como cadastrar um novo fiel, aluno ou catequista?
+                <i class="fas fa-user m-2 txt-theme"></i> Como cadastrar um novo fiel, catequizando ou catequista?
               </button>
             </h2>
             <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Todo cadastro começa no <strong>Diretório de Pessoas</strong>. Lá você preenche os dados pessoais, endereço e define o vínculo (se é aluno, pai, catequista ou clero). É o "Prontuário Único" do sistema.
+                Todo cadastro começa no <strong>Diretório de Pessoas</strong>. Lá você preenche os dados pessoais, endereço e define o vínculo (se é catequizando, pai, catequista ou clero). É o "Prontuário Único" do sistema.
                 <div class="mt-3 text-end">
                   <a href="pessoas.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Ir para Pessoas</a>
                 </div>
@@ -35,7 +35,7 @@
             </h2>
             <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                No menu <strong>Escola da Fé > Diário de Classe</strong>, você verá suas turmas. Clique em "Acessar", selecione a data da aula e marque "Presente" ou "Ausente" para cada aluno. Não esqueça de descrever o tema dado no dia.
+                No menu <strong>Escola da Fé > Diário de Classe</strong>, você verá suas turmas. Clique em "Acessar", selecione a data da aula e marque "Presente" ou "Ausente" para cada catequizando. Não esqueça de descrever o tema dado no dia.
                 <div class="mt-3 text-end">
                   <a href="diario.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Meus Diários</a>
                 </div>

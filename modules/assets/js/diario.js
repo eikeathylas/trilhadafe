@@ -442,7 +442,7 @@ const renderStudents = () => {
   const students = diarioState.currentStudents;
 
   if (students.length === 0) {
-    container.html('<p class="text-center text-muted p-4">Nenhum aluno matriculado.</p>');
+    container.html('<p class="text-center text-muted p-4">Nenhum catequizando matriculado.</p>');
     return;
   }
 
