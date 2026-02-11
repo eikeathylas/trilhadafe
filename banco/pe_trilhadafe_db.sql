@@ -1251,3 +1251,50 @@ UPDATE events_commerce.cards SET current_balance = 40.00 WHERE card_id = 1;
 -- 8. Blog
 INSERT INTO communication.categories (category_id, org_id, name, slug) VALUES 
 (1, 2, 'Avisos', 'avisos');
+
+-- =================================================================
+-- AJUSTE DE SEQUÊNCIAS (RESETS)
+-- Executar após os INSERTS manuais para evitar erro de ID duplicado
+-- =================================================================
+
+-- 1. Organization
+SELECT setval(pg_get_serial_sequence('organization.organizations', 'org_id'), COALESCE(MAX(org_id), 1)) FROM organization.organizations;
+SELECT setval(pg_get_serial_sequence('organization.locations', 'location_id'), COALESCE(MAX(location_id), 1)) FROM organization.locations;
+-- Nota: 'organization.events' não teve ID manual inserido no script anterior (usou o sequence), mas se quiser garantir:
+SELECT setval(pg_get_serial_sequence('organization.events', 'event_id'), COALESCE(MAX(event_id), 1)) FROM organization.events;
+
+-- 2. People
+SELECT setval(pg_get_serial_sequence('people.roles', 'role_id'), COALESCE(MAX(role_id), 1)) FROM people.roles;
+SELECT setval(pg_get_serial_sequence('people.persons', 'person_id'), COALESCE(MAX(person_id), 1)) FROM people.persons;
+
+-- 3. Education
+SELECT setval(pg_get_serial_sequence('education.academic_years', 'year_id'), COALESCE(MAX(year_id), 1)) FROM education.academic_years;
+-- education.subjects não teve ID manual, mas por garantia:
+SELECT setval(pg_get_serial_sequence('education.subjects', 'subject_id'), COALESCE(MAX(subject_id), 1)) FROM education.subjects;
+SELECT setval(pg_get_serial_sequence('education.courses', 'course_id'), COALESCE(MAX(course_id), 1)) FROM education.courses;
+SELECT setval(pg_get_serial_sequence('education.classes', 'class_id'), COALESCE(MAX(class_id), 1)) FROM education.classes;
+SELECT setval(pg_get_serial_sequence('education.class_sessions', 'session_id'), COALESCE(MAX(session_id), 1)) FROM education.class_sessions;
+
+-- 4. Sacraments
+SELECT setval(pg_get_serial_sequence('sacraments.registry_books', 'book_id'), COALESCE(MAX(book_id), 1)) FROM sacraments.registry_books;
+-- baptisms usou sequence automático, mas por garantia:
+SELECT setval(pg_get_serial_sequence('sacraments.baptisms', 'baptism_id'), COALESCE(MAX(baptism_id), 1)) FROM sacraments.baptisms;
+
+-- 5. Pastoral
+SELECT setval(pg_get_serial_sequence('pastoral.celebration_types', 'type_id'), COALESCE(MAX(type_id), 1)) FROM pastoral.celebration_types;
+SELECT setval(pg_get_serial_sequence('pastoral.celebrations', 'celebration_id'), COALESCE(MAX(celebration_id), 1)) FROM pastoral.celebrations;
+
+-- 6. Finance
+SELECT setval(pg_get_serial_sequence('finance.accounts', 'account_id'), COALESCE(MAX(account_id), 1)) FROM finance.accounts;
+SELECT setval(pg_get_serial_sequence('finance.categories', 'category_id'), COALESCE(MAX(category_id), 1)) FROM finance.categories;
+-- transactions usou sequence automático, mas por garantia:
+SELECT setval(pg_get_serial_sequence('finance.transactions', 'transaction_id'), COALESCE(MAX(transaction_id), 1)) FROM finance.transactions;
+
+-- 7. Events Commerce (Festas)
+SELECT setval(pg_get_serial_sequence('events_commerce.events', 'event_id'), COALESCE(MAX(event_id), 1)) FROM events_commerce.events;
+SELECT setval(pg_get_serial_sequence('events_commerce.vendors', 'vendor_id'), COALESCE(MAX(vendor_id), 1)) FROM events_commerce.vendors;
+SELECT setval(pg_get_serial_sequence('events_commerce.products', 'product_id'), COALESCE(MAX(product_id), 1)) FROM events_commerce.products;
+SELECT setval(pg_get_serial_sequence('events_commerce.cards', 'card_id'), COALESCE(MAX(card_id), 1)) FROM events_commerce.cards;
+
+-- 8. Communication
+SELECT setval(pg_get_serial_sequence('communication.categories', 'category_id'), COALESCE(MAX(category_id), 1)) FROM communication.categories;
