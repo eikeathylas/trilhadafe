@@ -550,7 +550,7 @@ const renderStudents = () => {
                             <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
                             <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
                         </select>
-                        <input type="text" class="form-control form-control-sm flex-grow-1" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
+                        <input type="text" class="form-control form-control-sm flex-grow-1" style="width: 120px;" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
                     </div>
                 </td>
             </tr>`;
@@ -594,7 +594,7 @@ const renderStudents = () => {
                         <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
                         <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
                     </select>
-                    <input type="text" class="form-control form-control-sm w-100" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo...">
+                    <input type="text" class="form-control form-control-sm" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo...">
                 </div>
             </div>`;
   });
