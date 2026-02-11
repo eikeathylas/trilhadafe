@@ -1,5 +1,5 @@
 // =========================================================
-// GESTÃO DE DIÁRIO DE CLASSE (SMART LOGIC V6 - FINAL)
+// GESTÃO DE DIÁRIO DE CLASSE (SMART LOGIC V7 - DATE ONLY)
 // =========================================================
 
 const defaultDiary = {
@@ -178,10 +178,15 @@ const renderTableHistory = (data) => {
   }
   let rows = data
     .map((item) => {
-      const dateParts = item.session_date.split(" ");
-      const dateFmt = dateParts[0].split("-").reverse().join("/");
-      const timeFmt = dateParts[1] ? dateParts[1].substring(0, 5) : "";
-      const rawIsoDate = item.session_date.substring(0, 16).replace(" ", "T");
+      // Formatação da Data (Ignora Hora)
+      let dateFmt = item.session_date;
+      // Se vier com hora (YYYY-MM-DD HH:MM:SS), limpa
+      if (dateFmt.includes(" ")) dateFmt = dateFmt.split(" ")[0];
+      if (dateFmt.includes("T")) dateFmt = dateFmt.split("T")[0];
+
+      const rawIsoDate = dateFmt; // YYYY-MM-DD
+      dateFmt = dateFmt.split("-").reverse().join("/"); // DD/MM/YYYY
+
       const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
       const summary = cleanDesc.length > 30 ? cleanDesc.substring(0, 30) + "..." : cleanDesc;
       const total = parseInt(item.total_students);
@@ -224,16 +229,19 @@ const renderTableHistory = (data) => {
 };
 
 // =========================================================
-// 3. MODAL E LÓGICA DE DATA (FLATPICKR INTELIGENTE)
+// 3. MODAL E LÓGICA DE DATA (FIXED DISABLED STATE)
 // =========================================================
 
 window.openSessionModal = async (sessionId = null, dateStr = null) => {
   diarioState.sessionId = sessionId;
 
-  // Reset UI
+  // 1. Reset UI e Bloqueio Inicial
   const $dateInput = $("#diario_date");
+
+  // Limpa e desabilita enquanto carrega
   $dateInput.val("").prop("disabled", true);
 
+  // Destrói editor e flatpickr antigos
   $("#diario_content").summernote("destroy");
   $("#diario_content").val("");
   $("#lista-alunos").html('<div class="text-center py-5"><span class="loader"></span></div>');
@@ -247,7 +255,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
 
   $("#modalSession").modal("show");
 
-  // 1. Carrega Metadados
+  // 2. Carrega Metadados do Backend
   try {
     const resMeta = await window.ajaxValidator({
       validator: "getDiarioMetadata",
@@ -259,56 +267,66 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
     if (resMeta.status) {
       diarioState.schedules = resMeta.data.schedules;
 
-      const validDates = resMeta.data.valid_dates || []; // Grade teórica
-      const existingDates = resMeta.data.existing_dates || []; // Aulas dadas
-      const holidays = resMeta.data.holidays || {}; // Feriados
+      const validDates = resMeta.data.valid_dates || [];
+      const existingDates = resMeta.data.existing_dates || [];
+      const holidays = resMeta.data.holidays || {};
 
-      // IMPORTANTE: Habilitar tanto os dias da grade quanto os dias já lançados (exceções)
-      // Usa Set para remover duplicatas
       const enableDates = [...new Set([...validDates, ...existingDates])];
 
-      // Se for edição de uma data antiga que não está mais na grade, adiciona ela
       if (dateStr) {
-        const currentDate = dateStr.split("T")[0];
+        const currentDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr.split(" ")[0];
         if (!enableDates.includes(currentDate)) enableDates.push(currentDate);
       }
 
+      // [CORREÇÃO CRÍTICA]: Habilita o input ANTES de criar o Flatpickr
+      // Isso garante que o input "clone" (altInput) nasça habilitado.
+      $dateInput.prop("disabled", false);
+      $dateInput.removeAttr("disabled"); // Garante remoção do atributo HTML
+
+      // Inicializa Flatpickr
       fpInstance = flatpickr("#diario_date", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        time_24hr: true,
+        enableTime: false,
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        locale: "pt",
+        allowInput: true, // Permite digitação manual se necessário
         minDate: resMeta.data.min_date,
         maxDate: resMeta.data.max_date,
-        locale: "pt",
-        enable: enableDates, // Lista Branca combinada
+        enable: enableDates,
 
         onDayCreate: function (dObj, dStr, fp, dayElem) {
           const offsetDate = new Date(dayElem.dateObj.getTime() - dayElem.dateObj.getTimezoneOffset() * 60000);
           const dateKey = offsetDate.toISOString().split("T")[0];
 
           if (holidays[dateKey]) {
-            // FERIADO (Vermelho)
             dayElem.classList.add("flatpickr-disabled");
             dayElem.setAttribute("title", holidays[dateKey]);
             dayElem.innerHTML += "<span class='event busy'></span>";
           } else if (existingDates.includes(dateKey)) {
-            // AULA JÁ DADA (Verde)
             dayElem.innerHTML += "<span class='event existing'></span>";
             dayElem.setAttribute("title", "Diário preenchido");
           } else if (validDates.includes(dateKey)) {
-            // DIA DE AULA PREVISTO (Azul)
             dayElem.innerHTML += "<span class='event'></span>";
           }
         },
         onChange: function (selectedDates, dateStr, instance) {
           checkDateLogic(dateStr);
         },
+        // Callback extra para garantir que o input visual não fique travado
+        onReady: function (selectedDates, dateStr, instance) {
+          if (instance.altInput) {
+            instance.altInput.disabled = false;
+            // Ajuste visual para parecer editável no modo noturno
+            instance.altInput.style.backgroundColor = "";
+          }
+        },
       });
 
-      $dateInput.prop("disabled", false);
-
+      // Define a data se estiver editando
       if (dateStr) {
-        fpInstance.setDate(dateStr, true);
+        const cleanDate = dateStr.includes(" ") ? dateStr.split(" ")[0] : dateStr;
+        fpInstance.setDate(cleanDate, true);
       }
     } else {
       window.alertDefault(resMeta.alert || "Erro ao carregar dados.", "warning");
@@ -321,8 +339,8 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
   $("#diario_content").summernote(summernoteConfig);
 };
 
-const checkDateLogic = async (dateTimeStr) => {
-  if (!dateTimeStr) return;
+const checkDateLogic = async (dateStr) => {
+  if (!dateStr) return;
 
   const $statusIcon = $("#date-status-icon");
   const $msgContainer = $("#date-msg");
@@ -330,22 +348,17 @@ const checkDateLogic = async (dateTimeStr) => {
   $statusIcon.html('<span class="loader-sm"></span>');
   $msgContainer.text("");
 
-  // 1. Validação de Hora (Local)
-  // O calendário já garantiu o dia correto via 'enable', agora checamos a hora
-  const dateObj = new Date(dateTimeStr);
+  // 1. Validação de Dia da Semana (Apenas aviso visual)
+  // Como removemos a hora, verificamos apenas se é o dia da grade
+  // O "enableDates" já filtra a seleção, mas caso edite data antiga:
+  const dateObj = new Date(dateStr + "T00:00:00"); // Força midnight local
   const dayOfWeek = dateObj.getDay(); // 0-6
 
   if (diarioState.schedules.length > 0) {
-    const schedule = diarioState.schedules.find((s) => parseInt(s.day_of_week) === dayOfWeek);
-    if (schedule) {
-      const timeStr = dateTimeStr.split(" ")[1] || ""; // HH:MM
-      const start = schedule.start_time.substring(0, 5);
-      const end = schedule.end_time.substring(0, 5);
-
-      if (timeStr && (timeStr < start || timeStr > end)) {
-        // Apenas aviso, não bloqueia (flexibilidade)
-        $msgContainer.text(`Atenção: Horário fora da grade (${start} - ${end})`).addClass("text-warning");
-      }
+    const isScheduledDay = diarioState.schedules.some((s) => parseInt(s.day_of_week) === dayOfWeek);
+    if (!isScheduledDay) {
+      // Aviso discreto, pois pode ser reposição
+      $msgContainer.text("Atenção: Dia fora da grade padrão.").addClass("text-warning");
     }
   }
 
@@ -356,14 +369,13 @@ const checkDateLogic = async (dateTimeStr) => {
       token: defaultApp.userInfo.token,
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
-      date: dateTimeStr.replace(" ", "T"), // Padroniza ISO
+      date: dateStr, // YYYY-MM-DD
     });
 
     if (res.status) {
       const info = res.data;
 
       if (info.status === "BLOCKED") {
-        // Caso raro onde o usuário consegue burlar o calendário
         $statusIcon.html('<i class="fas fa-ban text-danger"></i>');
         $msgContainer.text(`Bloqueado: ${info.reason}`).removeClass("text-warning").addClass("text-danger");
         $("#diario_content").summernote("disable");
@@ -554,7 +566,7 @@ window.salvarDiario = async () => {
   const content = $("#diario_content").summernote("code");
   const btn = $("#btn-save-diario");
 
-  if (!date) return window.alertDefault("Selecione a data e hora da aula.", "warning");
+  if (!date) return window.alertDefault("Selecione a data da aula.", "warning");
   if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data bloqueada para registro.", "error");
 
   window.setButton(true, btn, "Salvando...");
@@ -566,7 +578,7 @@ window.salvarDiario = async () => {
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
       session_id: diarioState.sessionId,
-      date: date, // Envia String YYYY-MM-DD HH:MM
+      date: date, // Envia String YYYY-MM-DD
       content: content,
       attendance_json: JSON.stringify(diarioState.currentStudents),
     });

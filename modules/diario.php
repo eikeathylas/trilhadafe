@@ -150,7 +150,7 @@
                                         <div class="col-md-7">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-1">Data e Hora da Aula</label>
                                             <div class="input-group">
-                                                <input type="text" id="diario_date" class="form-control fw-bold text-primary border-end-0" placeholder="Toque para selecionar..." readonly>
+                                                <input type="text" id="diario_date" class="form-control fw-bold border-end-0" placeholder="Toque para selecionar..." readonly>
                                                 <span class="input-group-text border-start-0 text-muted" id="date-status-icon"></span>
                                             </div>
                                             <small id="date-msg" class="d-block mt-1 fw-bold" style="font-size: 0.8rem;"></small>

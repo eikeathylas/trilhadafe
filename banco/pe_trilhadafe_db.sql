@@ -1128,7 +1128,7 @@ CREATE TRIGGER audit_trigger_users AFTER INSERT OR UPDATE OR DELETE ON security.
 INSERT INTO organization.organizations (org_id, parent_org_id, org_type, legal_name, display_name, tax_id, diocese_name, patron_saint, phone_main)
 VALUES 
 (1, NULL, 'DIOCESE', 'Diocese Caruaru', 'Diocese Caruaru', '12.345.678/0001-99', 'Diocese de Recife', 'São José', '(16) 3636-1010'),
-(2, 1, 'PARISH', 'Mitra Arquidiocesana - Paróquia São José', 'Paróquia São José Operário', '12.345.678/0001-99', 'Diocese de Ribeirão', 'São José', '(16) 3636-1010');
+(2, 1, 'PARISH', 'Mitra Arquidiocesana - Paróquia São José', 'Paróquia São José Operário', '12.345.678/0001-99', 'Diocese de Caruaru', 'São José', '(16) 3636-1010');
 
 INSERT INTO organization.locations (location_id, org_id, name, capacity, has_ac, has_ceiling_fan, resources_detail)
 VALUES 
@@ -1152,36 +1152,35 @@ INSERT INTO people.roles (role_id, role_name, description_pt, is_clergy, is_admi
 (6, 'VENDOR', 'Barraqueiro', FALSE, FALSE, FALSE);
 
 INSERT INTO people.persons (person_id, org_id_origin, full_name, religious_name, gender, birth_date, email, is_pcd, pcd_details) VALUES
-(1, 1, 'Roberto Ferreira', 'Pe. Beto', 'M', '1975-05-20', 'padre.beto@trilha.com', FALSE, NULL),
-(2, 1, 'Maria de Lurdes', NULL, 'F', '1980-03-10', 'sec.maria@trilha.com', FALSE, NULL),
-(3, 1, 'Ana Clara Silva', NULL, 'F', '1995-08-15', 'ana.catequese@trilha.com', FALSE, NULL),
-(4, 1, 'José da Silva', NULL, 'M', '1982-01-01', 'jose.pai@gmail.com', FALSE, NULL),
-(5, 1, 'Enzo Gabriel Silva', NULL, 'M', '2015-02-10', NULL, FALSE, NULL),
-(6, 1, 'Valentina Santos', NULL, 'F', '2014-11-05', 'mae.valentina@gmail.com', TRUE, 'Deficiência Auditiva Leve'),
-(7, 1, 'Carlos do Pastel', NULL, 'M', '1970-06-20', NULL, FALSE, NULL),
-(8, 1, 'Maria das Dores', NULL, 'F', (CURRENT_DATE - INTERVAL '40 years'), NULL, FALSE, NULL),
-(9, 1, 'Pedro Henrique', NULL, 'M', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), NULL, FALSE, NULL),
-(10, 1, 'Irmã Lúcia', NULL, 'F', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), NULL, FALSE, NULL);
+(1, 2, 'Roberto Ferreira', 'Pe. Beto', 'M', '1975-05-20', 'padre.beto@trilha.com', FALSE, NULL),
+(2, 2, 'Maria de Lurdes', NULL, 'F', '1980-03-10', 'sec.maria@trilha.com', FALSE, NULL),
+(3, 2, 'Ana Clara Silva', NULL, 'F', '1995-08-15', 'ana.catequese@trilha.com', FALSE, NULL),
+(4, 2, 'José da Silva', NULL, 'M', '1982-01-01', 'jose.pai@gmail.com', FALSE, NULL),
+(5, 2, 'Enzo Gabriel Silva', NULL, 'M', '2015-02-10', NULL, FALSE, NULL),
+(6, 2, 'Valentina Santos', NULL, 'F', '2014-11-05', 'mae.valentina@gmail.com', TRUE, 'Deficiência Auditiva Leve'),
+(7, 2, 'Carlos do Pastel', NULL, 'M', '1970-06-20', NULL, FALSE, NULL),
+(8, 2, 'Maria das Dores', NULL, 'F', (CURRENT_DATE - INTERVAL '40 years'), NULL, FALSE, NULL),
+(9, 2, 'Pedro Henrique', NULL, 'M', (CURRENT_DATE - INTERVAL '12 years' + INTERVAL '2 days'), NULL, FALSE, NULL),
+(10, 2, 'Irmã Lúcia', NULL, 'F', (CURRENT_DATE - INTERVAL '60 years' - INTERVAL '5 days'), NULL, FALSE, NULL);
 
 INSERT INTO people.person_roles (person_id, org_id, role_id) VALUES
-(1, 1, 1), (2, 1, 2), (3, 1, 3), (4, 1, 5), (5, 1, 4), (6, 1, 4), (7, 1, 6), (8, 1, 5), (9, 1, 4), (10, 1, 3);
+(1, 2, 1), (2, 2, 2), (3, 2, 3), (4, 2, 5), (5, 2, 4), (6, 2, 4), (7, 2, 6), (8, 2, 5), (9, 2, 4), (10, 2, 3);
 
 INSERT INTO people.family_ties (person_id, relative_id, relationship_type, is_legal_guardian) VALUES
 (5, 4, 'FATHER', TRUE);
 
 -- 3. Educação
-INSERT INTO education.academic_years (year_id, org_id, name, start_date, end_date, is_active) VALUES 
-(2025, 1, '2025', '2025-01-01', '2025-12-31', TRUE),
-(2026, 1, '2026', '2026-01-01', '2026-12-31', FALSE);
+INSERT INTO education.academic_years (year_id, org_id, name, start_date, end_date, is_active) VALUES
+(2026, 2, '2026', '2026-01-01', '2026-12-31', FALSE);
 
 INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES 
-(1, 'Novo Testamento', 'Estudo dos Evangelhos e Atos dos Apóstolos.'),
-(1, 'Antigo Testamento', 'História da Salvação e Profetas.'),
-(1, 'Liturgia Básica', 'Cores litúrgicas, tempos e ritos da Missa.');
+(2, 'Novo Testamento', 'Estudo dos Evangelhos e Atos dos Apóstolos.'),
+(2, 'Antigo Testamento', 'História da Salvação e Profetas.'),
+(2, 'Liturgia Básica', 'Cores litúrgicas, tempos e ritos da Missa.');
 
 INSERT INTO education.courses (org_id, name, min_age, max_age) VALUES 
-(1, 'Primeira Eucaristia', 9, 12),
-(1, 'Crisma (Jovens)', 14, 18);
+(2, 'Primeira Eucaristia', 9, 12),
+(2, 'Crisma (Jovens)', 14, 18);
 
 -- [NOVO] Grade Curricular com Template de Plano de Aula
 INSERT INTO education.curriculum (course_id, subject_id, workload_hours, lesson_plan_template) VALUES 
@@ -1193,7 +1192,7 @@ INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES
 
 -- Turma (Com Academic Year ID)
 INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, academic_year_id, status) VALUES 
-(1, 1, 1, 3, 3, 'Turma Sábado Manhã', 2025, 'ACTIVE');
+(1, 1, 2, 3, 3, 'Turma Sábado Manhã', 2026, 'ACTIVE');
 
 INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, subject_id, location_id, instructor_id) VALUES 
 (1, 6, '09:00:00', '10:30:00', 1, 3, 3);
@@ -1209,46 +1208,46 @@ INSERT INTO education.attendance (session_id, student_id, is_present) VALUES
 (1, 5, TRUE), (1, 6, FALSE);
 
 INSERT INTO education.registration_requests (org_id, candidate_name, candidate_birth_date, parent_name, parent_contact, desired_course_id, status) VALUES 
-(1, 'Lucas da Silva (Site)', '2015-03-10', 'Mãe do Lucas', '1199999999', 1, 'PENDING'),
-(1, 'Júlia Roberta (Site)', '2014-07-20', 'Pai da Júlia', '1188888888', 1, 'PENDING');
+(2, 'Lucas da Silva (Site)', '2015-03-10', 'Mãe do Lucas', '1199999999', 1, 'PENDING'),
+(2, 'Júlia Roberta (Site)', '2014-07-20', 'Pai da Júlia', '1188888888', 1, 'PENDING');
 
 -- 4. Sacramentos
 INSERT INTO sacraments.registry_books (book_id, org_id, sacrament_type, book_number, status) VALUES 
-(1, 1, 'BAPTISM', 'Livro 10-A', 'OPEN');
+(1, 2, 'BAPTISM', 'Livro 10-A', 'OPEN');
 INSERT INTO sacraments.baptisms (org_id, person_id, celebrant_id, celebration_date, godfather_name, book_id, page_number, entry_number) VALUES 
-(1, 5, 1, '2016-05-20', 'Padrinho Exemplo', 1, '50', '1002');
+(2, 5, 1, '2016-05-20', 'Padrinho Exemplo', 1, '50', '1002');
 
 -- 5. Pastoral
-INSERT INTO pastoral.celebration_types (type_id, org_id, name) VALUES (1, 1, 'Santa Missa');
+INSERT INTO pastoral.celebration_types (type_id, org_id, name) VALUES (1, 2, 'Santa Missa');
 INSERT INTO pastoral.celebrations (celebration_id, org_id, type_id, date_time, location_id, main_celebrant_id, status) VALUES 
-(1, 1, 1, CURRENT_TIMESTAMP + INTERVAL '1 day', 1, 1, 'SCHEDULED');
+(1, 2, 1, CURRENT_TIMESTAMP + INTERVAL '1 day', 1, 1, 'SCHEDULED');
 INSERT INTO pastoral.mass_intentions (celebration_id, requested_by_person_id, target_name, intention_type, donation_amount, is_paid) VALUES 
 (1, 4, 'Pela saúde da família Silva', 'HEALTH', 20.00, TRUE);
 
 -- 6. Finanças
 INSERT INTO finance.accounts (account_id, org_id, name, current_balance) VALUES 
-(1, 1, 'Conta Corrente Principal', 10000.00), (2, 1, 'Cofre Secretaria', 500.00);
+(1, 2, 'Conta Corrente Principal', 10000.00), (2, 2, 'Cofre Secretaria', 500.00);
 INSERT INTO finance.categories (category_id, org_id, name, type) VALUES 
-(1, 1, 'Dízimo', 'INCOME'), (2, 1, 'Taxas/Emolumentos', 'INCOME'), (3, 1, 'Energia Elétrica', 'EXPENSE');
+(1, 2, 'Dízimo', 'INCOME'), (2, 2, 'Taxas/Emolumentos', 'INCOME'), (3, 2, 'Energia Elétrica', 'EXPENSE');
 INSERT INTO finance.transactions (org_id, account_id, category_id, person_id, description, amount, transaction_type, due_date, payment_date) VALUES 
-(1, 1, 1, 4, 'Dízimo Março', 100.00, 'CREDIT', CURRENT_DATE, CURRENT_DATE),
-(1, 1, 2, 1, 'Compra de Velas (Altar)', 150.00, 'DEBIT', CURRENT_DATE, CURRENT_DATE),
-(1, 1, 3, 1, 'Conta de Água', 89.90, 'DEBIT', CURRENT_DATE, CURRENT_DATE),
-(1, 1, 1, 1, 'Oferta Missa Domingo', 345.50, 'CREDIT', CURRENT_DATE, CURRENT_DATE);
+(2, 1, 1, 4, 'Dízimo Março', 100.00, 'CREDIT', CURRENT_DATE, CURRENT_DATE),
+(2, 1, 2, 1, 'Compra de Velas (Altar)', 150.00, 'DEBIT', CURRENT_DATE, CURRENT_DATE),
+(2, 1, 3, 1, 'Conta de Água', 89.90, 'DEBIT', CURRENT_DATE, CURRENT_DATE),
+(2, 1, 1, 1, 'Oferta Missa Domingo', 345.50, 'CREDIT', CURRENT_DATE, CURRENT_DATE);
 
 -- 7. Festas
 INSERT INTO events_commerce.events (event_id, org_id, name, start_date, status) VALUES 
-(1, 1, 'Quermesse 2025', CURRENT_TIMESTAMP, 'ACTIVE');
+(1, 2, 'Quermesse 2026', CURRENT_TIMESTAMP, 'ACTIVE');
 INSERT INTO events_commerce.vendors (vendor_id, event_id, name, responsible_person_id, commission_rate) VALUES 
 (1, 1, 'Barraca do Pastel', 7, 15.00);
 INSERT INTO events_commerce.products (product_id, vendor_id, name, unit_price) VALUES 
 (1, 1, 'Pastel Carne', 10.00);
 INSERT INTO events_commerce.cards (card_id, org_id, person_id, display_code, current_balance) VALUES 
-(1, 1, 4, 'CARD-001', 50.00);
+(1, 2, 4, 'CARD-001', 50.00);
 INSERT INTO events_commerce.transactions (card_id, vendor_id, transaction_type, amount, church_fee_amount, vendor_net_amount, products_json) VALUES 
 (1, 1, 'PURCHASE', 10.00, 1.50, 8.50, '[{"item": "Pastel Carne", "qtd": 1, "price": 10.00}]');
 UPDATE events_commerce.cards SET current_balance = 40.00 WHERE card_id = 1;
 
 -- 8. Blog
 INSERT INTO communication.categories (category_id, org_id, name, slug) VALUES 
-(1, 1, 'Avisos', 'avisos');
+(1, 2, 'Avisos', 'avisos');
