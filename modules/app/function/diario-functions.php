@@ -331,7 +331,7 @@ function saveClassSessionF($data)
                 $stmtAtt->execute([
                     'sess' => $sessionId,
                     'stud' => $att['student_id'],
-                    'pres' => ($att['present'] === 'true' || $att['present'] === true) ? 'TRUE' : 'FALSE',
+                    'pres' => ($att['is_present'] === 'true' || $att['is_present'] === true) ? 'TRUE' : 'FALSE',
                     'just' => $att['justification'] ?? null
                 ]);
             }

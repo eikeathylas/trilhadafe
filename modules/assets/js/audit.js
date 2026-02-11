@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V29
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V30
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -128,16 +128,20 @@ const renderTimeline = (logs, container) => {
     let diffHtml = "";
     let hasVisibleChanges = false;
 
+    // [CORREÇÃO] Prioriza o nome que vem do PHP (que contém o nome do aluno)
+    // Só usa os nomes genéricos se o target_name estiver vazio
     let headerText = log.target_name || "Atualização";
 
-    if (log.table_name === "person_roles") headerText = "Cargos e Funções";
-    else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
-    else if (log.table_name === "locations") headerText = "Espaço / Sala";
-    else if (log.table_name === "curriculum") headerText = "Grade Curricular";
-    else if (log.table_name === "curriculum_plans") headerText = "Planejamento de Ensino";
-    else if (log.table_name === "class_sessions") headerText = "Dados da Aula";
-    else if (log.table_name === "attendance") headerText = "Frequência";
-    else if (log.table_name === "person_attachments") headerText = "Arquivos";
+    if (!log.target_name) {
+      if (log.table_name === "person_roles") headerText = "Cargos e Funções";
+      else if (log.table_name === "family_ties") headerText = "Vínculos Familiares";
+      else if (log.table_name === "locations") headerText = "Espaço / Sala";
+      else if (log.table_name === "curriculum") headerText = "Grade Curricular";
+      else if (log.table_name === "curriculum_plans") headerText = "Planejamento de Ensino";
+      else if (log.table_name === "class_sessions") headerText = "Dados da Aula";
+      else if (log.table_name === "attendance") headerText = "Frequência";
+      else if (log.table_name === "person_attachments") headerText = "Arquivos";
+    }
 
     let itemName =
       oldVal.title ||
@@ -169,7 +173,6 @@ const renderTimeline = (logs, container) => {
       icon = "add";
       colorClass = "INSERT";
       if (log.table_name === "attendance") {
-        // [AJUSTE] Detalhe visual para inserção de frequência
         const statusBadge = isTrue(newVal.is_present) ? '<span class="badge bg-success ms-1">Presente</span>' : '<span class="badge bg-danger ms-1">Ausente</span>';
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro criado: ${statusBadge}</div>`;
       } else if (log.table_name === "person_attachments") {
@@ -314,7 +317,7 @@ const formatKey = (key) => {
     is_present: "Presença",
     justification: "Justificativa",
     absence_type: "Motivo da Falta",
-    student_observation: "Observação", // [NOVO]
+    student_observation: "Observação",
     aluno: "Aluno",
     coordinator_id: "Coordenador",
     class_assistant_id: "Auxiliar de Turma",
@@ -410,13 +413,11 @@ const formatKey = (key) => {
 const formatValue = (val, key = "") => {
   const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory"];
 
-  // [AJUSTE] Lógica específica para Frequência (Is_Present)
   if (key === "is_present") {
     if (val === true || val === "t" || val === "true") return '<span class="badge bg-success">Presente</span>';
     if (val === false || val === "f" || val === "false") return '<span class="badge bg-danger">Ausente</span>';
   }
 
-  // [AJUSTE] Tradução do Motivo da Falta
   if (key === "absence_type") {
     const absMap = {
       UNJUSTIFIED: "Não Justificada",
@@ -455,13 +456,11 @@ const formatValue = (val, key = "") => {
   const contentTypeMap = { DOCTRINAL: "Doutrinal", BIBLICAL: "Bíblico", LITURGICAL: "Litúrgico", EXPERIENTIAL: "Vivencial", REVIEW: "Avaliação" };
   if (contentTypeMap[val]) return contentTypeMap[val];
 
-  // Data
   if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
     const p = val.split("-");
     return `${p[2]}/${p[1]}/${p[0]}`;
   }
 
-  // Objeto JSON
   if (typeof val === "object" && val !== null) {
     let str = "";
     const jsonMap = {

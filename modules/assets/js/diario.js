@@ -196,7 +196,7 @@ const renderTableHistory = (data) => {
             </div>
           </td>
           <td class="align-middle">
-            <div class="fw-bold text-dark">
+            <div class="fw-bold">
               ${dateFmt}
             </div>
             <div class="small text-muted">
@@ -462,20 +462,20 @@ const renderStudents = () => {
     html += `
             <tr>
                 <td class="ps-3">${avatarHtml}</td>
-                <td class="fw-bold small text-dark">${std.full_name}</td>
+                <td class="fw-bold small">${std.full_name}</td>
                 <td class="text-center">
-                    <div class="form-check form-switch d-flex justify-content-center">
-                        <input class="form-check-input attendance-check" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input toggleSwitch" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
                     </div>
                 </td>
                 <td>
-                    <div id="just-area-${idx}" class="d-flex gap-2 w-100 ${visibilityClass}">
+                    <div id="just-area-${idx}" class="d-flex gap-2 ${visibilityClass}">
                         <select class="form-select form-select-sm" style="width: 130px; flex-shrink: 0;" onchange="updateAbsenceType(${idx}, this.value)">
                             <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justif.</option>
                             <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
                             <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
                         </select>
-                        <input type="text" class="form-control form-control-sm flex-grow-1" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
+                        <input type="text" class="form-control form-control-sm flex-grow-1" style="width: 130px;"  value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
                     </div>
                 </td>
             </tr>`;
@@ -500,7 +500,7 @@ const renderStudents = () => {
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="small text-muted">Presença</span>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
+                                <input class="form-check-input toggleSwitch" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
                             </div>
                         </div>
                     </div>
