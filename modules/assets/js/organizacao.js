@@ -209,7 +209,6 @@ const renderTableDiocese = (data) => {
             <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleOrg(${id}, this)" style="cursor: pointer;">
             <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
         </div>
-        <span class="status-text-org-${id} ms-2">${statusBadge}</span>
     </div>`;
   };
 
@@ -322,7 +321,6 @@ const renderTableOrgs = (data) => {
             <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleOrg(${id}, this)" style="cursor: pointer;">
             <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
         </div>
-        <span class="status-text-org-${id} ms-2">${statusBadge}</span>
     </div>`;
   };
 
@@ -433,7 +431,6 @@ const renderTableLocais = (data) => {
             <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleLoc(${id}, this)" style="cursor: pointer;">
             <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
         </div>
-        <span class="status-text-loc-${id} ms-2">${statusBadge}</span>
     </div>`;
   };
 

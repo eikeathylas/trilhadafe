@@ -5,7 +5,63 @@ const defaultPeople = {
 };
 
 let currentFamilyList = [];
-let currentAttachmentsList = []; // [NOVO] Lista de Anexos
+let currentAttachmentsList = [];
+
+// =========================================================
+// FUNÇÃO AUXILIAR DE TOGGLE (COM SPINNER E BADGE)
+// =========================================================
+
+const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
+  const $chk = $(element);
+  const $wrapper = $chk.closest(".form-check");
+  const $loader = $wrapper.find(".toggle-loader");
+  const $labels = $(labelSelector); // Seleciona todas as ocorrências (Desk e Mobile)
+  const status = $chk.is(":checked");
+
+  // Define os estados visuais (Feedback Imediato com Badge)
+  const setVisualState = (isActive) => {
+    if (isActive) {
+      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
+    } else {
+      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
+    }
+  };
+
+  try {
+    // 1. Bloqueia e mostra loader
+    $chk.prop("disabled", true);
+    $loader.removeClass("d-none");
+
+    // 2. Atualiza visualmente (Otimista)
+    setVisualState(status);
+
+    // 3. Chamada API
+    const result = await window.ajaxValidator({
+      validator: validator,
+      token: defaultApp.userInfo.token,
+      id: id,
+      active: status,
+    });
+
+    if (result.status) {
+      window.alertDefault(successMsg, "success");
+    } else {
+      throw new Error(result.alert || "Erro ao atualizar");
+    }
+  } catch (e) {
+    console.error(e);
+    // Reverte estado
+    $chk.prop("checked", !status);
+    setVisualState(!status);
+    window.alertDefault(e.message || "Erro de conexão.", "error");
+  } finally {
+    // 4. Libera
+    $chk.prop("disabled", false);
+    $loader.addClass("d-none");
+  }
+};
+
+window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Status atualizado.", `.status-text-person-${id}`);
 
 // =========================================================
 // 1. LISTAGEM E FILTROS
@@ -55,15 +111,41 @@ const renderTablePeople = (data) => {
     return;
   }
 
+  // Helper Toggle Desktop (Lado a Lado)
+  const getToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex align-items-center justify-content-center">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="togglePerson(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+    </div>`;
+  };
+
+  // Helper Toggle Mobile (Toggle Top / Badge Bottom)
+  const getMobileToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex flex-column align-items-end">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="togglePerson(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <div class="status-text-person-${id} mt-1">${statusBadge}</div>
+    </div>`;
+  };
+
   // =========================================================
   // 1. VISÃO DESKTOP (TABELA)
   // =========================================================
   let desktopRows = data
     .map((item) => {
-      // Lógica do Avatar (Com Zoom)
+      // Avatar
       let avatarHtml = "";
       if (item.profile_photo_url) {
-        // Adicionado: Zoom, cursor pointer e efeito hover
         avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
                            class="rounded-circle border shadow-sm" 
                            style="width:40px; height:40px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
@@ -95,9 +177,6 @@ const renderTablePeople = (data) => {
       }
       contactHtml += item.email || '<span class="text-muted small">-</span>';
 
-      // Toggle Ativo/Inativo
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.person_id, item.is_active, "togglePerson") : `<input type="checkbox" ${item.is_active ? "checked" : ""} onchange="togglePerson(${item.person_id}, this)">`;
-
       return `
         <tr>
             <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
@@ -108,7 +187,7 @@ const renderTablePeople = (data) => {
             <td class="align-middle">${rolesHtml}</td>
             <td class="align-middle">${contactHtml}</td>
             <td class="text-center align-middle">
-                <div class="d-flex justify-content-center">${toggleHtml}</div>
+                ${getToggleHtml(item.person_id, item.is_active)}
             </td>
             <td class="text-end align-middle pe-3">
                 <button onclick="openAudit('people.persons', ${item.person_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
@@ -162,34 +241,30 @@ const renderTablePeople = (data) => {
         });
       }
 
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.person_id, item.is_active, "togglePerson") : `<input type="checkbox" class="form-check-input" ${item.is_active ? "checked" : ""} onchange="togglePerson(${item.person_id}, this)">`;
-      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
-
       return `
-        <div class="card border shadow-sm mb-3">
-            <div class="card-body p-3">
-                <div class="d-flex align-items-center mb-3">
+        <div class="mobile-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center flex-grow-1">
                     <div class="me-3">${avatarHtml}</div>
-                    <div class="flex-grow-1">
+                    <div>
                         <h6 class="fw-bold mb-0">${item.full_name}</h6>
                         <small class="text-muted d-block">${item.religious_name || ""}</small>
                         <div class="mt-1">${rolesHtml}</div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        ${toggleHtml}
-                        ${statusText}
-                    </div>
                 </div>
-                
-                <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
-                    <div class="text-muted small">
-                         ${item.phone_mobile ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="text-success fw-bold text-decoration-none"><i class="fab fa-whatsapp me-1"></i>WhatsApp</a>` : ""}
-                    </div>
-                    <div>
-                        <button onclick="openAudit('people.persons', ${item.person_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                        <button onclick="modalPessoa(${item.person_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                        <button onclick="deletePerson(${item.person_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
-                    </div>
+                <div class="ms-2">
+                    ${getMobileToggleHtml(item.person_id, item.is_active)}
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                <div class="text-muted small">
+                     ${item.phone_mobile ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="text-success fw-bold text-decoration-none"><i class="fab fa-whatsapp me-1"></i>WhatsApp</a>` : ""}
+                </div>
+                <div>
+                    <button onclick="openAudit('people.persons', ${item.person_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
+                    <button onclick="modalPessoa(${item.person_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
+                    <button onclick="deletePerson(${item.person_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         </div>`;
@@ -198,7 +273,7 @@ const renderTablePeople = (data) => {
 
   const mobileHtml = `<div class="d-md-none">${mobileRows}</div>`;
 
-  // Renderiza ambos (O CSS do Bootstrap d-none/d-block cuida de mostrar o correto)
+  // Renderiza ambos
   container.html(tableHtml + mobileHtml);
 
   _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "changePage", defaultPeople);
@@ -220,7 +295,7 @@ window.modalPessoa = (id = null) => {
   $("#btn-remove-foto").addClass("d-none");
   $("#person_photo").val("");
 
-  // [AJUSTE] Limpa campos de anexo ao abrir modal
+  // Limpa campos de anexo
   $("#new_attachment_desc").val("");
   $("#new_attachment_file").val("");
 
@@ -302,7 +377,7 @@ const loadPersonData = async (id) => {
       $("#baptism_date").val(sac.baptism_date);
       $("#baptism_place").val(sac.baptism_place);
 
-      // Eucaristia [NOVO]
+      // Eucaristia
       $("#has_eucharist")
         .prop("checked", sac.eucharist === true || sac.eucharist === "true")
         .trigger("change");
@@ -317,7 +392,7 @@ const loadPersonData = async (id) => {
       currentFamilyList = d.family || [];
       renderFamilyTable();
 
-      currentAttachmentsList = d.attachments || []; // [NOVO]
+      currentAttachmentsList = d.attachments || [];
       renderAttachmentsTable(currentAttachmentsList);
 
       initSelectRelatives();
@@ -492,13 +567,12 @@ const renderFamilyTable = () => {
 };
 
 // =========================================================
-// RENDERIZAÇÃO DE ANEXOS (PADRÃO TABLE-CUSTOM)
+// RENDERIZAÇÃO DE ANEXOS
 // =========================================================
 
 const renderAttachmentsTable = (data) => {
-  const container = $("#lista-anexos"); // O tbody ou div da tabela
+  const container = $("#lista-anexos");
 
-  // State: Vazio
   if (!data || data.length === 0) {
     container.html(`
             <div class="text-center py-5 opacity-50">
@@ -509,7 +583,6 @@ const renderAttachmentsTable = (data) => {
     return;
   }
 
-  // Helper para ícones de arquivo
   const getFileIcon = (filename) => {
     const ext = filename.split(".").pop().toLowerCase();
     if (["pdf"].includes(ext)) return { icon: "picture_as_pdf", color: "text-danger", bg: "bg-danger" };
@@ -523,8 +596,6 @@ const renderAttachmentsTable = (data) => {
   const rows = data
     .map((item) => {
       const fileStyle = getFileIcon(item.file_name);
-
-      // Formatação de data (ajuste conforme seu retorno do back)
       const dateDisplay = item.uploaded_at;
 
       return `
@@ -547,11 +618,9 @@ const renderAttachmentsTable = (data) => {
                     <a href="${item.file_path}" target="_blank" class="btn-icon-action text-info me-2" title="Visualizar">
                         <i class="fas fa-eye"></i>
                     </a>
-                    
                     <a href="${item.file_path}" download="${item.file_name}" class="btn-icon-action text-primary me-2" title="Baixar">
                         <i class="fas fa-download"></i>
                     </a>
-                    
                     <button onclick="removeAttachment(${item.attachment_id})" class="btn-icon-action delete" title="Excluir">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -561,7 +630,6 @@ const renderAttachmentsTable = (data) => {
     })
     .join("");
 
-  // Estrutura Table Custom
   container.html(`
         <div class="table-responsive rounded border">
             <table class="table-custom">
@@ -613,10 +681,8 @@ window.uploadAttachment = async () => {
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
       window.alertDefault("Arquivo anexado com sucesso!", "success");
-      // Limpa form
       $("#new_attachment_file").val("");
       $("#new_attachment_desc").val("");
-      // Recarrega apenas a lista
       loadPersonData(personId);
     } else {
       window.alertDefault(res.alert, "error");
@@ -672,17 +738,14 @@ window.salvarPessoa = async () => {
   formData.append("id_client", defaultApp.userInfo.id_client);
   formData.append("org_id", localStorage.getItem("tf_active_parish"));
 
-  // Mapeamento de campos
   const fields = ["person_id", "religious_name", "birth_date", "tax_id", "national_id", "gender", "email", "phone_mobile", "phone_landline", "zip_code", "address_street", "address_number", "address_district", "address_city", "address_state", "pcd_details"];
   formData.append("full_name", name);
   fields.forEach((f) => formData.append(f, $(`#${f}`).val()));
 
-  // Checkboxes
   formData.append("is_pcd", $("#is_pcd").is(":checked"));
   const roles = ["student", "catechist", "parent", "priest"];
   roles.forEach((r) => formData.append(`role_${r}`, $(`#role_${r}`).is(":checked")));
 
-  // JSONs
   formData.append("family_json", JSON.stringify(currentFamilyList));
   formData.append(
     "sacraments_info",
@@ -690,9 +753,9 @@ window.salvarPessoa = async () => {
       baptism: $("#has_baptism").is(":checked"),
       baptism_date: $("#baptism_date").val(),
       baptism_place: $("#baptism_place").val(),
-      eucharist: $("#has_eucharist").is(":checked"), // [NOVO]
-      eucharist_date: $("#eucharist_date").val(), // [NOVO]
-      eucharist_place: $("#eucharist_place").val(), // [NOVO]
+      eucharist: $("#has_eucharist").is(":checked"),
+      eucharist_date: $("#eucharist_date").val(),
+      eucharist_place: $("#eucharist_place").val(),
       confirmation: $("#has_confirmation").is(":checked"),
       marriage: $("#has_marriage").is(":checked"),
     }),
@@ -746,21 +809,6 @@ window.buscarCep = (valor) => {
   }
 };
 
-window.togglePerson = async (id, element) => {
-  if (window.handleToggle) window.handleToggle("togglePerson", id, element, "Status atualizado.");
-  else {
-    const $chk = $(element);
-    try {
-      await window.ajaxValidator({ validator: "togglePerson", token: defaultApp.userInfo.token, id: id, active: $chk.is(":checked") });
-      window.alertDefault("Status atualizado.");
-      getPessoas();
-    } catch (e) {
-      $chk.prop("checked", !$chk.is(":checked"));
-      window.alertDefault("Erro.", "error");
-    }
-  }
-};
-
 window.deletePerson = (id) => {
   Swal.fire({ title: "Excluir?", text: "Vai para a lixeira.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim" }).then(async (r) => {
     if (r.isConfirmed) {
@@ -787,7 +835,6 @@ $("#has_baptism").change(function () {
   else $("#baptism_details").addClass("d-none");
 });
 
-// [NOVO] Listener Eucaristia
 $("#has_eucharist").change(function () {
   if ($(this).is(":checked")) $("#eucharist_details").removeClass("d-none");
   else $("#eucharist_details").addClass("d-none");
