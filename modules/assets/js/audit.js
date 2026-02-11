@@ -1,5 +1,5 @@
 // =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V30
+// MÓDULO DE AUDITORIA (LOGIC) - FINAL V33 (Fix Data/Hora + Cedilha)
 // =========================================================
 
 window.openAudit = async (table, id) => {
@@ -128,8 +128,7 @@ const renderTimeline = (logs, container) => {
     let diffHtml = "";
     let hasVisibleChanges = false;
 
-    // [CORREÇÃO] Prioriza o nome que vem do PHP (que contém o nome do aluno)
-    // Só usa os nomes genéricos se o target_name estiver vazio
+    // Prioriza o nome vindo do PHP (ex: nome do aluno)
     let headerText = log.target_name || "Atualização";
 
     if (!log.target_name) {
@@ -181,7 +180,7 @@ const renderTimeline = (logs, container) => {
       } else if (log.table_name === "curriculum_plans") {
         icon = "event_note";
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Plano Adicionado: ${itemName}</div>`;
-      } else if (["persons", "organizations", "courses", "classes", "subjects", "events"].includes(log.table_name)) {
+      } else if (["persons", "organizations", "courses", "classes"].includes(log.table_name)) {
         diffHtml = '<div class="text-success small fw-bold"><i class="fas fa-star me-2"></i> Registro mestre criado no sistema.</div>';
         headerText = "Criação";
       } else diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-plus-circle me-2"></i> Adicionado: ${itemName}</div>`;
@@ -314,11 +313,14 @@ const formatKey = (key) => {
     session_date: "Data da Aula",
     content_type: "Tipo de Conteúdo",
     signed_at: "Assinado em",
-    is_present: "Presença",
+    is_present: "Frequência",
+    presença: "Frequência", // [CORREÇÃO] Força a tradução da chave com cedilha
+    presenca: "Frequência",
+    Presença: "Frequência",
     justification: "Justificativa",
     absence_type: "Motivo da Falta",
     student_observation: "Observação",
-    aluno: "Catequizando",
+    aluno: "Aluno",
     coordinator_id: "Coordenador",
     class_assistant_id: "Auxiliar de Turma",
     class_name: "Nome da Turma",
@@ -407,15 +409,17 @@ const formatKey = (key) => {
     active: "Ativo",
   };
 
+  // Se não estiver no mapa, aplica a formatação automática
   return map[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 const formatValue = (val, key = "") => {
   const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory"];
 
-  if (key === "is_present") {
-    if (val === true || val === "t" || val === "true") return '<span class="badge bg-success">Presente</span>';
-    if (val === false || val === "f" || val === "false") return '<span class="badge bg-danger">Ausente</span>';
+  // [CORREÇÃO] Verifica todas as variações da chave de presença para exibir o Badge
+  if (key === "is_present" || key === "presença" || key === "presenca" || key === "Presença") {
+    if (val === true || val === "t" || val === "true" || val === "Presente") return '<span class="badge bg-success">Presente</span>';
+    if (val === false || val === "f" || val === "false" || val === "Ausente") return '<span class="badge bg-danger">Ausente</span>';
   }
 
   if (key === "absence_type") {
@@ -447,18 +451,19 @@ const formatValue = (val, key = "") => {
   };
   if (statusMap[val]) return statusMap[val];
 
-  const relMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
-  if (relMap[val]) return relMap[val];
-
-  const shiftMap = { MORNING: "Matutino", AFTERNOON: "Vespertino", NIGHT: "Noturno", ALL_DAY: "Integral" };
-  if (shiftMap[val]) return shiftMap[val];
-
-  const contentTypeMap = { DOCTRINAL: "Doutrinal", BIBLICAL: "Bíblico", LITURGICAL: "Litúrgico", EXPERIENTIAL: "Vivencial", REVIEW: "Avaliação" };
-  if (contentTypeMap[val]) return contentTypeMap[val];
-
-  if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-    const p = val.split("-");
-    return `${p[2]}/${p[1]}/${p[0]}`;
+  // [CORREÇÃO] Lógica aprimorada para Datas e Datas com Hora
+  if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}/.test(val)) {
+    // Verifica se tem horário (T ou espaço)
+    if (val.includes("T") || val.includes(" ")) {
+      let parts = val.split(/[T ]/); // Divide por T ou espaço
+      let datePart = parts[0].split("-").reverse().join("/");
+      let timePart = parts[1] ? parts[1].substring(0, 5) : ""; // Pega HH:MM
+      return `${datePart} ${timePart}`.trim();
+    } else {
+      // Apenas Data
+      const p = val.split("-");
+      return `${p[2]}/${p[1]}/${p[0]}`;
+    }
   }
 
   if (typeof val === "object" && val !== null) {
