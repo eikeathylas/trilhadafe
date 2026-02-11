@@ -8,11 +8,64 @@ const defaultCourse = {
 let currentCurriculumList = [];
 let editingCurriculumIndex = -1;
 
+// =========================================================
+// FUNÇÃO AUXILIAR DE TOGGLE (COM SPINNER E BADGE)
+// =========================================================
+
+const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
+  const $chk = $(element);
+  const $wrapper = $chk.closest(".form-check");
+  const $loader = $wrapper.find(".toggle-loader");
+  const $labels = $(labelSelector);
+  const status = $chk.is(":checked");
+
+  // Define os estados visuais (Feedback Imediato com Badge)
+  const setVisualState = (isActive) => {
+    if (isActive) {
+      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
+    } else {
+      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
+    }
+  };
+
+  try {
+    $chk.prop("disabled", true);
+    $loader.removeClass("d-none");
+    setVisualState(status);
+
+    const result = await window.ajaxValidator({
+      validator: validator,
+      token: defaultApp.userInfo.token,
+      id: id,
+      active: status,
+    });
+
+    if (result.status) {
+      window.alertDefault(successMsg, "success");
+    } else {
+      throw new Error(result.alert || "Erro ao atualizar");
+    }
+  } catch (e) {
+    console.error(e);
+    $chk.prop("checked", !status);
+    setVisualState(!status);
+    window.alertDefault(e.message || "Erro de conexão.", "error");
+  } finally {
+    $chk.prop("disabled", false);
+    $loader.addClass("d-none");
+  }
+};
+
+window.toggleCourse = (id, element) => handleToggle("toggleCourse", id, element, "Status atualizado.", `.status-text-course-${id}`);
+
+// =========================================================
+// SUMMERNOTE & CONFIGS
+// =========================================================
+
 // [AUTO-SAVE] Salva Summernote antes de destruir ou perder foco
 window.saveActiveSummernote = () => {
   $(".summernote-dynamic").each(function () {
     const $textarea = $(this);
-    // Verifica se o editor está ativo
     if ($textarea.next(".note-editor").length > 0) {
       const idx = $textarea.data("index");
       const content = $textarea.summernote("code");
@@ -28,12 +81,11 @@ window.saveActiveSummernote = () => {
   });
 };
 
-// Configuração Summernote (Visual controlado pelo CSS no PHP)
 const summernoteConfig = {
   height: 350,
   lang: "pt-BR",
   placeholder: "Descreva o conteúdo do encontro...",
-  dialogsInBody: true, // Fix para funcionar dentro do Modal
+  dialogsInBody: true,
   toolbar: [
     ["style", ["style", "bold", "italic", "underline", "clear"]],
     ["font", ["color", "fontsize"]],
@@ -45,12 +97,11 @@ const summernoteConfig = {
     onBlur: function () {
       window.saveActiveSummernote();
     },
-    // Removido onInit que forçava bg-white, para respeitar o tema Dark/Superhero
   },
 };
 
 // =========================================================
-// 1. LISTAGEM (PADRÃO TABLE-CUSTOM)
+// 1. LISTAGEM
 // =========================================================
 
 const getCursos = async () => {
@@ -100,16 +151,39 @@ const renderTableCourses = (data) => {
     return;
   }
 
+  // Helper Toggle Desktop
+  const getToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex align-items-center justify-content-center">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleCourse(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+    </div>`;
+  };
+
+  // Helper Toggle Mobile
+  const getMobileToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex flex-column align-items-end">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleCourse(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <div class="status-text-course-${id} mt-1">${statusBadge}</div>
+    </div>`;
+  };
+
   // DESKTOP
   let desktopRows = data
     .map((item) => {
       let ageLabel = "Livre";
       if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
       else if (item.min_age) ageLabel = `A partir de ${item.min_age} anos`;
-
-      const toggleHtml = window.renderToggle
-        ? window.renderToggle(item.course_id, item.is_active, "toggleCourse")
-        : `<div class="form-check form-switch d-flex justify-content-center"><input class="form-check-input" type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)"></div>`;
 
       return `
         <tr>
@@ -133,7 +207,7 @@ const renderTableCourses = (data) => {
                 </span>
             </td>
             <td class="text-center align-middle">
-                ${toggleHtml}
+                ${getToggleHtml(item.course_id, item.is_active)}
             </td>
             <td class="text-end align-middle pe-3">
                 <button onclick="openAudit('education.courses', ${item.course_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
@@ -147,25 +221,30 @@ const renderTableCourses = (data) => {
   // MOBILE
   let mobileRows = data
     .map((item) => {
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.course_id, item.is_active, "toggleCourse") : `<div class="form-check form-switch"><input class="form-check-input" type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)"></div>`;
-      const statusText = item.is_active ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
+      let ageLabel = "Livre";
+      if (item.min_age && item.max_age) ageLabel = `${item.min_age}-${item.max_age} anos`;
+      else if (item.min_age) ageLabel = `+${item.min_age} anos`;
 
       return `
         <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                     <div class="fw-bold fs-6 mb-1">${item.name}</div>
-                    <div class="badge bg-light text-secondary border">${item.total_workload_hours || 0}h</div>
-                    <div class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 ms-1">${item.subjects_count || 0} Matérias</div>
+                    <div class="small text-muted mb-2">${ageLabel}</div>
+                    <div class="d-flex gap-2">
+                        <div class="badge bg-light text-secondary border">${item.total_workload_hours || 0}h</div>
+                        <div class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">${item.subjects_count || 0} Matérias</div>
+                    </div>
                 </div>
-                <div class="d-flex align-items-center">
-                  ${toggleHtml}${statusText}
+                <div>
+                    ${getMobileToggleHtml(item.course_id, item.is_active)}
                 </div>
             </div>
-            <div class="mobile-actions">
+            
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
                 <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id})"><i class="fas fa-bolt"></i></button>
                 <button class="btn-icon-action" onclick="modalCurso(${item.course_id})"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action delete" onclick="deleteCourse(${item.course_id})"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })
@@ -230,7 +309,6 @@ const loadCourseData = async (id) => {
       $("#total_workload").val(d.total_workload_hours);
 
       currentCurriculumList = d.curriculum || [];
-      // Garante que 'plans' seja array
       currentCurriculumList.forEach((item) => {
         if (!Array.isArray(item.plans)) item.plans = [];
       });
@@ -349,7 +427,6 @@ const renderCurriculumTable = () => {
     const btnClass = plansCount > 0 ? "btn-primary" : "btn-outline-secondary";
     const infoText = plansCount > 0 ? `<div class="mt-1 small text-success fw-bold"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas planejadas</div>` : `<div class="mt-1 small text-muted fst-italic opacity-75">Sem planejamento</div>`;
 
-    // Visual Clean sem bordas laterais
     container.append(`
         <tr class="align-middle border-bottom">
             <td class="ps-3 border-0 py-3">
@@ -450,7 +527,6 @@ const renderAccordionList = () => {
     el.addEventListener("hide.bs.collapse", function () {
       $(this).prev().find(".fa-chevron-up").removeClass("fa-chevron-up").addClass("fa-chevron-down");
       const textarea = this.querySelector(".summernote-dynamic");
-      const idx = $(textarea).data("index");
       if ($(textarea).next(".note-editor").length > 0) {
         window.saveActiveSummernote();
         $(textarea).summernote("destroy");
@@ -553,23 +629,19 @@ window.updatePlanTitle = (index, value) => {
 window.exportPlansXlsx = async () => {
   const item = currentCurriculumList[editingCurriculumIndex];
 
-  // Validação
   if (!item.plans || item.plans.length === 0) {
     return window.alertDefault("Não há planos de aula para exportar.", "warning");
   }
 
   try {
-    // 1. Cria o Workbook e a Planilha
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Planos de Aula");
 
-    // 2. Define as Colunas
     worksheet.columns = [
       { header: "Título do Encontro", key: "title", width: 40 },
-      { header: "Conteúdo (HTML)", key: "content", width: 100 }, // HTML fica como texto puro para reimportação
+      { header: "Conteúdo (HTML)", key: "content", width: 100 },
     ];
 
-    // 3. Adiciona os Dados
     item.plans.forEach((plan) => {
       worksheet.addRow({
         title: plan.title,
@@ -577,21 +649,18 @@ window.exportPlansXlsx = async () => {
       });
     });
 
-    // 4. Estiliza o Cabeçalho (Opcional, mas fica bonito)
     const headerRow = worksheet.getRow(1);
     headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
     headerRow.fill = {
       type: "pattern",
       pattern: "solid",
-      fgColor: { argb: "FF4e73df" }, // Cor primária do seu tema (Azul)
+      fgColor: { argb: "FF4e73df" },
     };
     headerRow.alignment = { vertical: "middle", horizontal: "center" };
 
-    // 5. Gera o Buffer e Salva com FileSaver
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 
-    // Nome do arquivo limpo
     const safeName = item.subject_name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
     saveAs(blob, `planejamento_${safeName}.xlsx`);
 
@@ -602,21 +671,17 @@ window.exportPlansXlsx = async () => {
   }
 };
 
-// Gatilho do Input File
 window.importPlansXlsx = () => {
-  $("#importFileXlsx").val(""); // Limpa seleção anterior
+  $("#importFileXlsx").val("");
   $("#importFileXlsx").click();
 };
 
-// Listener do Input File (Processamento)
 $("#importFileXlsx").on("change", async function (e) {
   const file = e.target.files[0];
   if (!file) return;
 
   try {
     const reader = new FileReader();
-
-    // ExcelJS precisa de ArrayBuffer
     reader.readAsArrayBuffer(file);
 
     reader.onload = async (e) => {
@@ -625,21 +690,16 @@ $("#importFileXlsx").on("change", async function (e) {
 
       await workbook.xlsx.load(buffer);
 
-      // Pega a primeira aba
       const worksheet = workbook.getWorksheet(1);
       if (!worksheet) throw new Error("Planilha inválida ou vazia.");
 
       const newPlans = [];
 
-      // Itera sobre as linhas (ExcelJS começa índice em 1)
       worksheet.eachRow((row, rowNumber) => {
-        // Pula o cabeçalho (linha 1)
         if (rowNumber > 1) {
-          // Tenta ler texto ou value (segurança contra células ricas)
           const cellTitle = row.getCell(1).value;
           const cellContent = row.getCell(2).value;
 
-          // Normaliza para string
           const titleStr = cellTitle ? String(cellTitle) : `Encontro ${rowNumber - 1}`;
           const contentStr = cellContent ? String(cellContent) : "";
 
@@ -651,7 +711,6 @@ $("#importFileXlsx").on("change", async function (e) {
       });
 
       if (newPlans.length > 0) {
-        // Pergunta ao usuário como prosseguir
         Swal.fire({
           title: "Importar Excel",
           html: `Encontrados <b>${newPlans.length}</b> encontros.<br>Como deseja prosseguir?`,
@@ -665,17 +724,14 @@ $("#importFileXlsx").on("change", async function (e) {
           cancelButtonText: "Cancelar",
         }).then((r) => {
           if (r.isConfirmed) {
-            // Substituir
             currentCurriculumList[editingCurriculumIndex].plans = newPlans;
             renderAccordionList();
             window.alertDefault("Planejamento substituído!", "success");
           } else if (r.isDenied) {
-            // Adicionar (Merge)
             currentCurriculumList[editingCurriculumIndex].plans = currentCurriculumList[editingCurriculumIndex].plans.concat(newPlans);
             renderAccordionList();
             window.alertDefault("Planos adicionados ao final!", "success");
           }
-          // Se cancelar, não faz nada
           $("#importFileXlsx").val("");
         });
       } else {
@@ -689,7 +745,6 @@ $("#importFileXlsx").on("change", async function (e) {
   }
 });
 
-// Outros
 window.closeTemplateModal = () => {
   window.saveActiveSummernote();
   $(".accordion-collapse.show").collapse("hide");
@@ -736,21 +791,6 @@ window.salvarCurso = async () => {
       window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Curso');
     }
   }, 300);
-};
-
-window.toggleCourse = async (id, element) => {
-  if (window.handleToggle) {
-    window.handleToggle("toggleCourse", id, element, "Status atualizado.");
-  } else {
-    const $chk = $(element);
-    try {
-      await window.ajaxValidator({ validator: "toggleCourse", token: defaultApp.userInfo.token, id: id, active: $chk.is(":checked") });
-      window.alertDefault("Status atualizado.");
-      getCursos();
-    } catch (e) {
-      $chk.prop("checked", !$chk.is(":checked"));
-    }
-  }
 };
 
 window.deleteCourse = (id) => {

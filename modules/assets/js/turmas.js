@@ -10,6 +10,62 @@ const defaultClass = {
 
 let currentSchedules = [];
 
+// =========================================================
+// FUNÇÃO AUXILIAR DE TOGGLE (COM SPINNER E BADGE)
+// =========================================================
+
+const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
+  const $chk = $(element);
+  const $wrapper = $chk.closest(".form-check");
+  const $loader = $wrapper.find(".toggle-loader");
+  const $labels = $(labelSelector);
+  const status = $chk.is(":checked");
+
+  // Define os estados visuais (Feedback Imediato com Badge)
+  const setVisualState = (isActive) => {
+    if (isActive) {
+      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
+    } else {
+      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
+    }
+  };
+
+  try {
+    // 1. Bloqueia e mostra loader
+    $chk.prop("disabled", true);
+    $loader.removeClass("d-none");
+
+    // 2. Atualiza visualmente (Otimista)
+    setVisualState(status);
+
+    // 3. Chamada API
+    const result = await window.ajaxValidator({
+      validator: validator,
+      token: defaultApp.userInfo.token,
+      id: id,
+      active: status,
+    });
+
+    if (result.status) {
+      window.alertDefault(successMsg, "success");
+    } else {
+      throw new Error(result.alert || "Erro ao atualizar");
+    }
+  } catch (e) {
+    console.error(e);
+    // Reverte estado
+    $chk.prop("checked", !status);
+    setVisualState(!status);
+    window.alertDefault(e.message || "Erro de conexão.", "error");
+  } finally {
+    // 4. Libera
+    $chk.prop("disabled", false);
+    $loader.addClass("d-none");
+  }
+};
+
+window.toggleTurma = (id, element) => handleToggle("toggleClass", id, element, "Status atualizado.", `.status-text-turma-${id}`);
+
 $(document).ready(() => {
   initSelects();
 
@@ -101,6 +157,33 @@ const renderTableClasses = (data) => {
         </div>`;
   };
 
+  // Helper Toggle Desktop
+  const getToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex align-items-center justify-content-center">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleTurma(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+    </div>`;
+  };
+
+  // Helper Toggle Mobile
+  const getMobileToggleHtml = (id, active) => {
+    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+
+    return `
+    <div class="d-flex flex-column align-items-end">
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleTurma(${id}, this)" style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+        </div>
+        <div class="status-text-turma-${id} mt-1">${statusBadge}</div>
+    </div>`;
+  };
+
   // =========================================================
   // 1. VISÃO DESKTOP (TABELA)
   // =========================================================
@@ -116,7 +199,6 @@ const renderTableClasses = (data) => {
       }
 
       const isActive = item.is_active === true || item.is_active === "t";
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.class_id, isActive, "toggleTurma") : `<input type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)">`;
 
       return `
         <tr>
@@ -137,7 +219,9 @@ const renderTableClasses = (data) => {
                 </div>
             </td>
             <td class="text-center align-middle d-flex justify-content-center">${getProgressHtml(item.enrolled_count, item.max_capacity)}</td>
-            <td class="text-center align-middle">${toggleHtml}</td>
+            <td class="text-center align-middle">
+                ${getToggleHtml(item.class_id, isActive)}
+            </td>
             <td class="text-end align-middle pe-3">
                 <button onclick="openAudit('education.classes', ${item.class_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
                 <button onclick="modalTurma(${item.class_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
@@ -153,26 +237,28 @@ const renderTableClasses = (data) => {
   let mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-      // Toggle simplificado
-      const toggleHtml = window.renderToggle ? window.renderToggle(item.class_id, isActive, "toggleTurma") : `<input type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)">`;
-      const statusText = isActive ? '<span class="text-success small fw-bold ms-2">Ativa</span>' : '<span class="text-muted small fw-bold ms-2">Inativa</span>';
 
       return `
         <div class="mobile-card p-3 mb-3 border rounded shadow-sm">
             
-            <div class="mb-3">
-                <div class="fw-bold fs-6">${item.name}</div>
-                <div class="small text-primary">${item.course_name}</div>
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="fw-bold fs-6">${item.name}</div>
+                    <div class="small text-primary">${item.course_name}</div>
+                </div>
+                <div>
+                    ${getMobileToggleHtml(item.class_id, isActive)}
+                </div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded border">
-                <div class="d-flex align-items-center text-muted small">
+            <div class="mb-3 p-2 rounded border">
+                <div class="d-flex align-items-center text-muted small mb-1">
                     <i class="fas fa-clock me-2 text-secondary"></i> 
                     ${item.schedule_summary || "Sem horário"}
                 </div>
-                <div class="d-flex align-items-center">
-                    ${toggleHtml}
-                    ${statusText}
+                <div class="d-flex align-items-center text-muted small">
+                    <i class="fas fa-user-tie me-2 text-secondary"></i> 
+                    ${item.coordinator_name || "Sem coordenador"}
                 </div>
             </div>
             
@@ -596,7 +682,6 @@ window.addHistoryItem = async () => {
     if (result.status) {
       $("#hist_obs").val("");
       loadEnrollmentHistory(eid);
-      // Atualiza a lista de alunos atrás do modal para refletir novo status
       if ($("#class_id").val()) loadClassStudents($("#class_id").val());
     } else {
       window.alertDefault(result.alert, "error");
@@ -627,7 +712,7 @@ window.deleteHistoryItem = (historyId, enrollmentId) => {
 };
 
 // =========================================================
-// 8. HELPERS E INICIALIZAÇÃO (BLINDAGEM DO UNDEFINED)
+// 8. HELPERS E INICIALIZAÇÃO
 // =========================================================
 
 const initSelects = () => {
@@ -641,7 +726,6 @@ const initSelects = () => {
   ];
 
   selects.forEach((s) => {
-    // CORREÇÃO CRÍTICA: Verifica se o elemento EXISTE (length > 0) ANTES de inicializar
     if ($(s.id).length && !$(s.id)[0].selectize) {
       $(s.id).selectize({
         valueField: s.val === "getLocations" ? "location_id" : "id",
@@ -655,17 +739,6 @@ const initSelects = () => {
       });
     }
   });
-};
-
-window.toggleTurma = async (id, element) => {
-  const $chk = $(element);
-  try {
-    await window.ajaxValidator({ validator: "toggleClass", token: defaultApp.userInfo.token, id: id, active: $chk.is(":checked") });
-    window.alertDefault("Status atualizado.");
-    getTurmas();
-  } catch (e) {
-    $chk.prop("checked", !$chk.is(":checked"));
-  }
 };
 
 window.deleteTurma = (id) => {
