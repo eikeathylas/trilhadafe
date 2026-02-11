@@ -88,19 +88,19 @@
                 </ol>
             </nav>
 
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card border-0 shadow-sm mb-4" style="margin: 3px; border-radius: 10px;">
                 <div class="card-body py-3">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">1. Selecione a Turma</label>
+                    <div class="row g-2 g-md-3 align-items-end justify-content-center">
+                        <div class="col-12 col-md-5">
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">1. Selecione a Turma</label>
                             <select id="sel_filter_class" class="form-control" placeholder="Buscando turmas..."></select>
                         </div>
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">2. Selecione a Disciplina</label>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">2. Selecione a Disciplina</label>
                             <select id="sel_filter_subject" class="form-control" disabled placeholder="Primeiro selecione a turma..."></select>
                         </div>
-                        <div class="col-md-2">
-                            <button id="btn_new_session" class="btn btn-success w-100 shadow-sm" disabled onclick="openSessionModal()">
+                        <div class="col-12 col-md-2">
+                            <button id="btn_new_session" class="btn btn-success w-100 shadow-sm d-flex align-items-center justify-content-center" disabled onclick="openSessionModal()">
                                 <i class="fas fa-plus me-2"></i> Lançar Aula
                             </button>
                         </div>

@@ -2435,3 +2435,85 @@ canvas {
 [data-bs-theme="dark"] .flatpickr-time .flatpickr-time-separator {
   color: #e9ecef !important;
 }
+
+/* ============================================================
+   OTIMIZAÇÃO MOBILE GLOBAL (DENSIDADE & USABILIDADE)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* 1. Redução de Fonte Global */
+  body {
+    font-size: 0.85rem; /* ~13.5px */
+  }
+
+  h6,
+  .h6 {
+    font-size: 0.95rem;
+  }
+
+  /* 2. Compactação de Cards e Tabelas */
+  .card-body {
+    padding: 0.75rem !important; /* Menos espaço interno */
+  }
+
+  .table-custom td,
+  .table-custom th {
+    padding: 8px 10px !important; /* Células mais apertadas */
+  }
+
+  /* 3. Cards Mobile (Estilo Híbrido) */
+  .mobile-card {
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background-color: var(--white);
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  }
+
+  [data-theme="escuro"] .mobile-card {
+    background-color: var(--fundo);
+    border-color: var(--borda);
+  }
+
+  /* 4. Linhas de Detalhe (Label: Valor) */
+  .mobile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .mobile-label {
+    font-weight: 600;
+    color: var(--descricao);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  /* 5. Ações Mobile (Botões Maiores para o Dedo) */
+  .mobile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid var(--borda);
+  }
+
+  .btn-mobile-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background-color: rgba(0, 0, 0, 0.03);
+    border: 1px solid transparent;
+    color: var(--black);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  [data-theme="escuro"] .btn-mobile-action {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--white);
+  }
+}

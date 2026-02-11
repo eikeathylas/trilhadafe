@@ -176,23 +176,22 @@ const renderTableHistory = (data) => {
     container.html(`<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-book-open fa-3x mb-3"></i><p>Nenhuma aula registrada.</p></div>`);
     return;
   }
-  let rows = data
+
+  // =========================================================
+  // DESKTOP (Tabela Completa)
+  // =========================================================
+  let desktopRows = data
     .map((item) => {
-      // Formatação da Data (Ignora Hora)
-      let dateFmt = item.session_date;
-      // Se vier com hora (YYYY-MM-DD HH:MM:SS), limpa
-      if (dateFmt.includes(" ")) dateFmt = dateFmt.split(" ")[0];
-      if (dateFmt.includes("T")) dateFmt = dateFmt.split("T")[0];
-
-      const rawIsoDate = dateFmt; // YYYY-MM-DD
-      dateFmt = dateFmt.split("-").reverse().join("/"); // DD/MM/YYYY
-
+      // (Lógica existente mantida para Desktop)
+      let dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
+      const rawIsoDate = item.session_date.split(" ")[0];
       const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
       const summary = cleanDesc.length > 30 ? cleanDesc.substring(0, 30) + "..." : cleanDesc;
       const total = parseInt(item.total_students);
       const present = parseInt(item.present_count);
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       let progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
+
       return `
         <tr>
           <td class="align-middle ps-3" width="60">
@@ -201,12 +200,8 @@ const renderTableHistory = (data) => {
             </div>
           </td>
           <td class="align-middle">
-            <div class="fw-bold">
-              ${dateFmt}
-            </div>
-            <div class="small text-muted">
-              ${summary || "Sem descrição"}
-            </div>
+            <div class="fw-bold">${dateFmt}</div>
+            <div class="small text-muted">${summary || "Sem descrição"}</div>
           </td>
           <td class="align-middle text-center" width="180">
             <div class="d-flex flex-column align-items-center">
@@ -218,41 +213,91 @@ const renderTableHistory = (data) => {
           </td>
           <td class="text-end align-middle pe-3">
             <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
-            <button class="btn-icon-action" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i>
-            </button><button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            <button class="btn-icon-action" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
+            <button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
           </td>
         </tr>`;
     })
     .join("");
-  container.html(`<table class="table-custom"><thead><tr><th colspan="2" class="ps-3">Data / Conteúdo</th><th class="text-center">Frequência</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);
+
+  const desktopHtml = `<div class="d-none d-md-block table-responsive">
+                        <table class="table-custom">
+                            <thead><tr><th colspan="2" class="ps-3">Data / Conteúdo</th><th class="text-center">Frequência</th><th class="text-end pe-4">Ações</th></tr></thead>
+                            <tbody>${desktopRows}</tbody>
+                        </table>
+                       </div>`;
+
+  // =========================================================
+  // MOBILE (Cards Compactos)
+  // =========================================================
+  let mobileRows = data
+    .map((item) => {
+      let dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
+      const rawIsoDate = item.session_date.split(" ")[0];
+      const total = parseInt(item.total_students);
+      const present = parseInt(item.present_count);
+      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+
+      // Cor do texto da frequência
+      let freqClass = pct < 70 ? "text-danger" : pct < 90 ? "text-warning" : "text-success";
+
+      return `
+        <div class="mobile-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="fw-bold fs-6"><i class="far fa-calendar-alt me-2 text-primary"></i>${dateFmt}</div>
+                <div class="fw-bold ${freqClass}">${pct}% <small class="text-muted">Presentes</small></div>
+            </div>
+            
+            <div class="mobile-actions ">
+              <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
+              <button class="btn-icon-action" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
+              <button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
+  const mobileHtml = `<div class="d-md-none">${mobileRows}</div>`;
+
+  container.html(desktopHtml + mobileHtml);
   _generatePaginationButtons("pagination-diario", "currentPage", "totalPages", "changePage", defaultDiary);
 };
 
 // =========================================================
-// 3. MODAL E LÓGICA DE DATA (FIXED DISABLED STATE)
+// 3. MODAL E LÓGICA DE DATA (FIXED JS ERROR & DISABLED STATE)
 // =========================================================
 
 window.openSessionModal = async (sessionId = null, dateStr = null) => {
   diarioState.sessionId = sessionId;
 
-  // 1. Reset UI e Bloqueio Inicial
   const $dateInput = $("#diario_date");
+  const $editor = $("#diario_content"); // Referência cacheada
 
-  // Limpa e desabilita enquanto carrega
+  // 1. Reset UI e Limpeza Segura
   $dateInput.val("").prop("disabled", true);
 
-  // Destrói editor e flatpickr antigos
-  $("#diario_content").summernote("destroy");
-  $("#diario_content").val("");
-  $("#lista-alunos").html('<div class="text-center py-5"><span class="loader"></span></div>');
   $("#date-status-icon").empty();
   $("#date-msg").text("");
+  $("#lista-alunos").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
+  // Destroy Flatpickr (Seguro)
   if (fpInstance) {
     fpInstance.destroy();
     fpInstance = null;
   }
 
+  // Destroy Summernote (BLINDADO)
+  // Só tenta destruir se o editor visual já existir, evitando o erro "ownerDocument is null"
+  if ($editor.next(".note-editor").length > 0) {
+    try {
+      $editor.summernote("destroy");
+    } catch (e) {
+      console.warn("Summernote cleanup:", e);
+    }
+  }
+  $editor.val("").hide(); // Reseta o textarea original
+
+  // Abre o Modal
   $("#modalSession").modal("show");
 
   // 2. Carrega Metadados do Backend
@@ -278,10 +323,9 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
         if (!enableDates.includes(currentDate)) enableDates.push(currentDate);
       }
 
-      // [CORREÇÃO CRÍTICA]: Habilita o input ANTES de criar o Flatpickr
-      // Isso garante que o input "clone" (altInput) nasça habilitado.
+      // Habilita o input ANTES de criar o Flatpickr (Evita bug do disabled)
       $dateInput.prop("disabled", false);
-      $dateInput.removeAttr("disabled"); // Garante remoção do atributo HTML
+      $dateInput.removeAttr("disabled");
 
       // Inicializa Flatpickr
       fpInstance = flatpickr("#diario_date", {
@@ -290,7 +334,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
         altInput: true,
         altFormat: "d/m/Y",
         locale: "pt",
-        allowInput: true, // Permite digitação manual se necessário
+        allowInput: true,
         minDate: resMeta.data.min_date,
         maxDate: resMeta.data.max_date,
         enable: enableDates,
@@ -313,11 +357,9 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
         onChange: function (selectedDates, dateStr, instance) {
           checkDateLogic(dateStr);
         },
-        // Callback extra para garantir que o input visual não fique travado
         onReady: function (selectedDates, dateStr, instance) {
           if (instance.altInput) {
             instance.altInput.disabled = false;
-            // Ajuste visual para parecer editável no modo noturno
             instance.altInput.style.backgroundColor = "";
           }
         },
@@ -336,7 +378,10 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
     window.alertDefault("Erro de conexão.", "error");
   }
 
-  $("#diario_content").summernote(summernoteConfig);
+  // Inicializa Summernote (Ao final de tudo, garantindo que o DOM está pronto)
+  if ($editor.length) {
+    $editor.summernote(summernoteConfig);
+  }
 };
 
 const checkDateLogic = async (dateStr) => {
