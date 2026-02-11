@@ -155,7 +155,7 @@ const renderTablePeople = (data) => {
       } else {
         const nameParts = item.full_name.trim().split(" ");
         const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-        avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px;">${initials}</div>`;
+        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px;">${initials}</div>`;
       }
 
       // Badges de Funções
@@ -228,7 +228,7 @@ const renderTablePeople = (data) => {
       } else {
         const nameParts = item.full_name.trim().split(" ");
         const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-        avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border fw-bold fs-5" style="width:50px; height:50px;">${initials}</div>`;
+        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold fs-5" style="width:50px; height:50px;">${initials}</div>`;
       }
 
       // Roles Mobile

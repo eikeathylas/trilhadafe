@@ -232,7 +232,7 @@ function renderAniversariantes(aniversariantes) {
     } else {
       const nameParts = pessoa.name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-      avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px; margin: 0 10px 0 0;">${initials}</div>`;
+      avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px; margin: 0 10px 0 0;">${initials}</div>`;
     }
     const html = `
             <li class="list-group-item d-flex align-items-center px-3 py-2">

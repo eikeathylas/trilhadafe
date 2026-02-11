@@ -505,64 +505,90 @@ const renderStudents = () => {
 
   let html = "";
 
-  // DESKTOP
-  html += `<div class="d-none d-md-block table-responsive"><table class="table table-hover align-middle table-custom"><thead><tr><th width="50" class="ps-3">Foto</th><th>Nome</th><th class="text-center" width="80">Presença</th><th>Motivo / Justificativa</th></tr></thead><tbody>`;
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA)
+  // =========================================================
+  html += `
+    <div class="d-none d-md-block table-responsive">
+        <table class="table table-hover align-middle table-custom">
+            <thead>
+                <tr>
+                    <th width="50" class="ps-3">Foto</th>
+                    <th>Nome</th>
+                    <th class="text-center" width="200">Presença / Status</th>
+                    <th>Motivo / Justificativa</th>
+                </tr>
+            </thead>
+            <tbody>`;
 
   students.forEach((std, idx) => {
+    const nameParts = std.full_name.trim().split(" ");
+    const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
     let avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover; cursor:pointer;" onclick="zoomAvatar('${std.profile_photo_url}')">`
-      : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold" style="width:35px; height:35px;">${std.full_name.charAt(0)}</div>`;
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover;">`
+      : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold" style="width:35px; height:35px; font-size:12px;">${initials}</div>`;
 
-    // Layout Condicional
-    const visibilityClass = std.is_present ? "d-none" : "";
+    const isP = std.is_present;
+    const statusBadge = isP ? `<span class="badge bg-success-subtle text-success border border-success status-label-${idx}">Presente</span>` : `<span class="badge bg-danger-subtle text-danger border border-danger status-label-${idx}">Faltou</span>`;
 
     html += `
             <tr>
                 <td class="ps-3">${avatarHtml}</td>
                 <td class="fw-bold small">${std.full_name}</td>
                 <td class="text-center">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input toggleSwitch" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input toggleSwitch" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
+                        </div>
+                        <div class="status-container-${idx}">${statusBadge}</div>
                     </div>
                 </td>
                 <td>
-                    <div id="just-area-${idx}" class="d-flex gap-2 ${visibilityClass}">
-                        <select class="form-select form-select-sm" style="width: 130px; flex-shrink: 0;" onchange="updateAbsenceType(${idx}, this.value)">
+                    <div id="just-area-${idx}" class="d-flex gap-2 ${isP ? "d-none" : ""}">
+                        <select class="form-select form-select-sm" style="width: 120px;" onchange="updateAbsenceType(${idx}, this.value)">
                             <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justif.</option>
                             <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
                             <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
                         </select>
-                        <input type="text" class="form-control form-control-sm flex-grow-1" style="width: 130px;"  value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
+                        <input type="text" class="form-control form-control-sm flex-grow-1" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
                     </div>
                 </td>
             </tr>`;
   });
   html += `</tbody></table></div>`;
 
-  // MOBILE
+  // =========================================================
+  // 2. VISÃO MOBILE (CARDS COM TOGGLE NO TOPO E LEGENDA ABAIXO)
+  // =========================================================
   html += `<div class="d-md-none d-flex flex-column gap-2">`;
-  students.forEach((std, idx) => {
-    let avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:45px; height:45px; object-fit:cover;">`
-      : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:45px; height:45px;">${std.full_name.charAt(0)}</div>`;
 
-    const visibilityClass = std.is_present ? "d-none" : "";
+  students.forEach((std, idx) => {
+    const nameParts = std.full_name.trim().split(" ");
+    const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+    let avatarHtml = std.profile_photo_url
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover; cursor:pointer;" onclick="zoomAvatar('${std.profile_photo_url}')">`
+      : `<div class="rounded-circle bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:45px; height:45px;">${initials}</div>`;
+
+    const isP = std.is_present;
+    const statusBadge = isP ? `<span class="badge bg-success-subtle text-success border border-success status-label-${idx}">Presente</span>` : `<span class="badge bg-danger-subtle text-danger border border-danger status-label-${idx}">Faltou</span>`;
 
     html += `
-            <div class="card border shadow-sm p-2">
-                <div class="d-flex align-items-center">
-                    <div class="me-3">${avatarHtml}</div>
-                    <div class="flex-grow-1">
-                        <div class="fw-bold small mb-1">${std.full_name}</div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="small text-muted">Presença</span>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" ${std.is_present ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
-                            </div>
+            <div class="mobile-card p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">${avatarHtml}</div>
+                        <div class="fw-bold small">${std.full_name}</div>
+                    </div>
+                    
+                    <div class="d-flex flex-column align-items-end">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
                         </div>
+                        <div class="status-container-${idx} mt-1">${statusBadge}</div>
                     </div>
                 </div>
-                <div class="mt-2 ${visibilityClass}" id="just-box-mob-${idx}">
+                
+                <div id="just-box-mob-${idx}" class="mt-2 p-2 bg-light rounded ${isP ? "d-none" : ""}">
                     <select class="form-select form-select-sm mb-2 w-100" onchange="updateAbsenceType(${idx}, this.value)">
                         <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
                         <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
@@ -577,16 +603,20 @@ const renderStudents = () => {
   container.html(html);
 };
 
+// Função de atualização aprimorada para sincronizar as badges
 window.updateAttendance = (idx, isPresent) => {
   diarioState.currentStudents[idx].is_present = isPresent;
 
-  // Toggle Visual
+  // Atualiza as Badges em ambos (Desktop e Mobile)
+  const newBadge = isPresent ? `<span class="badge bg-success-subtle text-success border border-success status-label-${idx}">Presente</span>` : `<span class="badge bg-danger-subtle text-danger border border-danger status-label-${idx}">Faltou</span>`;
+
+  $(`.status-container-${idx}`).html(newBadge);
+
+  // Toggle das áreas de justificativa
   if (isPresent) {
-    $(`#just-area-${idx}`).addClass("d-none");
-    $(`#just-box-mob-${idx}`).addClass("d-none");
+    $(`#just-area-${idx}, #just-box-mob-${idx}`).addClass("d-none");
   } else {
-    $(`#just-area-${idx}`).removeClass("d-none");
-    $(`#just-box-mob-${idx}`).removeClass("d-none");
+    $(`#just-area-${idx}, #just-box-mob-${idx}`).removeClass("d-none");
   }
 };
 
