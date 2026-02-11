@@ -66,7 +66,7 @@ const getCursos = async () => {
       limit: defaultCourse.rowsPerPage,
       page: page * defaultCourse.rowsPerPage,
       search: search,
-      org_id: localStorage.getItem("tf_active_parish")
+      org_id: localStorage.getItem("tf_active_parish"),
     });
 
     if (result.status) {
@@ -100,7 +100,8 @@ const renderTableCourses = (data) => {
     return;
   }
 
-  let rows = data
+  // DESKTOP
+  let desktopRows = data
     .map((item) => {
       let ageLabel = "Livre";
       if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
@@ -143,20 +144,38 @@ const renderTableCourses = (data) => {
     })
     .join("");
 
-  // Estrutura table-custom para manter o padrão animado
+  // MOBILE
+  let mobileRows = data
+    .map((item) => {
+      const toggleHtml = window.renderToggle ? window.renderToggle(item.course_id, item.is_active, "toggleCourse") : `<div class="form-check form-switch"><input class="form-check-input" type="checkbox" ${item.is_active ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)"></div>`;
+
+      return `
+        <div class="mobile-card p-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="fw-bold fs-6 mb-1">${item.name}</div>
+                    <div class="badge bg-light text-secondary border">${item.total_workload_hours || 0}h</div>
+                    <div class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 ms-1">${item.subjects_count || 0} Matérias</div>
+                </div>
+                <div>${toggleHtml}</div>
+            </div>
+            <div class="mobile-actions">
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id})"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action" onclick="modalCurso(${item.course_id})"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
   container.html(`
-    <table class="table-custom">
-        <thead>
-            <tr>
-                <th colspan="2" class="ps-3">Curso</th>
-                <th class="text-center">Carga Horária</th>
-                <th class="text-center">Grade</th>
-                <th class="text-center">Ativo</th>
-                <th class="text-end pe-4">Ações</th>
-            </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-    </table>
+    <div class="d-none d-md-block table-responsive">
+        <table class="table-custom">
+            <thead><tr><th colspan="2" class="ps-3">Curso</th><th class="text-center">Carga Horária</th><th class="text-center">Grade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead>
+            <tbody>${desktopRows}</tbody>
+        </table>
+    </div>
+    <div class="d-md-none">${mobileRows}</div>
   `);
 
   _generatePaginationButtons("pagination-cursos", "currentPage", "totalPages", "getCursos", defaultCourse);
