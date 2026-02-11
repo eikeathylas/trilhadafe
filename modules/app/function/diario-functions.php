@@ -1,39 +1,44 @@
 <?php
 
-// =========================================================
-// DIÁRIO DE CLASSE (MODEL V5.9 - DYNAMIC ORG)
-// =========================================================
-
-/**
- * 1. Lista as turmas disponíveis para o usuário logado
- */
-function getTeacherClassesF($userId, $roleLevel, $yearId = null)
+function getTeacherClassesF($userId, $roleLevel, $yearId, $orgId)
 {
     try {
         $conect = $GLOBALS["local"];
         $yearFilter = "";
-        $params = [];
 
+        // Parâmetros base obrigatórios
+        $params = [
+            'oid' => $orgId
+        ];
+
+        // Filtro de Ano (Opcional ou Obrigatório dependendo do fluxo)
         if (!empty($yearId)) {
             $yearFilter = "AND c.academic_year_id = :yid";
             $params['yid'] = $yearId;
         } else {
+            // Se não vier ano, pega os ativos (fallback)
             $yearFilter = "AND ay.is_active IS TRUE";
         }
 
         $superUsers = ['ADMIN', 'MANAGER', 'SECRETARY', 'DEV', 'STAFF', 'ROOT', 'PAROCO', 'COORD'];
 
         if (in_array(strtoupper($roleLevel), $superUsers)) {
+            // ADMIN: Vê todas as turmas da Org e Ano
             $sql = "SELECT c.class_id, c.name as class_name, co.name as course_name, ay.name as year_name, l.name as location_name
                     FROM education.classes c
                     JOIN education.courses co ON c.course_id = co.course_id
                     JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
                     LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
-                    WHERE c.deleted IS FALSE AND c.status = 'ACTIVE' $yearFilter
+                    WHERE c.deleted IS FALSE 
+                    AND c.status = 'ACTIVE' 
+                    AND c.org_id = :oid 
+                    $yearFilter
                     ORDER BY c.name ASC";
+
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
         } else {
+            // PROFESSOR: Vê turmas onde está vinculado na Org e Ano
             $stmtP = $conect->prepare("SELECT person_id FROM security.users WHERE user_id = :uid");
             $stmtP->execute(['uid' => $userId]);
             $personId = $stmtP->fetchColumn();
@@ -41,15 +46,20 @@ function getTeacherClassesF($userId, $roleLevel, $yearId = null)
             if (!$personId) return success("Nenhuma turma encontrada.", []);
 
             $params['pid'] = $personId;
+
             $sql = "SELECT DISTINCT c.class_id, c.name as class_name, co.name as course_name, ay.name as year_name, l.name as location_name
                     FROM education.classes c
                     JOIN education.courses co ON c.course_id = co.course_id
                     JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
                     LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
                     LEFT JOIN education.class_schedules cs ON c.class_id = cs.class_id
-                    WHERE c.deleted IS FALSE AND c.status = 'ACTIVE' $yearFilter
+                    WHERE c.deleted IS FALSE 
+                    AND c.status = 'ACTIVE' 
+                    AND c.org_id = :oid
+                    $yearFilter
                     AND (c.coordinator_id = :pid OR c.class_assistant_id = :pid OR cs.instructor_id = :pid)
                     ORDER BY c.name ASC";
+
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
         }
@@ -60,10 +70,6 @@ function getTeacherClassesF($userId, $roleLevel, $yearId = null)
         return success("Erro ao listar.", []);
     }
 }
-
-/**
- * 2. Lista as disciplinas da turma
- */
 function getClassSubjectsF($classId)
 {
     try {
@@ -83,11 +89,6 @@ function getClassSubjectsF($classId)
     }
 }
 
-
-
-/**
- * 3. SMART LOGIC: Metadados (Grade, Datas Calculadas, Feriados e Existentes)
- */
 function getDiarioMetadataF($data)
 {
     try {
@@ -146,15 +147,14 @@ function getDiarioMetadataF($data)
             }
         }
 
-        // 3. Busca Feriados
+        // 3. Busca Feriados (Da Organização da Turma)
         $holidays = [];
-        $orgId = 2;
+        // [CORREÇÃO] Removido o ID fixo. Usa o ID obtido da turma ($classData['org_id'])
         if ($orgId && $minDate && $maxDate) {
             $sqlHol = "SELECT to_char(event_date, 'YYYY-MM-DD') as date, title 
                        FROM organization.events 
                        WHERE org_id = :oid 
                          AND event_date BETWEEN :start AND :end 
-                         --AND is_academic_blocker IS TRUE 
                          AND deleted IS FALSE";
             $stmtHol = $conect->prepare($sqlHol);
             $stmtHol->execute(['oid' => $orgId, 'start' => $minDate, 'end' => $maxDate]);
@@ -163,7 +163,7 @@ function getDiarioMetadataF($data)
             }
         }
 
-        // 4. [NOVO] Busca Registros Existentes (Diários já lançados)
+        // 4. Busca Registros Existentes (Diários já lançados)
         $existingDates = [];
         $sqlExist = "SELECT to_char(session_date, 'YYYY-MM-DD') as date 
                      FROM education.class_sessions 
@@ -174,8 +174,8 @@ function getDiarioMetadataF($data)
 
         return success("Configurações carregadas.", [
             'schedules' => $schedules,
-            'valid_dates' => $validDates,   // Dias teóricos (Grade)
-            'existing_dates' => $existingDates, // Dias com aula lançada (Real)
+            'valid_dates' => $validDates,
+            'existing_dates' => $existingDates,
             'holidays' => $holidays,
             'min_date' => $minDate ?? date('Y-01-01'),
             'max_date' => $maxDate ?? date('Y-12-31')
@@ -186,9 +186,6 @@ function getDiarioMetadataF($data)
     }
 }
 
-/**
- * 4. SMART LOGIC: Validação Final (Com Org ID dinâmico)
- */
 function checkDateContentF($data)
 {
     try {
@@ -270,10 +267,6 @@ function checkDateContentF($data)
         return failure("Erro na verificação.");
     }
 }
-
-/**
- * 5. Lista Alunos
- */
 function getStudentsForDiaryF($classId)
 {
     try {
@@ -292,9 +285,6 @@ function getStudentsForDiaryF($classId)
     }
 }
 
-/**
- * 6. Salvar Diário
- */
 function saveClassSessionF($data)
 {
     try {
@@ -356,9 +346,6 @@ function saveClassSessionF($data)
     }
 }
 
-/**
- * 7. Histórico
- */
 function getClassHistoryF($data)
 {
     try {
@@ -390,9 +377,6 @@ function getClassHistoryF($data)
     }
 }
 
-/**
- * 8. Excluir
- */
 function deleteClassSessionF($data)
 {
     try {

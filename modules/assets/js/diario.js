@@ -72,7 +72,13 @@ const initFilters = () => {
           url: defaultApp.validator,
           type: "POST",
           dataType: "json",
-          data: { validator: "getMyClasses", token: defaultApp.userInfo.token, role: defaultApp.userInfo.office, year: globalYear },
+          data: {
+            validator: "getMyClasses",
+            token: defaultApp.userInfo.token,
+            role: defaultApp.userInfo.office,
+            org_id: localStorage.getItem("tf_active_parish"),
+            year: globalYear,
+          },
           success: (res) => {
             if (res.status && res.data.length > 0) {
               callback(res.data);
@@ -177,12 +183,40 @@ const renderTableHistory = (data) => {
       const timeFmt = dateParts[1] ? dateParts[1].substring(0, 5) : "";
       const rawIsoDate = item.session_date.substring(0, 16).replace(" ", "T");
       const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
-      const summary = cleanDesc.length > 60 ? cleanDesc.substring(0, 60) + "..." : cleanDesc;
+      const summary = cleanDesc.length > 30 ? cleanDesc.substring(0, 30) + "..." : cleanDesc;
       const total = parseInt(item.total_students);
       const present = parseInt(item.present_count);
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       let progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
-      return `<tr><td class="align-middle ps-3" width="60"><div class="icon-circle bg-primary bg-opacity-10 text-primary"><span class="material-symbols-outlined">event_note</span></div></td><td class="align-middle"><div class="fw-bold text-dark">${dateFmt} <span class="small text-muted fw-normal ms-1">${timeFmt}</span></div><div class="small text-muted">${summary || "Sem descrição"}</div></td><td class="align-middle text-center" width="180"><div class="d-flex flex-column align-items-center"><small class="fw-bold text-muted mb-1">${present}/${total} Presentes (${pct}%)</small><div class="progress w-100" style="height: 6px; background-color: rgba(0,0,0,0.1);"><div class="progress-bar ${progColor}" role="progressbar" style="width: ${pct}%"></div></div></div></td><td class="text-end align-middle pe-3"><button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button><button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button><button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button></td></tr>`;
+      return `
+        <tr>
+          <td class="align-middle ps-3" width="60">
+            <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+              <span class="material-symbols-outlined">event_note</span>
+            </div>
+          </td>
+          <td class="align-middle">
+            <div class="fw-bold text-dark">
+              ${dateFmt}
+            </div>
+            <div class="small text-muted">
+              ${summary || "Sem descrição"}
+            </div>
+          </td>
+          <td class="align-middle text-center" width="180">
+            <div class="d-flex flex-column align-items-center">
+              <small class="fw-bold text-muted mb-1">${present}/${total} Presentes (${pct}%)</small>
+              <div class="progress w-100" style="height: 6px; background-color: rgba(0,0,0,0.1);">
+                <div class="progress-bar ${progColor}" role="progressbar" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          </td>
+          <td class="text-end align-middle pe-3">
+            <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
+            <button class="btn-icon-action" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i>
+            </button><button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`;
     })
     .join("");
   container.html(`<table class="table-custom"><thead><tr><th colspan="2" class="ps-3">Data / Conteúdo</th><th class="text-center">Frequência</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${rows}</tbody></table>`);

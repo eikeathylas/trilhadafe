@@ -2,9 +2,6 @@
 
 include_once "../function/diario-functions.php";
 
-// =========================================================
-// DIÁRIO DE CLASSE (CONTROLLER V5 - SMART LOGIC)
-// =========================================================
 
 function getMyClasses()
 {
@@ -26,9 +23,10 @@ function getMyClasses()
     $userId = $decoded['id_user'];
     $roleLevel = strtoupper($_POST['role'] ?? 'USER');
     $yearId = $_POST['year'] ?? null;
+    $orgId = $_POST['org_id'] ?? 0; // [NOVO] Captura o contexto da organização
 
-    // 4. Execução
-    echo json_encode(getTeacherClassesF($userId, $roleLevel, $yearId));
+    // 4. Execução (Passando orgId para filtrar as turmas corretamente)
+    echo json_encode(getTeacherClassesF($userId, $roleLevel, $yearId, $orgId));
 }
 
 function getClassSubjects()
