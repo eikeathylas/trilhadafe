@@ -55,9 +55,6 @@
             </div>
 
             <div class="card list-commanded mb-4 border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-history me-2"></i>Histórico de Aulas</h6>
-                </div>
                 <div class="card-body px-0 pt-0">
                     <div class="table-responsive list-table-diario">
                         <div class="text-center py-5 text-muted opacity-50">

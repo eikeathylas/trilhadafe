@@ -44,7 +44,7 @@
                         </li>
                         <li class="nav-item">
                             <button class="nav-link txt-theme font-weight-bold" id="locais-tab" data-bs-toggle="tab" data-bs-target="#locais" type="button">
-                                <i class="fas fa-door-open mr-2"></i> Salas e Espaços
+                                <i class="fas fa-door-open mr-2"></i> Salas/Espaços
                             </button>
                         </li>
                     </ul>

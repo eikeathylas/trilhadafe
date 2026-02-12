@@ -86,12 +86,12 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="contato-tab" data-bs-toggle="tab" data-bs-target="#tab-contato" type="button" role="tab" aria-selected="false">
-                                <i class="fas fa-map-marker-alt mr-2"></i> Contato & Endereço
+                                <i class="fas fa-map-marker-alt mr-2"></i> Contato/Endereço
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="vinculos-tab" data-bs-toggle="tab" data-bs-target="#tab-vinculos" type="button" role="tab" aria-selected="false">
-                                <i class="fas fa-users-cog mr-2"></i> Vínculos (Cargos)
+                                <i class="fas fa-users-cog mr-2"></i> Vínculos
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
