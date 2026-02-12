@@ -248,7 +248,8 @@ INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, co
 (13, 'pessoas', 'Diretório de Pessoas', 'Prontuário único.', TRUE, 'icon-user', 'PeopleController'),
 (14, 'liturgia', 'Liturgia e Missas', 'Agenda de celebrações.', TRUE, 'icon-church', 'PastoralController'),
 (15, 'eventos', 'Eventos e Festas', 'Gestão de quermesses.', TRUE, 'icon-ticket', 'EventsController'),
-(16, 'comunicacao', 'Site e App', 'Gerenciamento de notícias.', TRUE, 'icon-rss', 'CommunicationController');
+(16, 'comunicacao', 'Site e App', 'Gerenciamento de notícias.', TRUE, 'icon-rss', 'CommunicationController'),
+(17, 'relatorios', 'Relatórios', 'Análise de dados.', TRUE, 'icon-description', 'ReportsController');
 
 -- Sub-ações
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 

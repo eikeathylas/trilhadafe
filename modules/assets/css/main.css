@@ -2477,3 +2477,45 @@ body {
   background-color: var(--padrao) !important;
   color: #ffffff !important;
 }
+
+/* Cards de Relatório */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-scale {
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.hover-scale:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  border-color: var(--padrao);
+}
+
+/* Ajuste das Abas (Pills) */
+.nav-pills .nav-link {
+  color: var(--descricao);
+  background-color: var(--white);
+  border: 1px solid var(--borda);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--padrao);
+  border-color: var(--padrao);
+  color: #fff;
+}
+
+[data-theme="escuro"] .nav-pills .nav-link {
+  background-color: var(--fundo);
+  color: var(--descricao);
+}
+
+[data-theme="escuro"] .nav-pills .nav-link.active {
+  background-color: var(--padrao);
+  color: #fff;
+}

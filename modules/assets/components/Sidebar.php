@@ -54,6 +54,12 @@
                             <span class="text-only">Agenda</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="relatorios.php" class="<?= basename($_SERVER['PHP_SELF']) == 'relatorios.php' ? 'active' : '' ?>" data-tooltip="Relatórios">
+                            <span class="material-symbols-outlined icon-only">description</span>
+                            <span class="text-only">Relatórios</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
 

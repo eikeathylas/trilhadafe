@@ -6,6 +6,7 @@ header('Access-Control-Allow-Origin: *');
 include "../tools/tools.php";
 include "../database/database.php";
 
+// Controladores
 include "../controller/session-controller.php";
 include "../controller/audit-controller.php";
 include "../controller/dashboard-controller.php";
@@ -16,6 +17,7 @@ include "../controller/course-controller.php";
 include "../controller/turmas-controller.php";
 include "../controller/diario-controller.php";
 include "../controller/events-controller.php";
+include "../controller/reports-controller.php"; // <--- NOVO CONTROLADOR
 
 $validator = $_POST["validator"] ?? null;
 
@@ -211,7 +213,7 @@ switch ($validator) {
 		break;
 
 	// =========================================================
-	// MÓDULO: DIÁRIO DE CLASSE (diario.js) [ATUALIZADO]
+	// MÓDULO: DIÁRIO DE CLASSE (diario.js)
 	// =========================================================
 	case "getMyClasses":
 		getMyClasses();
@@ -222,7 +224,6 @@ switch ($validator) {
 	case "getClassHistory":
 		getClassHistory();
 		break;
-
 	case "getDiarioMetadata":
 		getDiarioMetadata();
 		break;
@@ -240,9 +241,8 @@ switch ($validator) {
 		break;
 
 	// =========================================================
-	// Eventos
+	// MÓDULO: EVENTOS
 	// =========================================================
-
 	case "getAllEvents":
 		getAllEvents();
 		break;
@@ -258,6 +258,14 @@ switch ($validator) {
 	case "toggleEventBlocker":
 		toggleEventBlocker();
 		break;
+
+	// =========================================================
+	// MÓDULO: RELATÓRIOS (relatorios.js)
+	// =========================================================
+	case "getReportData":
+		getReportData();
+		break;
+
 	// =========================================================
 	// ROTAS PADRÃO
 	// =========================================================

@@ -382,24 +382,6 @@
                             </div>
 
                             <div id="lista-anexos" class="table-responsive rounded border">
-                                <!-- <table class="table table-hover align-middle mb-0 table-custom">
-                                    <thead>
-                                        <tr>
-                                            <th class="ps-3 py-3 border-0 small opacity-75" style="width: 70px;">TIPO</th>
-                                            <th class="py-3 border-0 small opacity-75">DOCUMENTO / ARQUIVO</th>
-                                            <th class="text-center py-3 border-0 small opacity-75">DATA ENVIO</th>
-                                            <th class="text-end pe-4 py-3 border-0 small opacity-75">AÇÕES</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-anexos">
-                                        <tr>
-                                            <td colspan="4" class="text-center text-muted py-5 opacity-50">
-                                                <span class="material-symbols-outlined" style="font-size: 48px;">folder_open</span>
-                                                <p class="mt-2 mb-0">Nenhum documento anexado.</p>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table> -->
                             </div>
 
                         </div>
