@@ -55,7 +55,7 @@
                     <div class="table-responsive list-table-events">
                         <div class="text-center py-5"><span class="loader"></span></div>
                     </div>
-                    <div class="pagination paginationButtons pagination-events mt-3 text-center justify-content-center"></div>
+                    <div class="pagination paginationButtons pagination-events mt-3"></div>
                 </div>
             </div>
 
