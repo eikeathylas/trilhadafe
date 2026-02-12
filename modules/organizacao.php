@@ -16,9 +16,6 @@
     <div id="div-loader" class="div-loader d-none"><span class="loader"></span></div>
 
     <div id="sidebar-only" class="sidebar-only">
-        <div class="menu-btn-only">
-            <span class="material-symbols-outlined">chevron_left</span>
-        </div>
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
@@ -244,7 +241,7 @@
                     <div class="card bg-light border-0 mb-3 shadow-sm">
                         <div class="card-body py-2">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_diff_address" onchange="toggleLocAddress()">
+                                <input class="form-check-input" type="checkbox" id="loc_diff_address" onchange="toggleLocAddress()">
                                 <label class="form-check-label ms-2 fw-bold" for="loc_diff_address">Endereço diferente da Matriz?</label>
                             </div>
                             <div id="loc_address_block" class="mt-3 d-none">
@@ -263,76 +260,76 @@
                     <div class="row g-3">
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_ac">
+                                <input class="form-check-input" type="checkbox" id="loc_ac">
                                 <label class="form-check-label ms-1">Ar-Condicionado</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_fan">
+                                <input class="form-check-input" type="checkbox" id="loc_fan">
                                 <label class="form-check-label ms-1">Ventilador</label>
                             </div>
                         </div>
 
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_access">
+                                <input class="form-check-input" type="checkbox" id="loc_access">
                                 <label class="form-check-label ms-1">Acessibilidade</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_sacred">
+                                <input class="form-check-input" type="checkbox" id="loc_sacred">
                                 <label class="form-check-label ms-1">Altar/Sagrado</label>
                             </div>
                         </div>
 
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_wifi">
+                                <input class="form-check-input" type="checkbox" id="loc_wifi">
                                 <label class="form-check-label ms-1">Wi-Fi</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_projector">
+                                <input class="form-check-input" type="checkbox" id="loc_projector">
                                 <label class="form-check-label ms-1">Projetor/TV</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_sound">
+                                <input class="form-check-input" type="checkbox" id="loc_sound">
                                 <label class="form-check-label ms-1">Som</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_computer">
+                                <input class="form-check-input" type="checkbox" id="loc_computer">
                                 <label class="form-check-label ms-1">Computadores</label>
                             </div>
                         </div>
 
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_whiteboard">
+                                <input class="form-check-input" type="checkbox" id="loc_whiteboard">
                                 <label class="form-check-label ms-1">Lousa/Quadro</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_kitchen">
+                                <input class="form-check-input" type="checkbox" id="loc_kitchen">
                                 <label class="form-check-label ms-1">Copa/Cozinha</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_water">
+                                <input class="form-check-input" type="checkbox" id="loc_water">
                                 <label class="form-check-label ms-1">Bebedouro</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
-                                <input class="form-check-input toggleSwitch" type="checkbox" id="loc_parking">
+                                <input class="form-check-input" type="checkbox" id="loc_parking">
                                 <label class="form-check-label ms-1">Estacionamento</label>
                             </div>
                         </div>

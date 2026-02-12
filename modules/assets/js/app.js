@@ -7,6 +7,7 @@ const configTheme = (ele) => {
   let temaBoot = $("body");
 
   if (ele !== undefined) {
+    // Alternância pelo clique
     if (!themeActive || themeActive === "claro") {
       localStorage.setItem("mode", "escuro");
       temaBoot.attr("data-bs-theme", "dark").attr("data-theme", "escuro");
@@ -17,7 +18,7 @@ const configTheme = (ele) => {
       if (button.length) button.html("dark_mode");
     }
   } else {
-    // Carregamento inicial
+    // Carregamento inicial (persistência)
     if (themeActive === "escuro") {
       temaBoot.attr("data-bs-theme", "dark").attr("data-theme", "escuro");
       if (button.length) button.html("light_mode");
@@ -27,11 +28,13 @@ const configTheme = (ele) => {
     }
   }
 };
+// Executa imediatamente ao carregar
 configTheme();
 
 // =========================================================
-// 2. CONFIGURAÇÕES GLOBAIS
+// 2. CONFIGURAÇÕES GLOBAIS & UTILITÁRIOS
 // =========================================================
+
 const getUrl = () => {
   let path = window.location.pathname;
   let dir = path.substring(0, path.lastIndexOf("/"));
@@ -51,12 +54,7 @@ window.defaultApp = {
   validator: `app/validation/validation.php`,
 };
 
-// =========================================================
-// 3. UTILITÁRIOS GLOBAIS (O QUE VOCÊ PEDIU)
-// =========================================================
-
-// MÁSCARAS GLOBAIS
-// Use classes no HTML: .mask-cpf, .mask-cnpj, .mask-phone, .mask-cep
+// --- MÁSCARAS (jQuery Mask Plugin) ---
 window.initMasks = () => {
   if ($.fn.mask) {
     $(".mask-date").mask("00/00/0000");
@@ -66,7 +64,7 @@ window.initMasks = () => {
     $(".mask-cnpj").mask("00.000.000/0000-00", { reverse: true });
     $(".mask-money").mask("000.000.000,00", { reverse: true });
 
-    // Máscara dinâmica para telefone (8 ou 9 dígitos)
+    // Máscara dinâmica para celular (8 ou 9 dígitos)
     var phoneMaskBehavior = function (val) {
         return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
       },
@@ -79,7 +77,7 @@ window.initMasks = () => {
   }
 };
 
-// BOTÃO DE LOADING (Salvando...)
+// --- CONTROLE DE BOTÃO (LOADING) ---
 window.setButton = (isLoading, element, originalText = "Salvar") => {
   if (isLoading) {
     element.prop("disabled", true);
@@ -90,70 +88,58 @@ window.setButton = (isLoading, element, originalText = "Salvar") => {
   }
 };
 
-// BIBLIOTECA DE ÍCONES DE RECURSOS (Para Tabelas)
+// --- ÍCONES DE RECURSOS (USADO EM GRIDS) ---
 window.getResourceIcon = (key) => {
-  // Nota: Em Bootstrap 5, usa-se 'me-2' (margin-end) e não 'mr-2'
   const icons = {
-    // Estruturais
     ac: '<i class="fas fa-snowflake text-info me-2" title="Ar-Condicionado"></i>',
     fan: '<i class="fas fa-fan text-secondary me-2" title="Ventilador"></i>',
-    access: '<i class="fas fa-wheelchair text-primary me-2" title="Acessibilidade (PCD)"></i>',
-    sacred: '<i class="fas fa-church text-warning me-2" title="Local Sagrado / Altar"></i>',
-
-    // Equipamentos
-    wifi: '<i class="fas fa-wifi text-success me-2" title="Wi-Fi Disponível"></i>',
-    projector: '<i class="fas fa-video text-secondary me-2" title="Projetor / TV"></i>',
-    sound: '<i class="fas fa-volume-up text-danger me-2" title="Sistema de Som"></i>',
-    whiteboard: '<i class="fas fa-chalkboard text-dark me-2" title="Quadro / Lousa"></i>',
-    computer: '<i class="fas fa-desktop text-dark me-2" title="Computadores"></i>',
-
-    // Apoio
-    kitchen: '<i class="fas fa-utensils text-warning me-2" title="Cozinha / Copa"></i>',
-    water: '<i class="fas fa-tint text-info me-2" title="Bebedouro Próximo"></i>',
+    access: '<i class="fas fa-wheelchair text-primary me-2" title="Acessibilidade"></i>',
+    sacred: '<i class="fas fa-church text-warning me-2" title="Local Sagrado"></i>',
+    wifi: '<i class="fas fa-wifi text-success me-2" title="Wi-Fi"></i>',
+    projector: '<i class="fas fa-video text-secondary me-2" title="Projetor"></i>',
+    sound: '<i class="fas fa-volume-up text-danger me-2" title="Som"></i>',
+    whiteboard: '<i class="fas fa-chalkboard text-dark me-2" title="Lousa"></i>',
+    computer: '<i class="fas fa-desktop text-dark me-2" title="PC"></i>',
+    kitchen: '<i class="fas fa-utensils text-warning me-2" title="Cozinha"></i>',
+    water: '<i class="fas fa-tint text-info me-2" title="Água"></i>',
     parking: '<i class="fas fa-parking text-muted me-2" title="Estacionamento"></i>',
   };
   return icons[key] || "";
 };
 
-// GERADOR DE TOGGLE SWITCH (Para Tabelas)
+// --- GERADOR DE TOGGLE (HTML PADRÃO) ---
 window.renderToggle = (id, isChecked, onChangeFunction) => {
   const checkedAttr = isChecked ? "checked" : "";
-  // Passamos 'this' para o JS manipular o botão
   return `
-        <div class="form-check form-switch d-flex justify-content-center align-items-center">
-            <input class="form-check-input toggleSwitch" type="checkbox" 
-                   onchange="${onChangeFunction}(${id}, this)" ${checkedAttr}>
-            <div class="spinner-border spinner-border-sm text-primary ms-2 d-none toggle-loader" role="status"></div>
+        <div class="form-check form-switch d-flex justify-content-center align-items-center mb-0">
+            <input class="form-check-input" type="checkbox" 
+                   onchange="${onChangeFunction}(${id}, this)" ${checkedAttr} style="cursor: pointer;">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
         </div>
     `;
 };
 
-// =========================================================
-// FUNÇÕES GLOBAIS DE UI (Adicione no seu app.js ou footer)
-// =========================================================
-
-window.zoomAvatar = (url, altText = "Foto de Perfil") => {
+// --- ZOOM DE IMAGEM (SWEETALERT) ---
+window.zoomAvatar = (url, altText = "Foto") => {
   if (!url) return;
-
   Swal.fire({
     imageUrl: url,
     imageAlt: altText,
-    // imageHeight: 400, // Comentei para deixar responsivo (auto-height)
-    imageWidth: "auto", // Se adapta a largura da imagem ou da tela
+    imageWidth: "auto",
     customClass: {
-      image: "rounded-4 shadow-lg border border-white", // Borda branca e sombra para destaque
-      popup: "bg-transparent shadow-none", // Remove o fundo padrão do card
+      image: "rounded-4 shadow-lg border border-white",
+      popup: "bg-transparent shadow-none",
     },
     showConfirmButton: false,
-    showCloseButton: true, // Botão X útil no mobile
-    backdrop: `rgba(0,0,0,0.85)`, // Fundo mais escuro para focar na foto
+    showCloseButton: true,
+    backdrop: `rgba(0,0,0,0.85)`,
     scrollbarPadding: false,
-    animation: true, // Garante a animação de entrada
+    animation: true,
   });
 };
 
 // =========================================================
-// 4. FUNÇÕES CORE (LOGOUT, LOAD, ALERTAS)
+// 3. COMUNICAÇÃO E SESSÃO
 // =========================================================
 
 window.logOut = (reason = null) => {
@@ -176,7 +162,7 @@ window.load = (status = true) => {
   else divLoad.fadeOut(200);
 };
 
-window.alertDefault = (msg = "Ação realizada!", icon = "success", time = 4, position = "top-end") => {
+window.alertDefault = (msg = "Sucesso!", icon = "success", time = 3, position = "top-end") => {
   Swal.mixin({
     icon: icon,
     title: msg,
@@ -192,6 +178,7 @@ window.alertDefault = (msg = "Ação realizada!", icon = "success", time = 4, po
   }).fire();
 };
 
+// Wrapper de AJAX (Dados)
 window.ajaxValidator = (data) => {
   return new Promise((resolve, reject) => {
     $.ajax({
@@ -202,7 +189,7 @@ window.ajaxValidator = (data) => {
       success: (response) => resolve(response),
       error: (xhr, status, error) => {
         if (xhr.status === 401 || xhr.status === 403) {
-          console.warn("Erro de autenticação.");
+          console.warn("Sessão inválida.");
           window.logOut();
         }
         reject(error);
@@ -211,6 +198,7 @@ window.ajaxValidator = (data) => {
   });
 };
 
+// Wrapper de AJAX (Arquivos/FormData)
 window.ajaxValidatorFoto = (data) => {
   return new Promise((resolve, reject) => {
     $.ajax({
@@ -222,8 +210,7 @@ window.ajaxValidatorFoto = (data) => {
       contentType: false,
       success: (response) => resolve(response),
       error: (xhr, status, error) => {
-        if (xhr.status === 401 || xhr.status === 403) {
-          console.warn("Erro de autenticação.");
+        if (xhr.status === 401) {
           window.logOut();
         }
         reject(error);
@@ -232,18 +219,14 @@ window.ajaxValidatorFoto = (data) => {
   });
 };
 
-// =========================================================
-// 5. MOTOR DE SESSÃO
-// =========================================================
-
+// Verifica validade do token periodicamente
 const checkSessionStatus = () => {
   if (!defaultApp.userInfo.token) return;
   ajaxValidator({ validator: "token", token: defaultApp.userInfo.token })
     .then((json) => {
       if (json.status && json.data.logout) {
         let msg = "Sessão expirada.";
-        if (json.data.reason === "financial") msg = "Acesso suspenso. Contate o financeiro.";
-
+        if (json.data.reason === "financial") msg = "Acesso suspenso. Contate o suporte.";
         Swal.fire({ icon: "warning", title: "Atenção", text: msg, confirmButtonColor: "#5C8EF1", allowOutsideClick: false }).then(() => window.logOut());
       }
     })
@@ -255,23 +238,31 @@ const keepAlive = () => {
   ajaxValidator({ validator: "confirm", token: defaultApp.userInfo.token });
 };
 
+// =========================================================
+// 4. CONTEXTO GLOBAL (UNIDADE E ANO)
+// =========================================================
+
 window.initGlobalContext = async () => {
-  // Se não tiver token, não tenta carregar (ex: na tela de login)
   if (!defaultApp.userInfo.token) return;
 
-  // Elementos Selectize (se existirem na página)
   const $elParish = $("#global_parish");
   const $elYear = $("#global_year");
 
   if (!$elParish.length || !$elYear.length) return;
 
-  // Inicializa Selectize (Vazio)
-  const selParish = $elParish.selectize({
+  // Configuração comum para ambos os selects
+  const commonConfig = {
     create: false,
     sortField: "text",
     searchField: ["text"],
     placeholder: "Carregando...",
-    dropdownParent: "body",
+    dropdownParent: "body", // <--- CRÍTICO: Tira o menu de dentro da sidebar
+    render: { option: (item, escape) => `<div class="option"><span>${escape(item.text)}</span></div>` },
+  };
+
+  // --- SELETOR DE UNIDADE ---
+  const selectParish = $elParish.selectize({
+    ...commonConfig,
     onChange: function (val) {
       if (!val) return;
       const current = localStorage.getItem("tf_active_parish");
@@ -281,33 +272,34 @@ window.initGlobalContext = async () => {
         window.location.reload();
       }
     },
-    render: { option: (item, escape) => `<div class="option"><span>${escape(item.text)}</span></div>` },
   })[0].selectize;
 
-  const selYear = $elYear.selectize({
-    create: false,
-    sortField: "text",
-    searchField: ["text"],
-    placeholder: "Carregando...",
-    dropdownParent: "body",
+  // Adiciona classe para estilização CSS
+  selectParish.$dropdown.addClass("sidebar-context-dropdown");
+
+  // --- SELETOR DE ANO LETIVO ---
+  const selectYear = $elYear.selectize({
+    ...commonConfig,
     onChange: function (val) {
       if (!val) return;
       localStorage.setItem("sys_active_year", val);
       window.dispatchEvent(new CustomEvent("yearChanged", { detail: val }));
-      // Feedback Visual
+
       const card = document.querySelector(".sidebar-context-card.bottom-card");
       if (card) {
         card.style.borderColor = "var(--padrao2)";
-        setTimeout(() => (card.style.borderColor = "rgba(255,255,255,0.1)"), 800);
+        setTimeout(() => (card.style.borderColor = "rgba(255,255,255,0.15)"), 800);
       }
     },
-    render: { option: (item, escape) => `<div class="option"><span>${escape(item.text)}</span></div>` },
   })[0].selectize;
 
-  selParish.disable();
-  selYear.disable();
+  // Adiciona classe para estilização CSS
+  selectYear.$dropdown.addClass("sidebar-context-dropdown");
 
-  // Requisição Única (Otimizada)
+  selectParish.disable();
+  selectYear.disable();
+
+  // Carregamento de Dados
   try {
     const res = await ajaxValidator({
       validator: "getGlobalContext",
@@ -317,77 +309,69 @@ window.initGlobalContext = async () => {
     if (res.status) {
       const data = res.data;
 
-      // 1. Popula Paróquias
-      selParish.clearOptions();
-      selParish.enable();
-      selParish.settings.placeholder = "Selecione...";
-      selParish.updatePlaceholder();
+      // Paróquias
+      selectParish.clearOptions();
+      selectParish.enable();
+      selectParish.settings.placeholder = "Selecione...";
+      selectParish.updatePlaceholder();
 
       if (data.parishes && data.parishes.length > 0) {
         const savedParish = localStorage.getItem("tf_active_parish");
         let isActiveSet = false;
-
         data.parishes.forEach((p) => {
-          selParish.addOption({ value: p.id, text: p.name });
+          selectParish.addOption({ value: p.id, text: p.name });
           if (savedParish && p.id == savedParish) isActiveSet = true;
         });
-
-        if (isActiveSet) selParish.setValue(savedParish, true);
+        if (isActiveSet) selectParish.setValue(savedParish, true);
         else {
           const firstId = data.parishes[0].id;
           localStorage.setItem("tf_active_parish", firstId);
-          selParish.setValue(firstId, true);
+          selectParish.setValue(firstId, true);
         }
-      } else {
-        selParish.disable();
-        selParish.settings.placeholder = "Sem acesso";
-        selParish.updatePlaceholder();
       }
 
-      // 2. Popula Anos
-      selYear.clearOptions();
-      selYear.enable();
-      selYear.settings.placeholder = "Selecione...";
-      selYear.updatePlaceholder();
+      // Anos
+      selectYear.clearOptions();
+      selectYear.enable();
+      selectYear.settings.placeholder = "Selecione...";
+      selectYear.updatePlaceholder();
 
       if (data.years && data.years.length > 0) {
         let activeYear = null;
         const cachedYear = localStorage.getItem("sys_active_year");
-
         data.years.forEach((y) => {
-          selYear.addOption({ value: y.year_id, text: y.name });
+          selectYear.addOption({ value: y.year_id, text: y.name });
           if (y.now && y.is_active && !activeYear) activeYear = y.year_id;
         });
-
-        if (cachedYear) selYear.setValue(cachedYear, true);
+        if (cachedYear) selectYear.setValue(cachedYear, true);
         else if (activeYear) {
           selYear.setValue(activeYear, true);
           localStorage.setItem("sys_active_year", activeYear);
         }
-
-        // Dispara evento inicial para carregar grids dependentes
-        if (selYear.getValue()) {
-          window.dispatchEvent(new CustomEvent("yearChanged", { detail: selYear.getValue() }));
-        }
+        if (selectYear.getValue()) window.dispatchEvent(new CustomEvent("yearChanged", { detail: selectYear.getValue() }));
       }
-    } else {
-      console.warn("Falha ao carregar contexto global:", res.alert);
     }
   } catch (e) {
-    console.error("Erro no contexto global:", e);
+    console.error("Erro contexto:", e);
   }
 };
 
+// =========================================================
+// 5. INICIALIZAÇÃO FINAL
+// =========================================================
+
 $(document).ready(() => {
+  // Monitoramento de Sessão
   checkSessionStatus();
   setInterval(checkSessionStatus, 600000); // 10 min
   setInterval(keepAlive, 300000); // 5 min
 
+  // Remove loader inicial
   setTimeout(() => {
     $("#div-loader").fadeOut();
   }, 500);
 
-  // Inicializa máscaras globais ao carregar
+  // Inicia componentes
   initMasks();
   initGlobalContext();
 });

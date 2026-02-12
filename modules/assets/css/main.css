@@ -1,6 +1,8 @@
 @import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900);
 
-/* Padrão */
+/* ============================================================
+   1. RESET E VARIÁVEIS GLOBAIS
+   ============================================================ */
 * {
   margin: 0;
   padding: 0;
@@ -11,37 +13,38 @@
 :root,
 [data-theme="claro"] {
   /* Identidade Trilha da Fé */
-  --padrao: #5c8ef1; /* Azul Celeste Principal () */
-  --padrao1: #3b6cc9; /* Azul Escuro () */
-  --padrao2: #ffd966; /* Dourado () */
+  --padrao: #5c8ef1;
+  --padrao1: #3b6cc9;
+  --padrao2: #ffd966;
 
   /* Neutros */
   --white: #ffffff;
   --borda: #e3e6f0;
-  --black: #2c3e50; /* Texto Principal */
-  --fundo: #ffffff; /* Fundo Cards */
-  --body: #f8f9fc; /* Fundo Página */
+  --black: #2c3e50;
+  --fundo: #ffffff;
+  --body: #f8f9fc;
   --descricao: #858796;
 
   /* Status */
   --danger: #e74a3b;
   --success: #1cc88a;
   --warning: #f6c23e;
+
+  /* Layout */
+  --nav-height: 65px; /* Altura da Bottom Bar Mobile */
 }
 
 [data-theme="escuro"] {
-  /* Identidade Dark (Ajustado para contraste) */
   --padrao: #5c8ef1;
-  --padrao1: #111827; /* Sidebar Quase Preta */
+  --padrao1: #111827;
   --padrao2: #ffd966;
 
-  /* Neutros Invertidos */
-  --white: #ffffff; /* Fundo de inputs/botões (Cinza Escuro) */
-  --borda: #374151; /* Bordas visíveis */
-  --black: #d8d8d8; /* Texto Principal (Branco Gelo) */
-  --fundo: #1f2937; /* Cards (Cinza Azulado) */
-  --body: #0f172a; /* Fundo (Azul Noite Profundo) */
-  --descricao: #9ca3af; /* Texto Secundário (Cinza Claro) */
+  --white: #ffffff;
+  --borda: #374151;
+  --black: #d8d8d8;
+  --fundo: #1f2937;
+  --body: #0f172a;
+  --descricao: #9ca3af;
 
   --danger: #ef4444;
   --success: #10b981;
@@ -54,9 +57,12 @@ body {
   transition:
     background-color 0.3s,
     color 0.3s;
+  overflow-x: hidden; /* Evita scroll horizontal */
 }
 
-/* Correção Bootstrap Dark Mode */
+/* ============================================================
+   2. CORREÇÕES DE TEMA (BOOTSTRAP DARK MODE)
+   ============================================================ */
 [data-theme="escuro"] .text-gray-800 {
   color: #f8fafc !important;
 }
@@ -76,8 +82,7 @@ body {
   color: var(--black);
 }
 
-/* Ajuste de fontes e espaçamentos para telas pequenas */
-
+/* Ajuste de fontes e espaçamentos */
 #editarProdutos .nav-tabs .nav-link {
   font-size: 0.9rem;
   padding: 0.5rem;
@@ -86,6 +91,9 @@ body {
   font-size: 1.1rem;
 }
 
+/* ============================================================
+   3. COMPONENTES GERAIS (Botões, Cards, Paginação)
+   ============================================================ */
 .list-commanded {
   position: relative;
   background-color: var(--fundo);
@@ -93,9 +101,10 @@ body {
   margin: 3px;
   border-radius: 10px;
   height: 100%;
-  overflow: hidden; /* Adiciona essa linha */
+  overflow: hidden;
   border: 1px solid var(--borda);
 }
+
 .list-commanded.cards-view {
   display: flex;
   flex-wrap: wrap;
@@ -113,22 +122,31 @@ body {
 }
 
 .paginationButtons {
-  margin: 7px 0px 7px 0px;
+  margin: 7px 0px;
 }
 .paginationButtons button {
-  /* background-color: var(--padrao); */
-  color: var(--white); /* Ajustado para ler variável */
+  color: var(--white);
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
   margin: 0 5px;
   transition: all 0.3s;
-  background-color: #6c757d; /* Cor padrão */
+  background-color: #6c757d;
 }
-
 .paginationButtons button.btn-primary {
   background-color: var(--padrao);
+}
+[data-theme="escuro"] .paginationButtons button {
+  background-color: var(--fundo);
+  border: 1px solid var(--borda);
+}
+[data-theme="escuro"] .paginationButtons button:hover {
+  background-color: var(--padrao1);
+}
+[data-theme="escuro"] .paginationButtons button.btn-primary {
+  background-color: var(--padrao);
+  color: #fff;
 }
 
 .title {
@@ -136,21 +154,16 @@ body {
   color: var(--black);
   font-weight: 500;
 }
-
 [data-theme="escuro"] .title {
-  margin-bottom: 15px;
   color: var(--white);
-  font-weight: 500;
 }
 
 .copyright {
   color: var(--descricao);
   font-weight: 600;
 }
-
 [data-theme="escuro"] .copyright {
   color: var(--white);
-  font-weight: 600;
 }
 
 .txt-theme {
@@ -163,9 +176,7 @@ body {
   border-color: var(--padrao);
   float: right !important;
 }
-
 .btn-theme:hover {
-  color: #fff;
   background-color: var(--padrao1);
   border-color: var(--padrao1);
 }
@@ -175,19 +186,18 @@ body {
   width: 99%;
   border-top: 1px solid var(--borda);
 }
-
 .tolltip {
   cursor: help;
   color: var(--padrao);
 }
 
+/* Imagens */
 .img-produto {
   width: 95px;
   height: 80px;
   object-fit: cover;
   border-radius: 10px;
 }
-
 .img-perfil {
   width: 80px;
   height: 80px;
@@ -195,7 +205,6 @@ body {
   border-radius: 15px;
   border: 1px solid var(--borda);
 }
-
 .img-story {
   width: 80px;
   height: 110px;
@@ -209,7 +218,6 @@ body {
   border-radius: 50%;
   display: inline-block;
 }
-
 .swal2-container {
   z-index: 9999 !important;
 }
@@ -227,7 +235,6 @@ body {
   gap: 5px;
   transition: all 0.2s ease-in-out;
 }
-
 .btn-imprimir:hover {
   background-color: var(--padrao);
   color: white;
@@ -238,112 +245,96 @@ body {
   width: 100%;
 }
 
-/* Fim Padrão */
+/* ============================================================
+   4. ESTRUTURA DO MENU LATERAL (SIDEBAR FIXA)
+   ============================================================ */
 
-/* Usuario */
-.sidebar-only .user-img-only {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--padrao2); /* Dourado */
-}
-
-.sidebar-only .user-img-only img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.sidebar-only .user-details-only .title-only {
-  font-size: 11px;
-  font-weight: 700;
-  color: #e2e8f0; /* Texto claro no menu */
-  /* text-transform: uppercase; */
-}
-
-.sidebar-only .user-details-only .name-only {
-  margin-top: 5px;
-  margin-bottom: 5px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffff; /* Texto claro no menu */
-}
-
-.sidebar-only.active-only .user-details-only {
-  display: none;
-}
-
-/* Fim Usuario */
-
-/* Barra Lateral */
-
+/* Container Principal */
 .sidebar-only {
-  left: 5px;
-  position: absolute;
-  width: 300px;
-  top: 1%;
-  height: 98vh;
-  /* padding: 24px 16px;  <-- REMOVIDO PADDING GERAL */
-  padding: 0; /* <-- Novo: Padding zero para controlar melhor */
+  position: fixed; /* Fixa para Desktop */
+  left: 10px;
+  top: 10px;
+  bottom: 10px;
+  max-width: 280px;
+  /* width: 280px; */
+  height: calc(100vh - 20px);
   display: flex;
   flex-direction: column;
   background-color: var(--padrao1);
-  border-radius: 40px;
-  transition: all 0.2s ease-in-out;
-  z-index: 1000;
-  /* overflow-y: auto;  <-- REMOVIDO! Isso cortava o botão */
-  overflow: visible !important; /* <-- Novo: Permite que o botão saia da caixa */
+  border-radius: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1040;
+  padding: 0;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar-only::-webkit-scrollbar {
-  width: 6px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.sidebar-only::-webkit-scrollbar-thumb {
-  background-color: var(--padrao);
-  border-radius: 10px;
-}
-
-/* Esconde por padrão */
-.sidebar-only::-webkit-scrollbar,
-.sidebar-only:hover::-webkit-scrollbar {
-  opacity: 1; /* Alterado para 1 para melhorar usabilidade */
-}
-
-.sidebar-only:hover::-webkit-scrollbar-thumb {
-  background-color: var(--padrao);
-  transition: background-color 0.2s ease-in-out;
-}
-
-.sidebar-only ul {
-  margin-bottom: 0px !important;
-  padding-left: 0px !important;
+  overflow: visible !important; /* Permite botões saírem da caixa */
 }
 
 .sidebar-only.active-only {
   width: 95px;
 }
 
+/* Scroll Interno Invisível */
+.sidebar-scroll-wrapper {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding: 24px 16px;
+  border-radius: 24px;
+  scrollbar-width: none;
+  /* Esconder Scrollbar no IE e Edge antigo */
+  -ms-overflow-style: none;
+}
+.sidebar-scroll-wrapper::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+  background: transparent;
+}
+
+/* Cabeçalho do Usuário */
 .sidebar-only .head-only {
   display: flex;
-  gap: 20px;
-  padding-bottom: 50px;
-}
-
-.sidebar-only .nav-only {
-  flex: 1;
-}
-
-.sidebar-only .menu-only .title-only {
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 30px;
   margin-bottom: 10px;
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--padrao2); /* Dourado */
+}
+
+.user-avatar-container {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--padrao2);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-info-text h6 {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+.user-info-text span {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
   text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* Itens do Menu */
+.sidebar-only .menu-only .title-only {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--padrao2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  margin-top: 20px;
 }
 
 .sidebar-only .menu-only ul li {
@@ -355,636 +346,461 @@ body {
 .sidebar-only .menu-only ul li a {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14px;
+  gap: 12px;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  padding: 12px 10px;
-  border-radius: 8px;
-  transition: all 0.2s;
+  padding: 12px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
 .sidebar-only .menu-only ul li > a:hover,
-.sidebar-only .menu-only ul li.active-only > a {
+.sidebar-only .menu-only ul li.active-only > a,
+.sidebar-only .menu-only ul li a.active {
+  background-color: var(--padrao);
   color: #fff;
-  background-color: var(--padrao); /* Azul Celeste */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-only .menu-only ul li .icon-only {
-  font-size: 23px;
+  font-size: 1.4rem;
   transition: all 0.2s;
 }
-
 .sidebar-only .menu-only ul li .text-only {
   flex: 1;
 }
-
 .sidebar-only .menu-only ul li .arrow-only {
   font-size: 14px;
   transition: all 0.2s;
 }
-
 .sidebar-only .menu-only ul li.active-only .arrow-only {
   transform: rotate(180deg);
 }
 
+/* Submenus */
 .sidebar-only .menu-only .sub-menu-only {
   display: none;
-  margin-top: 10px;
-  margin-left: 30px;
-  padding: 12px 20px 12px 20px !important;
+  margin-top: 5px;
+  margin-left: 10px;
+  padding: 5px 0 5px 15px !important;
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 0px 10px 10px 0px;
-  border-left: 1px solid var(--borda);
+  border-radius: 10px;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
 }
-
-.sidebar-only.active-only .menu-only .sub-menu-only {
-  display: none;
-  margin-top: 45px;
-  margin-left: 30px;
-  border-left: 1px solid var(--borda);
-  position: absolute;
-  top: 0;
-  left: 30px;
-  width: 200px;
-  border-radius: 20px;
-  border: 1px solid var(--borda);
-  background-color: var(--padrao1);
-  box-shadow: 0px 10px 8px 0px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-}
-
 .sidebar-only .menu-only .sub-menu-only li a {
-  padding: 10px 8px;
-  font-size: 12px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.7);
 }
-
 .sidebar-only .menu-only .sub-menu-only li a:hover {
   color: #fff;
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.sidebar-only .menu-only:not(:last-child) {
-  padding-bottom: 10px !important;
-  margin-bottom: 20px !important;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.sidebar-only .menu-btn-only {
+/* Botão Toggle Sidebar */
+.menu-btn-only {
   position: absolute;
-  top: 25px;
-  right: -14px; /* Mantém a posição "meio dentro/meio fora" */
-  width: 30px;
-  height: 30px;
-  display: flex;
-  cursor: pointer;
-  border-radius: 10px;
-  align-items: center;
-  justify-content: center;
+  top: 30px;
+  right: -15px;
+  width: 32px;
+  height: 32px;
   background-color: var(--padrao1);
   color: var(--padrao2);
-  border: 1px solid var(--padrao2);
-  transition: all 0.2s;
-  z-index: 1002; /* Maior que o conteúdo */
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  border: 2px solid var(--padrao2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1050;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s;
 }
 
-.sidebar-only .menu-btn-only span {
-  transition: all 0.2s;
+/* --- ESTADO COLAPSADO (.active-only) --- */
+.sidebar-only.active-only {
+  width: 90px;
 }
-
-.sidebar-only.active-only .menu-btn-only span {
-  transform: rotate(180deg);
-}
-
-.sidebar-only.active-only .menu-only .title-only {
-  text-align: center;
-}
-
-.sidebar-only.active-only .menu-only ul li .arrow-only {
+.sidebar-only.active-only .user-info-text,
+.sidebar-only.active-only .text-only,
+.sidebar-only.active-only .title-only,
+.sidebar-only.active-only .arrow-only,
+.sidebar-only.active-only .sidebar-selectize {
   display: none;
 }
 
-.sidebar-only.active-only .menu-only > ul > li > a {
-  position: relative;
-  display: flex;
-  align-items: center;
+.sidebar-only.active-only .menu-btn-only {
+  transform: rotate(180deg);
+}
+.sidebar-only.active-only .menu-only ul li a {
   justify-content: center;
+  padding: 12px 0;
 }
 
-/* Tooltip do menu fechado */
+/* Tooltip no Hover (Menu Colapsado) */
 .sidebar-only.active-only .menu-only > ul > li > a .text-only {
-  position: fixed; /* MUDANÇA: Fixed tira ele do fluxo do scroll */
-  left: 70px; /* Ajuste se necessário dependendo da largura do menu fechado */
-  /* top será calculado dinamicamente ou fixo se o item não rolar muito */
-
-  /* Se 'fixed' quebrar o alinhamento vertical (pq ele perde a referência do pai), 
-     vamos manter absolute mas forçar a visibilidade */
-  position: absolute;
-  left: 60px;
-  top: 50%;
-  transform: translateY(-50%);
-
+  display: block;
+  position: fixed;
+  left: 80px;
   padding: 8px 12px;
   border-radius: 6px;
+  background-color: var(--black);
   color: var(--white);
-  background-color: var(--black); /* Fundo escuro do tooltip */
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Efeito bounce */
+  pointer-events: none;
+  transition: all 0.2s;
   white-space: nowrap;
-  z-index: 9999; /* Z-index máximo */
+  z-index: 9999;
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
-  pointer-events: none; /* Para não atrapalhar o clique */
   font-size: 0.85rem;
-  font-weight: 600;
 }
-
-/* A setinha do tooltip */
-.sidebar-only.active-only .menu-only > ul > li > a .text-only::after {
-  content: "";
-  position: absolute;
-  left: -6px;
-  top: 50%;
-  transform: translateY(-50%) rotate(45deg);
-  width: 12px;
-  height: 12px;
-  background-color: var(--black);
-  z-index: -1;
-}
-
-/* Mostra no hover */
 .sidebar-only.active-only .menu-only > ul > li > a:hover .text-only {
   opacity: 1;
   visibility: visible;
-  left: 75px; /* Pequeno movimento para a direita */
+  left: 95px;
 }
 
-.noty {
-  scale: 1.28;
+/* ============================================================
+   5. BARRA DE NAVEGAÇÃO INFERIOR (MOBILE ONLY)
+   ============================================================ */
+.bottom-nav {
+  display: none; /* Oculto no Desktop */
+  position: fixed;
+  bottom: 15px;
+  left: 15px;
+  right: 15px;
+  height: var(--nav-height);
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  z-index: 1050;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--descricao);
+  text-decoration: none;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: var(--danger) !important;
-  border-color: var(--danger) !important;
-  content: "notification_important";
-  transition: all 0.2s;
-  animation: noty 0.1s infinite alternate !important;
-}
-
-/* Wrapper Interno com Scroll Invisível */
-.sidebar-scroll-wrapper {
+  flex: 1;
   height: 100%;
-  overflow-y: auto; /* O scroll continua funcionando*/
-  overflow-x: visible;
-  padding: 24px 10px;
-  border-radius: 40px;
-
-  /* Esconder Scrollbar no Firefox */
-  scrollbar-width: none;
-  /* Esconder Scrollbar no IE e Edge antigo */
-  -ms-overflow-style: none;
+  transition: all 0.2s;
+  border-radius: 12px;
 }
 
-/* Esconder Scrollbar no Chrome, Safari e Opera */
-.sidebar-scroll-wrapper::-webkit-scrollbar {
-  display: none;
-  width: 0px;
-  background: transparent;
+.bottom-nav-item i,
+.bottom-nav-item .material-symbols-outlined {
+  font-size: 1.6rem;
+  margin-bottom: 2px;
+  transition: transform 0.2s;
 }
 
-@keyframes noty {
-  from {
-    transform: rotate(12deg);
-  }
-
-  to {
-    transform: rotate(-12deg);
-  }
+.bottom-nav-item.active {
+  color: var(--padrao);
+}
+.bottom-nav-item.active i {
+  transform: translateY(-2px);
 }
 
-/* Fim Barra Lateral */
-
-/* Conteudo principal */
+/* ============================================================
+   6. CONTEÚDO PRINCIPAL
+   ============================================================ */
 .container {
-  margin-left: 0px !important;
+  margin-left: 0 !important;
   max-width: 100% !important;
 }
 
-.container .main-only {
-  margin-top: 100px;
-  padding-right: 20px;
-  margin-left: 300px;
-  transition: all 0.2s;
-  z-index: -1;
+.main-only {
+  margin-left: 300px; /* 280px sidebar + 20px gap */
+  padding: 20px;
+  padding-right: 30px;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+  z-index: 1;
 }
 
-.container .main-only.active-only {
-  margin-top: 100px;
-  /* position: fixed !important; */
-  margin-left: 130px;
-  padding-right: 20px;
-  transition: all 0.2s;
-  z-index: -1;
+.main-only.active-only {
+  margin-left: 110px;
 }
 
+/* Toasts e Notificações */
 .toast-container-stack {
-  position: fixed !important;
-  top: 8px;
-  right: 340px;
-
+  position: fixed;
+  top: 10px;
+  right: 20px;
   z-index: 9999;
   display: flex;
-  flex-direction: row; /* agora lado a lado */
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
   pointer-events: none;
 }
-
 .toast-pedido-2 {
-  position: absolute !important;
   pointer-events: all;
   background-color: var(--fundo);
   color: var(--black);
   border-left: 4px solid var(--padrao);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  padding: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 12px;
   width: 300px;
-  max-width: 300px;
   transition: transform 0.3s ease;
-  margin: 10px;
-  font-size: 14px;
 }
-
-/* Modo escuro */
-body.dark-mode .toast-pedido-2 {
+[data-theme="escuro"] .toast-pedido-2 {
   background-color: #1f1f1f;
   color: #f0f0f0;
 }
 
-/* Botão de fechar (visível e no canto superior direito) */
-.toast-pedido-2 .btn-fechar-toast {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  border: none;
-  background: transparent;
-  font-size: 16px;
-  color: #333;
-  cursor: pointer;
-  z-index: 2;
-}
+/* ============================================================
+   7. COMPONENTES UI PADRONIZADOS
+   ============================================================ */
 
-body.dark-mode .toast-pedido-2 .btn-fechar-toast {
-  color: #f0f0f0;
-}
-
-.toast-pedido-2 .btn-fechar-toast:hover {
-  color: var(--danger);
-}
-/* Suporte ao modo escuro */
-body.dark-mode .toast-pedido-2 {
-  background-color: #1f1f1f;
-  color: #f0f0f0;
-}
-/* Botões dentro do toast (ficam iguais nos dois temas) */
-.toast-pedido-2 .btn {
+/* Tabelas Customizadas */
+.table-custom {
+  border-collapse: separate;
+  border-spacing: 0 8px;
   width: 100%;
-  font-size: 13px;
-  margin-top: 5px;
 }
-
-body.dark-mode .toast-pedido-2 .btn {
-  background-color: #1f1f1f !important;
-  color: #fff !important;
-  border: 1px solid var(--borda);
-}
-
-.toast-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-.toast-top .toast-close {
-  background: none;
+.table-custom thead th {
   border: none;
-  color: #666;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.toast-content {
-  font-size: 13px;
   color: var(--descricao);
-  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 0 15px 10px;
 }
-
-.toast-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.table-custom tbody tr {
+  background-color: var(--white);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+  transition: transform 0.2s;
 }
-
-.toast-actions .btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 13px;
-  padding: 6px 10px;
-  font-weight: 500;
-  border-radius: 6px;
+.table-custom tbody tr:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
-
-@keyframes fadeIn {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.table-custom td {
+  padding: 15px;
+  vertical-align: middle;
+  border: none;
 }
-
-#alertasPedidosContainer:empty {
-  display: none;
+.table-custom td:first-child {
+  border-radius: 12px 0 0 12px;
 }
-
-/* Fim Conteudo principal */
-
-/* Bootstrap */
-.accordion-footer {
-  padding: 0px 20px 10px 20px;
+.table-custom td:last-child {
+  border-radius: 0 12px 12px 0;
 }
-
-.modal-header {
-  background-color: var(--padrao);
+[data-theme="escuro"] .table-custom tbody tr {
+  background-color: var(--fundo);
   color: var(--white);
 }
 
-.modal-content {
-  background-color: var(--fundo);
-  color: var(--black);
-  border: 1px solid var(--borda);
+/* Botões de Ação (Ícones) */
+.btn-icon-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--descricao);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-icon-action:hover {
+  background-color: var(--padrao);
+  color: #fff;
+  transform: translateY(-2px);
+}
+.btn-icon-action.delete:hover {
+  background-color: var(--danger);
+}
+[data-theme="escuro"] .btn-icon-action {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--white);
 }
 
-/* Fim Bootstrap */
+/* Loader Overlay */
+.div-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+[data-theme="escuro"] .div-loader {
+  background: rgba(15, 23, 42, 0.9);
+}
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid var(--borda);
+  border-bottom-color: var(--padrao);
+  border-radius: 50%;
+  animation: rotation 1s linear infinite;
+}
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
-/* Responsividade */
-@media (max-width: 991px) {
-  /* Barra Lateral */
+/* ============================================================
+   8. PLUGINS (Selectize, Summernote, Flatpickr)
+   ============================================================ */
 
-  .modal-xl {
-    width: 90% !important;
-    max-width: 90% !important;
+/* Selectize Sidebar */
+.sidebar-selectize .selectize-input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: none !important;
+}
+.sidebar-selectize .selectize-dropdown {
+  background: var(--fundo) !important;
+  border: 1px solid var(--borda) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+[data-theme="escuro"] .selectize-dropdown {
+  background-color: #1f2937 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Summernote Dark Mode */
+.note-editor.note-frame {
+  border-color: var(--borda);
+}
+[data-theme="escuro"] .note-editor {
+  background-color: #2b3e50;
+  color: #fff;
+  border-color: #4e5d6c;
+}
+[data-theme="escuro"] .note-toolbar {
+  background-color: #4e5d6c !important;
+  border-bottom: 1px solid #20374c !important;
+}
+[data-theme="escuro"] .note-editable {
+  background-color: #2b3e50 !important;
+  color: #fff !important;
+}
+
+/* Flatpickr Dark Mode */
+[data-bs-theme="dark"] .flatpickr-calendar {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+[data-bs-theme="dark"] .flatpickr-day {
+  color: #e2e8f0 !important;
+}
+[data-bs-theme="dark"] .flatpickr-day:hover {
+  background: #374151 !important;
+}
+[data-bs-theme="dark"] .flatpickr-day.selected {
+  background: var(--padrao) !important;
+  border-color: var(--padrao) !important;
+}
+
+/* ============================================================
+   9. RESPONSIVIDADE (MOBILE BREAKPOINTS)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Layout Mobile */
+  .sidebar-only {
+    left: -320px; /* Esconde Sidebar */
+    width: 280px;
+    height: 100vh;
+    border-radius: 0 24px 24px 0;
+    top: 0;
+    bottom: 0;
   }
 
-  /* Fim Barra Lateral */
+  /* Menu Aberto */
+  body.menu-open .sidebar-only {
+    left: 0;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.7);
+  }
 
-  /* Conteudo principal */
-  .main-only {
-    margin-top: 70px;
-    position: absolute;
-    width: calc(100% - 130px);
-    margin-left: 330px;
-    padding-right: 0px;
-    transition: all 0.2s;
-    z-index: -1;
+  /* Ajuste Conteúdo Principal */
+  .main-only,
+  .main-only.active-only {
+    margin-left: 0 !important;
+    padding: 15px;
+    padding-bottom: 90px; /* Espaço para Bottom Bar */
+  }
+
+  /* Exibe Bottom Nav */
+  .bottom-nav {
+    display: flex;
+  }
+
+  /* Esconde Toggle Sidebar do Desktop */
+  .menu-btn-only {
+    display: none;
+  }
+
+  /* Cards Mobile */
+  .mobile-card {
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    background-color: var(--white);
+    padding: 16px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  }
+  [data-theme="escuro"] .mobile-card {
+    background-color: var(--fundo);
+    border-color: var(--borda);
+  }
+
+  .mobile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--borda);
+  }
+
+  /* Modais */
+  .modal-dialog {
+    margin: 10px;
+    max-width: calc(100% - 20px) !important;
+  }
+
+  /* Fontes */
+  body {
+    font-size: 0.9rem;
+  }
+  h1,
+  h2,
+  h3 {
+    font-size: 1.5rem;
   }
 
   .main-only.active-only {
-    margin-top: 60px;
-    position: absolute;
-    width: calc(100% - 70px);
-    margin-left: 130px;
-    padding-right: 0px;
-    transition: all 0.2s;
-    z-index: -1;
-  }
-
-  /* Fim Conteudo principal */
-}
-
-@media (max-width: 768px) {
-  /* Barra Lateral All */
-  .sidebar-only {
-    height: 135vh;
-  }
-  .sidebar-only.active-only-all {
-    left: 5px;
-    position: absolute;
-    width: 300px;
-    top: 1%;
-    /* height: 98%; */
-    height: 135vh;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    background-color: var(--padrao1);
-    border-radius: 40px 40px 40px 40px;
-    transition: all 0.2s;
-  }
-
-  .sidebar-only.active-only-all .user-details-only {
-    display: block;
-  }
-
-  .sidebar-only.active-only-all .menu-only .title-only {
-    margin-bottom: 10px;
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--padrao2);
-    text-transform: uppercase;
-    text-align: left;
-  }
-
-  .sidebar-only.active-only-all .menu-only .sub-menu-only {
-    left: 27px;
-    display: none;
-    margin-top: 10px;
-    margin-left: 25px;
-    position: relative;
-    border-radius: 0px 10px 10px 0px;
-    padding: 12px 20px 12px 20px !important;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-left: 1px solid var(--borda);
-  }
-
-  .sidebar-only.active-only-all .menu-only ul li {
-    position: relative;
-    list-style: none;
-    margin-bottom: 5px;
-  }
-
-  .sidebar-only.active-only-all .menu-only ul li .arrow-only {
-    display: block;
-    font-size: 14px;
-    transition: all 0.2s;
-  }
-
-  .sidebar-only.active-only-all .menu-only > ul > li > a {
-    position: relative;
-    justify-content: space-between;
-  }
-
-  .sidebar-only.active-only-all .menu-only > ul > li > a .text-only {
-    position: absolute;
-    left: 40px;
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 10px;
-    border-radius: 4px;
-    opacity: 1;
-    visibility: visible;
-    transition: all 0.2s;
-    color: var(--white);
-    background-color: rgba(0, 0, 0, 0);
-  }
-
-  .sidebar-only.active-only-all .menu-only > ul > li > a .text-only::after {
-    position: relative;
-    left: 40px;
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 10px;
-    border-radius: 4px;
-    opacity: 1;
-    visibility: visible;
-    transition: all 0.2s;
-  }
-
-  .sidebar-only.active-only-all .menu-only > ul > li > a:hover .text-only {
-    left: 40px;
-    opacity: 1;
-    visibility: visible;
-    color: var(--white);
-  }
-
-  .sidebar-only.active-only-all .menu-only ul li.active-only > a,
-  .sidebar-only.active-only-all .menu-only ul li.active-only > a .text-only {
-    color: var(--white);
-    font-weight: 500;
-  }
-
-  /* Fim Barra Lateral ALL */
-
-  /* Barra Lateral */
-
-  .sidebar-only {
-    width: 95px;
-    transition: all 0.2s;
-  }
-
-  .sidebar-only.active-only {
-    width: 0px;
-    padding: 10px;
-    transition: all 0.2s;
-  }
-
-  .sidebar-only.active-only .head-only,
-  .sidebar-only.active-only .nav-only,
-  .sidebar-only.active-only .menu-only {
-    display: none;
-  }
-
-  .sidebar-only .user-details-only {
-    display: none;
-  }
-
-  .sidebar-only .menu-only .title-only {
-    text-align: center;
-  }
-
-  .sidebar-only .menu-only .sub-menu-only {
-    display: none;
-    margin-top: 45px;
-    margin-left: 30px;
-    padding-left: 20px;
-    padding-top: 5px;
-    position: absolute;
-    top: 0;
-    left: 30px;
-    width: 200px;
-    border-radius: 20px;
-    padding: 10px 20px;
-  }
-
-  .sidebar-only .menu-only ul li .arrow-only {
-    display: none;
-  }
-
-  .sidebar-only .menu-only > ul > li > a {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .sidebar-only .menu-only > ul > li > a .text-only {
-    position: absolute;
-    left: 70px;
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 10px;
-    border-radius: 4px;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s;
-    color: var(--white);
-    background-color: var(--black);
-  }
-
-  .sidebar-only .menu-only > ul > li > a .text-only::after {
-    content: "";
-    position: absolute;
-    left: -5px;
-    top: 20%;
-    width: 20px;
-    height: 20px;
-    border-radius: 2px;
-    transform: rotate(45deg);
-    z-index: -1;
-  }
-
-  .sidebar-only .menu-only > ul > li > a:hover .text-only {
-    left: 50px;
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .sidebar-only.active-only .menu-btn-only span {
-    transform: rotate(180deg);
-  }
-
-  .sidebar-only.active-only .menu-only > ul > li > a:hover .text-only {
-    left: -250px;
-  }
-
-  .sidebar-only.active-only .menu-only .sub-menu-only {
-    left: -240px;
-  }
-
-  /* Fim Barra Lateral */
-
-  /* Conteudo principal */
-  .container .main-only {
-    margin-top: 70px;
-    /* position: fixed !important; */
-    margin-left: 100px;
-    padding-right: 10px;
-    transition: all 0.2s;
-    z-index: -1;
-  }
-
-  .container .main-only.active-only {
     margin-top: 60px;
     /* position: fixed !important; */
     margin-left: 40px;
@@ -992,66 +808,7 @@ body.dark-mode .toast-pedido-2 .btn {
     transition: all 0.2s;
     z-index: -1;
   }
-
-  /* Fim Conteudo principal */
 }
-
-/* === RESPONSIVIDADE DE MODAIS === */
-@media (max-width: 768px) {
-  .modal-dialog {
-    width: 95% !important;
-    max-width: 95% !important;
-    margin: 1rem auto !important;
-  }
-
-  .modal-content {
-    border-radius: 15px;
-  }
-
-  .modal-header,
-  .modal-footer {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    text-align: center;
-  }
-
-  .modal-body {
-    padding: 1rem 1.2rem;
-  }
-
-  .modal-footer .btn {
-    width: 100%;
-    max-width: 300px;
-  }
-}
-
-@media (max-width: 480px) {
-  /* Barra Lateral */
-  /* .sidebar-only {
-    left: -276px;
-  }
-  .sidebar-only .menu-btn-only span {
-    transform: rotate(180deg);
-  }
-  .sidebar-only.active-only .menu-btn-only span {
-    transform: rotate(0deg);
-  }
-  .sidebar-only.active-only {
-    width: 100px;
-  }
-  .sidebar-only.active-only .menu-only > ul > li > a:hover .text-only{
-    left: 65px;
-  }
-  .sidebar-only.active-only .menu-only .sub-menu-only {
-    left: 40px;
-  } */
-  /* Fim Barra Lateral */
-  /* Conteudo principal */
-  /* Fim Conteudo principal */
-}
-
-/* Fim Responsividade */
 
 /* Loader style */
 
@@ -1085,26 +842,6 @@ body.dark-mode .toast-pedido-2 .btn {
   animation: rotation 1s linear infinite;
 }
 
-.loader::after,
-.loader::before {
-  content: "";
-  box-sizing: border-box;
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  top: 50%;
-  left: 50%;
-  transform: scale(0.5) translate(0, 0);
-  background-color: var(--padrao);
-  border-radius: 50%;
-  animation: animloader 1s infinite ease-in-out;
-}
-
-.loader::before {
-  background-color: var(--padrao2);
-  transform: scale(0.5) translate(-48px, -48px);
-}
-
 @keyframes rotation {
   0% {
     transform: rotate(0deg);
@@ -1119,240 +856,6 @@ body.dark-mode .toast-pedido-2 .btn {
   50% {
     transform: scale(1) translate(-50%, -50%);
   }
-}
-
-/* END Loader style */
-
-/* ============================================================
-   TOGGLE SWITCH (MODERNO E RESPONSIVO)
-   ============================================================ */
-.toggleSwitch {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 48px;
-  height: 26px;
-  background-color: #e2e8f0; /* Cinza suave (Off) */
-  border-radius: 50px;
-  position: relative;
-  cursor: pointer;
-  outline: none;
-  transition:
-    background-color 0.3s ease,
-    border-color 0.3s ease;
-  border: 1px solid #cbd5e1;
-}
-
-/* Estado Ativo (On) */
-.toggleSwitch:checked {
-  background-color: var(--padrao); /* Azul do Tema */
-  border-color: var(--padrao);
-}
-
-.toggleSwitch:checked::after {
-  transform: translateX(22px); /* Move a bolinha */
-}
-
-/* Ajustes para Modo Escuro */
-[data-theme="escuro"] .toggleSwitch {
-  background-color: #374151; /* Cinza escuro (Off) */
-  border-color: #4b5563;
-}
-
-[data-theme="escuro"] .toggleSwitch:checked {
-  background-color: var(--padrao); /* Azul do Tema */
-  border-color: var(--padrao);
-}
-
-[data-theme="escuro"] .toggleSwitch::after {
-  background-color: #f3f4f6; /* Bolinha quase branca */
-}
-
-/* Estado Foco (Acessibilidade) */
-.toggleSwitch:focus {
-  box-shadow: 0 0 0 3px rgba(92, 142, 241, 0.25);
-}
-
-[data-theme="escuro"] .card {
-  background-color: var(--padrao1);
-}
-
-[data-theme="escuro"] .card .text-only {
-  color: var(--white);
-}
-
-.config {
-  background-color: var(--white);
-  border-radius: 5px;
-  border: 0.1px solid #ffffff40;
-  margin: 1px;
-  padding: 15px 0px 15px 15px;
-}
-
-[data-theme="escuro"] .config {
-  background-color: var(--padrao1);
-}
-
-.btn-footer {
-  width: 50px;
-  height: 50px;
-  right: 20px;
-  bottom: 20px;
-  border-radius: 100%;
-  position: fixed;
-  font-size: 34px;
-  border: 0;
-  color: var(--white);
-  background-color: var(--padrao1);
-  cursor: pointer;
-}
-
-[data-theme="escuro"] .btn-footer {
-  border: 1px solid #ffffff65;
-}
-
-.btn-footer span {
-  scale: 1.2;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-  margin-left: 10px;
-  color: var(--descricao);
-}
-
-.breadcrumb ol {
-  list-style: none;
-  display: flex;
-  margin: 0;
-  padding: 0;
-}
-
-.breadcrumb li {
-  margin: 0;
-  display: flex;
-  align-items: center;
-}
-
-.breadcrumb a {
-  text-decoration: none;
-  color: var(--padrao);
-  transition: color 0.2s;
-}
-
-.breadcrumb a:hover {
-  color: var(--padrao1);
-}
-
-.breadcrumb li + li::before {
-  content: ">";
-  margin: 0 8px;
-  color: #aaa;
-}
-
-.fab-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  user-select: none;
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-
-  &:hover {
-    height: 100%;
-
-    .sub-button:nth-child(2) {
-      transform: translateY(-80px);
-    }
-
-    .sub-button:nth-child(3) {
-      transform: translateY(-140px);
-    }
-
-    .sub-button:nth-child(4) {
-      transform: translateY(-200px);
-    }
-
-    .sub-button:nth-child(5) {
-      transform: translateY(-260px);
-    }
-
-    .sub-button:nth-child(6) {
-      transform: translateY(-320px);
-    }
-  }
-
-  .fab {
-    position: relative;
-    height: 50px;
-    width: 50px;
-    background-color: var(--padrao);
-    border-radius: 50%;
-    z-index: 2;
-
-    &::before {
-      content: " ";
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      height: 25px;
-      width: 25px;
-      background-color: inherit;
-      border-radius: 0 0 10px 0;
-      z-index: -1;
-    }
-
-    .fab-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      width: 100%;
-      border-radius: 50%;
-
-      .material-symbols-outlined {
-        color: white;
-        font-size: 30px;
-      }
-    }
-  }
-
-  .sub-button {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    bottom: 5px;
-    right: 5px;
-    height: 40px;
-    width: 40px;
-    background-color: var(--padrao);
-    border-radius: 50%;
-    transition: all 0.3s ease;
-
-    &:hover {
-      cursor: pointer;
-    }
-
-    .material-symbols-outlined {
-      color: white;
-      padding-top: 6px;
-    }
-  }
-}
-
-canvas {
-  max-height: 250px;
-  margin-bottom: 20px;
-}
-
-#relatorio-cards + .list-commanded {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
 }
 
 /* ============================================================
@@ -1569,35 +1072,6 @@ canvas {
 
 .btn-icon-action.delete:hover {
   background-color: var(--danger);
-  color: #fff;
-}
-
-/* ============================================================
-   CORREÇÃO: CARD INTERNO DO MODAL (ENDEREÇO)
-   ============================================================ */
-
-/* Alvo: O card dentro do modal com classe .bg-light */
-[data-theme="escuro"] .modal-body .card.bg-light {
-  background-color: var(--padrao1) !important; /* Fundo escuro */
-  border: 1px solid var(--borda) !important;
-}
-
-/* Label do Toggle Switch dentro desse card */
-[data-theme="escuro"] .modal-body .card .form-check-label {
-  color: var(--white) !important;
-}
-
-/* Paginação Escura */
-[data-theme="escuro"] .paginationButtons button {
-  background-color: var(--fundo);
-  color: var(--white);
-  border-color: var(--borda);
-}
-[data-theme="escuro"] .paginationButtons button:hover {
-  background-color: var(--padrao1);
-}
-[data-theme="escuro"] .paginationButtons button.btn-primary {
-  background-color: var(--padrao);
   color: #fff;
 }
 
@@ -2516,4 +1990,487 @@ canvas {
     background-color: rgba(255, 255, 255, 0.05);
     color: var(--white);
   }
+}
+
+/* =========================================
+           ESTILOS DOS WIDGETS (AGENDA & AVISOS)
+           ========================================= */
+
+/* Header dos Cards */
+.widget-header {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--borda);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Box de Data (Widget Agenda) */
+.event-date-box {
+  background-color: var(--body);
+  /* Usa fundo da página como base */
+  border-radius: 8px;
+  padding: 5px 10px;
+  text-align: center;
+  min-width: 60px;
+  border: 1px solid transparent;
+  transition: background-color 0.3s ease;
+}
+
+.event-day {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--descricao);
+  line-height: 1;
+}
+
+.event-num {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--black);
+  line-height: 1.1;
+}
+
+/* Estado: Bloqueado/Sem Aula (Feriados) */
+.event-blocked .event-date-box {
+  background-color: rgba(231, 74, 59, 0.1);
+  /* Vermelho bem claro */
+  color: var(--danger);
+  border-color: rgba(231, 74, 59, 0.2);
+}
+
+.event-blocked .event-num,
+.event-blocked .event-day {
+  color: var(--danger) !important;
+}
+
+/* =========================================
+           MODO ESCURO (DARK MODE)
+           ========================================= */
+[data-theme="escuro"] .widget-header {
+  background-color: #1f2937;
+  /* Cinza Escuro ou var(--padrao1) conforme preferência */
+  border-bottom-color: #374151;
+}
+
+[data-theme="escuro"] .event-date-box {
+  background-color: rgba(255, 255, 255, 0.05);
+  /* Translucido claro sobre fundo escuro */
+}
+
+[data-theme="escuro"] .event-num {
+  color: var(--white);
+}
+
+[data-theme="escuro"] .text-black {
+  color: var(--white) !important;
+}
+
+/* Ajustes do Editor de Texto */
+.note-editor.note-frame {
+  border: 1px solid #dee2e6;
+  box-shadow: none;
+}
+
+.note-toolbar {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Scroll da Lista de Frequência */
+.attendance-scroll {
+  max-height: 500px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* Loader pequeno para validações assíncronas */
+.loader-sm {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ajuste Crucial para o Flatpickr: Fundo branco mesmo readonly */
+.flatpickr-input[readonly] {
+  background-color: #fff !important;
+  cursor: pointer;
+}
+
+/* Ajuste de inputs na tabela */
+.table-custom input.form-control-sm,
+.table-custom select.form-select-sm {
+  font-size: 0.85rem;
+}
+
+/* ============================================================
+   HEADER MOBILE (TOPO)
+   ============================================================ */
+.mobile-top-header {
+  height: 60px;
+  z-index: 1030;
+  background-color: #ffffff; /* Fundo branco fixo no modo claro */
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+[data-theme="escuro"] .mobile-top-header {
+  background-color: var(--padrao1); /* Usa a cor escura da Sidebar (#111827) */
+  border-bottom: 1px solid var(--borda) !important;
+}
+
+/* Garante que o texto fique claro no modo noturno */
+[data-theme="escuro"] .mobile-top-header span {
+  color: var(--white);
+}
+
+/* ==========================================================================
+   2. CSS DO ANO LETIVO (CORREÇÃO DE SELECT E CONTEXTO)
+   ========================================================================== */
+
+.sidebar-selectize {
+  position: relative;
+  z-index: 1050;
+  padding: 0 15px; /* Adiciona respiro lateral */
+}
+
+/* Renomeado de .context-wrapper para .sidebar-context-card para bater com o HTML */
+.sidebar-context-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  position: relative;
+}
+
+.sidebar-context-card:hover,
+.sidebar-context-card:focus-within {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--padrao2); /* Dourado */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.context-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 800;
+  margin-bottom: 2px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+}
+
+/* --- CUSTOMIZAÇÃO DO INPUT SELECTIZE --- */
+.sidebar-selectize .selectize-control.single .selectize-input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  border-radius: 0 !important;
+  padding: 6px 20px 6px 0 !important; /* Padding right 20px para não cobrir a seta */
+  font-weight: 700;
+  font-size: 1rem; /* Levemente reduzido para caber melhor */
+  line-height: 1.5;
+  height: auto !important;
+
+  /* Evita quebra de linha que estraga o layout */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.sidebar-selectize .selectize-control.single .selectize-input.focus {
+  border-bottom-color: var(--padrao2) !important;
+}
+
+.sidebar-selectize .selectize-control.single .selectize-input input {
+  color: #fff !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+}
+
+/* Seta do Dropdown */
+.sidebar-selectize .selectize-control.single .selectize-input::after {
+  border-color: #fff transparent transparent transparent !important;
+  border-width: 5px 5px 0 5px !important;
+  right: 0 !important;
+  margin-top: -2px !important;
+  opacity: 0.8;
+}
+
+/* --- DROPDOWN (LISTA DE OPÇÕES) --- */
+.sidebar-selectize .selectize-dropdown {
+  margin-top: 5px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  padding: 5px 0;
+  z-index: 2000 !important; /* Garante que fique acima de tudo */
+  border: 0 !important;
+  width: 100% !important;
+  min-width: 200px; /* Garante largura mínima para leitura */
+}
+
+/* TEMA CLARO (Dropdown) */
+.sidebar-selectize .selectize-dropdown {
+  background-color: #ffffff !important;
+}
+.sidebar-selectize .selectize-dropdown .option {
+  color: #333333 !important;
+  padding: 10px 15px !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+.sidebar-selectize .selectize-dropdown .option:hover,
+.sidebar-selectize .selectize-dropdown .active {
+  background-color: var(--padrao) !important;
+  color: #ffffff !important;
+}
+
+/* TEMA ESCURO (Dropdown) */
+[data-theme="escuro"] .sidebar-selectize .selectize-dropdown {
+  background-color: #1f2937 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+[data-theme="escuro"] .sidebar-selectize .selectize-dropdown .option {
+  background-color: #1f2937 !important;
+  color: #e2e8f0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+[data-theme="escuro"] .sidebar-selectize .selectize-dropdown .option:hover,
+[data-theme="escuro"] .sidebar-selectize .selectize-dropdown .active {
+  background-color: var(--padrao) !important;
+  color: #ffffff !important;
+}
+
+/* Item Selecionado */
+.sidebar-selectize .selectize-dropdown .option.selected {
+  font-weight: 800;
+  position: relative;
+}
+.sidebar-selectize .selectize-dropdown .option.selected::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background-color: var(--success);
+  border-radius: 50%;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.container {
+  margin-top: 20px;
+}
+
+/* Tooltip do menu fechado (Legenda) */
+.sidebar-only.active-only .menu-only > ul > li > a .text-only {
+  display: block;
+  position: fixed;
+  left: 80px;
+
+  padding: 8px 12px;
+  border-radius: 6px;
+
+  /* CORREÇÃO DE COR: Usamos cores fixas para garantir contraste */
+  background-color: #2c3e50; /* Fundo sempre escuro */
+  color: #ffffff; /* Texto sempre branco */
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  white-space: nowrap;
+  z-index: 9999;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Seta do tooltip */
+.sidebar-only.active-only .menu-only > ul > li > a .text-only::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background-color: #2c3e50; /* Mesma cor do fundo */
+  z-index: -1;
+}
+
+/* OVERRIDE PARA MODO ESCURO (Visual mais integrado ao tema) */
+[data-theme="escuro"] .sidebar-only.active-only .menu-only > ul > li > a .text-only {
+  background-color: var(--fundo); /* Usa o fundo do card (#1f2937) */
+  border: 1px solid var(--borda); /* Adiciona borda para destacar */
+  color: #ffffff;
+}
+
+[data-theme="escuro"] .sidebar-only.active-only .menu-only > ul > li > a .text-only::after {
+  background-color: var(--fundo);
+  border-left: 1px solid var(--borda); /* Borda na seta */
+  border-bottom: 1px solid var(--borda); /* Borda na seta */
+}
+
+/* Mostra no hover */
+.sidebar-only.active-only .menu-only > ul > li > a:hover .text-only {
+  opacity: 1;
+  visibility: visible;
+  left: 95px;
+}
+
+/* ==========================================================================
+   2. CSS DO ANO LETIVO (CORREÇÃO DE LAYOUT E DROPDOWN)
+   ========================================================================== */
+
+.sidebar-selectize {
+  position: relative;
+  z-index: 1050;
+  padding: 0 15px;
+}
+
+/* Card que envolve o select */
+.sidebar-context-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  position: relative;
+}
+
+.sidebar-context-card:hover,
+.sidebar-context-card:focus-within {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--padrao2); /* Dourado */
+}
+
+.context-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 800;
+  margin-bottom: 2px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+}
+
+/* --- INPUT (DENTRO DA SIDEBAR) --- */
+.sidebar-selectize .selectize-control.single .selectize-input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  border-radius: 0 !important;
+  padding: 6px 25px 6px 0 !important; /* Espaço para a seta */
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5;
+  height: auto !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-selectize .selectize-control.single .selectize-input.focus {
+  border-bottom-color: var(--padrao2) !important;
+}
+
+.sidebar-selectize .selectize-control.single .selectize-input input {
+  color: #fff !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+}
+
+.sidebar-selectize .selectize-control.single .selectize-input::after {
+  border-color: #fff transparent transparent transparent !important;
+  border-width: 5px 5px 0 5px !important;
+  right: 0 !important;
+  margin-top: -2px !important;
+  opacity: 0.8;
+}
+
+/* --- DROPDOWN FLUTUANTE (NO BODY) --- */
+/* Estilizamos pela classe específica que injetamos via JS */
+
+.selectize-dropdown.sidebar-context-dropdown {
+  margin-top: 5px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+  padding: 8px 0;
+  z-index: 99999 !important; /* Acima de tudo */
+  border: 0 !important;
+  width: 260px !important; /* Largura fixa ideal */
+
+  /* Garante que apareça mesmo com temas escuros */
+  background-color: var(--white) !important;
+}
+
+/* Item da Lista */
+.selectize-dropdown.sidebar-context-dropdown .option {
+  padding: 10px 15px !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--black);
+  cursor: pointer;
+  border-bottom: 1px solid var(--borda);
+}
+
+.selectize-dropdown.sidebar-context-dropdown .option:last-child {
+  border-bottom: none;
+}
+
+/* Hover / Ativo */
+.selectize-dropdown.sidebar-context-dropdown .option:hover,
+.selectize-dropdown.sidebar-context-dropdown .active {
+  background-color: var(--padrao) !important;
+  color: #ffffff !important;
+}
+
+/* MODO ESCURO */
+[data-theme="escuro"] .selectize-dropdown.sidebar-context-dropdown {
+  background-color: #1f2937 !important; /* Azul escuro */
+  border: 1px solid #374151 !important;
+}
+
+[data-theme="escuro"] .selectize-dropdown.sidebar-context-dropdown .option {
+  background-color: transparent;
+  color: #e2e8f0;
+  border-bottom-color: #374151;
+}
+
+[data-theme="escuro"] .selectize-dropdown.sidebar-context-dropdown .option:hover,
+[data-theme="escuro"] .selectize-dropdown.sidebar-context-dropdown .active {
+  background-color: var(--padrao) !important;
+  color: #ffffff !important;
 }

@@ -10,80 +10,6 @@
     <?php include "./assets/components/Head.php"; ?>
 
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
-    <style>
-        /* =========================================
-           ESTILOS DOS WIDGETS (AGENDA & AVISOS)
-           ========================================= */
-
-        /* Header dos Cards */
-        .widget-header {
-            background-color: var(--white);
-            border-bottom: 1px solid var(--borda);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        /* Box de Data (Widget Agenda) */
-        .event-date-box {
-            background-color: var(--body);
-            /* Usa fundo da página como base */
-            border-radius: 8px;
-            padding: 5px 10px;
-            text-align: center;
-            min-width: 60px;
-            border: 1px solid transparent;
-            transition: background-color 0.3s ease;
-        }
-
-        .event-day {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--descricao);
-            line-height: 1;
-        }
-
-        .event-num {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--black);
-            line-height: 1.1;
-        }
-
-        /* Estado: Bloqueado/Sem Aula (Feriados) */
-        .event-blocked .event-date-box {
-            background-color: rgba(231, 74, 59, 0.1);
-            /* Vermelho bem claro */
-            color: var(--danger);
-            border-color: rgba(231, 74, 59, 0.2);
-        }
-
-        .event-blocked .event-num,
-        .event-blocked .event-day {
-            color: var(--danger) !important;
-        }
-
-        /* =========================================
-           MODO ESCURO (DARK MODE)
-           ========================================= */
-        [data-theme="escuro"] .widget-header {
-            background-color: #1f2937;
-            /* Cinza Escuro ou var(--padrao1) conforme preferência */
-            border-bottom-color: #374151;
-        }
-
-        [data-theme="escuro"] .event-date-box {
-            background-color: rgba(255, 255, 255, 0.05);
-            /* Translucido claro sobre fundo escuro */
-        }
-
-        [data-theme="escuro"] .event-num {
-            color: var(--white);
-        }
-
-        [data-theme="escuro"] .text-black {
-            color: var(--white) !important;
-        }
-    </style>
 </head>
 
 <body>
@@ -91,9 +17,6 @@
     <div id="div-loader" class="div-loader d-none"><span class="loader"></span></div>
 
     <div id="sidebar-only" class="sidebar-only">
-        <div class="menu-btn-only">
-            <span class="material-symbols-outlined">chevron_left</span>
-        </div>
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 

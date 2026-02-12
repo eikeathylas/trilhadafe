@@ -16,9 +16,6 @@
     <div id="div-loader" class="div-loader d-none"><span class="loader"></span></div>
 
     <div id="sidebar-only" class="sidebar-only">
-        <div class="menu-btn-only">
-            <span class="material-symbols-outlined">chevron_left</span>
-        </div>
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 

@@ -15,7 +15,6 @@
     <div id="div-loader" class="div-loader d-none"><span class="loader"></span></div>
 
     <div id="sidebar-only" class="sidebar-only">
-        <div class="menu-btn-only"><span class="material-symbols-outlined">chevron_left</span></div>
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
@@ -111,8 +110,8 @@
                             <div class="card-body">
                                 <div class="form-check form-switch">
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input toggleSwitch" type="checkbox" id="evt_blocker">
-                                        <label class="form-check-label fw-bold text-danger ml-3 mt-1" for="evt_blocker">
+                                        <input class="form-check-input" type="checkbox" id="evt_blocker">
+                                        <label class="form-check-label fw-bold text-danger" for="evt_blocker">
                                             Bloquear Aulas e Diários?
                                         </label>
                                     </div>

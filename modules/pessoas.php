@@ -18,9 +18,6 @@
     <div id="div-loader" class="div-loader" style="display: none;"><span class="loader"></span></div>
 
     <div id="sidebar-only" class="sidebar-only">
-        <div class="menu-btn-only">
-            <span class="material-symbols-outlined">chevron_left</span>
-        </div>
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
@@ -166,7 +163,7 @@
                                             <div class="card bg-light border-0">
                                                 <div class="card-body py-2">
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input toggleSwitch" type="checkbox" id="is_pcd">
+                                                        <input class="form-check-input" type="checkbox" id="is_pcd">
                                                         <label class="form-check-label ms-2 fw-bold">Pessoa com Deficiência (PCD)</label>
                                                     </div>
                                                     <input type="text" id="pcd_details" class="form-control mt-2 d-none" placeholder="Descreva a necessidade especial (Ex: Cadeirante, Autismo)...">
@@ -237,7 +234,7 @@
                                     <div class="card h-100 border-primary-hover cursor-pointer" onclick="$('#role_student').click()">
                                         <div class="card-body d-flex align-items-center">
                                             <div class="form-check form-switch me-3">
-                                                <input class="form-check-input toggleSwitch" type="checkbox" id="role_student" onclick="event.stopPropagation()">
+                                                <input class="form-check-input" type="checkbox" id="role_student" onclick="event.stopPropagation()">
                                             </div>
                                             <div>
                                                 <h6 class="mb-1 fw-bold text-primary">Catequizando (Aluno)</h6>
@@ -250,7 +247,7 @@
                                     <div class="card h-100 border-primary-hover cursor-pointer" onclick="$('#role_catechist').click()">
                                         <div class="card-body d-flex align-items-center">
                                             <div class="form-check form-switch me-3">
-                                                <input class="form-check-input toggleSwitch" type="checkbox" id="role_catechist" onclick="event.stopPropagation()">
+                                                <input class="form-check-input" type="checkbox" id="role_catechist" onclick="event.stopPropagation()">
                                             </div>
                                             <div>
                                                 <h6 class="mb-1 fw-bold text-warning">Catequista (Professor)</h6>
@@ -263,7 +260,7 @@
                                     <div class="card h-100 border-primary-hover cursor-pointer" onclick="$('#role_parent').click()">
                                         <div class="card-body d-flex align-items-center">
                                             <div class="form-check form-switch me-3">
-                                                <input class="form-check-input toggleSwitch" type="checkbox" id="role_parent" onclick="event.stopPropagation()">
+                                                <input class="form-check-input" type="checkbox" id="role_parent" onclick="event.stopPropagation()">
                                             </div>
                                             <div>
                                                 <h6 class="mb-1 fw-bold text-success">Responsável / Pai</h6>
@@ -276,7 +273,7 @@
                                     <div class="card h-100 border-primary-hover cursor-pointer" onclick="$('#role_priest').click()">
                                         <div class="card-body d-flex align-items-center">
                                             <div class="form-check form-switch me-3">
-                                                <input class="form-check-input toggleSwitch" type="checkbox" id="role_priest" onclick="event.stopPropagation()">
+                                                <input class="form-check-input" type="checkbox" id="role_priest" onclick="event.stopPropagation()">
                                             </div>
                                             <div>
                                                 <h6 class="mb-1 fw-bold text-dark">Clero (Padre/Diácono)</h6>

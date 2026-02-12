@@ -13,59 +13,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
-
-    <style>
-        /* Ajustes do Editor de Texto */
-        .note-editor.note-frame {
-            border: 1px solid #dee2e6;
-            box-shadow: none;
-        }
-
-        .note-toolbar {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        /* Scroll da Lista de Frequência */
-        .attendance-scroll {
-            max-height: 500px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-        }
-
-        /* Loader pequeno para validações assíncronas */
-        .loader-sm {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ccc;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            display: inline-block;
-            animation: rotation 1s linear infinite;
-        }
-
-        @keyframes rotation {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Ajuste Crucial para o Flatpickr: Fundo branco mesmo readonly */
-        .flatpickr-input[readonly] {
-            background-color: #fff !important;
-            cursor: pointer;
-        }
-
-        /* Ajuste de inputs na tabela */
-        .table-custom input.form-control-sm,
-        .table-custom select.form-select-sm {
-            font-size: 0.85rem;
-        }
-    </style>
 </head>
 
 <body>
@@ -73,7 +20,6 @@
     <div id="div-loader" class="div-loader d-none"><span class="loader"></span></div>
 
     <div id="sidebar-only" class="sidebar-only">
-        <div class="menu-btn-only"><span class="material-symbols-outlined">chevron_left</span></div>
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
