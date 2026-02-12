@@ -136,9 +136,9 @@ const renderTableSubjects = (data) => {
                 ${getToggleHtml(item.subject_id, item.is_active)}
             </td>
             <td class="text-end align-middle pe-3">
-                <button onclick="openAudit('education.subjects', ${item.subject_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalDisciplina(${item.subject_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteSubject(${item.subject_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -157,9 +157,9 @@ const renderTableSubjects = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button onclick="openAudit('education.subjects', ${item.subject_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalDisciplina(${item.subject_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteSubject(${item.subject_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })

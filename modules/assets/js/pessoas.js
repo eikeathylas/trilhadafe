@@ -190,9 +190,9 @@ const renderTablePeople = (data) => {
                 ${getToggleHtml(item.person_id, item.is_active)}
             </td>
             <td class="text-end align-middle pe-3">
-                <button onclick="openAudit('people.persons', ${item.person_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalPessoa(${item.person_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deletePerson(${item.person_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('people.persons', ${item.person_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalPessoa(${item.person_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -262,9 +262,9 @@ const renderTablePeople = (data) => {
                      ${item.phone_mobile ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="text-success fw-bold text-decoration-none"><i class="fab fa-whatsapp me-1"></i>WhatsApp</a>` : ""}
                 </div>
                 <div>
-                    <button onclick="openAudit('people.persons', ${item.person_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                    <button onclick="modalPessoa(${item.person_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                    <button onclick="deletePerson(${item.person_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                    <button class="btn-icon-action text-warning" onclick="openAudit('people.persons', ${item.person_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                    <button class="btn-icon-action text-primary" onclick="modalPessoa(${item.person_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                    <button class="btn-icon-action text-danger" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         </div>`;

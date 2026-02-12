@@ -619,7 +619,7 @@ body {
   cursor: pointer;
 }
 .btn-icon-action:hover {
-  background-color: var(--padrao);
+  background-color: #fff !important;
   color: #fff;
   transform: translateY(-2px);
 }
@@ -627,8 +627,11 @@ body {
   background-color: var(--danger);
 }
 [data-theme="escuro"] .btn-icon-action {
-  background-color: rgba(255, 255, 255, 0.05);
   color: var(--white);
+}
+[data-theme="escuro"] .btn-icon-action:hover {
+  background-color: #fff !important;
+  color: #fff;
 }
 
 /* Loader Overlay */

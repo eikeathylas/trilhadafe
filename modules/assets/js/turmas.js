@@ -223,9 +223,9 @@ const renderTableClasses = (data) => {
                 ${getToggleHtml(item.class_id, isActive)}
             </td>
             <td class="text-end align-middle pe-3">
-                <button onclick="openAudit('education.classes', ${item.class_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalTurma(${item.class_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteTurma(${item.class_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalTurma(${item.class_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -270,15 +270,9 @@ const renderTableClasses = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-2 border-top">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id})">
-                    <i class="fas fa-bolt"></i>
-                </button>
-                <button class="btn-icon-action" onclick="modalTurma(${item.class_id})">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button class="btn-icon-action delete" onclick="deleteTurma(${item.class_id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalTurma(${item.class_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })

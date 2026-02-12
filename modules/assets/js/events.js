@@ -108,9 +108,9 @@ const renderTableEvents = (data) => {
                 ${toggleHtml}
             </td>
             <td class="align-middle text-end pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -148,15 +148,9 @@ const renderTableEvents = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})">
-                    <i class="fas fa-bolt"></i>
-                </button>
-                <button class="btn-icon-action" onclick="editEvent(${item.event_id})">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button class="btn-icon-action delete" onclick="deleteEvent(${item.event_id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })

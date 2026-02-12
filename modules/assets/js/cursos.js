@@ -210,9 +210,9 @@ const renderTableCourses = (data) => {
                 ${getToggleHtml(item.course_id, item.is_active)}
             </td>
             <td class="text-end align-middle pe-3">
-                <button onclick="openAudit('education.courses', ${item.course_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalCurso(${item.course_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteCourse(${item.course_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -242,9 +242,9 @@ const renderTableCourses = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id})"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action" onclick="modalCurso(${item.course_id})"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action delete" onclick="deleteCourse(${item.course_id})"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })

@@ -213,8 +213,8 @@ const renderTableHistory = (data) => {
           </td>
           <td class="text-end align-middle pe-3">
             <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
-            <button class="btn-icon-action" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
-            <button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
+            <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
           </td>
         </tr>`;
     })
@@ -250,8 +250,8 @@ const renderTableHistory = (data) => {
             
             <div class="mobile-actions ">
               <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action delete" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
+              <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })

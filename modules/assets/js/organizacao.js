@@ -238,9 +238,9 @@ const renderTableDiocese = (data) => {
             <td><div class="text-dark font-weight-500">${item.city_state || "-"}</div></td>
             <td class="text-center align-middle">${getToggleHtml(item.org_id, item.is_active)}</td>
             <td class="text-end pe-3">
-                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Inativar"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -262,9 +262,9 @@ const renderTableDiocese = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Inativar"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })
@@ -349,9 +349,9 @@ const renderTableOrgs = (data) => {
             <td><div class="text-dark font-weight-500">${item.city_state || "-"}</div></td>
             <td class="text-center align-middle">${getToggleHtml(item.org_id, item.is_active)}</td>
             <td class="text-end pe-3">
-                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete" title="Inativar"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Inativar"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -371,9 +371,9 @@ const renderTableOrgs = (data) => {
                 <div>${getMobileToggleHtml(item.org_id, item.is_active)}</div>
             </div>
             <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button onclick="openAudit('organization.organizations', ${item.org_id})" class="btn-icon-action text-warning"><i class="fas fa-bolt"></i></button>
-                <button onclick="modalInstituicao(${item.org_id})" class="btn-icon-action"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteOrg(${item.org_id})" class="btn-icon-action delete"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Inativar"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })
@@ -460,9 +460,9 @@ const renderTableLocais = (data) => {
             <td class="text-center fs-6"><div class="d-flex justify-content-center flex-wrap gap-1">${icons || "-"}</div></td>
             <td class="text-center align-middle">${getToggleHtml(item.location_id, item.is_active)}</td>
             <td class="text-end pe-3">
-                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning" title="Histórico"><i class="fas fa-bolt"></i></button>
-                <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action" title="Editar"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteLoc(${item.location_id})" class="btn-icon-action delete" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.locations', ${item.location_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -481,9 +481,9 @@ const renderTableLocais = (data) => {
                 <div>${getMobileToggleHtml(item.location_id, item.is_active)}</div>
             </div>
             <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button onclick="openAudit('organization.locations', ${item.location_id})" class="btn-icon-action text-warning"><i class="fas fa-bolt"></i></button>
-                <button onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' class="btn-icon-action"><i class="fas fa-pen"></i></button>
-                <button onclick="deleteLoc(${item.location_id})" class="btn-icon-action delete"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.locations', ${item.location_id})" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </div>
         </div>`;
     })
