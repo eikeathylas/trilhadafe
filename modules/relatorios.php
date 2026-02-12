@@ -181,9 +181,12 @@
 
                         <div id="reportFiltersArea"></div>
 
-                        <div class="mt-4 d-grid">
-                            <button type="button" class="btn btn-theme" onclick="generatePDF()">
-                                <i class="fas fa-print me-2"></i> Gerar PDF
+                        <div class="mt-4 d-flex gap-2">
+                            <button type="button" id="btn-report-view" class="btn btn-outline-primary flex-grow-1" onclick="processReport('view')">
+                                <i class="fas fa-eye me-2"></i> Visualizar
+                            </button>
+                            <button type="button" id="btn-report-download" class="btn btn-primary flex-grow-1" onclick="processReport('download')">
+                                <i class="fas fa-download me-2"></i> Baixar PDF
                             </button>
                         </div>
                     </form>
