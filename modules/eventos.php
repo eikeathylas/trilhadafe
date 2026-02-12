@@ -122,7 +122,7 @@
                 </div>
                 <div class="modal-footer bg-white border-top-0">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="saveEvent()">Salvar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEvent()"><i class="fas fa-save me-2"></i> Salvar</button>
                 </div>
             </div>
         </div>
