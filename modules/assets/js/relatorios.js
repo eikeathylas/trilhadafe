@@ -1,6 +1,6 @@
 /**
- * TRILHA DA FÉ - Controlador de Interface de Relatórios (V5.0)
- * Responsável por: Gestão de Modais, Injeção de Filtros e Disparo do Builder.
+ * TRILHA DA FÉ - Controlador de Interface de Relatórios (V7.0)
+ * Responsável por: Gestão de Modais, Injeção de Filtros e Disparo do Builder Profissional.
  */
 
 // Estado Global de Controle de Interface
@@ -24,7 +24,7 @@ window.openReportConfig = async (type) => {
 
   defaultReportUI.currentType = type;
 
-  // Feedback visual de carregamento dentro do modal
+  // Feedback visual de carregamento
   $container.html('<div class="text-center py-4"><span class="loader"></span></div>');
   $("#modalReportConfig").modal("show");
 
@@ -44,6 +44,7 @@ window.openReportConfig = async (type) => {
                             <option value="CATECHIST">Catequistas</option>
                             <option value="STUDENT">Catequizandos</option>
                             <option value="PARENT">Responsáveis</option>
+                            <option value="VENDOR">Fornecedores</option>
                         </select>
                     </div>
                     <div class="col-6">
@@ -67,9 +68,9 @@ window.openReportConfig = async (type) => {
 
     case "lista_presenca":
       defaultReportUI.currentTitle = "Diário de Classe";
-      $desc.text("Gera a folha de presença oficial para a turma selecionada.");
+      $desc.text("Gera a folha de presença oficial com metadados da turma selecionada.");
       try {
-        // Busca turmas ativas no banco
+        // Busca turmas ativas para o ano corrente
         const res = await window.ajaxValidator({
           validator: "getTeacherClasses",
           token: defaultApp.userInfo.token,
@@ -77,7 +78,7 @@ window.openReportConfig = async (type) => {
           year_id: localStorage.getItem("sys_active_year"),
         });
 
-        // Injeta metadados no data-attribute para o cabeçalho do relatório
+        // Mapeia turmas e injeta metadados JSON para o cabeçalho
         let options = res.data
           .map((t) => {
             const metaStr = JSON.stringify({
@@ -86,27 +87,29 @@ window.openReportConfig = async (type) => {
               location_name: t.location_name,
               year_name: t.year_name,
               coordinator_name: t.coordinator_name || "Secretaria Paroquial",
+              max_capacity: t.max_capacity,
+              current_enrollments: t.current_enrollments,
             });
             return `<option value="${t.class_id}" data-meta='${metaStr}'>${t.class_name}</option>`;
           })
           .join("");
 
         html = `
-                    <div class="col-12">
-                        <label class="form-label fw-bold small">SELECIONE A TURMA:</label>
-                        <select id="filter_class" class="form-control shadow-sm">
-                            <option value="">Selecione...</option>
-                            ${options}
-                        </select>
-                    </div>`;
+                <div class="col-12">
+                    <label class="form-label fw-bold small">SELECIONE A TURMA:</label>
+                    <select id="filter_class" class="form-control shadow-sm">
+                        <option value="">Escolha uma turma...</option>
+                        ${options}
+                    </select>
+                </div>`;
       } catch (e) {
-        html = '<div class="alert alert-danger py-2 small">Erro ao carregar turmas disponíveis.</div>';
+        html = '<div class="alert alert-danger py-2 small">Falha ao carregar lista de turmas.</div>';
       }
       break;
 
     case "aniversariantes":
       defaultReportUI.currentTitle = "Aniversariantes do Mês";
-      $desc.text("Lista para murais e felicitações paroquiais.");
+      $desc.text("Lista mensal para felicitações e avisos paroquiais.");
       const currentMonth = new Date().getMonth() + 1;
       html = `
                 <div class="col-12">
@@ -126,8 +129,8 @@ window.openReportConfig = async (type) => {
 
     case "auditoria":
       defaultReportUI.currentTitle = "Histórico de Auditoria";
-      $desc.text("Relatório de segurança com as últimas alterações no banco de dados.");
-      html = '<div class="alert alert-info border-0 small shadow-sm">Este relatório não requer filtros adicionais.</div>';
+      $desc.text("Exibe os últimos 100 registros de alteração no banco de dados.");
+      html = '<div class="alert alert-info border-0 small shadow-sm">Clique em visualizar para processar o log de segurança.</div>';
       break;
   }
 
@@ -140,18 +143,18 @@ window.openReportConfig = async (type) => {
 // =========================================================
 
 /**
- * Coleta os dados dos inputs e envia para o ReportBuilder.
+ * Coleta os dados dos inputs e delega para o ReportBuilder.
  * @param {string} action - 'view' ou 'download'
  */
 window.processReport = async (action) => {
-  // 1. Extração de Metadados Contextuais (Ex: Turmas)
+  // 1. Extração de Metadados Contextuais (Essencial para o cabeçalho A4)
   const $classSelect = $("#filter_class");
   let selectedMeta = {};
   if ($classSelect.length && $classSelect.val()) {
     selectedMeta = $classSelect.find(":selected").data("meta") || {};
   }
 
-  // 2. Construção do Objeto de Configuração Padrão
+  // 2. Objeto de Configuração para o Builder
   const config = {
     type: defaultReportUI.currentType,
     title: defaultReportUI.currentTitle,
@@ -161,29 +164,29 @@ window.processReport = async (action) => {
       gender: $("#filter_gender").val() || "",
       month: $("#filter_month").val() || "",
       class_id: $("#filter_class").val() || "",
-      // IDs fundamentais para busca no banco e organização
       org_id: localStorage.getItem("tf_active_parish"),
       year_id: localStorage.getItem("sys_active_year"),
     },
-    // Metadados iniciais para preencher o grid de 3 colunas
+    // Metadados para o grid de 3 colunas
     meta: {
-      class_name: selectedMeta.class_name || "Geral / Todos",
+      class_name: selectedMeta.class_name || "Geral / Unidade",
       course_name: selectedMeta.course_name || "N/A",
       location_name: selectedMeta.location_name || "Sede",
       year_name: selectedMeta.year_name || localStorage.getItem("sys_active_year"),
       coordinator_name: selectedMeta.coordinator_name || "Secretaria",
-      total_meetings: "10",
+      max_capacity: selectedMeta.max_capacity || null,
+      current_enrollments: selectedMeta.current_enrollments || null,
     },
   };
 
-  // 3. Validação Básica
+  // 3. Validação de segurança
   if (config.type === "lista_presenca" && !config.filters.class_id) {
-    return window.alertDefault("Por favor, selecione uma turma.", "error");
+    return window.alertDefault("Por favor, selecione uma turma ativa.", "error");
   }
 
-  // 4. Delegação para o Builder HTML
+  // 4. Chamada ao Cérebro de Processamento
   await ReportBuilder.generate(action, config);
 
-  // 5. Encerramento
+  // 5. Fecha o modal após o processamento
   $("#modalReportConfig").modal("hide");
 };

@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Relatórios - Trilha da Fé</title>
+
     <?php include "./assets/components/Head.php"; ?>
+
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
+
     <link href="assets/css/report-print.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
@@ -80,7 +83,7 @@
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Aniversariantes</h6>
-                                        <p class="small text-muted mb-0">Relação mensal para avisos e murais.</p>
+                                        <p class="small text-muted mb-0">Relação mensal para avisos e murais paroquiais.</p>
                                     </div>
                                 </div>
                             </div>
@@ -98,7 +101,7 @@
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Diário de Classe</h6>
-                                        <p class="small text-muted mb-0">Folha de chamada por turma com metadados acadêmicos.</p>
+                                        <p class="small text-muted mb-0">Folha de chamada oficial com metadados da turma.</p>
                                     </div>
                                 </div>
                             </div>
@@ -116,7 +119,7 @@
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Log de Auditoria</h6>
-                                        <p class="small text-muted mb-0">Histórico de operações registradas no sistema.</p>
+                                        <p class="small text-muted mb-0">Histórico de operações registradas no banco de dados.</p>
                                     </div>
                                 </div>
                             </div>
@@ -138,7 +141,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pt-2">
-                    <p id="reportDesc" class="text-muted small mb-4">Ajuste os filtros antes de gerar o documento.</p>
+                    <p id="reportDesc" class="text-muted small mb-4">Ajuste os filtros antes de gerar o documento oficial.</p>
 
                     <form id="formReport">
                         <div id="reportFiltersArea"></div>
@@ -148,7 +151,7 @@
                                 <i class="fas fa-eye me-2"></i> Visualizar
                             </button>
                             <button type="button" id="btn-report-download" class="btn btn-primary flex-grow-1" onclick="processReport('download')">
-                                <i class="fas fa-print me-2"></i> Imprimir / PDF
+                                <i class="fas fa-print me-2"></i> Gerar Documento
                             </button>
                         </div>
                     </form>

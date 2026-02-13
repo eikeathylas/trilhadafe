@@ -1,16 +1,16 @@
 /**
- * TRILHA DA FÉ - Motor de Inteligência de Dados e Templates (V5.0)
+ * TRILHA DA FÉ - Motor de Inteligência de Dados e Templates (V7.0)
  * Responsável por: Traduções, Limpeza de Dados e Estrutura HTML Institucional.
  */
 
 const ReportEngine = {
   /**
    * DICIONÁRIO DE TRADUÇÃO (Mapeamento Banco -> Humano)
-   * Traduz roles e status definidos no schema do banco.
+   * Traduz papéis, vínculos e status para o português paroquial.
    */
   translate: function (term) {
-    console.log(term)
-    if (!term) return "-";
+    // Retorna um hífen apenas se o valor for estritamente nulo ou indefinido
+    if (term === undefined || term === null || term === "") return "-";
 
     const dictionary = {
       // Papéis e Funções
@@ -21,17 +21,17 @@ const ReportEngine = {
       PARENT: "Responsável / Familiar",
       VENDOR: "Fornecedor / Externo",
 
-      // Status e Estados
+      // Status e Estados (Correção para mapeamento de valores booleanos e numéricos)
       ACTIVE: "Ativo",
       INACTIVE: "Inativo",
       1: "Ativo",
       0: "Inativo",
       TRUE: "Ativo",
       FALSE: "Inativo",
+
+      // Gênero e Outros
       M: "Masculino",
       F: "Feminino",
-
-      // Cursos e Turmas
       "N/A": "Não Informado",
       PLANNED: "Planejada",
     };
@@ -42,12 +42,12 @@ const ReportEngine = {
 
   /**
    * LIMPEZA DE ENDEREÇO (Anti-Null)
-   * Filtra valores nulos para evitar o erro "null, nº null".
+   * Filtra valores nulos para evitar falhas visuais no cabeçalho.
    */
   cleanAddress: function (org) {
     if (!org) return "Endereço não cadastrado";
 
-    // Mapeia partes do endereço e remove o que for "null", "undefined" ou vazio
+    // Filtra partes do endereço removendo strings "null", vazias ou indefinidas
     const components = [org.address_street, org.address_number ? `nº ${org.address_number}` : null, org.address_district, org.address_city, org.address_state].filter((p) => p && String(p).toLowerCase() !== "null" && String(p).trim() !== "");
 
     return components.length > 0 ? components.join(", ") : "Endereço não cadastrado";
@@ -55,9 +55,10 @@ const ReportEngine = {
 
   /**
    * TEMPLATE: CABEÇALHO INSTITUCIONAL
+   * Gera o topo do documento com logo e dados da paróquia.
    */
   getHeaderHTML: function (org) {
-    const logoPath = "assets/img/trilhadafe.png"; //
+    const logoPath = "assets/img/trilhadafe.png";
     const address = this.cleanAddress(org);
 
     return `
@@ -74,9 +75,10 @@ const ReportEngine = {
 
   /**
    * TEMPLATE: GRADE DE METADADOS (3 COLUNAS)
+   * Organiza as informações contextuais do relatório.
    */
   getMetadataHTML: function (meta) {
-    // Cálculo de Lotação com base nos dados do PHP
+    // Cálculo inteligente de lotação percentual
     let lotacaoLabel = "N/A";
     if (meta.max_capacity) {
       const current = parseInt(meta.current_enrollments) || 0;

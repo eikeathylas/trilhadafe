@@ -1,6 +1,6 @@
 /**
- * TRILHA DA FÉ - Construtor de Relatórios Profissional (V6.0)
- * Responsável por: Processamento de Dados, Gráficos Chart.js e Montagem de Documentos.
+ * TRILHA DA FÉ - Construtor de Relatórios Profissional (V7.0)
+ * Responsável por: Processamento de Dados, Gráficos Chart.js e Estrutura de Visualização A4.
  */
 
 const ReportBuilder = {
@@ -41,10 +41,10 @@ const ReportBuilder = {
       // 3. Monta o HTML do documento
       const htmlContent = this._assemble(config.type, dataList, org, meta);
 
-      // 4. Dispara a janela de impressão com Gráfico Largo e Moderno
+      // 4. Abre o relatório em modo de visualização A4
       this._executePrint(htmlContent, chartData);
 
-      window.alertDefault("Documento preparado para impressão!", "success");
+      window.alertDefault("Relatório gerado com sucesso!", "success");
     } catch (e) {
       console.error("Erro no Builder:", e);
       window.alertDefault(e.message, "error");
@@ -54,12 +54,12 @@ const ReportBuilder = {
   },
 
   /**
-   * Calcula a contagem de cada vínculo para alimentar o gráfico horizontal
+   * Calcula a distribuição de cargos para o gráfico horizontal
    */
   _processChartData: function (list) {
     const stats = {};
     list.forEach((item) => {
-      // Tradução automática do vínculo vinda do Engine
+      // Usa o tradutor do Engine para os rótulos do gráfico
       const label = ReportEngine.translate(item.main_role || "Outros");
       stats[label] = (stats[label] || 0) + 1;
     });
@@ -68,9 +68,9 @@ const ReportBuilder = {
       labels: Object.keys(stats),
       datasets: [
         {
-          label: "Quantidade de Pessoas",
+          label: "Quantidade",
           data: Object.values(stats),
-          backgroundColor: ["#003366", "#3b6cc9", "#718096", "#2d3748", "#4a5568", "#718096"],
+          backgroundColor: ["#003366", "#3b6cc9", "#718096", "#2d3748", "#4a5568"],
           borderRadius: 5,
           barThickness: 20,
         },
@@ -79,11 +79,11 @@ const ReportBuilder = {
   },
 
   /**
-   * Monta a estrutura HTML do relatório
+   * Monta a estrutura HTML completa do relatório
    */
   _assemble: function (type, data, org, meta) {
-    const header = ReportEngine.getHeaderHTML(org);
-    const metadata = ReportEngine.getMetadataHTML(meta);
+    const header = ReportEngine.getHeaderHTML(org); //
+    const metadata = ReportEngine.getMetadataHTML(meta); //
     const table = this._buildTableHTML(type, data);
 
     return `
@@ -91,8 +91,8 @@ const ReportBuilder = {
                 ${header}
                 ${metadata}
                 
-                <div class=\"report-chart-container\">
-                    <canvas id=\"reportChart\"></canvas>
+                <div class="report-chart-container">
+                    <canvas id="reportChart"></canvas>
                 </div>
 
                 <div class="report-content">
@@ -107,7 +107,7 @@ const ReportBuilder = {
   },
 
   /**
-   * Constrói a tabela de dados com suporte a múltiplos tipos
+   * Constrói a tabela com Badges profissionais e Tradução
    */
   _buildTableHTML: function (type, data) {
     let thead = "";
@@ -118,28 +118,29 @@ const ReportBuilder = {
         thead = `<tr><th>NOME COMPLETO</th><th>FUNÇÃO / VÍNCULO</th><th>CONTACTO</th><th class="text-center">STATUS</th></tr>`;
         tbody = data
           .map((i) => {
-            const statusClass = i.is_active == 1 ? "status-ativo" : "status-inativo";
+            // Lógica de Badges Profissionais solicitada
+            const isAtivo = i.is_active == 1 || i.is_active == true;
+            const badgeClass = isAtivo ? "badge bg-success-subtle text-success border border-success" : "badge bg-secondary-subtle text-secondary border border-secondary";
+
             return `
-                        <tr>
-                            <td><b>${i.full_name}</b></td>
-                            <td>${ReportEngine.translate(i.main_role)}</td>
-                            <td>${i.email || "-"}<br><small>${i.phone_mobile || ""}</small></td>
-                            <td class="text-center">
-                                <span class="badge-status ${statusClass}">${ReportEngine.translate(i.is_active)}</span>
-                            </td>
-                        </tr>`;
+                <tr>
+                    <td><b>${i.full_name}</b></td>
+                    <td>${ReportEngine.translate(i.main_role)}</td>
+                    <td>${i.email || "-"}<br><small>${i.phone_mobile || ""}</small></td>
+                    <td class="text-center">
+                        <span class="${badgeClass}">${ReportEngine.translate(i.is_active)}</span>
+                    </td>
+                </tr>`;
           })
           .join("");
         break;
-
-      // Novos cases podem ser adicionados aqui mantendo o padrão
     }
 
     return `<table class="report-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
   },
 
   /**
-   * Executa a impressão com o Gráfico Horizontal Moderno
+   * Abre a nova aba com estilo A4 e botão flutuante
    */
   _executePrint: function (html, chartData) {
     const win = window.open("", "_blank");
@@ -147,20 +148,26 @@ const ReportBuilder = {
     win.document.write(`
             <html>
                 <head>
-                    <title>Relatório - Trilha da Fé</title>
+                    <title>Visualização de Relatório - Trilha da Fé</title>
                     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                     <link href="assets/css/report-print.css" rel="stylesheet">
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
                     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 </head>
                 <body>
+                    <button class="floating-print-btn" onclick="window.print()" title="Imprimir Relatório">
+                        <i class="fas fa-print fa-lg"></i>
+                    </button>
+
                     ${html}
+                    
                     <script>
                         const ctx = document.getElementById('reportChart').getContext('2d');
                         new Chart(ctx, {
                             type: 'bar',
                             data: ${JSON.stringify(chartData)},
                             options: {
-                                indexAxis: 'y', // GRÁFICO HORIZONTAL (Moderna Visualização)
+                                indexAxis: 'y', // Gráfico Horizontal
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 plugins: {
@@ -174,24 +181,11 @@ const ReportBuilder = {
                                     }
                                 },
                                 scales: {
-                                    x: { 
-                                        beginAtZero: true, 
-                                        grid: { display: false },
-                                        ticks: { stepSize: 1, font: { size: 10 } }
-                                    },
-                                    y: { 
-                                        grid: { display: false },
-                                        ticks: { 
-                                            font: { size: 11, weight: '600' }, 
-                                            color: '#2d3748' 
-                                        }
-                                    }
+                                    x: { beginAtZero: true, grid: { display: false } },
+                                    y: { grid: { display: false }, ticks: { font: { weight: '600' } } }
                                 }
                             }
                         });
-
-                        // Aguarda renderização e dispara impressão
-                        setTimeout(() => { window.print(); }, 1200);
                     </script>
                 </body>
             </html>
