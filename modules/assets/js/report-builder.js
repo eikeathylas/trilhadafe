@@ -1,6 +1,6 @@
 /**
- * TRILHA DA FÉ - Construtor de Relatórios Profissional (V5.0)
- * Responsável por: Processamento de Dados, Gráficos Chart.js e Montagem de Tabelas.
+ * TRILHA DA FÉ - Construtor de Relatórios Profissional (V6.0)
+ * Responsável por: Processamento de Dados, Gráficos Chart.js e Montagem de Documentos.
  */
 
 const ReportBuilder = {
@@ -35,13 +35,13 @@ const ReportBuilder = {
       const meta = resData.data.metadata || config.meta;
       const org = resOrg.data || {};
 
-      // 2. Processa estatísticas para o gráfico (Distribuição de Cargos/Vínculos)
+      // 2. Processa estatísticas para o gráfico moderno
       const chartData = this._processChartData(dataList);
 
       // 3. Monta o HTML do documento
       const htmlContent = this._assemble(config.type, dataList, org, meta);
 
-      // 4. Dispara a janela de impressão com o Gráfico
+      // 4. Dispara a janela de impressão com Gráfico Largo e Moderno
       this._executePrint(htmlContent, chartData);
 
       window.alertDefault("Documento preparado para impressão!", "success");
@@ -54,11 +54,12 @@ const ReportBuilder = {
   },
 
   /**
-   * Calcula a contagem de cada vínculo para alimentar o gráfico
+   * Calcula a contagem de cada vínculo para alimentar o gráfico horizontal
    */
   _processChartData: function (list) {
     const stats = {};
     list.forEach((item) => {
+      // Tradução automática do vínculo vinda do Engine
       const label = ReportEngine.translate(item.main_role || "Outros");
       stats[label] = (stats[label] || 0) + 1;
     });
@@ -67,10 +68,11 @@ const ReportBuilder = {
       labels: Object.keys(stats),
       datasets: [
         {
-          label: "Quantidade por Vínculo",
+          label: "Quantidade de Pessoas",
           data: Object.values(stats),
-          backgroundColor: ["#003366", "#3b6cc9", "#718096", "#2d3748", "#4a5568"],
-          borderWidth: 0,
+          backgroundColor: ["#003366", "#3b6cc9", "#718096", "#2d3748", "#4a5568", "#718096"],
+          borderRadius: 5,
+          barThickness: 20,
         },
       ],
     };
@@ -89,8 +91,8 @@ const ReportBuilder = {
                 ${header}
                 ${metadata}
                 
-                <div class="report-chart-container no-break">
-                    <canvas id="reportChart" style="max-width: 450px; max-height: 220px;"></canvas>
+                <div class=\"report-chart-container\">
+                    <canvas id=\"reportChart\"></canvas>
                 </div>
 
                 <div class="report-content">
@@ -113,29 +115,31 @@ const ReportBuilder = {
 
     switch (type) {
       case "pessoas_lista":
-        thead = `<tr><th>Nome Completo</th><th>Vínculo</th><th>Contacto</th><th>Status</th></tr>`;
+        thead = `<tr><th>NOME COMPLETO</th><th>FUNÇÃO / VÍNCULO</th><th>CONTACTO</th><th class="text-center">STATUS</th></tr>`;
         tbody = data
           .map((i) => {
-            const statusClass = i.is_active == 1 ? "badge bg-success-subtle text-success border-success" : "badge bg-secondary-subtle text-secondary border-secondary";
+            const statusClass = i.is_active == 1 ? "status-ativo" : "status-inativo";
             return `
                         <tr>
                             <td><b>${i.full_name}</b></td>
                             <td>${ReportEngine.translate(i.main_role)}</td>
                             <td>${i.email || "-"}<br><small>${i.phone_mobile || ""}</small></td>
-                            <td><span class="badge-status ${statusClass}">${ReportEngine.translate(i.is_active)}</span></td>
+                            <td class="text-center">
+                                <span class="badge-status ${statusClass}">${ReportEngine.translate(i.is_active)}</span>
+                            </td>
                         </tr>`;
           })
           .join("");
         break;
 
-      // Espaço para novos relatórios (Diário, Auditoria, etc)
+      // Novos cases podem ser adicionados aqui mantendo o padrão
     }
 
     return `<table class="report-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
   },
 
   /**
-   * Executa a impressão injetando Chart.js e o CSS de fidelidade
+   * Executa a impressão com o Gráfico Horizontal Moderno
    */
   _executePrint: function (html, chartData) {
     const win = window.open("", "_blank");
@@ -143,36 +147,51 @@ const ReportBuilder = {
     win.document.write(`
             <html>
                 <head>
-                    <title>Relatório Institucional - Trilha da Fé</title>
+                    <title>Relatório - Trilha da Fé</title>
                     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                     <link href="assets/css/report-print.css" rel="stylesheet">
                     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 </head>
                 <body>
                     ${html}
-                    
                     <script>
-                        // Inicializa o gráfico após o carregamento da biblioteca
                         const ctx = document.getElementById('reportChart').getContext('2d');
                         new Chart(ctx, {
-                            type: 'bar', // Pode ser 'pie' ou 'bar' conforme sua preferência
+                            type: 'bar',
                             data: ${JSON.stringify(chartData)},
                             options: {
+                                indexAxis: 'y', // GRÁFICO HORIZONTAL (Moderna Visualização)
                                 responsive: true,
+                                maintainAspectRatio: false,
                                 plugins: {
-                                    legend: { position: 'right', labels: { font: { size: 10 } } }
+                                    legend: { display: false },
+                                    title: {
+                                        display: true,
+                                        text: 'DISTRIBUIÇÃO DE VÍNCULOS',
+                                        font: { size: 14, weight: '800' },
+                                        color: '#003366',
+                                        padding: { bottom: 15 }
+                                    }
                                 },
                                 scales: {
-                                    y: { beginAtZero: true, grid: { display: false } }
+                                    x: { 
+                                        beginAtZero: true, 
+                                        grid: { display: false },
+                                        ticks: { stepSize: 1, font: { size: 10 } }
+                                    },
+                                    y: { 
+                                        grid: { display: false },
+                                        ticks: { 
+                                            font: { size: 11, weight: '600' }, 
+                                            color: '#2d3748' 
+                                        }
+                                    }
                                 }
                             }
                         });
 
-                        // Aguarda a renderização do gráfico e dispara a impressão
-                        setTimeout(() => {
-                            window.print();
-                            // window.close(); // Opcional: fecha a aba após imprimir
-                        }, 800);
+                        // Aguarda renderização e dispara impressão
+                        setTimeout(() => { window.print(); }, 1200);
                     </script>
                 </body>
             </html>

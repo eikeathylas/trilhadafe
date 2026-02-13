@@ -6,46 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Relatórios - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
-
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
-
     <link href="assets/css/report-print.css?v=<?php echo time(); ?>" rel="stylesheet">
-
-    <style>
-        .hover-scale {
-            transition: transform 0.2s;
-        }
-
-        .hover-scale:hover {
-            transform: translateY(-5px);
-        }
-
-        .icon-circle {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .mobile-card {
-            background: #fff;
-            border: 1px solid #edf2f9;
-            border-radius: 15px;
-            padding: 1.25rem;
-            cursor: pointer;
-        }
-    </style>
 </head>
 
 <body>
 
     <div id="div-loader" class="div-loader" style="display: none;"><span class="loader"></span></div>
 
-    <div id="sidebar-only" class="sidebar-only">
+    <div id="sidebar-only" class="sidebar-only no-print">
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
@@ -62,7 +32,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4 mt-3 no-print">
                 <div>
                     <h4 class="fw-bold mb-1 title">Central de Relatórios</h4>
-                    <p class="text-muted small mb-0">Selecione uma categoria para gerar documentos oficiais.</p>
+                    <p class="text-muted small mb-0">Selecione uma categoria para gerar documentos oficiais e estatísticos.</p>
                 </div>
             </div>
 
@@ -96,7 +66,7 @@
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Lista de Pessoas</h6>
-                                        <p class="small text-muted mb-0">Relação geral com filtros de função e status.</p>
+                                        <p class="small text-muted mb-0">Relação geral com gráficos de vínculos e status.</p>
                                     </div>
                                 </div>
                             </div>
@@ -115,20 +85,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="mobile-card h-100 hover-scale shadow-sm" onclick="openReportConfig('ficha_cadastral_vazia')">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="icon-circle bg-secondary bg-opacity-10 text-secondary">
-                                        <span class="material-symbols-outlined">description</span>
-                                    </div>
-                                    <div>
-                                        <h6 class="fw-bold mb-1">Ficha Cadastral</h6>
-                                        <p class="small text-muted mb-0">Template vazio para coleta manual de dados.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -142,7 +98,7 @@
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Diário de Classe</h6>
-                                        <p class="small text-muted mb-0">Folha de chamada para turmas.</p>
+                                        <p class="small text-muted mb-0">Folha de chamada por turma com metadados acadêmicos.</p>
                                     </div>
                                 </div>
                             </div>
@@ -160,7 +116,7 @@
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Log de Auditoria</h6>
-                                        <p class="small text-muted mb-0">Histórico auditado de ações no banco de dados.</p>
+                                        <p class="small text-muted mb-0">Histórico de operações registradas no sistema.</p>
                                     </div>
                                 </div>
                             </div>

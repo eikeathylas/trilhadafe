@@ -1,16 +1,15 @@
 /**
- * TRILHA DA FÉ - PADRÃO DE IMPRESSÃO INSTITUCIONAL (V5.0)
- * Focado em: Fidelidade visual, Gráficos Chart.js e Grande volume de dados.
+ * TRILHA DA FÉ - PADRÃO DE IMPRESSÃO GIGANTE E ROBUSTO (V6.0)
+ * Focado em: Gráficos de largura total, Modo Noturno e Tabelas de Auditoria.
  */
 
-/* 1. Configurações de Papel e Reset */
+/* 1. Configurações de Papel e Reset de Impressora */
 @page {
   size: A4;
-  margin: 1.2cm 1.5cm; /* Margens otimizadas para furos de pasta e grampos */
+  margin: 1.2cm 1.5cm; /* Margens balanceadas para documentos oficiais */
 }
 
 @media print {
-  /* Oculta interface do sistema */
   .no-print,
   .navbar,
   .sidebar,
@@ -21,7 +20,6 @@
     display: none !important;
   }
 
-  /* Força renderização de cores e fundos */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -32,14 +30,10 @@ body {
   font-family:
     "Inter",
     -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Arial,
     sans-serif;
   color: #1a202c;
   line-height: 1.5;
-  background: #fff !important;
+  /* background: #fff !important; Sempre fundo branco no papel */
 }
 
 /* 2. Cabeçalho Institucional */
@@ -47,7 +41,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #003366; /* Azul Marinho Trilha da Fé */
+  border-bottom: 2px solid #003366;
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
@@ -73,17 +67,16 @@ body {
   margin: 2px 0 0;
   font-size: 9.5pt;
   color: #4a5568;
-  font-weight: 500;
 }
 
-/* 3. Bloco de Metadados (Grid de 3 Colunas) */
+/* 3. Bloco de Metadados (O Padrão Perfeito) */
 .metadata-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
   background: #f4f7f9;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 9pt;
   margin-bottom: 25px;
   border: 1px solid #e2e8f0;
@@ -103,67 +96,45 @@ body {
   color: #2d3748;
 }
 
-/* 4. Área do Gráfico (Chart.js) */
+/* 4. Área do Gráfico Expandida */
 .report-chart-container {
   width: 100%;
-  max-height: 250px; /* Altura controlada para não empurrar a tabela */
-  margin-bottom: 30px;
-  display: flex;
-  justify-content: center;
+  height: 320px; /* Aumentado para comportar o eixo horizontal com clareza */
+  margin: 10px 0 40px 0;
+  display: block;
+}
+
+canvas#reportChart {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* 5. Tabela de Dados Profissional */
 .report-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 5px;
 }
 
 .report-table thead th {
   background: #003366 !important;
   color: white !important;
-  padding: 12px 10px;
+  padding: 14px 10px;
   font-size: 9.5pt;
   text-transform: uppercase;
   text-align: left;
-  border: none;
 }
 
 .report-table tbody td {
   padding: 10px;
   font-size: 8.5pt;
   border-bottom: 1px solid #edf2f7;
-  vertical-align: middle;
 }
 
 .report-table tbody tr:nth-child(even) {
   background-color: #f8fafc !important;
 }
 
-/* Status Badges */
-.badge-status {
-  font-size: 7.5pt;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: #edf2f7;
-  color: #4a5568;
-  text-transform: uppercase;
-  display: inline-block;
-}
-
-.status-ativo {
-  background: #e6fffa !important;
-  color: #234e52 !important;
-  border: 1px solid #b2f5ea;
-}
-.status-inativo {
-  background: #fff5f5 !important;
-  color: #742a2a !important;
-  border: 1px solid #fed7d7;
-}
-
-/* 6. Rodapé e Quebras de Página */
+/* 6. Rodapé e Quebras */
 .report-footer {
   position: fixed;
   bottom: 0;
@@ -178,7 +149,35 @@ body {
 
 tr {
   page-break-inside: avoid;
-} /* Evita que uma linha seja cortada entre páginas */
+}
 thead {
   display: table-header-group;
-} /* Repete o cabeçalho da tabela em cada página */
+}
+
+.hover-scale {
+  transition: transform 0.2s;
+}
+
+.hover-scale:hover {
+  transform: translateY(-5px);
+}
+
+.icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card Adaptável com suporte a variáveis do Bootstrap (Modo Noturno) */
+.mobile-card {
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 15px;
+  padding: 1.25rem;
+  cursor: pointer;
+  color: var(--bs-body-color);
+  transition: all 0.3s ease;
+}
