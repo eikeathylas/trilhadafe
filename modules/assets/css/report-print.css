@@ -1,12 +1,27 @@
+/**
+ * TRILHA DA FÉ - PADRÃO DE IMPRESSÃO INSTITUCIONAL (V5.0)
+ * Focado em: Fidelidade visual, Gráficos Chart.js e Grande volume de dados.
+ */
+
+/* 1. Configurações de Papel e Reset */
 @page {
   size: A4;
-  margin: 1.5cm;
+  margin: 1.2cm 1.5cm; /* Margens otimizadas para furos de pasta e grampos */
 }
 
 @media print {
-  .no-print {
+  /* Oculta interface do sistema */
+  .no-print,
+  .navbar,
+  .sidebar,
+  .btn,
+  .breadcrumb,
+  .nav-pills,
+  .modal {
     display: none !important;
   }
+
+  /* Força renderização de cores e fundos */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -14,94 +29,156 @@
 }
 
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  line-height: 1.4;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+  color: #1a202c;
+  line-height: 1.5;
+  background: #fff !important;
 }
 
-/* Cabeçalho Profissional */
+/* 2. Cabeçalho Institucional */
 .report-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #003366;
+  border-bottom: 2px solid #003366; /* Azul Marinho Trilha da Fé */
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
+
 .logo-box img {
-  max-height: 60px;
+  max-height: 55px;
   width: auto;
 }
+
 .org-info {
   text-align: right;
 }
+
 .org-info h2 {
   margin: 0;
-  font-size: 16pt;
+  font-size: 18pt;
   color: #003366;
   font-weight: 800;
   text-transform: uppercase;
 }
+
 .org-info p {
   margin: 2px 0 0;
-  font-size: 9pt;
-  color: #666;
+  font-size: 9.5pt;
+  color: #4a5568;
+  font-weight: 500;
 }
 
-/* Grid de Informações (Metadados) */
-.metadata-grid {
+/* 3. Bloco de Metadados (Grid de 3 Colunas) */
+.metadata-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
+  background: #f4f7f9;
+  padding: 20px;
+  border-radius: 10px;
   font-size: 9pt;
   margin-bottom: 25px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #e2e8f0;
 }
+
 .meta-item b {
   color: #003366;
   display: block;
   text-transform: uppercase;
   font-size: 7.5pt;
-  margin-bottom: 2px;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
 }
 
-/* Tabela Institucional */
+.meta-item span {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+/* 4. Área do Gráfico (Chart.js) */
+.report-chart-container {
+  width: 100%;
+  max-height: 250px; /* Altura controlada para não empurrar a tabela */
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 5. Tabela de Dados Profissional */
 .report-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-top: 5px;
 }
+
 .report-table thead th {
   background: #003366 !important;
   color: white !important;
-  padding: 12px 8px;
-  font-size: 9pt;
+  padding: 12px 10px;
+  font-size: 9.5pt;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: none;
   text-align: left;
-}
-.report-table tbody td {
-  padding: 10px 8px;
-  font-size: 8.5pt;
-  border-bottom: 1px solid #dee2e6;
-}
-.report-table tbody tr:nth-child(even) {
-  background-color: #fcfcfc;
+  border: none;
 }
 
-/* Rodapé */
+.report-table tbody td {
+  padding: 10px;
+  font-size: 8.5pt;
+  border-bottom: 1px solid #edf2f7;
+  vertical-align: middle;
+}
+
+.report-table tbody tr:nth-child(even) {
+  background-color: #f8fafc !important;
+}
+
+/* Status Badges */
+.badge-status {
+  font-size: 7.5pt;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #edf2f7;
+  color: #4a5568;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.status-ativo {
+  background: #e6fffa !important;
+  color: #234e52 !important;
+  border: 1px solid #b2f5ea;
+}
+.status-inativo {
+  background: #fff5f5 !important;
+  color: #742a2a !important;
+  border: 1px solid #fed7d7;
+}
+
+/* 6. Rodapé e Quebras de Página */
 .report-footer {
   position: fixed;
   bottom: 0;
   width: 100%;
-  border-top: 1px solid #dee2e6;
-  padding-top: 8px;
-  font-size: 7.5pt;
-  color: #999;
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 0;
+  font-size: 8pt;
+  color: #a0aec0;
   display: flex;
   justify-content: space-between;
 }
+
+tr {
+  page-break-inside: avoid;
+} /* Evita que uma linha seja cortada entre páginas */
+thead {
+  display: table-header-group;
+} /* Repete o cabeçalho da tabela em cada página */

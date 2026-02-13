@@ -1,49 +1,99 @@
+/**
+ * TRILHA DA FÉ - Motor de Inteligência de Dados e Templates (V5.0)
+ * Responsável por: Traduções, Limpeza de Dados e Estrutura HTML Institucional.
+ */
+
 const ReportEngine = {
-  // Dicionário de tradução para termos do banco
-  translate: (term) => {
+  /**
+   * DICIONÁRIO DE TRADUÇÃO (Mapeamento Banco -> Humano)
+   * Traduz roles e status definidos no schema do banco.
+   */
+  translate: function (term) {
+    console.log(term)
+    if (!term) return "-";
+
     const dictionary = {
-      STUDENT: "Catequizando",
-      CATECHIST: "Catequista",
-      PRIEST: "Clero/Padre",
-      PARENT: "Responsável",
+      // Papéis e Funções
+      PRIEST: "Clero / Padre",
       SECRETARY: "Secretaria",
-      VENDOR: "Fornecedor",
+      CATECHIST: "Catequista",
+      STUDENT: "Catequizando",
+      PARENT: "Responsável / Familiar",
+      VENDOR: "Fornecedor / Externo",
+
+      // Status e Estados
       ACTIVE: "Ativo",
       INACTIVE: "Inativo",
-      MALE: "Masculino",
-      FEMALE: "Feminino",
+      1: "Ativo",
+      0: "Inativo",
+      TRUE: "Ativo",
+      FALSE: "Inativo",
+      M: "Masculino",
+      F: "Feminino",
+
+      // Cursos e Turmas
+      "N/A": "Não Informado",
+      PLANNED: "Planejada",
     };
-    return dictionary[term] || term;
+
+    const key = String(term).toUpperCase().trim();
+    return dictionary[key] || term;
   },
 
-  getHeader: function (org) {
-    // Limpeza de campos null para o endereço
-    const partes = [org.address_street, org.address_number, org.address_district, org.address_city].filter(Boolean);
-    const endereco = partes.length > 0 ? partes.join(", ") : "Endereço não informado";
+  /**
+   * LIMPEZA DE ENDEREÇO (Anti-Null)
+   * Filtra valores nulos para evitar o erro "null, nº null".
+   */
+  cleanAddress: function (org) {
+    if (!org) return "Endereço não cadastrado";
+
+    // Mapeia partes do endereço e remove o que for "null", "undefined" ou vazio
+    const components = [org.address_street, org.address_number ? `nº ${org.address_number}` : null, org.address_district, org.address_city, org.address_state].filter((p) => p && String(p).toLowerCase() !== "null" && String(p).trim() !== "");
+
+    return components.length > 0 ? components.join(", ") : "Endereço não cadastrado";
+  },
+
+  /**
+   * TEMPLATE: CABEÇALHO INSTITUCIONAL
+   */
+  getHeaderHTML: function (org) {
+    const logoPath = "assets/img/trilhadafe.png"; //
+    const address = this.cleanAddress(org);
 
     return `
             <div class="report-header">
                 <div class="logo-box">
-                    <img src="assets/img/trilhadafe.png" alt="Logo">
+                    <img src="${logoPath}" alt="Logo Trilha da Fé">
                 </div>
                 <div class="org-info">
-                    <h2>${org.display_name || "Gestão Pastoral"}</h2>
-                    <p>${endereco}</p>
+                    <h2>${org.display_name || "Gestão Pastoral Inteligente"}</h2>
+                    <p>${address}</p>
                 </div>
             </div>`;
   },
 
-  getMetadataBlock: function (meta) {
-    const lotacao = meta.max_capacity ? `${meta.current_enrollments || 0}/${meta.max_capacity} (${Math.round((meta.current_enrollments / meta.max_capacity) * 100)}%)` : "N/A";
+  /**
+   * TEMPLATE: GRADE DE METADADOS (3 COLUNAS)
+   */
+  getMetadataHTML: function (meta) {
+    // Cálculo de Lotação com base nos dados do PHP
+    let lotacaoLabel = "N/A";
+    if (meta.max_capacity) {
+      const current = parseInt(meta.current_enrollments) || 0;
+      const max = parseInt(meta.max_capacity);
+      const percent = Math.round((current / max) * 100);
+      lotacaoLabel = `${current}/${max} (${percent}%)`;
+    }
 
     return `
-            <div class="metadata-grid">
-                <div class="meta-item"><b>Turma / Grupo</b>${meta.class_name || "Geral"}</div>
-                <div class="meta-item"><b>Ano Letivo</b>${meta.year_name || "2026"}</div>
-                <div class="meta-item"><b>Lotação Atual</b>${lotacao}</div>
-                <div class="meta-item"><b>Curso / Etapa</b>${meta.course_name || "N/A"}</div>
-                <div class="meta-item"><b>Local</b>${meta.location_name || "Sede"}</div>
-                <div class="meta-item"><b>Coordenação</b>${meta.coordinator_name || "Secretaria"}</div>
+            <div class="metadata-container">
+                <div class="meta-item"><b>Turma / Grupo</b><span>${meta.class_name || "Geral"}</span></div>
+                <div class="meta-item"><b>Ano Letivo</b><span>${meta.year_name || "2026"}</span></div>
+                <div class="meta-item"><b>Lotação Atual</b><span>${lotacaoLabel}</span></div>
+                
+                <div class="meta-item"><b>Curso / Etapa</b><span>${meta.course_name || "N/A"}</span></div>
+                <div class="meta-item"><b>Local</b><span>${meta.location_name || "Sede Paroquial"}</span></div>
+                <div class="meta-item"><b>Coordenação</b><span>${this.translate(meta.coordinator_name || "Secretaria")}</span></div>
             </div>`;
   },
 };
