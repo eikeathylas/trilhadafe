@@ -6,11 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Relatórios - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
-
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
-
     <link href="assets/css/report-print.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
@@ -24,15 +21,15 @@
 
     <div class="container">
         <div class="main-only">
-
             <nav aria-label="breadcrumb" class="no-print">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dashboard.php">Painel</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Relatórios</li>
                 </ol>
             </nav>
+            
 
-            <div class="d-flex justify-content-between align-items-center mb-4 mt-3 no-print">
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
                 <div>
                     <h4 class="fw-bold mb-1 title">Central de Relatórios</h4>
                     <p class="text-muted small mb-0">Selecione uma categoria para gerar documentos oficiais e estatísticos.</p>
@@ -147,9 +144,6 @@
                         <div id="reportFiltersArea"></div>
 
                         <div class="mt-4 d-flex gap-2">
-                            <button type="button" id="btn-report-view" class="btn btn-outline-primary flex-grow-1" onclick="processReport('view')">
-                                <i class="fas fa-eye me-2"></i> Visualizar
-                            </button>
                             <button type="button" id="btn-report-download" class="btn btn-primary flex-grow-1" onclick="processReport('download')">
                                 <i class="fas fa-print me-2"></i> Gerar Documento
                             </button>
