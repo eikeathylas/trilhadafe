@@ -10,6 +10,35 @@
     <?php include "./assets/components/Head.php"; ?>
 
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
+
+    <link href="assets/css/report-print.css?v=<?php echo time(); ?>" rel="stylesheet">
+
+    <style>
+        .hover-scale {
+            transition: transform 0.2s;
+        }
+
+        .hover-scale:hover {
+            transform: translateY(-5px);
+        }
+
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-card {
+            background: #fff;
+            border: 1px solid #edf2f9;
+            border-radius: 15px;
+            padding: 1.25rem;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
@@ -21,24 +50,23 @@
     </div>
 
     <div class="container">
-
         <div class="main-only">
 
-            <nav aria-label="breadcrumb">
+            <nav aria-label="breadcrumb" class="no-print">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dashboard.php">Painel</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Relatórios</li>
                 </ol>
             </nav>
 
-            <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-4 mt-3 no-print">
                 <div>
                     <h4 class="fw-bold mb-1 title">Central de Relatórios</h4>
-                    <p class="text-muted small mb-0">Selecione uma categoria para gerar documentos PDF.</p>
+                    <p class="text-muted small mb-0">Selecione uma categoria para gerar documentos oficiais.</p>
                 </div>
             </div>
 
-            <ul class="nav nav-pills mb-4 gap-2" id="pills-tab" role="tablist">
+            <ul class="nav nav-pills mb-4 gap-2 no-print" id="pills-tab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active rounded-pill px-4" id="pills-sec-tab" data-bs-toggle="pill" data-bs-target="#pills-sec" type="button" role="tab">
                         <i class="fas fa-users me-2"></i> Secretaria
@@ -60,23 +88,22 @@
 
                 <div class="tab-pane fade show active" id="pills-sec" role="tabpanel">
                     <div class="row g-3">
-
                         <div class="col-12 col-md-6 col-lg-4">
-                            <div class="mobile-card h-100 cursor-pointer hover-scale" onclick="openReportConfig('pessoas_lista')">
+                            <div class="mobile-card h-100 hover-scale shadow-sm" onclick="openReportConfig('pessoas_lista')">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="icon-circle bg-primary bg-opacity-10 text-primary">
                                         <span class="material-symbols-outlined">group</span>
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Lista de Pessoas</h6>
-                                        <p class="small text-muted mb-0">Filtre por função, gênero e status.</p>
+                                        <p class="small text-muted mb-0">Relação geral com filtros de função e status.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-6 col-lg-4">
-                            <div class="mobile-card h-100 cursor-pointer hover-scale" onclick="openReportConfig('aniversariantes')">
+                            <div class="mobile-card h-100 hover-scale shadow-sm" onclick="openReportConfig('aniversariantes')">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="icon-circle bg-warning bg-opacity-10 text-warning">
                                         <span class="material-symbols-outlined">cake</span>
@@ -90,73 +117,54 @@
                         </div>
 
                         <div class="col-12 col-md-6 col-lg-4">
-                            <div class="mobile-card h-100 cursor-pointer hover-scale" onclick="openReportConfig('ficha_cadastral_vazia')">
+                            <div class="mobile-card h-100 hover-scale shadow-sm" onclick="openReportConfig('ficha_cadastral_vazia')">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="icon-circle bg-secondary bg-opacity-10 text-secondary">
                                         <span class="material-symbols-outlined">description</span>
                                     </div>
                                     <div>
-                                        <h6 class="fw-bold mb-1">Ficha Cadastral (Vazia)</h6>
-                                        <p class="small text-muted mb-0">Para preenchimento manual.</p>
+                                        <h6 class="fw-bold mb-1">Ficha Cadastral</h6>
+                                        <p class="small text-muted mb-0">Template vazio para coleta manual de dados.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
                 <div class="tab-pane fade" id="pills-acad" role="tabpanel">
                     <div class="row g-3">
-
                         <div class="col-12 col-md-6 col-lg-4">
-                            <div class="mobile-card h-100 cursor-pointer hover-scale" onclick="openReportConfig('lista_presenca')">
+                            <div class="mobile-card h-100 hover-scale shadow-sm" onclick="openReportConfig('lista_presenca')">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="icon-circle bg-success bg-opacity-10 text-success">
                                         <span class="material-symbols-outlined">checklist</span>
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Diário de Classe</h6>
-                                        <p class="small text-muted mb-0">Lista de presença para catequistas.</p>
+                                        <p class="small text-muted mb-0">Folha de chamada para turmas.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="mobile-card h-100 cursor-pointer hover-scale" onclick="openReportConfig('ata_resultados')">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="icon-circle bg-info bg-opacity-10 text-info">
-                                        <span class="material-symbols-outlined">history_edu</span>
-                                    </div>
-                                    <div>
-                                        <h6 class="fw-bold mb-1">Ata Final</h6>
-                                        <p class="small text-muted mb-0">Situação final dos alunos por turma.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
 
                 <div class="tab-pane fade" id="pills-admin" role="tabpanel">
                     <div class="row g-3">
-
                         <div class="col-12 col-md-6 col-lg-4">
-                            <div class="mobile-card h-100 cursor-pointer hover-scale" onclick="openReportConfig('auditoria')">
+                            <div class="mobile-card h-100 hover-scale shadow-sm" onclick="openReportConfig('auditoria')">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="icon-circle bg-danger bg-opacity-10 text-danger">
                                         <span class="material-symbols-outlined">policy</span>
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-1">Log de Auditoria</h6>
-                                        <p class="small text-muted mb-0">Histórico de ações no sistema.</p>
+                                        <p class="small text-muted mb-0">Histórico auditado de ações no banco de dados.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -166,7 +174,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalReportConfig" tabindex="-1" aria-hidden="true">
+    <div class="modal fade no-print" id="modalReportConfig" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-bottom-0 pb-0">
@@ -174,11 +182,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pt-2">
-                    <p id="reportDesc" class="text-muted small mb-4">Selecione os filtros abaixo.</p>
+                    <p id="reportDesc" class="text-muted small mb-4">Ajuste os filtros antes de gerar o documento.</p>
 
                     <form id="formReport">
-                        <input type="hidden" id="reportType">
-
                         <div id="reportFiltersArea"></div>
 
                         <div class="mt-4 d-flex gap-2">
@@ -186,7 +192,7 @@
                                 <i class="fas fa-eye me-2"></i> Visualizar
                             </button>
                             <button type="button" id="btn-report-download" class="btn btn-primary flex-grow-1" onclick="processReport('download')">
-                                <i class="fas fa-download me-2"></i> Baixar PDF
+                                <i class="fas fa-print me-2"></i> Imprimir / PDF
                             </button>
                         </div>
                     </form>
@@ -199,9 +205,10 @@
     <?php include "./assets/components/Modal-Audit.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <script src="assets/js/report-engine.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/js/report-builder.js?v=<?php echo time(); ?>"></script>
     <script src="assets/js/relatorios.js?v=<?php echo time(); ?>"></script>
 
 </body>
