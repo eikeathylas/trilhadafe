@@ -37,7 +37,7 @@ const ReportBuilder = {
     let b = "";
     if (type === "pessoas_lista") {
       h = `<thead><tr><th>Nome Completo</th><th>Função</th><th>Contato</th><th>Status</th></tr></thead>`;
-      b = data.map((i) => `<tr><td>${i.full_name}</td><td>${ReportEngine.translate(i.main_role)}</td><td>${i.email || "-"}<br>${i.phone_mobile || ""}</td><td><span class="status-badge">${ReportEngine.translate(i.is_active ? "ACTIVE" : "INACTIVE")}</span></td></tr>`).join("");
+      b = data.map((i) => `<tr><td>${i.full_name}</td><td>${ReportEngine.translate(i.main_role)}</td><td>${i.email || "-"}<br>${i.phone_mobile || ""}</td><td><span class="${i.is_active ? 'badge bg-success-subtle text-success border-success' : 'badge bg-secondary-subtle text-secondary border-secondary'}">${ReportEngine.translate(i.is_active ? "ACTIVE" : "INACTIVE")}</span></td></tr>`).join("");
     }
     // Adicione outros cases (aniversariantes, etc) seguindo este padrão
     return h + `<tbody>${b}<tbody>`;

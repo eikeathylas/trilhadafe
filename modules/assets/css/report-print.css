@@ -92,13 +92,6 @@ body {
 .report-table tbody tr:nth-child(even) {
   background-color: #fcfcfc;
 }
-.status-badge {
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 7.5pt;
-  background: #e9ecef;
-}
 
 /* Rodapé */
 .report-footer {
