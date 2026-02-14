@@ -13,8 +13,19 @@ const ReportBuilder = {
     const btn = $(`#btn-report-${action}`);
     window.setButton(true, btn, "A processar...");
 
+    // 1. Abertura IMEDIATA para enganar o bloqueador do Safari/iPhone
+    const win = window.open("", "_blank");
+
+    if (!win) {
+      window.setButton(false, btn, action === "view" ? "Visualizar" : "Imprimir");
+      return window.alertDefault("Por favor, permita pop-ups para visualizar o relatório.", "error");
+    }
+
+    // Coloca um loader temporário na nova janela
+    win.document.write("<html><head><title>Carregando...</title></head><body><p style='font-family:sans-serif; text-align:center; margin-top:50px;'>Preparando seu relatório, por favor aguarde...</p></body></html>");
+
     try {
-      // 1. Coleta dados e informações da organização em paralelo
+      // 2. Coleta dados enquanto a janela já está aberta
       const [resData, resOrg] = await Promise.all([
         window.ajaxValidator({
           validator: "getReportData",
@@ -35,18 +46,15 @@ const ReportBuilder = {
       const meta = resData.data.metadata || config.meta;
       const org = resOrg.data || {};
 
-      // 2. Processa estatísticas para o gráfico moderno
       const chartData = this._processChartData(dataList);
-
-      // 3. Monta o HTML do documento
       const htmlContent = this._assemble(config.type, dataList, org, meta);
 
-      // 4. Abre o relatório em modo de visualização A4
-      this._executePrint(htmlContent, chartData);
+      // 3. Passa a janela já aberta para a renderização final
+      this._executePrint(win, htmlContent, chartData);
 
       window.alertDefault("Relatório gerado com sucesso!", "success");
     } catch (e) {
-      console.error("Erro no Builder:", e);
+      win.close(); // Fecha a aba se der erro na busca dos dados
       window.alertDefault(e.message, "error");
     } finally {
       window.setButton(false, btn, action === "view" ? "Visualizar" : "Imprimir");
@@ -142,9 +150,9 @@ const ReportBuilder = {
   /**
    * Abre a nova aba com estilo A4 e botão flutuante
    */
-  _executePrint: function (html, chartData) {
-    const win = window.open("", "_blank");
-
+  _executePrint: function (win, html, chartData) {
+    // Limpa o "Carregando..." e injeta o conteúdo real
+    win.document.open();
     win.document.write(`
             <html>
                 <head>
@@ -158,16 +166,14 @@ const ReportBuilder = {
                     <button class="floating-print-btn" onclick="window.print()" title="Imprimir Relatório">
                         <i class="fas fa-print fa-lg"></i>
                     </button>
-
                     ${html}
-                    
                     <script>
                         const ctx = document.getElementById('reportChart').getContext('2d');
                         new Chart(ctx, {
                             type: 'bar',
                             data: ${JSON.stringify(chartData)},
                             options: {
-                                indexAxis: 'y', // Gráfico Horizontal
+                                indexAxis: 'y',
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 plugins: {
