@@ -1,6 +1,6 @@
 /**
- * TRILHA DA FÉ - Construtor de Relatórios Profissional (V7.0)
- * Responsável por: Processamento de Dados, Gráficos Chart.js e Estrutura de Visualização A4.
+ * TRILHA DA FÉ - Construtor de Relatórios Profissional (V8.1 - Correção de Fluxo)
+ * Responsável por: Paginação Física, Alta Nitidez e Compatibilidade iOS.
  */
 
 const ReportBuilder = {
@@ -13,19 +13,19 @@ const ReportBuilder = {
     const btn = $(`#btn-report-${action}`);
     window.setButton(true, btn, "A processar...");
 
-    // 1. Abertura IMEDIATA para enganar o bloqueador do Safari/iPhone
+    // 1. Abertura IMEDIATA para compatibilidade com iPhone/Safari
     const win = window.open("", "_blank");
 
     if (!win) {
       window.setButton(false, btn, action === "view" ? "Visualizar" : "Imprimir");
-      return window.alertDefault("Por favor, permita pop-ups para visualizar o relatório.", "error");
+      return window.alertDefault("Por favor, permita pop-ups para gerar o relatório.", "error");
     }
 
-    // Coloca um loader temporário na nova janela
-    win.document.write("<html><head><title>Carregando...</title></head><body><p style='font-family:sans-serif; text-align:center; margin-top:50px;'>Preparando seu relatório, por favor aguarde...</p></body></html>");
+    // Loader minimalista para evitar saltos de layout iniciais
+    win.document.write("<!DOCTYPE html><html><head><title>Processando...</title></head><body style='margin:0;padding:20px;font-family:sans-serif;'>Preparando documento institucional...</body></html>");
 
     try {
-      // 2. Coleta dados enquanto a janela já está aberta
+      // 2. Coleta de dados (PHP) e organização
       const [resData, resOrg] = await Promise.all([
         window.ajaxValidator({
           validator: "getReportData",
@@ -46,15 +46,17 @@ const ReportBuilder = {
       const meta = resData.data.metadata || config.meta;
       const org = resOrg.data || {};
 
+      // 3. Processamento estatístico para o gráfico horizontal
       const chartData = this._processChartData(dataList);
-      const htmlContent = this._assemble(config.type, dataList, org, meta);
 
-      // 3. Passa a janela já aberta para a renderização final
-      this._executePrint(win, htmlContent, chartData);
+      // 4. Montagem do HTML usando a Tabela Mestre (Paginação Física)
+      const htmlContent = this._assemble(config.type, config.title, dataList, org, meta);
 
-      window.alertDefault("Relatório gerado com sucesso!", "success");
+      // 5. Renderização final e injeção do botão de impressão manual
+      this._renderFinal(win, htmlContent, chartData);
+
     } catch (e) {
-      win.close(); // Fecha a aba se der erro na busca dos dados
+      if (win) win.close();
       window.alertDefault(e.message, "error");
     } finally {
       window.setButton(false, btn, action === "view" ? "Visualizar" : "Imprimir");
@@ -62,60 +64,75 @@ const ReportBuilder = {
   },
 
   /**
-   * Calcula a distribuição de cargos para o gráfico horizontal
+   * Calcula a distribuição para o gráfico
    */
   _processChartData: function (list) {
     const stats = {};
     list.forEach((item) => {
-      // Usa o tradutor do Engine para os rótulos do gráfico
       const label = ReportEngine.translate(item.main_role || "Outros");
       stats[label] = (stats[label] || 0) + 1;
     });
 
     return {
       labels: Object.keys(stats),
-      datasets: [
-        {
-          label: "Quantidade",
-          data: Object.values(stats),
-          backgroundColor: ["#003366", "#3b6cc9", "#718096", "#2d3748", "#4a5568"],
-          borderRadius: 5,
-          barThickness: 20,
-        },
-      ],
+      datasets: [{
+        label: "Quantidade",
+        data: Object.values(stats),
+        backgroundColor: "#000", // Preto sólido para nitidez de auditoria
+        borderRadius: 4,
+        barThickness: 18,
+      }],
     };
   },
 
   /**
-   * Monta a estrutura HTML completa do relatório
+   * Monta a estrutura de Tabela Mestre para repetição de cabeçalho
    */
-  _assemble: function (type, data, org, meta) {
-    const header = ReportEngine.getHeaderHTML(org); //
-    const metadata = ReportEngine.getMetadataHTML(meta); //
-    const table = this._buildTableHTML(type, data);
+  _assemble: function (type, title, data, org, meta) {
+    const headerHTML = ReportEngine.getHeaderHTML(org, title);
+    const metadataHTML = ReportEngine.getMetadataHTML(meta);
+    const tableHTML = this._buildTableHTML(type, data);
 
+    // Estrutura Mestra: Sem divs intermediárias para não quebrar o cálculo de páginas
     return `
-            <div class="print-container">
-                ${header}
-                ${metadata}
-                
-                <div class="report-chart-container">
-                    <canvas id="reportChart"></canvas>
-                </div>
+      <table class="master-report-table">
+        <thead>
+          <tr>
+            <td>
+              ${headerHTML}
+              ${metadataHTML}
+            </td>
+          </tr>
+        </thead>
+        
+        <tbody>
+          <tr>
+            <td>
+              <div class="report-chart-container">
+                <canvas id="reportChart"></canvas>
+              </div>
+              <div class="report-content">
+                ${tableHTML}
+              </div>
+            </td>
+          </tr>
+        </tbody>
 
-                <div class="report-content">
-                    ${table}
-                </div>
-
-                <div class="report-footer">
-                    <span>Gerado por ${defaultApp.userInfo.name_user} em ${new Date().toLocaleString("pt-BR")}</span>
-                    <span>Trilha da Fé - Gestão Pastoral Inteligente</span>
-                </div>
-            </div>`;
+        <tfoot>
+          <tr>
+            <td>
+              <div class="report-footer">
+                <span><b>EMISSOR:</b> ${defaultApp.userInfo.name_user}</span>
+                <span class="page-number"></span>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>`;
   },
 
   /**
-   * Constrói a tabela com Badges profissionais e Tradução
+   * Constrói a tabela de dados com badges de alto contraste
    */
   _buildTableHTML: function (type, data) {
     let thead = "";
@@ -123,50 +140,53 @@ const ReportBuilder = {
 
     switch (type) {
       case "pessoas_lista":
-        thead = `<tr><th>NOME COMPLETO</th><th>FUNÇÃO / VÍNCULO</th><th>CONTACTO</th><th class="text-center">STATUS</th></tr>`;
-        tbody = data
-          .map((i) => {
-            // Lógica de Badges Profissionais solicitada
-            const isAtivo = i.is_active == 1 || i.is_active == true;
-            const badgeClass = isAtivo ? "badge bg-success-subtle text-success border border-success" : "badge bg-secondary-subtle text-secondary border border-secondary";
+        thead = `<tr><th>NOME COMPLETO</th><th>VÍNCULO</th><th>CONTATO</th><th class="text-center">STATUS</th></tr>`;
+        tbody = data.map((i) => {
+          const badgeLabel = ReportEngine.translate(i.is_active);
 
-            return `
+          return `
                 <tr>
                     <td><b>${i.full_name}</b></td>
                     <td>${ReportEngine.translate(i.main_role)}</td>
                     <td>${i.email || "-"}<br><small>${i.phone_mobile || ""}</small></td>
                     <td class="text-center">
-                        <span class="${badgeClass}">${ReportEngine.translate(i.is_active)}</span>
+                        <span class="badge">${badgeLabel}</span>
                     </td>
                 </tr>`;
-          })
-          .join("");
+        }).join("");
         break;
     }
-
     return `<table class="report-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
   },
 
   /**
-   * Abre a nova aba com estilo A4 e botão flutuante
+   * Renderização final na janela aberta com DOCTYPE para cálculo correto de margens
    */
-  _executePrint: function (win, html, chartData) {
-    // Limpa o "Carregando..." e injeta o conteúdo real
+  _renderFinal: function (win, html, chartData) {
     win.document.open();
     win.document.write(`
+            <!DOCTYPE html>
             <html>
                 <head>
-                    <title>Visualização de Relatório - Trilha da Fé</title>
+                    <title>Relatório - Trilha da Fé</title>
                     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
                     <link href="assets/css/report-print.css" rel="stylesheet">
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
                     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                    <style>
+                        /* Força a limpeza de margens iniciais para evitar a primeira página em branco */
+                        html, body { margin: 0; padding: 0; }
+                    </style>
                 </head>
                 <body>
-                    <button class="floating-print-btn" onclick="window.print()" title="Imprimir Relatório">
+                    <button class="floating-print-btn" onclick="window.print()" title="Imprimir">
                         <i class="fas fa-print fa-lg"></i>
                     </button>
-                    ${html}
+                    
+                    <div class="print-container">
+                        ${html}
+                    </div>
+                    
                     <script>
                         const ctx = document.getElementById('reportChart').getContext('2d');
                         new Chart(ctx, {
@@ -176,19 +196,10 @@ const ReportBuilder = {
                                 indexAxis: 'y',
                                 responsive: true,
                                 maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { display: false },
-                                    title: {
-                                        display: true,
-                                        text: 'DISTRIBUIÇÃO DE VÍNCULOS',
-                                        font: { size: 14, weight: '800' },
-                                        color: '#003366',
-                                        padding: { bottom: 15 }
-                                    }
-                                },
+                                plugins: { legend: { display: false } },
                                 scales: {
-                                    x: { beginAtZero: true, grid: { display: false } },
-                                    y: { grid: { display: false }, ticks: { font: { weight: '600' } } }
+                                    x: { grid: { display: false }, ticks: { color: '#000', font: { size: 10, weight: 'bold' } } },
+                                    y: { grid: { display: false }, ticks: { color: '#000', font: { weight: 'bold' } } }
                                 }
                             }
                         });

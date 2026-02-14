@@ -152,6 +152,11 @@
         <span>Início</span>
     </a>
 
+    <a href="relatorios.php" class="bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'relatorios.php' ? 'active' : '' ?>">
+        <span class="material-symbols-outlined">description</span>
+        <span>Relatórios</span>
+    </a>
+
     <a href="pessoas.php" class="bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'pessoas.php' ? 'active' : '' ?>">
         <span class="material-symbols-outlined">group</span>
         <span>Pessoas</span>
