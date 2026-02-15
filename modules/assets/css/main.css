@@ -514,23 +514,23 @@ body {
   bottom: 20px;
   left: 15px;
   right: 15px;
-  height: 72px;
+  height: 74px;
   background: var(--fundo) !important;
   border: 1px solid var(--borda);
-  border-radius: 22px;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  /* Sombra de Dupla Camada (Etapa 2) */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.03);
   z-index: 1050;
   justify-content: space-around;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 8px;
 }
 
-/* Ajuste específico para Tema Escuro */
 [data-theme="escuro"] .bottom-nav {
   background-color: #1e293b !important;
-  /* Azul Slate profundo */
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.08);
+  /* Inner Glow para profundidade no escuro */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 .bottom-nav-item {
@@ -544,20 +544,22 @@ body {
   flex: 1;
 }
 
-/* ESTADO ATIVO: Ícone Preenchido e Micro-Escala */
+/* --- REFINAMENTO DA PÍLULA ATIVA (WhatsApp Style) --- */
 .bottom-nav-item.active {
   color: var(--padrao) !important;
-  /* Azul da marca */
 }
 
 .bottom-nav-item.active .material-symbols-outlined {
-  /* Ativa o preenchimento do ícone */
   font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
-  transform: translateY(-3px) scale(1.18);
-  /* Sobe e cresce suavemente */
+  /* Fundo da pílula sutil */
+  background: rgba(92, 142, 241, 0.12);
+  padding: 6px 20px;
+  border-radius: 20px;
+  transform: translateY(-2px);
   color: var(--padrao) !important;
 }
 
+/* Ajuste do texto no item ativo */
 .bottom-nav-item span:last-child {
   font-size: 0.72rem;
   font-weight: 700;
