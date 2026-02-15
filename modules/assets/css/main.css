@@ -495,25 +495,42 @@ body {
   left: 95px;
 }
 
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
 /* ============================================================
    5. BARRA DE NAVEGAÇÃO INFERIOR (MOBILE ONLY)
    ============================================================ */
 .bottom-nav {
   display: none;
-  /* Oculto no Desktop */
   position: fixed;
-  bottom: 15px;
+  bottom: 20px;
   left: 15px;
   right: 15px;
-  height: var(--nav-height);
-  background: var(--fundo);
+  height: 72px;
+  background: var(--fundo) !important;
   border: 1px solid var(--borda);
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 22px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
   z-index: 1050;
   justify-content: space-around;
   align-items: center;
   padding: 0 10px;
+}
+
+/* Ajuste específico para Tema Escuro */
+[data-theme="escuro"] .bottom-nav {
+  background-color: #1e293b !important;
+  /* Azul Slate profundo */
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
 .bottom-nav-item {
@@ -523,27 +540,28 @@ body {
   justify-content: center;
   color: var(--descricao);
   text-decoration: none;
-  font-size: 0.65rem;
-  font-weight: 600;
+  transition: all 0.3s ease;
   flex: 1;
-  height: 100%;
-  transition: all 0.2s;
-  border-radius: 12px;
 }
 
-.bottom-nav-item i,
-.bottom-nav-item .material-symbols-outlined {
-  font-size: 1.6rem;
-  margin-bottom: 2px;
-  transition: transform 0.2s;
-}
-
+/* ESTADO ATIVO: Ícone Preenchido e Micro-Escala */
 .bottom-nav-item.active {
-  color: var(--padrao);
+  color: var(--padrao) !important;
+  /* Azul da marca */
 }
 
-.bottom-nav-item.active i {
-  transform: translateY(-2px);
+.bottom-nav-item.active .material-symbols-outlined {
+  /* Ativa o preenchimento do ícone */
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+  transform: translateY(-3px) scale(1.18);
+  /* Sobe e cresce suavemente */
+  color: var(--padrao) !important;
+}
+
+.bottom-nav-item span:last-child {
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: 4px;
 }
 
 /* ============================================================
@@ -2679,4 +2697,3 @@ body {
   background-color: var(--padrao);
   color: #fff;
 }
-

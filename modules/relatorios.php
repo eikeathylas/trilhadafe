@@ -21,15 +21,15 @@
 
     <div class="container">
         <div class="main-only">
-            <nav aria-label="breadcrumb" class="no-print">
+            <!-- <nav aria-label="breadcrumb" class="no-print">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dashboard.php">Painel</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Relatórios</li>
                 </ol>
-            </nav>
+            </nav> -->
             
 
-            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print mt-4">
                 <div>
                     <h4 class="fw-bold mb-1 title">Central de Relatórios</h4>
                     <p class="text-muted small mb-0">Selecione uma categoria para gerar documentos oficiais e estatísticos.</p>
