@@ -221,3 +221,52 @@ div {
 .page-number {
     font-weight: 600;
 }
+
+/* ====================================================
+   PÁGINA A4 REAL — MOTOR WORD-LIKE
+==================================================== */
+
+.page {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto 20px auto;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 15mm;
+}
+
+/* Header fixo no topo */
+.page-header {
+    flex: 0 0 auto;
+}
+
+/* Corpo cresce e quebra */
+.page-body {
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+/* Footer fixo no fundo */
+.page-footer {
+    flex: 0 0 auto;
+    margin-top: auto;
+}
+
+/* ====================================================
+   IMPRESSÃO
+==================================================== */
+@media print {
+
+    .page {
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+    }
+
+    .page:last-child {
+        page-break-after: auto;
+    }
+}

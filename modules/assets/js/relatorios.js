@@ -291,12 +291,17 @@ function compileAndPrintReport(report) {
     </div>
 
     <script>
-    window.onload = function() {
-        if (typeof numerarPaginasRelatorio === 'function') {
-            numerarPaginasRelatorio();
+        function numerarPaginasReal() {
+            const footers = document.querySelectorAll('.page-number');
+            footers.forEach((el, i) => {
+                el.textContent = 'Pág. ' + (i + 1);
+            });
         }
-    }
+
+        window.addEventListener('load', numerarPaginasReal);
+        window.addEventListener('afterprint', numerarPaginasReal);
     </script>
+
 
     </body>
     </html>

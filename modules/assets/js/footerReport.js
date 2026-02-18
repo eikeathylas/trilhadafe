@@ -28,7 +28,6 @@
     window.buildReportFooter = function ({
         emissor = "Sistema",
         dataEmissao = new Date(),
-        pagina = ""
     } = {}) {
 
         const dataTxt = formatarDataHoraBR(dataEmissao);
@@ -46,9 +45,7 @@
                         <strong>DATA:</strong> ${dataTxt}
                     </div>
 
-                    <div class="report-footer-right page-number">
-                        ${pagina}
-                    </div>
+                    <div class="report-footer-right page-number"></div>
 
                 </div>
 
