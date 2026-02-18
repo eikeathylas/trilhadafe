@@ -67,7 +67,7 @@
   .main-only .row {
     margin-left: 5px;
   }
-  
+
   .card.card-ea {
     width: 240px;
     height: 340px;
@@ -81,19 +81,19 @@
     clip-path: circle(145px at center 0);
     text-align: center;
   }
-  
+
   .card.card-ea .circle h2 {
     color: #ffffff;
     font-size: 23px;
     padding: 35px 0px 5px 0px;
   }
-  
+
   .card.card-ea .circle h6 {
     color: #ffffff;
     font-size: 17px;
     padding: 5px 0;
   }
-  
+
 }
 
 /* Estilo Geral */
@@ -172,6 +172,7 @@
 .filter-buttons {
   margin-bottom: 20px;
 }
+
 .btn-filter {
   margin-right: 10px;
   margin-top: 10px;
@@ -183,6 +184,7 @@
   cursor: pointer;
   transition: 0.3s;
 }
+
 .btn-filter:hover {
   background-color: #5c8ef1;
 }
@@ -190,16 +192,22 @@
 .cards-view {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px; /* Ajuste o valor do espaçamento conforme necessário */
+  gap: 10px;
+  /* Ajuste o valor do espaçamento conforme necessário */
   margin-left: 15px !important;
 }
-@media (max-width: 768px) { /* Adjust breakpoint as needed */
+
+@media (max-width: 768px) {
+
+  /* Adjust breakpoint as needed */
   .cards-view {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
-    gap: 10px; /* Ajuste o valor do espaçamento conforme necessário */
+    gap: 10px;
+    /* Ajuste o valor do espaçamento conforme necessário */
   }
 }
+
 .order-card {
   background-color: var(--fundo);
   border: 2px solid #5c8ef1;
@@ -208,16 +216,19 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
+
 .order-title {
   color: #5c8ef1;
   font-size: 1.2em;
   margin-bottom: 15px;
   text-align: center;
 }
+
 .order-details {
   text-align: left;
   margin-top: 10px;
 }
+
 .order-timer {
   /* margin-top: 15px; */
   padding: 10px;
@@ -226,6 +237,7 @@
   font-weight: bold;
   text-align: center;
 }
+
 .order-card .time {
   display: block;
   margin-top: 10px;
@@ -243,10 +255,14 @@
   border: 1px solid #ccc;
   padding: 10px;
   text-align: left;
-  word-wrap: break-word; /* Allow text to wrap within cells */
-  overflow: hidden; /* Hide overflowing content */
-  text-overflow: ellipsis; /* Add ellipsis (...) for overflow */
-  white-space: nowrap; /* Prevent text from wrapping */
+  word-wrap: break-word;
+  /* Allow text to wrap within cells */
+  overflow: hidden;
+  /* Hide overflowing content */
+  text-overflow: ellipsis;
+  /* Add ellipsis (...) for overflow */
+  white-space: nowrap;
+  /* Prevent text from wrapping */
 }
 
 .order-table th {
@@ -255,24 +271,86 @@
 }
 
 /* Optional: Adjust column widths if needed */
-.order-table th:nth-child(1),  /* Example: 1st column (Ordem) */
+.order-table th:nth-child(1),
+/* Example: 1st column (Ordem) */
 .order-table td:nth-child(1) {
-  width: 80px; /* Fixed width for the "Ordem" column */
+  width: 80px;
+  /* Fixed width for the "Ordem" column */
 }
 
-.order-table th:nth-child(2), /* Example: 2nd column (Pedido) */
+.order-table th:nth-child(2),
+/* Example: 2nd column (Pedido) */
 .order-table td:nth-child(2) {
-  width: 150px; /* Fixed width for the "Pedido" column */
+  width: 150px;
+  /* Fixed width for the "Pedido" column */
 }
 
 /* ... set widths for other columns as needed ... */
 
 /* Media query for smaller screens: allow wrapping */
-@media (max-width: 768px) { /* Adjust breakpoint as needed */
+@media (max-width: 768px) {
+
+  /* Adjust breakpoint as needed */
   .order-table th,
   .order-table td {
-      white-space: normal; /* Allow text to wrap on smaller screens */
-      overflow: visible; /* Show all content */
-      text-overflow: clip; /* Remove ellipsis */
+    white-space: normal;
+    /* Allow text to wrap on smaller screens */
+    overflow: visible;
+    /* Show all content */
+    text-overflow: clip;
+    /* Remove ellipsis */
   }
+}
+
+/* Animações e Efeitos Visuais */
+.hover-scale {
+  transition: transform 0.2s;
+}
+
+.hover-scale:hover {
+  transform: translateY(-5px);
+}
+
+.icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card Adaptável com Suporte a Modo Noturno */
+.mobile-card {
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 15px;
+  padding: 1.25rem;
+  cursor: pointer;
+  color: var(--bs-body-color);
+  transition: all 0.3s ease;
+}
+
+/* Otimizações de UX e Mobile First para o contêiner */
+.clear-search-btn {
+  cursor: pointer;
+  display: none;
+}
+
+/* Permite rolagem horizontal suave nas abas pelo celular */
+.nav-pills-wrapper {
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  /* Oculta a barra no Firefox */
+}
+
+.nav-pills-wrapper::-webkit-scrollbar {
+  display: none;
+  /* Oculta a barra no Chrome/Safari */
+}
+
+.nav-pills-wrapper .nav-pills {
+  flex-wrap: nowrap;
 }

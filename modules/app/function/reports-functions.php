@@ -21,6 +21,18 @@ function getReportDataF($reportType, $filters)
             case 'auditoria':
                 return _reportAuditoria($filters);
 
+            case 'relatorio_modelo':
+                $data = [
+                    'list' => [
+                        ['full_name' => 'Teste de Layout A', 'main_role' => 'STUDENT', 'is_active' => '1'],
+                        ['full_name' => 'Teste de Layout B', 'main_role' => 'CATECHIST', 'is_active' => '1'],
+                        ['full_name' => 'Teste de Layout C', 'main_role' => 'STUDENT', 'is_active' => '0'],
+                    ],
+                    'metadata' => []
+                ];
+                echo json_encode(['status' => true, 'data' => $data]);
+                exit;
+
             default:
                 return failure("Relatório não implementado: " . $reportType);
         }
