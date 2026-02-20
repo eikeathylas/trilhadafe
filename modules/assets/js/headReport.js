@@ -1,51 +1,23 @@
-/* =====================================================
-   HEADREPORT.JS — Cabeçalho padrão do relatório
-   - Compatível com thead / table-header-group
-   - Logo preservada
-   - Layout estável para impressão A4
-   - Repetição automática na impressão
-===================================================== */
-
 (function () {
-
-    /**
-     * Gera HTML do cabeçalho do relatório
-     */
-    window.buildReportHeader = function ({
-        titulo = "Relatório",
-        subtitulo = "",
-        organizacao = "",
-        cnpj = "",
-        endereco = "",
-        logo = ""
-    } = {}) {
-
-        return `
+  window.buildReportHeader = function ({ titulo = "Relatório", subtitulo = "", organizacao = "", cnpj = "", endereco = "", logo = "" } = {}) {
+    return `
             <div class="report-header">
-
-                <div class="report-header-top">
-
-                    ${logo ? `
-                        <div class="report-header-logo">
-                            <img src="${logo}" alt="Logo" />
-                        </div>
-                    ` : ``}
-
-                    <div class="report-header-org">
-                        <div class="report-header-org-nome">${organizacao}</div>
-                        ${cnpj ? `<div class="report-header-org-cnpj">CNPJ: ${cnpj}</div>` : ""}
-                        ${endereco ? `<div class="report-header-org-endereco">${endereco}</div>` : ""}
+                <div class="report-header-grid">
+                    <div class="header-column-left">
+                        ${logo ? `<img src="${logo}" class="report-logo" alt="Logo" />` : ""}
                     </div>
+                    <div class="header-column-center">
+                        <div class="org-name">${organizacao}</div>
+                        ${cnpj ? `<div class="org-info">CNPJ: ${cnpj}</div>` : ""}
+                        ${endereco ? `<div class="org-info">${endereco}</div>` : ""}
+                    </div>
+                    <div class="header-column-right"></div> </div>
 
-                </div>
-
-                <div class="report-header-titulo">
+                <div class="report-title-section">
                     <h2>${titulo}</h2>
-                    ${subtitulo ? `<div class="report-header-subtitulo">${subtitulo}</div>` : ""}
+                    ${subtitulo ? `<div class="report-subtitle">${subtitulo}</div>` : ""}
                 </div>
-
             </div>
         `;
-    };
-
+  };
 })();

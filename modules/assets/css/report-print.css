@@ -1,272 +1,366 @@
-/* ====================================================
-   REPORT-PRINT.CSS - O Fiscal de Layout e Impressão
-   Versão estável — sem página branca — A4 real
-==================================================== */
+/* Resert */
 
-/* ===============================
-   Botão Flutuante (Apenas Tela)
-=============================== */
+:root {
+  --bg-canvas: #525659;
+  --page-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Tela */
+
+/* Print */
+
+/* ==================================================== REPORT-PRINT.CSS - O Fiscal de Layout e Impressão Versão estável — sem página branca — A4 real ==================================================== */
+/* =============================== Botão Flutuante (Apenas Tela) =============================== */
 .fab-print {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background-color: #0d6efd;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-family: 'Inter', Arial, sans-serif;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    z-index: 1000;
-    transition: background-color 0.2s;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-family: "Inter", Arial, sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+  transition: background-color 0.2s;
 }
-
 .fab-print:hover {
-    background-color: #0b5ed7;
+  background-color: #0b5ed7;
 }
 
-/* ====================================================
-   1. VISUALIZAÇÃO EM TELA — FOLHA A4
-==================================================== */
-@media screen {
-
-    body {
-        background-color: #525659;
-        padding: 40px 0;
-        font-family: 'Inter', Arial, sans-serif;
-        margin: 0;
-    }
-
-    .a4-wrapper {
-        background-color: white;
-        width: 210mm;
-        min-height: 297mm;
-        margin: 0 auto;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-        padding: 15mm;
-        box-sizing: border-box;
-        position: relative;
-    }
-}
-
-/* ====================================================
-   2. IMPRESSÃO REAL — A4 FÍSICO
-==================================================== */
-@media print {
-
-    .no-print {
-        display: none !important;
-    }
-
-    @page {
-        size: A4 portrait;
-        margin: 15mm;
-    }
-
-    html,
-    body {
-        background: white;
-        margin: 0;
-        padding: 0;
-        font-family: 'Inter', Arial, sans-serif;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-
-    .a4-wrapper {
-        width: 100%;
-        padding: 0;
-        margin: 0;
-        box-shadow: none;
-        background: none;
-    }
-}
-
-/* ====================================================
-   3. MASTER TABLE — MOTOR DE PAGINAÇÃO
-==================================================== */
-
+/* ==================================================== 3. MASTER TABLE — MOTOR DE PAGINAÇÃO ==================================================== */
 .master-table {
-    width: 100%;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
-
 /* Header e footer repetem automaticamente */
 thead {
-    display: table-header-group;
+  display: table-header-group;
 }
-
 tfoot {
-    display: table-footer-group;
+  display: table-footer-group;
 }
-
 /* Espaçamento seguro — NÃO usar mm grandes aqui */
 .master-table thead td {
-    padding-bottom: 12px;
+  padding-bottom: 12px;
 }
-
 .master-table tfoot td {
-    padding-top: 12px;
+  padding-top: 12px;
 }
-
 /* Corpo do relatório */
 .miolo-relatorio {
-    padding: 0;
+  padding: 0;
 }
 
-/* ====================================================
-   4. CONTROLE DE QUEBRA — ANTI BUG
-==================================================== */
-
+/* ==================================================== 4. CONTROLE DE QUEBRA — ANTI BUG ==================================================== */
 /* Não impedir quebra global — isso causava página branca */
 th,
 img,
 .report-header,
 .report-footer,
 .keep-together {
-    page-break-inside: avoid;
+  page-break-inside: avoid;
 }
-
 /* Permite texto quebrar naturalmente */
 td,
 p,
 div {
-    page-break-inside: auto;
+  page-break-inside: auto;
 }
-
-/* ====================================================
-   5. HEADER LAYOUT
-==================================================== */
-
+/* ==================================================== 5. HEADER LAYOUT ==================================================== */
 .report-header {
-    width: 100%;
+  width: 100%;
 }
-
 .report-header-top {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-
 .report-header-logo img {
-    max-height: 70px;
-    max-width: 140px;
-    object-fit: contain;
+  max-height: 70px;
+  max-width: 140px;
+  object-fit: contain;
 }
-
 .report-header-org-nome {
-    font-weight: 700;
-    font-size: 16px;
+  font-weight: 700;
+  font-size: 16px;
 }
-
 .report-header-org-cnpj,
 .report-header-org-endereco {
-    font-size: 12px;
-    color: #444;
+  font-size: 12px;
+  color: #444;
 }
-
 .report-header-titulo {
-    margin-top: 10px;
-    text-align: center;
+  margin-top: 10px;
+  text-align: center;
 }
-
 .report-header-titulo h2 {
-    margin: 0;
-    font-size: 20px;
+  margin: 0;
+  font-size: 20px;
 }
-
 .report-header-subtitulo {
-    font-size: 13px;
-    color: #555;
+  font-size: 13px;
+  color: #555;
 }
-
-/* ====================================================
-   6. FOOTER — 3 COLUNAS FIXAS
-==================================================== */
-
+/* ==================================================== 6. FOOTER — 3 COLUNAS FIXAS ==================================================== */
 .report-footer {
-    width: 100%;
-    font-size: 11px;
+  width: 100%;
+  font-size: 11px;
 }
-
 .report-footer-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    align-items: end;
-    width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: end;
+  width: 100%;
 }
-
 .report-footer-left {
-    text-align: left;
+  text-align: left;
 }
-
 .report-footer-center {
-    text-align: center;
+  text-align: center;
 }
-
 .report-footer-right {
-    text-align: right;
+  text-align: right;
 }
-
-/* ====================================================
-   7. PAGINAÇÃO JS
-==================================================== */
-
+/* ==================================================== 7. PAGINAÇÃO JS ==================================================== */
 .page-number {
-    font-weight: 600;
+  font-weight: 600;
 }
-
-/* ====================================================
-   PÁGINA A4 REAL — MOTOR WORD-LIKE
-==================================================== */
-
+/* ==================================================== PÁGINA A4 REAL — MOTOR WORD-LIKE ==================================================== */
 .page {
-    width: 210mm;
-    height: 297mm;
-    margin: 0 auto 20px auto;
-    background: #fff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    padding: 15mm;
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto 20px auto;
+  background: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 15mm;
 }
-
 /* Header fixo no topo */
 .page-header {
-    flex: 0 0 auto;
+  flex: 0 0 auto;
 }
-
 /* Corpo cresce e quebra */
 .page-body {
-    flex: 1 1 auto;
-    overflow: hidden;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
-
 /* Footer fixo no fundo */
 .page-footer {
-    flex: 0 0 auto;
-    margin-top: auto;
+  flex: 0 0 auto;
+  margin-top: auto;
 }
 
-/* ====================================================
-   IMPRESSÃO
-==================================================== */
+/* Alinhamento do Header (Requisito 4) */
+.report-header-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr 150px; /* Logo | Info | Spacer */
+  align-items: center;
+  margin-bottom: 15px;
+}
+.header-column-left .report-logo {
+  max-height: 80px;
+  max-width: 150px;
+  object-fit: contain;
+}
+.header-column-center {
+  text-align: center;
+}
+.org-name {
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+.org-info {
+  font-size: 11px;
+  color: #333;
+}
+.report-title-section {
+  text-align: center;
+  border-top: 1px solid #eee;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+/* Rodapé Fixo (Requisito 3) */
+.master-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead {
+  display: table-header-group;
+}
+tfoot {
+  display: table-footer-group;
+}
+/* Garante que o tfoot fique no fim da página física na impressão */
+
+.page-number-container::after {
+  counter-increment: page;
+  content: "Página " counter(page);
+  font-weight: bold;
+}
+.report-footer {
+  font-size: 10px;
+  width: 100%;
+  padding-top: 10px;
+}
+.footer-line {
+  border-top: 1px solid #ccc;
+  margin-bottom: 5px;
+}
+.report-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.footer-center {
+  text-align: center;
+}
+.footer-right {
+  text-align: right;
+}
+
+.page:last-child {
+  page-break-after: auto;
+}
+
+.page-header {
+  flex: 0 0 auto;
+}
+
+.page-body {
+  flex: 1 1 auto;
+}
+
+.page-footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+
+.page-number {
+  font-weight: bold;
+}
+
+/* ==================================================== 1. VISUALIZAÇÃO EM TELA — FOLHA A4 ==================================================== */
+@media screen {
+  body {
+    background-color: #525659;
+    padding: 40px 0;
+    font-family: "Inter", Arial, sans-serif;
+    margin: 0;
+  }
+  .a4-wrapper {
+    background-color: white;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 15mm;
+    box-sizing: border-box;
+    position: relative;
+  }
+}
+
+@media screen {
+  body {
+    background-color: var(--bg-canvas);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .a4-wrapper {
+    background: white;
+    width: 210mm;
+    padding: 15mm;
+    min-height: 297mm;
+    box-shadow: var(--page-shadow);
+    box-sizing: border-box;
+    margin-bottom: 20px; /* Espaço entre "páginas" */
+  }
+}
+/* ==================================================== 2. IMPRESSÃO REAL — A4 FÍSICO ==================================================== */
 @media print {
-
-    .page {
-        margin: 0;
-        box-shadow: none;
-        page-break-after: always;
-    }
-
-    .page:last-child {
-        page-break-after: auto;
-    }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+  html,
+  body {
+    background: white;
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", Arial, sans-serif;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .a4-wrapper {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    background: none;
+  }
 }
+
+@media print {
+  body {
+    counter-reset: page;
+  }
+  .page-number::after {
+    counter-increment: page;
+    content: "Pág. " counter(page);
+  }
+}
+
+/* Motor de Paginação e Numeração */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+  body {
+    background: white;
+    counter-reset: page; /* Reinicia contador de páginas */
+  }
+  .no-print,
+  .fab-print {
+    display: none !important;
+  }
+  .a4-wrapper {
+    width: 100%;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+  }
+  .page {
+    margin: 0;
+    box-shadow: none;
+  }
+}
+
+@media print {
+  tfoot {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+}
+/* Numeração Automática (Requisito 1) */
