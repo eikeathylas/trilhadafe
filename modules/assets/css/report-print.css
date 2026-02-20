@@ -7,9 +7,68 @@
 
 /* Tela */
 
-/* Print */
+@media screen {
+  body {
+    background-color: #525659;
+    padding: 40px 0;
+    font-family: "Inter", Arial, sans-serif;
+    margin: 0;
+  }
+  .a4-wrapper {
+    background-color: white;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    padding: 15mm;
+    box-sizing: border-box;
+    position: relative;
+  }
+}
 
-/* ==================================================== REPORT-PRINT.CSS - O Fiscal de Layout e Impressão Versão estável — sem página branca — A4 real ==================================================== */
+/* Print */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    size: A4 portrait;
+  }
+  body {
+    background: white;
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", Arial, sans-serif;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    counter-reset: page;
+  }
+  .a4-wrapper {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    background: none;
+  }
+
+  .no-print,
+  .fab-print {
+    display: none !important;
+  }
+
+  .page {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  tfoot {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+}
+
 /* =============================== Botão Flutuante (Apenas Tela) =============================== */
 .fab-print {
   position: fixed;
@@ -41,27 +100,25 @@
   border-collapse: collapse;
 }
 
-/* Header e footer repetem automaticamente */
 thead {
   display: table-header-group;
 }
 tfoot {
   display: table-footer-group;
 }
-/* Espaçamento seguro — NÃO usar mm grandes aqui */
+
 .master-table thead td {
   padding-bottom: 12px;
 }
 .master-table tfoot td {
   padding-top: 12px;
 }
-/* Corpo do relatório */
+
 .miolo-relatorio {
   padding: 0;
 }
 
 /* ==================================================== 4. CONTROLE DE QUEBRA — ANTI BUG ==================================================== */
-/* Não impedir quebra global — isso causava página branca */
 th,
 img,
 .report-header,
@@ -69,7 +126,7 @@ img,
 .keep-together {
   page-break-inside: avoid;
 }
-/* Permite texto quebrar naturalmente */
+
 td,
 p,
 div {
@@ -147,25 +204,24 @@ div {
   box-sizing: border-box;
   padding: 15mm;
 }
-/* Header fixo no topo */
+
 .page-header {
   flex: 0 0 auto;
 }
-/* Corpo cresce e quebra */
+
 .page-body {
   flex: 1 1 auto;
   overflow: hidden;
 }
-/* Footer fixo no fundo */
+
 .page-footer {
   flex: 0 0 auto;
   margin-top: auto;
 }
 
-/* Alinhamento do Header (Requisito 4) */
 .report-header-grid {
   display: grid;
-  grid-template-columns: 150px 1fr 150px; /* Logo | Info | Spacer */
+  grid-template-columns: 150px 1fr 150px;
   align-items: center;
   margin-bottom: 15px;
 }
@@ -206,67 +262,4 @@ div {
 
 .page:last-child {
   page-break-after: auto;
-}
-
-/* ==================================================== 1. VISUALIZAÇÃO EM TELA — FOLHA A4 ==================================================== */
-@media screen {
-  body {
-    background-color: #525659;
-    padding: 40px 0;
-    font-family: "Inter", Arial, sans-serif;
-    margin: 0;
-  }
-  .a4-wrapper {
-    background-color: white;
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0 auto;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    padding: 15mm;
-    box-sizing: border-box;
-    position: relative;
-  }
-}
-
-/* ==================================================== 2. IMPRESSÃO REAL — A4 FÍSICO ==================================================== */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-  @page {
-    size: A4 portrait;
-  }
-  body {
-    background: white;
-    margin: 0;
-    padding: 0;
-    font-family: "Inter", Arial, sans-serif;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    counter-reset: page;
-  }
-  .a4-wrapper {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-    background: none;
-  }
-
-  .no-print,
-  .fab-print {
-    display: none !important;
-  }
-
-  .page {
-    margin: 0;
-    padding: 0;
-    box-shadow: none;
-  }
-
-  tfoot {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-  }
 }
