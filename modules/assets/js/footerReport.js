@@ -10,9 +10,9 @@
             <div class="report-footer">
                 <div class="footer-line"></div>
                 <div class="report-footer-grid">
-                    <div class="footer-left"><b>Emissor:</b> ${emissor}</div>
+                    <div class="footer-left"><b>Emitido por:</b> ${emissor}</div>
                     <div class="footer-center"><b>Data:</b> ${dataTxt}</div>
-                    <div class="footer-right page-number-container"></div>
+                    <div class="footer-right page-number-container page-number"></div>
                 </div>
             </div>
         `;

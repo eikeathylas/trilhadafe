@@ -238,7 +238,7 @@ function compileAndPrintReport(report) {
   };
 
   const headerHTML = buildReportHeader(dadosParoquia);
-  const footerHTML = buildReportFooter({ emissor: "Administrador" });
+  const footerHTML = buildReportFooter({ emissor: "Eike Benízio" });
 
   const htmlContent = `
   <!DOCTYPE html>
@@ -259,7 +259,7 @@ function compileAndPrintReport(report) {
 
       <script>
         const contentHTML = \`
-          ${`<p>Exemplo de conteúdo dinâmico para testar a quebra de página automática do navegador.${1}</p>`.repeat(50)}
+          ${`<p>Exemplo de conteúdo dinâmico para testar a quebra de página automática do navegador.</p>`.repeat(1)}
         \`;
 
         function createPage() {
@@ -307,6 +307,7 @@ function compileAndPrintReport(report) {
 
         function updatePageNumbers() {
           const pages = document.querySelectorAll(".page");
+          console.log(pages)
           pages.forEach((p, i) => {
             const number = p.querySelector(".page-number");
             if (number) {

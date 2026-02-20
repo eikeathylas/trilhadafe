@@ -1,4 +1,4 @@
-/* Resert */
+/* Reset */
 
 :root {
   --bg-canvas: #525659;
@@ -40,6 +40,7 @@
   width: 100%;
   border-collapse: collapse;
 }
+
 /* Header e footer repetem automaticamente */
 thead {
   display: table-header-group;
@@ -111,8 +112,9 @@ div {
 }
 /* ==================================================== 6. FOOTER — 3 COLUNAS FIXAS ==================================================== */
 .report-footer {
+  font-size: 10px;
   width: 100%;
-  font-size: 11px;
+  padding-top: 10px;
 }
 .report-footer-grid {
   display: grid;
@@ -131,7 +133,7 @@ div {
 }
 /* ==================================================== 7. PAGINAÇÃO JS ==================================================== */
 .page-number {
-  font-weight: 600;
+  font-weight: bold;
 }
 /* ==================================================== PÁGINA A4 REAL — MOTOR WORD-LIKE ==================================================== */
 .page {
@@ -190,36 +192,10 @@ div {
   margin-top: 10px;
   padding-top: 10px;
 }
-/* Rodapé Fixo (Requisito 3) */
-.master-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-thead {
-  display: table-header-group;
-}
-tfoot {
-  display: table-footer-group;
-}
-/* Garante que o tfoot fique no fim da página física na impressão */
 
-.page-number-container::after {
-  counter-increment: page;
-  content: "Página " counter(page);
-  font-weight: bold;
-}
-.report-footer {
-  font-size: 10px;
-  width: 100%;
-  padding-top: 10px;
-}
 .footer-line {
   border-top: 1px solid #ccc;
   margin-bottom: 5px;
-}
-.report-footer-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
 }
 .footer-center {
   text-align: center;
@@ -230,23 +206,6 @@ tfoot {
 
 .page:last-child {
   page-break-after: auto;
-}
-
-.page-header {
-  flex: 0 0 auto;
-}
-
-.page-body {
-  flex: 1 1 auto;
-}
-
-.page-footer {
-  flex: 0 0 auto;
-  margin-top: auto;
-}
-
-.page-number {
-  font-weight: bold;
 }
 
 /* ==================================================== 1. VISUALIZAÇÃO EM TELA — FOLHA A4 ==================================================== */
@@ -269,25 +228,6 @@ tfoot {
   }
 }
 
-@media screen {
-  body {
-    background-color: var(--bg-canvas);
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .a4-wrapper {
-    background: white;
-    width: 210mm;
-    padding: 15mm;
-    min-height: 297mm;
-    box-shadow: var(--page-shadow);
-    box-sizing: border-box;
-    margin-bottom: 20px; /* Espaço entre "páginas" */
-  }
-}
 /* ==================================================== 2. IMPRESSÃO REAL — A4 FÍSICO ==================================================== */
 @media print {
   .no-print {
@@ -295,9 +235,7 @@ tfoot {
   }
   @page {
     size: A4 portrait;
-    margin: 15mm;
   }
-  html,
   body {
     background: white;
     margin: 0;
@@ -305,6 +243,7 @@ tfoot {
     font-family: "Inter", Arial, sans-serif;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    counter-reset: page;
   }
   .a4-wrapper {
     width: 100%;
@@ -313,54 +252,21 @@ tfoot {
     box-shadow: none;
     background: none;
   }
-}
 
-@media print {
-  body {
-    counter-reset: page;
-  }
-  .page-number::after {
-    counter-increment: page;
-    content: "Pág. " counter(page);
-  }
-}
-
-/* Motor de Paginação e Numeração */
-@media print {
-  @page {
-    size: A4 portrait;
-    margin: 15mm;
-  }
-  body {
-    background: white;
-    counter-reset: page; /* Reinicia contador de páginas */
-  }
   .no-print,
   .fab-print {
     display: none !important;
   }
-  .a4-wrapper {
-    width: 100%;
+
+  .page {
+    margin: 0;
     padding: 0;
     box-shadow: none;
   }
-}
 
-@media print {
-  body {
-    background: white;
-  }
-  .page {
-    margin: 0;
-    box-shadow: none;
-  }
-}
-
-@media print {
   tfoot {
     position: fixed;
     bottom: 0;
     width: 100%;
   }
 }
-/* Numeração Automática (Requisito 1) */
