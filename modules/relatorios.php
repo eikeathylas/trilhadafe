@@ -8,7 +8,6 @@
     <title>Relatórios - Trilha da Fé</title>
     <?php include "./assets/components/Head.php"; ?>
     <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
-    <!-- <link href="assets/css/report-print.css?v=<?php echo time(); ?>" rel="stylesheet"> -->
 </head>
 
 <body>
@@ -21,7 +20,7 @@
     <div class="container">
         <div class="main-only">
 
-            <div class="d-flex justify-content-between align-items-center mb-4 no-print mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print mt-5">
                 <div>
                     <h4 class="fw-bold mb-1 title">Central de Relatórios</h4>
                     <p class="text-muted small mb-0">Gestão modular e centralizada de documentos.</p>
@@ -86,9 +85,9 @@
     <?php include "./assets/components/Scripts.php"; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="assets/js/headReport.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/js/footerReport.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/js/relatorios.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/relatorios/headReport.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/relatorios/footerReport.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/relatorios/relatorios.js?v=<?php echo time(); ?>"></script>
 </body>
 
 </html>
