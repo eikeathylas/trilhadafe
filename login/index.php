@@ -3,124 +3,113 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="shortcut icon" href="assets/img/favicon.png" type="image/x-icon">
-    <title>Trilha da Fé - Login</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Trilha da Fé | Login</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="assets/css/selectize.bootstrap4.css" rel="stylesheet">
     <link href="assets/css/main.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
 <body>
 
-    <div class="login">
-        <div class="login-div">
-            <div class="row justify-content-md-center align-items-center">
-                <div class="col-12 col-lg-6 pt-lg-0 pl-0 pr-0">
-                    <div id="form-login" class="pt-lg-0 pl-lg-0 pl-xl-4">
-                         <div class="text-center">
-                             <img class="p-0 logo" src="assets/img/trilhadafe.png" alt="Logo" />
-                         </div>
-                        <h5 class="mb-3 text-center">Faça login e acesse o Sistema de Gestão Paroquial</h5>
+    <main class="login-wrapper position-relative">
 
-                        <div class="mt-2 form-login">
-                            <div class="mb-4">
-                                <label for="email" class="form-label">Informe seu e-mail:</label>
-                                <input type="email" class="form-control w-100" id="email" placeholder="nome@exemplo.com" autocomplete="off" required aria-describedby="emailError">
-                                <small id="emailError" class="form-text text-danger d-none">E-mail inválido</small>
-                            </div>
-                            <div class="mb-4">
-                                <label for="password" class="form-label">Informe sua senha:</label>
-                                <input type="password" class="form-control w-100" id="password" placeholder="********" autocomplete="off" required aria-describedby="passwordError">
-                                <small id="passwordError" class="form-text text-danger d-none">Senha obrigatória</small>
-                                <i toggle="#password" class="fa fa-fw fa-eye toggle-password field-icon"></i>
-                            </div>
-                            <div class="mb-4 float-right txt-theme forgot-password" style="cursor: pointer;">
-                                Esqueci minha senha.
-                            </div>
-                            <div class="mb-4">
-                                <button class="btn btn-theme w-100 btn-login"> Entrar </button>
-                            </div>
-                        </div>
+        <button id="toggleTheme" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-4 rounded-circle" style="width: 40px; height: 40px; border: none;">
+            <i class="fa-solid fa-moon fs-5"></i>
+        </button>
 
-                        <div class="mt-5 form-toEnter" style="display: none;">
-                            <div class="mb-4">
-                                <label for="clients" class="form-label">Acesso:</label>
-                                <select name="clients" id="clients" placeholder="Selecione uma opção..."></select>
-                                <small id="clientsError" class="form-text text-danger d-none">Selecione uma opção.</small>
+        <div class="logo-container">
+            <img src="assets/img/trilhadafe.png" alt="Logo Trilha da Fé">
+        </div>
 
-                            </div>
-                            <div class="mb-4">
-                                <button class="btn btn-theme btn-acessar w-100"> Acessar </button>
-                            </div>
-                            <div class="mb-4">
-                                <button class="btn btn-secondary btn-voltar w-100"> Voltar </button>
-                            </div>
-                        </div>
+        <div id="section-login" class="section-fade">
+            <h4 class="fw-bold mb-1">Acesso ao Sistema</h4>
+            <p class="small mb-4">Insira suas credenciais para continuar</p>
 
+            <div class="mb-3">
+                <label class="form-label">E-mail</label>
+                <input type="email" id="email" class="form-control" placeholder="exemplo@gmail.com">
+            </div>
+
+            <div class="mb-4 position-relative">
+                <label class="form-label d-flex justify-content-between">
+                    Senha
+                    <a href="javascript:void(0)" class="forgot-password text-decoration-none" style="color: var(--primary);">Esqueceu?</a>
+                </label>
+                <input type="password" id="password" class="form-control" placeholder="••••••••">
+                <i class="fa fa-eye toggle-password position-absolute" style="right: 15px; top: 43px; cursor: pointer; color: var(--text-muted);"></i>
+            </div>
+
+            <input type="text" id="honey" style="display:none" tabindex="-1" autocomplete="off">
+
+            <button class="btn btn-theme w-100 btn-login">Acessar</button>
+        </div>
+
+        <div id="section-access" class="section-fade" style="display: none;">
+            <h4 class="fw-bold mb-1">Bem-vindo(a)!</h4>
+            <p class="small mb-4">Selecione onde deseja trabalhar hoje</p>
+
+            <div class="position-relative mb-3">
+                <i class="fa fa-search position-absolute" style="left: 15px; top: 16px; color: var(--text-muted);"></i>
+                <input type="text" id="searchUnit" class="form-control" placeholder="Buscar unidade..." style="padding-left: 45px;">
+                <span id="clearSearch" class="position-absolute end-0 top-50 translate-middle-y me-3 fs-5" style="display:none; cursor:pointer; color: var(--text-muted);">&times;</span>
+            </div>
+
+            <div id="unitsContainer" class="units-grid">
+            </div>
+
+            <button class="btn btn-outline-custom w-100 mt-4 btn-voltar">Sair da Conta</button>
+        </div>
+
+        <div id="section-reset" class="section-fade" style="display: none;">
+            <h4 class="fw-bold mb-1">Recuperar Senha</h4>
+
+            <div class="resetEmail-div">
+                <p class="small mb-4">Informe o seu e-mail para receber o código de 6 dígitos.</p>
+                <input type="email" id="resetEmail" class="form-control mb-4" placeholder="Seu e-mail cadastrado">
+                <button class="btn btn-theme w-100 btn-resetEmail">Enviar Código</button>
+            </div>
+
+            <div id="reset-steps" style="display: none;">
+                <p class="small mb-3">Digite o código enviado para o seu e-mail.</p>
+
+                <div class="otp-grid mb-4">
+                    <input type="text" maxlength="1" class="form-control otp-input" autofocus>
+                    <input type="text" maxlength="1" class="form-control otp-input">
+                    <input type="text" maxlength="1" class="form-control otp-input">
+                    <input type="text" maxlength="1" class="form-control otp-input">
+                    <input type="text" maxlength="1" class="form-control otp-input">
+                    <input type="text" maxlength="1" class="form-control otp-input">
+                </div>
+                <input type="hidden" id="resetCode">
+
+                <div id="new-password-fields" style="display: none;">
+                    <label class="form-label">Crie uma nova senha</label>
+
+                    <div class="position-relative mb-2">
+                        <input type="password" id="resetNewPassword" class="form-control" placeholder="Nova Senha">
+                        <i class="fa fa-eye toggle-password position-absolute" style="right: 15px; top: 16px; cursor: pointer; color: var(--text-muted);"></i>
                     </div>
+
+                    <div class="position-relative mb-4">
+                        <input type="password" id="resetConfirmNewpassword" class="form-control" placeholder="Confirme a Senha">
+                        <i class="fa fa-eye toggle-password position-absolute" style="right: 15px; top: 16px; cursor: pointer; color: var(--text-muted);"></i>
+                    </div>
+
+                    <button class="btn btn-theme w-100 btn-resetPassword">Confirmar Alteração</button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="resetPassword" style="display: none;">
-        <div class="resetPassword-div">
-            <div class="row justify-content-md-center align-items-center">
-                <div class="col-12 col-lg-6 pt-2 pt-lg-0 pl-0 pr-0">
-                    <div id="form-resetPassword" class="pt-2 pt-lg-0 pl-lg-0 pl-xl-5">
-                        <div class="text-center">
-                             <img class="p-0 logo" src="assets/img/trilhadafe.png" alt="Logo" />
-                         </div>
-                        <h6 class="mb-5">Estaremos lhe enviando um código para o e-mail cadastrado para redefinir sua senha. Após informar um email válido, clique em <b class="txt-theme">Enviar</b>.</h6>
-                        <div class="mt-5">
-                            <div class="mb-4 resetEmail">
-                                <label for="resetEmail" class="form-label">Informe seu e-mail cadastrado:</label>
-                                <div class="input-group mb-4">
-                                    <input type="email" class="form-control" id="resetEmail" placeholder="nome@exemplo.com" autocomplete="off" required aria-describedby="resetEmailError">
-                                    <small id="resetEmailError" class="form-text text-danger d-none">E-mail inválido</small>
-                                    <div class="input-group-append">
-                                        <button class="btn btn-theme btn-resetEmail" type="button">Enviar</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-4 resetCode" style="display: none;">
-                                <label for="resetCode" class="form-label">Informe seu código:</label>
-                                <input type="number" class="form-control w-100" id="resetCode" placeholder="Seu código possui 6 dígitos" autocomplete="off" required aria-describedby="resetCodeError">
-                                <small id="resetCodeError" class="form-text text-danger d-none">Código inválido</small>
-
-                            </div>
-                            <div class="mb-4 resetNewPassword" style="display: none;">
-                                <label for="resetNewPassword" class="form-label">Informe sua nova senha:</label>
-                                <input type="password" class="form-control w-100" id="resetNewPassword" placeholder="********" autocomplete="off" required aria-describedby="newPasswordError">
-                                <small id="newPasswordError" class="form-text text-danger d-none">Senha inválida</small>
-                                <i toggle="#resetNewPassword" class="fa fa-fw fa-eye toggle-password field-icon"></i>
-                            </div>
-                            <div class="mb-4 resetConfirmNewpassword" style="display: none;">
-                                <label for="resetConfirmNewpassword" class="form-label">Confirme sua nova senha:</label>
-                                <input type="password" class="form-control w-100" id="resetConfirmNewpassword" placeholder="********" autocomplete="off" required aria-describedby="confirmPasswordError">
-                                <small id="confirmPasswordError" class="form-text text-danger d-none">As senhas não coincidem</small>
-                            </div>
-                            <div class="mb-4 divReset" style="display: none;">
-                                <button class="btn btn-theme btn-resetPassword w-100"> Redefinir </button>
-                            </div>
-                            <div class="mb-4">
-                                <button class="btn btn-secondary btn-voltar w-100"> Voltar </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <button class="btn btn-outline-custom w-100 mt-3 btn-voltar">Voltar para Login</button>
         </div>
-    </div>
+
+    </main>
 
     <script src="assets/lib/jquery-3.7.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <script src="assets/lib/selectize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- <script src="assets/lib/qrcode.js?v=<?php echo time(); ?>"></script> -->
     <script src="assets/js/main.js?v=<?php echo time(); ?>"></script>
 </body>
 
