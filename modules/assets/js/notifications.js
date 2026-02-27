@@ -148,14 +148,14 @@ window.renderNotifications = (data) => {
                                 ${notif.title}
                             </h6>
                         </div>
-                        <p class="mb-2 text-muted small ms-4" style="line-height: 1.3;">
+                        <p class="mb-2 small ms-4" style="line-height: 1.3;">
                             ${notif.message}
                         </p>
                         <div class="d-flex align-items-center justify-content-between ms-4">
                             <button class="btn btn-sm btn-outline-primary btn-notif-action px-3" onclick="window.notifAction('${notif.action_url}', ${notif.notification_id})" style="font-size: 0.7rem; border-radius: 20px;">
                                 Ver detalhes
                             </button>
-                            <small class="text-muted" style="font-size: 0.65rem;">${notif.time_ago}</small>
+                            <small class=" style="font-size: 0.65rem;">${notif.time_ago}</small>
                         </div>
                     </div>
                 </div>

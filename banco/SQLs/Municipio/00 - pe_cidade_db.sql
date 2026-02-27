@@ -967,7 +967,7 @@ CREATE TABLE communication.notification_reads (
     deleted BOOLEAN DEFAULT FALSE
 );
 
-CREATE UNIQUE INDEX idx_notification_reads_unique ON communication.notification_reads(notification_id, user_id) WHERE deleted IS FALSE;
+CREATE UNIQUE INDEX idx_notification_reads_unique ON communication.notification_reads(notification_id, user_id);
 CREATE INDEX idx_notification_reads_user ON communication.notification_reads(user_id);
 COMMENT ON TABLE communication.notification_reads IS 'Grava apenas quando o usuário abre/lê a notificação para apagar a bolinha vermelha (badge).';
 
@@ -1181,25 +1181,22 @@ DROP TRIGGER IF EXISTS audit_trigger_users ON security.users;
 CREATE TRIGGER audit_trigger_users AFTER INSERT OR UPDATE OR DELETE ON security.users FOR EACH ROW EXECUTE FUNCTION security.log_changes('user_id');
 
 
--- Trigger para Notifications
+-- Triggers de Auditoria
 DROP TRIGGER IF EXISTS audit_trigger_notifications ON communication.notifications;
 CREATE TRIGGER audit_trigger_notifications 
 AFTER INSERT OR UPDATE OR DELETE ON communication.notifications 
 FOR EACH ROW EXECUTE FUNCTION security.log_changes('notification_id');
 
--- Trigger para Notification Targets
 DROP TRIGGER IF EXISTS audit_trigger_notification_targets ON communication.notification_targets;
 CREATE TRIGGER audit_trigger_notification_targets 
 AFTER INSERT OR UPDATE OR DELETE ON communication.notification_targets 
 FOR EACH ROW EXECUTE FUNCTION security.log_changes('target_id');
 
--- Trigger para Notification Reads
 DROP TRIGGER IF EXISTS audit_trigger_notification_reads ON communication.notification_reads;
 CREATE TRIGGER audit_trigger_notification_reads 
 AFTER INSERT OR UPDATE OR DELETE ON communication.notification_reads 
 FOR EACH ROW EXECUTE FUNCTION security.log_changes('read_id');
 
--- Trigger para Push Subscriptions
 DROP TRIGGER IF EXISTS audit_trigger_push_subscriptions ON security.push_subscriptions;
 CREATE TRIGGER audit_trigger_push_subscriptions 
 AFTER INSERT OR UPDATE OR DELETE ON security.push_subscriptions 
@@ -1241,7 +1238,7 @@ INSERT INTO people.persons (person_id, org_id_origin, full_name, religious_name,
 (2, 2, 'Maria de Lurdes', NULL, 'F', '1980-03-10', 'sec.maria@trilha.com', FALSE, NULL),
 (3, 2, 'Ana Clara Silva', NULL, 'F', '1995-08-15', 'ana.catequese@trilha.com', FALSE, NULL),
 (4, 2, 'José da Silva', NULL, 'M', '1982-01-01', 'jose.pai@gmail.com', FALSE, NULL),
-(5, 2, 'Enzo Gabriel Silva', NULL, 'M', '2015-02-10', NULL, FALSE, NULL),
+(5, 2, 'Enzo Gabriel Silva', NULL, 'M', (CURRENT_DATE - INTERVAL '40 years'), NULL, FALSE, NULL),
 (6, 2, 'Valentina Santos', NULL, 'F', '2014-11-05', 'mae.valentina@gmail.com', TRUE, 'Deficiência Auditiva Leve'),
 (7, 2, 'Carlos do Pastel', NULL, 'M', '1970-06-20', NULL, FALSE, NULL),
 (8, 2, 'Maria das Dores', NULL, 'F', (CURRENT_DATE - INTERVAL '40 years'), NULL, FALSE, NULL),

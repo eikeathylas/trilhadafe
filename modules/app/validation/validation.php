@@ -3,8 +3,8 @@ error_reporting(0);
 
 header('Access-Control-Allow-Origin: *');
 
-include "../tools/tools.php";
 include "../database/database.php";
+include "../tools/tools.php";
 
 // Controladores
 include "../controller/session-controller.php";

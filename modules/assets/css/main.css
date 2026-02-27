@@ -815,7 +815,7 @@ body {
     left: -320px;
     /* Esconde Sidebar */
     width: 280px;
-    height: 100vh;
+    height: 95vh;
     border-radius: 0 24px 24px 0;
     top: 0;
     bottom: 0;
@@ -2721,6 +2721,29 @@ body {
   }
 }
 
+
+
+/* Correção de Hover e Estilo no Modo Dark */
+body.dark-mode #notifications-list .list-group-item:hover {
+  background-color: #1f2937 !important;
+}
+
+/* Garante que o item ativo/não lido tenha um contraste suave no Dark */
+body.dark-mode #notifications-list .list-group-item.bg-primary.bg-opacity-10 {
+  background-color: rgba(92, 142, 241, 0.15) !important;
+}
+
+/* Container do Item de Notificação */
+#notifications-list .list-group-item {
+  position: relative;
+  padding: 1rem !important;
+  padding-right: 35px;
+  /* Espaço de segurança para o X */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: transparent;
+  transition: background 0.2s;
+}
+
 /* Estilo dos itens da lista de notificações */
 #notifications-list .list-group-item {
   transition: background-color 0.2s ease, padding 0.2s ease;
@@ -2728,7 +2751,8 @@ body {
 }
 
 #notifications-list .list-group-item:hover {
-  background-color: var(--bg-page, #f8f9fa);
+  background-color: #3589ff72;
+  cursor: pointer;
 }
 
 /* Estado visual para notificação não lida */
@@ -2794,31 +2818,6 @@ body.dark-mode #offcanvasNotifications .offcanvas-footer .btn-link.text-muted:ho
   opacity: 1;
 }
 
-
-
-
-
-/* Correção de Hover e Estilo no Modo Dark */
-body.dark-mode #notifications-list .list-group-item:hover {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-/* Garante que o item ativo/não lido tenha um contraste suave no Dark */
-body.dark-mode #notifications-list .list-group-item.bg-primary.bg-opacity-10 {
-  background-color: rgba(92, 142, 241, 0.15) !important;
-}
-
-/* Container do Item de Notificação */
-#notifications-list .list-group-item {
-  position: relative;
-  padding: 1rem !important;
-  padding-right: 2.5rem !important;
-  /* Espaço de segurança para o X */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background-color: transparent;
-  transition: background 0.2s;
-}
-
 /* Botão de Deletar (X) */
 .btn-delete-notification {
   position: absolute;
@@ -2854,11 +2853,4 @@ body.dark-mode #notifications-list .list-group-item.bg-primary.bg-opacity-10 {
   padding: 2px !important;
   top: -2px !important;
   right: -2px !important;
-}
-
-/* Garante que o item da lista seja o pai relativo para o posicionamento do X */
-#notifications-list .list-group-item {
-  position: relative;
-  padding-right: 35px;
-  /* Espaço para o X não sobrepor o texto */
 }
