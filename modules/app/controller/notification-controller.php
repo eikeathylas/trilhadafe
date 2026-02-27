@@ -212,10 +212,10 @@ function setNotificationRead($userId, $notificationId)
         $conect = $GLOBALS["local"];
         $isDelete = isset($_POST['delete']) && $_POST['delete'] === 'true';
 
-        // Correção do ON CONFLICT para casar com a constraint (notification_id, user_id)
+        // Correção: Adicionado casting explícito ::BOOLEAN e ::INTEGER
         $sql = "
             INSERT INTO communication.notification_reads (notification_id, user_id, deleted)
-            VALUES (:nid, :uid, :del)
+            VALUES (:nid, :uid, :del::BOOLEAN)
             ON CONFLICT (notification_id, user_id) 
             DO UPDATE SET 
                 deleted = EXCLUDED.deleted,
@@ -249,10 +249,10 @@ function setAllNotificationsRead($userId, $orgId)
         $stmtUser->execute(['uid' => $userId]);
         $personId = $stmtUser->fetchColumn() ?: 0;
 
-        // Query otimizada para inserção/atualização em massa respeitando a unicidade
+        // Correção: Casting explícito ::BOOLEAN para evitar Datatype mismatch
         $sql = "
             INSERT INTO communication.notification_reads (notification_id, user_id, deleted)
-            SELECT DISTINCT n.notification_id, :uid::INTEGER, :del
+            SELECT DISTINCT n.notification_id, :uid::INTEGER, :del::BOOLEAN
             FROM communication.notifications n
             JOIN communication.notification_targets t ON n.notification_id = t.notification_id
             WHERE n.org_id = :oid
