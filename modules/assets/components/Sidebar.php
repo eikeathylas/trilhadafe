@@ -1,10 +1,18 @@
-<div class="d-md-none position-fixed top-0 start-0 w-100 mobile-top-header border-bottom d-flex align-items-center justify-content-between px-3">
+<div class="d-md-none position-fixed top-0 start-0 w-100 mobile-top-header border-bottom d-flex align-items-center justify-content-between px-3" style="z-index: 1040;">
     <div class="d-flex align-items-center gap-2">
         <img src="../login/assets/img/favicon.png" alt="Logo" style="height: 32px;">
         <span class="fw-bold" style="font-size: 1.1rem;">Trilha da Fé</span>
     </div>
-    <div class="user-avatar-container" style="width: 35px; height: 35px; border-width: 1px;">
-        <img src="./assets/img/trilhadafe.png" alt="User" class="user-avatar-img">
+    <div class="d-flex align-items-center gap-3">
+
+        <div class="position-relative mt-1" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNotifications" style="cursor: pointer;">
+            <span class="material-symbols-outlined text-muted" style="font-size: 26px;">notifications</span>
+            <span class="position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-danger p-1 d-none" id="mob-notif-badge"><span class="visually-hidden">Alertas não lidos</span></span>
+        </div>
+
+        <div class="user-avatar-container" style="width: 35px; height: 35px; border-width: 1px;">
+            <img src="./assets/img/trilhadafe.png" alt="User" class="user-avatar-img">
+        </div>
     </div>
 </div>
 
@@ -171,4 +179,62 @@
         <span class="material-symbols-outlined">menu</span>
         <span>Menu</span>
     </a>
+</div>
+
+<div class="d-none d-md-block position-fixed" style="top: 20px; right: 20px; z-index: 1050;">
+    <button class="btn shadow-sm rounded-circle position-relative border"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasNotifications"
+        style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; background-color: var(--card-bg);">
+        <span class="material-symbols-outlined text-muted" style="font-size: 24px;">notifications</span>
+        <span class="position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-danger d-none"
+            id="desk-notif-badge"
+            style="padding: 5px !important; min-width: 18px; height: 18px; font-size: 0.65rem;">
+        </span>
+    </button>
+</div>
+
+<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="offcanvasNotifications" aria-labelledby="offcanvasNotificationsLabel" style="width: 350px;">
+
+    <div class="offcanvas-header border-bottom">
+        <h6 class="offcanvas-title fw-bold d-flex align-items-center" id="offcanvasNotificationsLabel">
+            <span class="material-symbols-outlined me-2 text-primary">notifications_active</span> Notificações
+        </h6>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 d-flex flex-column">
+
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: rgba(92, 142, 241, 0.05);">
+            <div>
+                <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;">Alertas Nativos</h6>
+                <small class="text-muted" style="font-size: 0.75rem;" id="push-status-text">Ative para receber no celular/PC</small>
+            </div>
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="togglePushNotifications" style="cursor: pointer; width: 40px; height: 20px;">
+            </div>
+        </div>
+
+        <div id="notifications-list" class="list-group list-group-flush flex-grow-1" style="overflow-y: auto;">
+            <div class="text-center p-5 opacity-50">
+                <span class="material-symbols-outlined spin" style="font-size: 40px;">sync</span>
+                <p class="mt-2 text-muted small">Carregando...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="offcanvas-footer border-top p-3 bg-light-subtle">
+        <div class="d-grid gap-2">
+            <button class="btn btn-sm btn-outline-primary fw-bold mb-1" onclick="window.markAllAsRead()">
+                Marcar todas como lidas
+            </button>
+
+            <button class="btn btn-link text-danger btn-sm text-decoration-none d-flex align-items-center justify-content-center" onclick="window.clearAllNotifications()">
+                <span class="material-symbols-outlined me-1" style="font-size: 16px;">delete_sweep</span>
+                Limpar gaveta de notificações
+            </button>
+        </div>
+    </div>
 </div>

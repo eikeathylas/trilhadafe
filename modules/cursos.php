@@ -8,8 +8,7 @@
     <title>Cursos - Trilha da Fé</title>
 
     <?php include "./assets/components/Head.php"; ?>
-    <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
-
+    
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 

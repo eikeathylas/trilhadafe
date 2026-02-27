@@ -488,7 +488,7 @@ CREATE TABLE education.class_sessions (
 CREATE INDEX idx_sessions_subject ON education.class_sessions(subject_id);
 CREATE INDEX idx_sessions_class ON education.class_sessions(class_id);
 CREATE INDEX idx_sessions_date ON education.class_sessions(session_date);
-ALTER TABLE education.class_sessions DD CONSTRAINT unique_class_date_subject UNIQUE (class_id, session_date, subject_id);
+ALTER TABLE education.class_sessions ADD CONSTRAINT unique_class_date_subject UNIQUE (class_id, session_date, subject_id);
 
 
 COMMENT ON TABLE education.class_sessions IS 'Diário de Classe. Representa um dia letivo/encontro.';
@@ -925,6 +925,51 @@ CREATE TABLE communication.banners (
 );
 COMMENT ON TABLE communication.banners IS 'Slideshow da Home do Site/App.';
 
+CREATE TABLE communication.notifications (
+    notification_id SERIAL PRIMARY KEY,
+    org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
+    
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50) DEFAULT 'INFO',
+    action_url VARCHAR(500),
+    module_context VARCHAR(100),
+    
+    -- Sem FK, pois um alerta pode ser gerado pelo sistema central ou por um DEV
+    created_by_user_id INT, 
+    
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE communication.notifications IS 'Mensagens centrais do sistema. Gravadas apenas 1 vez para economizar espaço.';
+COMMENT ON COLUMN communication.notifications.module_context IS 'Identificador do módulo gerador para categorização visual.';
+
+CREATE TABLE communication.notification_targets (
+    target_id SERIAL PRIMARY KEY,
+    notification_id INT NOT NULL REFERENCES communication.notifications(notification_id) ON DELETE CASCADE,
+    
+    target_type VARCHAR(50) NOT NULL, -- 'ALL', 'ROLE', 'PERSON'
+    target_val INT,
+    
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE communication.notification_targets IS 'Define a granularidade da notificação sem duplicar a mensagem principal.';
+
+CREATE TABLE communication.notification_reads (
+    read_id BIGSERIAL PRIMARY KEY,
+    notification_id INT NOT NULL REFERENCES communication.notifications(notification_id) ON DELETE CASCADE,
+    user_id INT NOT NULL,
+    read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted BOOLEAN DEFAULT FALSE
+);
+
+CREATE UNIQUE INDEX idx_notification_reads_unique ON communication.notification_reads(notification_id, user_id) WHERE deleted IS FALSE;
+CREATE INDEX idx_notification_reads_user ON communication.notification_reads(user_id);
+COMMENT ON TABLE communication.notification_reads IS 'Grava apenas quando o usuário abre/lê a notificação para apagar a bolinha vermelha (badge).';
 
 -- ==========================================================
 -- SCHEMA: SECURITY LOGS (AUDITORIA FINAL)
@@ -992,6 +1037,20 @@ CREATE TABLE IF NOT EXISTS security.access_logs (
     status VARCHAR(20) DEFAULT 'SUCCESS'
 );
 COMMENT ON TABLE security.access_logs IS 'Histórico de acessos e logins.';
+
+CREATE TABLE security.push_subscriptions (
+    subscription_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL, -- Removida a FK
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh_key VARCHAR(255) NOT NULL,
+    auth_key VARCHAR(255) NOT NULL,
+    user_agent TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE security.push_subscriptions IS 'Credenciais do navegador do usuário para disparos nativos de Web Push (Celular/Desktop).';
 
 
 -- ============================================================================
@@ -1121,6 +1180,30 @@ CREATE TRIGGER audit_trigger_enrollment_history AFTER INSERT OR UPDATE OR DELETE
 DROP TRIGGER IF EXISTS audit_trigger_users ON security.users;
 CREATE TRIGGER audit_trigger_users AFTER INSERT OR UPDATE OR DELETE ON security.users FOR EACH ROW EXECUTE FUNCTION security.log_changes('user_id');
 
+
+-- Trigger para Notifications
+DROP TRIGGER IF EXISTS audit_trigger_notifications ON communication.notifications;
+CREATE TRIGGER audit_trigger_notifications 
+AFTER INSERT OR UPDATE OR DELETE ON communication.notifications 
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('notification_id');
+
+-- Trigger para Notification Targets
+DROP TRIGGER IF EXISTS audit_trigger_notification_targets ON communication.notification_targets;
+CREATE TRIGGER audit_trigger_notification_targets 
+AFTER INSERT OR UPDATE OR DELETE ON communication.notification_targets 
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('target_id');
+
+-- Trigger para Notification Reads
+DROP TRIGGER IF EXISTS audit_trigger_notification_reads ON communication.notification_reads;
+CREATE TRIGGER audit_trigger_notification_reads 
+AFTER INSERT OR UPDATE OR DELETE ON communication.notification_reads 
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('read_id');
+
+-- Trigger para Push Subscriptions
+DROP TRIGGER IF EXISTS audit_trigger_push_subscriptions ON security.push_subscriptions;
+CREATE TRIGGER audit_trigger_push_subscriptions 
+AFTER INSERT OR UPDATE OR DELETE ON security.push_subscriptions 
+FOR EACH ROW EXECUTE FUNCTION security.log_changes('subscription_id');
 
 -- ==========================================================
 -- POPULAÇÃO INICIAL (SEED)
@@ -1300,3 +1383,7 @@ SELECT setval(pg_get_serial_sequence('events_commerce.cards', 'card_id'), COALES
 
 -- 8. Communication
 SELECT setval(pg_get_serial_sequence('communication.categories', 'category_id'), COALESCE(MAX(category_id), 1)) FROM communication.categories;
+SELECT setval(pg_get_serial_sequence('communication.notifications', 'notification_id'), COALESCE(MAX(notification_id), 1)) FROM communication.notifications;
+SELECT setval(pg_get_serial_sequence('communication.notification_targets', 'target_id'), COALESCE(MAX(target_id), 1)) FROM communication.notification_targets;
+SELECT setval(pg_get_serial_sequence('communication.notification_reads', 'read_id'), COALESCE(MAX(read_id), 1)) FROM communication.notification_reads;
+SELECT setval(pg_get_serial_sequence('security.push_subscriptions', 'subscription_id'), COALESCE(MAX(subscription_id), 1)) FROM security.push_subscriptions;

@@ -2698,3 +2698,167 @@ body {
   background-color: var(--padrao);
   color: #fff;
 }
+
+/* ==========================================================
+   COMPONENTES DE NOTIFICAÇÃO (SININHO E OFFCANVAS)
+   ========================================================== */
+
+/* Efeito de Pulso para o Badge de Não Lidas */
+@keyframes pulse-danger {
+  0% {
+    transform: scale(0.95) translate(-50%, -50%);
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+  }
+
+  70% {
+    transform: scale(1) translate(-50%, -50%);
+    box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
+  }
+
+  100% {
+    transform: scale(0.95) translate(-50%, -50%);
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}
+
+/* Estilo dos itens da lista de notificações */
+#notifications-list .list-group-item {
+  transition: background-color 0.2s ease, padding 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+#notifications-list .list-group-item:hover {
+  background-color: var(--bg-page, #f8f9fa);
+}
+
+/* Estado visual para notificação não lida */
+#notifications-list .list-group-item.bg-primary.bg-opacity-10 {
+  background-color: rgba(92, 142, 241, 0.05) !important;
+  border-left-color: var(--primary, #5C8EF1);
+}
+
+#notifications-list .list-group-item.bg-primary.bg-opacity-10:hover {
+  background-color: rgba(92, 142, 241, 0.1) !important;
+}
+
+/* Ajuste fino do toggle (switch) de Push dentro do Offcanvas */
+#togglePushNotifications {
+  height: 22px;
+  width: 44px;
+  cursor: pointer;
+}
+
+#togglePushNotifications:checked {
+  background-color: var(--primary, #5C8EF1);
+  border-color: var(--primary, #5C8EF1);
+}
+
+div#offcanvasNotifications {
+  z-index: 10000 !important;
+}
+
+.offcanvas-backdrop {
+  z-index: 9999 !important;
+}
+
+/* ==========================================================
+   CORREÇÃO ABSOLUTA: DARK MODE DO SINO E RODAPÉ
+   ========================================================== */
+
+/* 1. O Botão Redondo do Sino (Visão Desktop) */
+body.dark-mode button[data-bs-target="#offcanvasNotifications"].btn-light {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* O Ícone do Sino (Desktop e Mobile) */
+body.dark-mode [data-bs-target="#offcanvasNotifications"] .material-symbols-outlined.text-muted {
+  color: var(--text-main) !important;
+}
+
+/* 2. O Rodapé do Painel Offcanvas (Fundo branco no rodapé) */
+body.dark-mode #offcanvasNotifications .offcanvas-footer.bg-light {
+  background-color: var(--bg-card) !important;
+  border-top: 1px solid var(--border-color) !important;
+}
+
+/* O Botão "Marcar todas como lidas" */
+body.dark-mode #offcanvasNotifications .offcanvas-footer .btn-link.text-muted {
+  color: var(--text-main) !important;
+  opacity: 0.8;
+}
+
+body.dark-mode #offcanvasNotifications .offcanvas-footer .btn-link.text-muted:hover {
+  color: var(--primary) !important;
+  opacity: 1;
+}
+
+
+
+
+
+/* Correção de Hover e Estilo no Modo Dark */
+body.dark-mode #notifications-list .list-group-item:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Garante que o item ativo/não lido tenha um contraste suave no Dark */
+body.dark-mode #notifications-list .list-group-item.bg-primary.bg-opacity-10 {
+  background-color: rgba(92, 142, 241, 0.15) !important;
+}
+
+/* Container do Item de Notificação */
+#notifications-list .list-group-item {
+  position: relative;
+  padding: 1rem !important;
+  padding-right: 2.5rem !important;
+  /* Espaço de segurança para o X */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: transparent;
+  transition: background 0.2s;
+}
+
+/* Botão de Deletar (X) */
+.btn-delete-notification {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  z-index: 10;
+  border: none;
+  background: transparent;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.btn-delete-notification:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545 !important;
+  opacity: 1;
+}
+
+/* Ajuste do Badge (Ícone de Sino) */
+#desk-notif-badge,
+#mob-notif-badge {
+  font-size: 0.65rem;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px !important;
+  top: -2px !important;
+  right: -2px !important;
+}
+
+/* Garante que o item da lista seja o pai relativo para o posicionamento do X */
+#notifications-list .list-group-item {
+  position: relative;
+  padding-right: 35px;
+  /* Espaço para o X não sobrepor o texto */
+}

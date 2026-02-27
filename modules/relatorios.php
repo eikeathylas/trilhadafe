@@ -7,7 +7,6 @@
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Relatórios - Trilha da Fé</title>
     <?php include "./assets/components/Head.php"; ?>
-    <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
 <body>

@@ -8,10 +8,8 @@
     <title>Diário de Classe - Trilha da Fé</title>
 
     <?php include "./assets/components/Head.php"; ?>
-    <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
 </head>
 

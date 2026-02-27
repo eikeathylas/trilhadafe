@@ -8,8 +8,7 @@
     <title>Pessoas - Trilha da Fé</title>
 
     <?php include "./assets/components/Head.php"; ?>
-
-    <link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
+    
     <link href="assets/css/foto.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 

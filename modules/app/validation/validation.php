@@ -17,7 +17,8 @@ include "../controller/course-controller.php";
 include "../controller/turmas-controller.php";
 include "../controller/diario-controller.php";
 include "../controller/events-controller.php";
-include "../controller/reports-controller.php"; // <--- NOVO CONTROLADOR
+include "../controller/reports-controller.php";
+include "../controller/notification-controller.php";
 
 $validator = $_POST["validator"] ?? null;
 
@@ -36,6 +37,41 @@ switch ($validator) {
 		getGlobalContext();
 		break;
 
+	// =========================================================
+	// MÓDULO: NOTIFICAÇÕES E WEB PUSH (notifications.js)
+	// =========================================================
+	case "getNotifications":
+		getNotifications(); //
+		break;
+
+	case "markRead":
+		// Atende tanto leitura individual quanto em massa (via parâmetro 'bulk')
+		if (isset($_POST['bulk']) && $_POST['bulk'] === 'true') {
+			markAllNotificationsRead(); //
+		} else {
+			markNotificationRead(); //
+		}
+		break;
+
+	case "deleteNotification":
+		// Força a flag de deleção lógica antes de chamar o controller
+		$_POST['delete'] = 'true';
+		markNotificationRead(); //
+		break;
+
+	case "clearNotifications":
+		// Limpeza total da gaveta (Deleção lógica em massa)
+		$_POST['delete'] = 'true';
+		markAllNotificationsRead(); //
+		break;
+
+	case "savePushSubscription":
+		savePushSubscription(); //
+		break;
+
+	case "removePushSubscription":
+		removePushSubscription(); //
+		break;
 	// =========================================================
 	// MÓDULO: DASHBOARD (dashboard.js)
 	// =========================================================
