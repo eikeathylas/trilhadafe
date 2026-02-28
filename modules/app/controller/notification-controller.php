@@ -27,7 +27,7 @@ function getNotifications()
     getLocal($decoded["conexao"]);
 
     // Executa a checagem de regras de negócio antes de listar
-    runDailyNotificationCheck();
+    runScheduledNotificationCheck($_POST["org_id"] ?? 2);
 
     $orgId = $_POST["org_id"] ?? 2;
     $userId = $decoded["id_user"];
@@ -142,9 +142,6 @@ function fetchUserNotifications($userId, $orgId)
     try {
         $conect = $GLOBALS["local"];
 
-        // Roda a checagem diária de regras antes de listar
-        runDailyNotificationCheck();
-
         $roleLevel = strtoupper($_POST['role'] ?? 'USER');
         $superUsers = ['DEV', 'STAFF', 'ROOT', 'ADMIN'];
         $isDev = in_array($roleLevel, $superUsers);
@@ -157,7 +154,6 @@ function fetchUserNotifications($userId, $orgId)
             return success("Nenhuma notificação.", []);
         }
 
-        // Query corrigida: o.display_name em vez de o.name
         $sql = "
             SELECT DISTINCT
                 n.notification_id,
@@ -214,26 +210,35 @@ function fetchUserNotifications($userId, $orgId)
             elseif ($diff < 172800) $notif['time_ago'] = "ontem";
             else $notif['time_ago'] = date("d/m", $time);
 
-            // --- LÓGICA DE AUDITORIA PARA DEV ---
+            // --- LÓGICA DE AUDITORIA PARA DEV (TRADUZIDA E ORGANIZADA) ---
             if ($isDev) {
                 $detail = "";
 
                 if ($notif['target_type'] === 'ALL') {
-                    $detail = "PARA TODOS";
+                    $detail = "<strong>Alvo:</strong> Todos os Usuários";
                 } elseif ($notif['target_type'] === 'ROLE') {
-                    // Ajustado para people.roles e coluna role_name
-                    $st = $conect->prepare("SELECT role_name FROM people.roles WHERE role_id = :rid");
+                    // Busca a descrição em PT-BR do cargo
+                    $st = $conect->prepare("SELECT description_pt FROM people.roles WHERE role_id = :rid");
                     $st->execute(['rid' => $notif['target_val']]);
                     $roleName = $st->fetchColumn() ?: "ID: " . $notif['target_val'];
-                    $detail = "ROLE: " . $roleName;
+                    $detail = "<strong>Cargo:</strong> " . $roleName;
                 } elseif ($notif['target_type'] === 'PERSON') {
                     $st = $conect->prepare("SELECT full_name FROM people.persons WHERE person_id = :pid");
                     $st->execute(['pid' => $notif['target_val']]);
                     $personName = $st->fetchColumn() ?: "ID: " . $notif['target_val'];
-                    $detail = "PESSOA: " . $personName;
+                    $detail = "<strong>Pessoa:</strong> " . $personName;
                 }
 
-                $notif['message'] .= "<br><small style='color: #6c757d; font-weight: bold;'>[AUDIT] Unidade: {$notif['org_name']} | Destino: {$detail}</small>";
+                // Layout limpo para o bloco de auditoria
+                $notif['message'] .= "
+                    <div class='mt-2 p-2 rounded border' style='background-color: var(--bs-light); font-size: 0.75rem; color: var(--bs-gray-700); border-color: var(--bs-border-color) !important;'>
+                        <div class='d-flex align-items-center mb-1' style='color: var(--bs-primary); font-weight: 600;'>
+                            <span class='material-symbols-outlined me-1' style='font-size: 14px;'>shield_person</span>
+                            Info de Auditoria (Modo DEV)
+                        </div>
+                        <div><strong>Unidade:</strong> {$notif['org_name']}</div>
+                        <div>{$detail}</div>
+                    </div>";
             }
 
             if (!$isDev) {
@@ -365,80 +370,6 @@ function deletePushSubscription($userId, $endpoint)
     }
 }
 
-// =========================================================
-// MOTOR DE REGRAS SILENCIOSO (RUN ON FETCH)
-// =========================================================
-
-function runDailyNotificationCheck()
-{
-    try {
-        $conect = $GLOBALS["local"];
-        if (!$conect) return;
-
-        $hoje = date('m-d');
-        $amanha = date('Y-m-d', strtotime('+1 day'));
-
-        // --- REGRA 1: ANIVERSÁRIOS DE ALUNOS ---
-        $sqlAlunos = "
-            SELECT p.person_id, p.full_name, c.coordinator_id, c.org_id, c.name as class_name
-            FROM people.persons p
-            JOIN education.enrollments e ON p.person_id = e.student_id
-            JOIN education.classes c ON e.class_id = c.class_id
-            WHERE to_char(p.birth_date, 'MM-DD') = :hoje
-              AND e.status = 'ACTIVE' AND e.deleted IS FALSE
-        ";
-
-        $stmtA = $conect->prepare($sqlAlunos);
-        $stmtA->execute(['hoje' => $hoje]);
-        $aniversariantes = $stmtA->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($aniversariantes as $aluno) {
-            $title = "Aniversário: " . $aluno['full_name'];
-            $msg = "Hoje é aniversário do aluno(a) {$aluno['full_name']} da turma {$aluno['class_name']}.";
-
-            // Tenta inserir (createSystemNotification cuidará da duplicidade)
-            createSystemNotification($aluno['org_id'], $title, $msg, 'SUCCESS', 'ROLE', 3);
-            if (!empty($aluno['coordinator_id'])) {
-                createSystemNotification($aluno['org_id'], "Aniversário de Aluno", $msg, 'SUCCESS', 'PERSON', $aluno['coordinator_id']);
-            }
-        }
-
-        // --- REGRA 2: ANIVERSÁRIOS DE PROFESSORES ---
-        $sqlProfs = "
-            SELECT p.person_id, p.full_name, pr.org_id
-            FROM people.persons p
-            JOIN people.person_roles pr ON p.person_id = pr.person_id
-            WHERE to_char(p.birth_date, 'MM-DD') = :hoje
-              AND pr.role_id = 3 AND pr.is_active IS TRUE AND pr.deleted IS FALSE
-        ";
-
-        $stmtP = $conect->prepare($sqlProfs);
-        $stmtP->execute(['hoje' => $hoje]);
-        $profs = $stmtP->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($profs as $prof) {
-            $title = "Aniversário Prof: " . $prof['full_name'];
-            $msg = "Hoje é aniversário do Professor(a) {$prof['full_name']}. Notifique a paróquia!";
-            createSystemNotification($prof['org_id'], $title, $msg, 'INFO', 'ROLE', 2);
-        }
-
-        // --- REGRA 3: EVENTOS ACADÊMICOS ---
-        $sqlEvents = "SELECT title, org_id FROM organization.events WHERE event_date = :amanha AND is_academic_blocker = TRUE AND deleted IS FALSE";
-
-        $stmtE = $conect->prepare($sqlEvents);
-        $stmtE->execute(['amanha' => $amanha]);
-        $bloqueios = $stmtE->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($bloqueios as $ev) {
-            $title = "Lembrete: Sem aula amanhã";
-            $msg = "Amanhã não haverá aula devido ao evento: {$ev['title']}.";
-            createSystemNotification($ev['org_id'], $title, $msg, 'WARNING', 'ALL');
-        }
-    } catch (Exception $e) {
-        error_log("Erro no Cron de Notificações: " . $e->getMessage());
-    }
-}
-
 /**
  * Insere uma nova notificação se ela ainda não existir hoje para o alvo
  */
@@ -447,7 +378,7 @@ function createSystemNotification($orgId, $title, $message, $type, $targetType, 
     try {
         $conect = $GLOBALS["local"];
 
-        // TRAVA DE DUPLICIDADE: Verifica se essa regra já foi disparada HOJE para esse público
+        // TRAVA DE DUPLICIDADE
         $sqlCheck = "
             SELECT COUNT(n.notification_id) 
             FROM communication.notifications n
@@ -469,7 +400,6 @@ function createSystemNotification($orgId, $title, $message, $type, $targetType, 
 
         if ($stmtCheck->fetchColumn() > 0) return false;
 
-        // 1. Insere o corpo da notificação
         $sql = "INSERT INTO communication.notifications (org_id, title, message, type, action_url, module_context) 
                 VALUES (:oid, :title, :msg, :type, :url, 'SYSTEM') RETURNING notification_id";
 
@@ -485,7 +415,6 @@ function createSystemNotification($orgId, $title, $message, $type, $targetType, 
 
         if (!$notifId) return false;
 
-        // 2. Vincula a notificação ao alvo
         $sqlTarget = "INSERT INTO communication.notification_targets (notification_id, target_type, target_val) 
                       VALUES (:nid, :ttype, :tval)";
 
@@ -500,5 +429,66 @@ function createSystemNotification($orgId, $title, $message, $type, $targetType, 
     } catch (Exception $e) {
         error_log("Erro ao criar notificação de sistema: " . $e->getMessage());
         return false;
+    }
+}
+
+
+function runScheduledNotificationCheck($orgId)
+{
+    try {
+        $conect = $GLOBALS["local"] ?? null;
+        if (!$conect) return;
+
+        // 1. CRIAÇÃO DE DIRETÓRIO GARANTIDA
+        $lockDir = __DIR__ . DIRECTORY_SEPARATOR . '../../temp';
+
+        // Se a pasta não existe, o PHP a cria com permissões adequadas
+        if (!is_dir($lockDir)) {
+            if (!@mkdir($lockDir, 0775, true)) {
+                error_log("TRILHA_ERRO: Falha ao criar a pasta temp no caminho: " . $lockDir);
+                return;
+            }
+        }
+
+        $lockFile = $lockDir . DIRECTORY_SEPARATOR . 'cron_notif_' . $orgId . '.lock';
+
+        $horaAtual = (int)date('H');
+        $hojeJanela = date('Y-m-d-H');
+
+        if ($horaAtual !== 8 && $horaAtual !== 22) return;
+
+        if (file_exists($lockFile)) {
+            $lastRun = @file_get_contents($lockFile);
+            if ($lastRun === $hojeJanela) return;
+        }
+
+        if (!function_exists('createSystemNotification')) return;
+
+        $hojeMD = date('m-d');
+        $hojeYMD = date('Y-m-d');
+
+        // --- REGRA 1: ANIVERSÁRIOS ALUNOS ---
+        $stmtA = $conect->prepare("SELECT p.full_name, c.org_id FROM people.persons p 
+                                   JOIN education.enrollments e ON p.person_id = e.student_id 
+                                   JOIN education.classes c ON e.class_id = c.class_id 
+                                   WHERE to_char(p.birth_date, 'MM-DD') = :h AND e.status = 'ACTIVE'");
+        $stmtA->execute(['h' => $hojeMD]);
+        while ($aluno = $stmtA->fetch(PDO::FETCH_ASSOC)) {
+            createSystemNotification($aluno['org_id'], "Aniversário: " . $aluno['full_name'], "Hoje é aniversário do aluno(a) " . $aluno['full_name'], 'SUCCESS', 'ROLE', 3);
+        }
+
+        // --- REGRA 2: PROFESSORES ---
+        $stmtP = $conect->prepare("SELECT p.full_name, pr.org_id FROM people.persons p 
+                                   JOIN people.person_roles pr ON p.person_id = pr.person_id 
+                                   WHERE to_char(p.birth_date, 'MM-DD') = :h AND pr.role_id = 3");
+        $stmtP->execute(['h' => $hojeMD]);
+        while ($prof = $stmtP->fetch(PDO::FETCH_ASSOC)) {
+            createSystemNotification($prof['org_id'], "Aniversário Prof: " . $prof['full_name'], "Parabenize o prof: " . $prof['full_name'], 'INFO', 'ROLE', 2);
+        }
+
+        // 4. FINALIZAÇÃO: Grava o arquivo de lock
+        @file_put_contents($lockFile, $hojeJanela);
+    } catch (Exception $e) {
+        error_log("TRILHA_FATAL: " . $e->getMessage());
     }
 }
