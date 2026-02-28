@@ -440,7 +440,7 @@ function runScheduledNotificationCheck($orgId)
         if (!$conect) return;
 
         // 1. CRIAÇÃO DE DIRETÓRIO GARANTIDA
-        $lockDir = __DIR__ . DIRECTORY_SEPARATOR . '../../temp';
+        $lockDir = __DIR__ . DIRECTORY_SEPARATOR . '../temp';
 
         // Se a pasta não existe, o PHP a cria com permissões adequadas
         if (!is_dir($lockDir)) {
@@ -450,7 +450,7 @@ function runScheduledNotificationCheck($orgId)
             }
         }
 
-        $lockFile = $lockDir . DIRECTORY_SEPARATOR . 'cron_notif_' . $orgId . '.lock';
+        $lockFile = $lockDir . DIRECTORY_SEPARATOR . 'cron_notif_' . $orgId . '.txt';
 
         $horaAtual = (int)date('H');
         $hojeJanela = date('Y-m-d-H');
