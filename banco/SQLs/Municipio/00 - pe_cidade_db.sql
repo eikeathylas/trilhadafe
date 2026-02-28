@@ -774,95 +774,200 @@ COMMENT ON TABLE finance.tithe_profiles IS 'Cadastro de Dizimistas e seus compro
 
 
 -- ==========================================================
--- SCHEMA: EVENTS_COMMERCE
--- Responsabilidade: Festas, Bingos, Trilhas e Sistema Cashless
+-- SCHEMA: EVENTS_COMMERCE (V2.0 - Completo)
+-- Responsabilidade: Gestão de Eventos, Venda de Ingressos (Lotes), 
+-- Arrecadações Físicas, Barracas e Sistema Cashless.
 -- ==========================================================
+
+DROP SCHEMA IF EXISTS events_commerce CASCADE;
+CREATE SCHEMA events_commerce;
+
+-- ==========================================
+-- 1. NÚCLEO DO EVENTO E CONFIGURAÇÕES
+-- ==========================================
 
 CREATE TABLE events_commerce.events (
     event_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     name VARCHAR(150) NOT NULL,
     description TEXT,
-    event_type VARCHAR(50),
+    event_type VARCHAR(50), -- FESTIVAL, BINGO, RETREAT, MASS_SPECIAL
+    
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP,
     location_id INT REFERENCES organization.locations(location_id),
     external_location_text VARCHAR(255),
+    
+    -- Projeções e Metas Financeiras
+    expected_audience INT DEFAULT 0,
+    expected_expense NUMERIC(15,2) DEFAULT 0.00,
     financial_goal NUMERIC(15,2),
-    status VARCHAR(20) DEFAULT 'PLANNED'
+    
+    status VARCHAR(20) DEFAULT 'PLANNED', -- PLANNED, ACTIVE, FINISHED, CANCELLED
+    
+    -- Controle e Auditoria
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
+COMMENT ON TABLE events_commerce.events IS 'Tabela mestre de eventos, quermesses, bingos e retiros.';
+
+CREATE TABLE events_commerce.event_configs (
+    config_id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events_commerce.events(event_id) ON DELETE CASCADE,
+    
+    allow_online_sales BOOLEAN DEFAULT TRUE,
+    allow_cashless BOOLEAN DEFAULT TRUE,
+    
+    currency_symbol VARCHAR(5) DEFAULT 'R$',
+    tax_rate_online NUMERIC(5,2) DEFAULT 0.00, -- Taxa de conveniência/Gateway
+    max_tickets_per_person INT DEFAULT 5,
+    
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE events_commerce.event_configs IS 'Configurações de operação de venda para um evento específico.';
+
+
+-- ==========================================
+-- 2. GESTÃO DE INGRESSOS E LOTES
+-- ==========================================
+
+CREATE TABLE events_commerce.ticket_batches (
+    batch_id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events_commerce.events(event_id) ON DELETE CASCADE,
+    
+    name VARCHAR(100) NOT NULL, -- Ex: "1º Lote", "VIP", "Promocional", "Meia-Entrada"
+    description TEXT,
+    
+    price NUMERIC(15,2) NOT NULL DEFAULT 0.00,
+    quantity_available INT NOT NULL,
+    quantity_sold INT DEFAULT 0,
+    
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+COMMENT ON TABLE events_commerce.ticket_batches IS 'Gestão de lotes, precificação e controle de estoque de ingressos.';
 
 CREATE TABLE events_commerce.tickets (
     ticket_id SERIAL PRIMARY KEY,
     event_id INT NOT NULL REFERENCES events_commerce.events(event_id),
+    batch_id INT REFERENCES events_commerce.ticket_batches(batch_id),
+    
     owner_person_id INT REFERENCES people.persons(person_id),
-    guest_name VARCHAR(150),
-    seller_person_id INT REFERENCES people.persons(person_id),
+    guest_name VARCHAR(150), -- Para quando comprar ingresso para terceiros
+    seller_person_id INT REFERENCES people.persons(person_id), -- Quem vendeu (promoter)
+    
     qr_code_hash UUID DEFAULT gen_random_uuid(),
-    batch_name VARCHAR(50),
     price_sold NUMERIC(10,2) DEFAULT 0.00,
+    
     is_paid BOOLEAN DEFAULT FALSE,
-    transaction_id BIGINT,
-    validation_date TIMESTAMP,
+    transaction_id BIGINT, -- Vinculo futuro com tabela finance.transactions
+    
+    -- Controle de Entrada (Check-in)
+    checkin_status BOOLEAN DEFAULT FALSE,
+    checkin_date TIMESTAMP,
     validated_by_user_id INT,
+    
+    deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+COMMENT ON TABLE events_commerce.tickets IS 'Ingressos individuais emitidos, contendo hash único para leitura via QR Code.';
+
+
+-- ==========================================
+-- 3. DOAÇÕES FÍSICAS (PRENDAS E INSUMOS)
+-- ==========================================
 
 CREATE TABLE events_commerce.donations_in_kind (
     donation_id SERIAL PRIMARY KEY,
     event_id INT NOT NULL REFERENCES events_commerce.events(event_id),
     donor_person_id INT REFERENCES people.persons(person_id),
+    
     item_name VARCHAR(100) NOT NULL,
     quantity NUMERIC(10,2) DEFAULT 1,
-    unit_measure VARCHAR(20),
+    unit_measure VARCHAR(20), -- KG, UN, LITROS, CAIXAS
+    
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    received_by_user_id INT
+    received_by_user_id INT,
+    
+    deleted BOOLEAN DEFAULT FALSE
 );
+COMMENT ON TABLE events_commerce.donations_in_kind IS 'Registro de prendas doadas para bingos ou insumos para quermesses (óleo, farinha).';
+
+
+-- ==========================================
+-- 4. SISTEMA CASHLESS E BARRACAS
+-- ==========================================
 
 CREATE TABLE events_commerce.cards (
     card_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     person_id INT REFERENCES people.persons(person_id),
+    
     card_uuid UUID DEFAULT gen_random_uuid(),
-    display_code VARCHAR(50),
+    display_code VARCHAR(50), -- Código impresso no cartão físico (Ex: TFE-9921)
+    
     current_balance NUMERIC(15,2) DEFAULT 0.00,
+    
     is_active BOOLEAN DEFAULT TRUE,
-    last_used_at TIMESTAMP
+    last_used_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-COMMENT ON TABLE events_commerce.cards IS 'Cartões de consumo (Cashless) para quermesses.';
+COMMENT ON TABLE events_commerce.cards IS 'Cartões de consumo pré-pagos (Cashless) para uso interno nas quermesses.';
 
 CREATE TABLE events_commerce.vendors (
     vendor_id SERIAL PRIMARY KEY,
     event_id INT NOT NULL REFERENCES events_commerce.events(event_id),
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL, -- Ex: Barraca do Pastel, Pescaria
+    
     responsible_person_id INT REFERENCES people.persons(person_id),
-    commission_rate NUMERIC(5,2) DEFAULT 0.00,
-    fixed_fee NUMERIC(15,2) DEFAULT 0.00,
-    is_active BOOLEAN DEFAULT TRUE
+    
+    commission_rate NUMERIC(5,2) DEFAULT 0.00, -- % repassada à igreja (se terceirizado)
+    fixed_fee NUMERIC(15,2) DEFAULT 0.00, -- Taxa fixa cobrada do barraqueiro
+    
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-COMMENT ON TABLE events_commerce.vendors IS 'Barracas ou Pontos de Venda dentro do evento.';
+COMMENT ON TABLE events_commerce.vendors IS 'Pontos de venda (barracas) ativos dentro de um evento.';
 
 CREATE TABLE events_commerce.products (
     product_id SERIAL PRIMARY KEY,
     vendor_id INT NOT NULL REFERENCES events_commerce.vendors(vendor_id),
+    
     name VARCHAR(100) NOT NULL,
     unit_price NUMERIC(10,2) NOT NULL,
-    stock_quantity INT,
-    is_available BOOLEAN DEFAULT TRUE
+    stock_quantity INT, -- NULL para estoque infinito
+    
+    is_available BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE
 );
+COMMENT ON TABLE events_commerce.products IS 'Cardápio de produtos vendidos em cada barraca.';
 
 CREATE TABLE events_commerce.transactions (
     log_id BIGSERIAL PRIMARY KEY,
     card_id INT NOT NULL REFERENCES events_commerce.cards(card_id),
-    transaction_type VARCHAR(20) NOT NULL,
+    
+    transaction_type VARCHAR(20) NOT NULL, -- RECHARGE (Recarga), PURCHASE (Compra), REFUND (Estorno)
     amount NUMERIC(15,2) NOT NULL,
+    
     vendor_id INT REFERENCES events_commerce.vendors(vendor_id),
-    products_json JSONB,
-    church_fee_amount NUMERIC(15,2) DEFAULT 0.00,
-    vendor_net_amount NUMERIC(15,2) DEFAULT 0.00,
-    operator_user_id INT,
+    products_json JSONB, -- Histórico do que foi comprado: [{"item": "Pastel", "qtd": 2, "price": 10.00}]
+    
+    church_fee_amount NUMERIC(15,2) DEFAULT 0.00, -- Parte que fica para a Paróquia
+    vendor_net_amount NUMERIC(15,2) DEFAULT 0.00, -- Parte que vai para o terceirizado
+    
+    operator_user_id INT, -- Quem operou a maquininha/sistema
     transaction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+COMMENT ON TABLE events_commerce.transactions IS 'Ledger imutável de todas as movimentações de saldo no Cashless.';
+
 
 
 -- ==========================================================
@@ -1201,6 +1306,17 @@ DROP TRIGGER IF EXISTS audit_trigger_push_subscriptions ON security.push_subscri
 CREATE TRIGGER audit_trigger_push_subscriptions 
 AFTER INSERT OR UPDATE OR DELETE ON security.push_subscriptions 
 FOR EACH ROW EXECUTE FUNCTION security.log_changes('subscription_id');
+
+
+
+CREATE TRIGGER audit_trigger_events AFTER INSERT OR UPDATE OR DELETE ON events_commerce.events FOR EACH ROW EXECUTE FUNCTION security.log_changes('event_id');
+CREATE TRIGGER audit_trigger_event_configs AFTER INSERT OR UPDATE OR DELETE ON events_commerce.event_configs FOR EACH ROW EXECUTE FUNCTION security.log_changes('config_id');
+CREATE TRIGGER audit_trigger_ticket_batches AFTER INSERT OR UPDATE OR DELETE ON events_commerce.ticket_batches FOR EACH ROW EXECUTE FUNCTION security.log_changes('batch_id');
+CREATE TRIGGER audit_trigger_tickets AFTER INSERT OR UPDATE OR DELETE ON events_commerce.tickets FOR EACH ROW EXECUTE FUNCTION security.log_changes('ticket_id');
+CREATE TRIGGER audit_trigger_donations AFTER INSERT OR UPDATE OR DELETE ON events_commerce.donations_in_kind FOR EACH ROW EXECUTE FUNCTION security.log_changes('donation_id');
+CREATE TRIGGER audit_trigger_cards AFTER INSERT OR UPDATE OR DELETE ON events_commerce.cards FOR EACH ROW EXECUTE FUNCTION security.log_changes('card_id');
+CREATE TRIGGER audit_trigger_vendors AFTER INSERT OR UPDATE OR DELETE ON events_commerce.vendors FOR EACH ROW EXECUTE FUNCTION security.log_changes('vendor_id');
+CREATE TRIGGER audit_trigger_products AFTER INSERT OR UPDATE OR DELETE ON events_commerce.products FOR EACH ROW EXECUTE FUNCTION security.log_changes('product_id');
 
 -- ==========================================================
 -- POPULAÇÃO INICIAL (SEED)
