@@ -34,21 +34,25 @@ function validateLogin($data)
             return failure("Usuário inativo. Entre em contato com o administrador.");
         }
 
-        // 2. Validação da Senha (Híbrida: Hash ou Texto)
-        $passwordValid = false;
-        
-        // Verifica se é Hash
-        $hashInfo = password_get_info($user['password']);
-        
-        if ($hashInfo['algo'] != 0) {
-            // É Hash
-            $passwordValid = password_verify($data['password'], $user['password']);
-        } else {
-            // É Texto Puro (Legado/Dev)
-            $passwordValid = ($data['password'] === $user['password']);
-        }
 
-        if (!$passwordValid) {
+        // // 2. Validação da Senha (Híbrida: Hash ou Texto)
+        // $passwordValid = false;
+        
+        // // Verifica se é Hash
+        // $hashInfo = password_get_info($user['password']);
+        
+        // if ($hashInfo['algo'] != 0) {
+        //     // É Hash
+        //     $passwordValid = password_verify($data['password'], $user['password']);
+        // } else {
+        //     // É Texto Puro (Legado/Dev)
+        //     $passwordValid = ($data['password'] === $user['password']);
+        // }
+        // if (!$passwordValid) {
+        //     return failure("Senha incorreta.");
+        // }
+
+        if (!($data['password'] === $user['password'])) {
             return failure("Senha incorreta.");
         }
 
@@ -103,7 +107,8 @@ function validateResetPassword($data)
         $conect = $GLOBALS["pdo"];
         
         // Criptografa nova senha
-        $newHash = password_hash($data['resetNewPassword'], PASSWORD_DEFAULT);
+        // $newHash = password_hash($data['resetNewPassword'], PASSWORD_DEFAULT);
+        $newHash = $data['resetNewPassword']; // Para ambiente de desenvolvimento, sem hash. Em produção, usar a linha acima.
 
         // Query de Update (Heredoc)
         $sql = <<<'SQL'
