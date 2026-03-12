@@ -62,7 +62,7 @@ const handleToggle = async (validator, id, element, successMsg, labelSelector) =
   }
 };
 
-window.toggleOrg = (id, element) => handleToggle("toggleOrganization", id, element, "Instituição atualizada.", `.status-text-org-${id}`);
+window.toggleOrg = (id, element) => handleToggle("toggleOrganization", id, element, "Informação atualizada.", `.status-text-org-${id}`);
 window.toggleLoc = (id, element) => handleToggle("toggleLocation", id, element, "Local atualizado.", `.status-text-loc-${id}`);
 
 // =========================================================
@@ -115,7 +115,7 @@ const modalInstituicao = (id = null) => {
   if (id) {
     loadOrgData(id);
   } else {
-    $("#modalInstituicaoLabel").text("Nova Instituição");
+    $("#modalInstituicaoLabel").text("Nova Paróquia");
     modal.modal("show");
     if (window.initMasks) window.initMasks();
   }
@@ -157,7 +157,7 @@ const loadOrgData = async (id) => {
 
       if ($("#org_type")[0].selectize) $("#org_type")[0].selectize.setValue(data.org_type);
 
-      $("#modalInstituicaoLabel").text("Editar Instituição");
+      $("#modalInstituicaoLabel").text("Editar Paróquia");
       $("#org_tax_id, #org_phone, #org_phone2, #org_zip").trigger("input");
       $("#modalInstituicao").modal("show");
     } else {
@@ -193,7 +193,7 @@ window.getDiocese = async () => {
 const renderTableDiocese = (data) => {
   const container = $(".list-table-diocese");
   if (data.length === 0) {
-    container.html('<p class="text-center py-3">Nenhuma instituição encontrada.</p>');
+    container.html('<p class="text-center py-3">Nenhuma diocese encontrada.</p>');
     return;
   }
 
@@ -271,7 +271,7 @@ const renderTableDiocese = (data) => {
     .join("");
 
   container.html(`
-    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Instituição</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
+    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Paróquia</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
     <div class="d-md-none">${mobileRows}</div>
   `);
 };
@@ -294,7 +294,7 @@ window.getOrganizacoes = async () => {
       renderTableOrgs(result.data || []);
       populateOrgSelects(result.data || []);
     } else {
-      $(".list-table-orgs").html('<p class="text-center py-3">Nenhuma instituição encontrada.</p>');
+      $(".list-table-orgs").html('<p class="text-center py-3">Nenhuma paróquia encontrada.</p>');
     }
   } catch (e) {
     console.error(e);
@@ -305,7 +305,7 @@ window.getOrganizacoes = async () => {
 const renderTableOrgs = (data) => {
   const container = $(".list-table-orgs");
   if (data.length === 0) {
-    container.html('<p class="text-center py-3">Nenhuma instituição encontrada.</p>');
+    container.html('<p class="text-center py-3">Nenhuma paróquia encontrada.</p>');
     return;
   }
 
@@ -380,7 +380,7 @@ const renderTableOrgs = (data) => {
     .join("");
 
   container.html(`
-    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Instituição</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
+    <div class="d-none d-md-block table-responsive"><table class="table-custom"><thead><tr><th colspan="2">Paróquia</th><th class="text-center">Tipo</th><th>Cidade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead><tbody>${desktopRows}</tbody></table></div>
     <div class="d-md-block d-md-none">${mobileRows}</div>
   `);
   _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes", "org");
@@ -548,7 +548,7 @@ const salvarInstituicao = async () => {
 
 const deleteOrg = (id) => {
   Swal.fire({
-    title: "Excluir Instituição?",
+    title: "Excluir Paróquia?",
     text: "Ela será movida para a lixeira.",
     icon: "warning",
     showCancelButton: true,
@@ -561,7 +561,7 @@ const deleteOrg = (id) => {
       try {
         const res = await ajaxValidator({ validator: "deleteOrganization", token: defaultApp.userInfo.token, id: id });
         if (res.status) {
-          alertDefault("Instituição inativada.", "success");
+          alertDefault("Paróquia inativada.", "success");
           getDiocese();
           getOrganizacoes();
         } else {
@@ -673,7 +673,7 @@ const salvarLocal = async () => {
   const nome = $("#loc_name").val().trim();
   const orgId = $("#loc_org_id").val();
 
-  if (!nome || !orgId) return alertDefault("Nome e Instituição obrigatórios.", "warning");
+  if (!nome || !orgId) return alertDefault("Nome e Paróquia obrigatórios.", "warning");
 
   const modalBtn = $(".btn-save-loc");
   setButton(true, modalBtn, "Salvando...");
@@ -750,7 +750,7 @@ const populateOrgSelects = (data) => {
       searchField: ["title"],
       options: options,
       create: false,
-      placeholder: "Selecione a Instituição...",
+      placeholder: "Selecione a Paróquia...",
     });
   };
   initSelect(".select-orgs");

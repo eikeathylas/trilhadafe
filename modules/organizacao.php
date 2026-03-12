@@ -36,7 +36,7 @@
                         </li>
                         <li class="nav-item">
                             <button class="nav-link txt-theme font-weight-bold" id="inst-tab" data-bs-toggle="tab" data-bs-target="#instituicoes" type="button">
-                                <i class="fas fa-church mr-2"></i> Instituições
+                                <i class="fas fa-church mr-2"></i> Paróquia
                             </button>
                         </li>
                         <li class="nav-item">
@@ -66,7 +66,7 @@
                             <div class="row mb-3">
                                 <div class="col-12 text-end">
                                     <button class="btn-filter" onclick="modalInstituicao()">
-                                        <i class="fa-solid fa-plus"></i> Nova Instituição
+                                        <i class="fa-solid fa-plus"></i> Nova Paróquia
                                     </button>
                                 </div>
                             </div>
@@ -77,7 +77,7 @@
                         <div class="tab-pane fade" id="locais" role="tabpanel">
                             <div class="row mb-3 align-items-end">
                                 <div class="col-md-4">
-                                    <label class="form-label title">Filtrar por Instituição:</label>
+                                    <label class="form-label title">Filtrar por Paróquia:</label>
                                     <select id="filtro-org-locais" class="form-control select-orgs" placeholder="Selecione..."></select>
                                 </div>
                                 <div class="col-md-8 text-end">
@@ -102,7 +102,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fs-5 text-white" id="modalInstituicaoLabel">Gerenciar Instituição</h5>
+                    <h5 class="modal-title fs-5 text-white" id="modalInstituicaoLabel">Gerenciar Paróquia</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -218,7 +218,7 @@
                 <div class="modal-body">
                     <input type="hidden" id="loc_id">
                     <div class="mb-3">
-                        <label class="form-label title">Instituição Vinculada</label>
+                        <label class="form-label title">Paróquia Vinculada</label>
                         <select id="loc_org_id" class="form-control select-orgs-modal" placeholder="Selecione..."></select>
                     </div>
                     <div class="row g-3 mb-3">
