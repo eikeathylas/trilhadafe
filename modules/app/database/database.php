@@ -8,17 +8,13 @@ function getStaff()
         return $GLOBALS["staff"];
     }
 
-    // Configurações do Banco Central (Staff)
-    $host = "145.223.94.211";
     $port = "5432";
     $dbname = "trilhadafe_staff";
     $user = "postgres";
+    
+    $host = "145.223.94.211";
     $pass = "vSoj3WaPHUaa6MrADKtzayy46ub5YS69S2K3JXrQtqkeV8VtYv";
-
     // $host = "localhost";
-    // $port = "5432";
-    // $dbname = "trilhadafe_staff";
-    // $user = "postgres";
     // $pass = "159753";
 
     $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
@@ -39,8 +35,6 @@ function getLocal($conexao)
     if (isset($GLOBALS["local"]) && $GLOBALS["local"] instanceof PDO) {
         return $GLOBALS["local"];
     }
-
-    // Se $conexao vier como array (do novo decodeAccessToken), montamos a string DSN
     if (is_array($conexao)) {
         $dsnString = "pgsql:host={$conexao['host']};port={$conexao['port']};dbname={$conexao['database']}";
         $user = $conexao['user'];
@@ -50,7 +44,6 @@ function getLocal($conexao)
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ]);
     } else {
-        // Suporte legado se vier string
         $pdo = new PDO($conexao, null, null, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ]);

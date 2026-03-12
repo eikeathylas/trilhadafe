@@ -65,7 +65,6 @@ function getAllEventsF($data)
 
 function getEventDataF($id)
 {
-    // ... (Mantém inalterado, pois busca por ID primário) ...
     try {
         $conect = $GLOBALS["local"];
         $sql = "SELECT * FROM organization.events WHERE event_id = :id AND deleted IS FALSE LIMIT 1";

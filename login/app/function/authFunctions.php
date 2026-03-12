@@ -5,8 +5,6 @@ function validateLogin($data)
     try {
         $conect = $GLOBALS["pdo"];
 
-        // 1. Busca os dados do usuário pelo e-mail
-        // Convertido para Heredoc conforme solicitado
         $sqlUser = <<<'SQL'
             SELECT
                 id,
@@ -106,11 +104,9 @@ function validateResetPassword($data)
     try {
         $conect = $GLOBALS["pdo"];
         
-        // Criptografa nova senha
         // $newHash = password_hash($data['resetNewPassword'], PASSWORD_DEFAULT);
         $newHash = $data['resetNewPassword']; // Para ambiente de desenvolvimento, sem hash. Em produção, usar a linha acima.
 
-        // Query de Update (Heredoc)
         $sql = <<<'SQL'
             UPDATE
                 public.users 

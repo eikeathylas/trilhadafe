@@ -2,24 +2,10 @@
 
 include "../function/organization-functions.php";
 
-// =========================================================
-// INSTITUIÇÕES (PARÓQUIAS)
-// =========================================================
 
 function getDiocese()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "limit" => $_POST["limit"] ?? 10,
@@ -31,18 +17,7 @@ function getDiocese()
 
 function getOrganizations()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "limit" => $_POST["limit"] ?? 10,
@@ -54,18 +29,7 @@ function getOrganizations()
 
 function getOrgById()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $id = $_POST["id"] ?? 0;
 
@@ -74,46 +38,22 @@ function getOrgById()
 
 function saveOrganization()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
+    if (!verifyToken()) return;
 
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
-    // Recebe o array 'data' do JS
     $data = $_POST['data'] ?? [];
 
-    // AUDITORIA: Injeta o ID do usuário logado
-    $data['user_id'] = $decoded['id_user'];
+    $data['user_id'] = getAuthUserId();
 
     echo json_encode(upsertOrganization($data));
 }
 
 function deleteOrganization()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "id" => $_POST["id"] ?? 0,
-        "user_id" => $decoded["id_user"] // Auditoria
+        "user_id" => getAuthUserId(),
     ];
 
     echo json_encode(removeOrganization($data));
@@ -121,52 +61,25 @@ function deleteOrganization()
 
 function toggleOrganization()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "id" => $_POST["id"] ?? 0,
-        "active" => $_POST["active"], // 'true' ou 'false' string
-        "user_id" => $decoded["id_user"] // Auditoria
+        "active" => $_POST["active"],
+        "user_id" => getAuthUserId(),
     ];
 
     echo json_encode(toggleOrganizationFunc($data));
 }
 
-
-// =========================================================
-// LOCAIS (SALAS)
-// =========================================================
-
 function getLocations()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "limit" => $_POST["limit"] ?? 10,
         "page" => $_POST["page"] ?? 0,
-        "org_id" => $_POST["org_id"] ?? null // Filtro opcional
+        "org_id" => $_POST["org_id"] ?? null
     ];
 
     echo json_encode(getAllLocations($data));
@@ -174,43 +87,21 @@ function getLocations()
 
 function saveLocation()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = $_POST['data'] ?? [];
-    $data['user_id'] = $decoded['id_user']; // Auditoria
+    $data['user_id'] = getAuthUserId();
 
     echo json_encode(upsertLocation($data));
 }
 
 function deleteLocation()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "id" => $_POST["id"] ?? 0,
-        "user_id" => $decoded["id_user"] // Auditoria
+        "user_id" => getAuthUserId(),
     ];
 
     echo json_encode(removeLocation($data));
@@ -218,23 +109,12 @@ function deleteLocation()
 
 function toggleLocation()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "id" => $_POST["id"] ?? 0,
         "active" => $_POST["active"],
-        "user_id" => $decoded["id_user"] // Auditoria
+        "user_id" => getAuthUserId(),
     ];
 
     echo json_encode(toggleLocationFunc($data));
@@ -242,18 +122,7 @@ function toggleLocation()
 
 function getResponsiblesList()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     echo json_encode(getPeopleForSelect());
 }

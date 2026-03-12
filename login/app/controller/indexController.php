@@ -10,12 +10,8 @@ function login()
         return;
     }
 
-    // E-MAIL: Mantendo sua lógica original (remove qualquer espaço e minúsculo)
-    // Isso ajuda usuários que digitam "joao @ gmail . com" sem querer.
     $email = str_replace(" ", "", strtolower($_POST["email"]));
 
-    // SENHA: Usamos TRIM para não quebrar senhas com espaços propositais
-    // E removemos o strtolower, pois senha deve diferenciar maiúscula/minúscula
     $password = trim($_POST["password"]);
 
     if (verificarBloqueioLogin($email)) {
@@ -43,7 +39,6 @@ function toEnter()
     }
 
     $tokenFull = $_POST["token"];
-    // CLIENTS: Aqui também voltamos para o seu padrão (sem espaços)
     $clientId = str_replace(" ", "", $_POST["clients"]);
     
     $parts = explode("@", $tokenFull);
@@ -99,10 +94,8 @@ function resetPassword()
     }
 
     $data = array(
-        // E-MAIL: Aplica a limpeza agressiva aqui também
         "resetEmail" => str_replace(" ", "", strtolower($_POST["resetEmail"])),
         "resetCode" => $_POST["resetCode"],
-        // SENHA NOVA: Apenas trim, sem mudar case
         "resetNewPassword" => trim($_POST["resetNewPassword"]),
     );
 

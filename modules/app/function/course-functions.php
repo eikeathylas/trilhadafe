@@ -143,10 +143,6 @@ function upsertCourse($data)
             $msg = "Curso criado!";
         }
 
-        // ... (Lógica de Grade Curricular e Planos de Aula mantém-se idêntica, pois usam o course_id gerado/passado) ...
-        // Recomendo usar o código original do upsertCourse para o bloco da grade/planos para economizar espaço aqui.
-
-        // Exemplo simplificado do bloco de grade para não quebrar:
         $currList = !empty($data['curriculum_json']) ? json_decode($data['curriculum_json'], true) : [];
         $processedIds = [];
 
@@ -255,7 +251,16 @@ function removeCourse($data)
             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
         }
 
-        $sql = "UPDATE education.courses SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE course_id = :id";
+        $sql = <<<SQL
+            UPDATE
+                education.courses
+            SET
+                deleted = TRUE,
+                is_active = FALSE,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE
+                course_id = :id
+        SQL;
         $stmt = $conect->prepare($sql);
         $stmt->execute(['id' => $data['id']]);
 

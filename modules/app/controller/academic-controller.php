@@ -2,22 +2,10 @@
 
 include "../function/academic-functions.php";
 
-// =========================================================
-// DISCIPLINAS (SUBJECTS)
-// =========================================================
 
 function getSubjects()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "limit" => $_POST["limit"] ?? 10,
@@ -31,35 +19,17 @@ function getSubjects()
 
 function getSubjectById()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     echo json_encode(getSubjectData($_POST["id"] ?? 0));
 }
 
 function saveSubject()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = $_POST['data'] ?? [];
-    $data['user_id'] = $decoded['id_user']; // Auditoria
+    $data['user_id'] = getAuthUserId();
     $data['org_id'] = $_POST["org_id"] ?? 0;
 
     echo json_encode(upsertSubject($data));
@@ -67,38 +37,20 @@ function saveSubject()
 
 function deleteSubject()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
-    $data = ["id" => $_POST["id"] ?? 0, "user_id" => $decoded["id_user"]];
+    $data = ["id" => $_POST["id"] ?? 0, "user_id" => getAuthUserId(),];
     echo json_encode(removeSubject($data));
 }
 
 function toggleSubject()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Acesso negado.", null, false, 401));
-        return;
-    }
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $data = [
         "id" => $_POST["id"] ?? 0,
         "active" => $_POST["active"],
-        "user_id" => $decoded["id_user"]
+        "user_id" => getAuthUserId(),
     ];
     echo json_encode(toggleSubjectStatus($data));
 }
