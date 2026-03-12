@@ -70,7 +70,7 @@ const renderTableEvents = (data) => {
   }
 
   // Helper de Label
-  const getBlockerLabel = (is) => (is ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>');
+  const getBlockerLabel = (is) => (is ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>');
 
   // =========================================================
   // 1. VISÃO DESKTOP

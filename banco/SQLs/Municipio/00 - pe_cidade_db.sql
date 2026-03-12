@@ -483,7 +483,7 @@ CREATE TABLE education.class_sessions (
     updated_at TIMESTAMP,
     deleted BOOLEAN DEFAULT FALSE,
     
-    CONSTRAINT unique_class_date UNIQUE (class_id, session_date)
+    CONSTRAINT unique_class_date UNIQUE (class_id, subject_id, session_date)
 );
 CREATE INDEX idx_sessions_subject ON education.class_sessions(subject_id);
 CREATE INDEX idx_sessions_class ON education.class_sessions(class_id);

@@ -32,22 +32,26 @@
 
             <div class="card list-commanded mb-4">
                 <div class="card-header border-bottom-0 bg-transparent px-0 pb-0">
-                    <div class="row align-items-end">
+                    <div class="row g-3 align-items-end">
                         <div class="col-md-8">
                             <label class="form-label title">Buscar Curso:</label>
                             <input type="text" id="busca-texto" class="form-control" placeholder="Ex: Primeira Eucaristia, Crisma...">
                         </div>
-                        <div class="col-md-4 text-end">
-                            <button class="btn-filter mt-4" onclick="modalCurso()">
-                                <i class="fas fa-plus mr-1"></i> Novo Curso
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100 shadow-sm" onclick="modalCurso()">
+                                <i class="fas fa-plus me-2"></i> Novo Curso
                             </button>
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-4">
-                    <div class="table-responsive list-table-cursos"></div>
-                    <div class="pagination paginationButtons pagination-cursos mt-3 text-center"></div>
+                    <div class="table-responsive list-table-cursos" style="max-height: 600px;">
+                        <div class="text-center py-5"><span class="loader"></span></div>
+                    </div>
+                    <div class="pagination paginationButtons pagination-cursos mt-3 text-center justify-content-center"></div>
                 </div>
             </div>
 

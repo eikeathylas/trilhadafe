@@ -51,43 +51,49 @@
                     <div class="tab-content">
 
                         <div class="tab-pane fade show active" id="diocese" role="tabpanel">
-                            <div class="row mb-3">
-                                <div class="col-12 text-end">
-                                    <button class="btn-filter" onclick="modalDiocese()">
-                                        <i class="fas fa-plus mr-2"></i> Nova Diocese
+                            <div class="row g-3 mb-3">
+                                <div class="col-12">
+                                    <button class="btn btn-primary w-100 shadow-sm" onclick="modalDiocese()">
+                                        <i class="fas fa-user-plus me-2"></i> Nova Diocese
                                     </button>
                                 </div>
                             </div>
-                            <div class="table-responsive list-table-diocese" style="max-height: 600px;"></div>
+                            <div class="table-responsive list-table-diocese" style="max-height: 600px;">
+                                <div class="text-center py-5"><span class="loader"></span></div>
+                            </div>
                             <div class="pagination paginationButtons pagination-diocese mt-3 text-center"></div>
                         </div>
 
                         <div class="tab-pane fade" id="instituicoes" role="tabpanel">
-                            <div class="row mb-3">
+                            <div class="row g-3 mb-3">
                                 <div class="col-12 text-end">
-                                    <button class="btn-filter" onclick="modalInstituicao()">
-                                        <i class="fa-solid fa-plus"></i> Nova Paróquia
+                                    <button class="btn btn-primary w-100 shadow-sm" onclick="modalInstituicao()">
+                                        <i class="fas fa-plus me-2"></i> Nova Paróquia
                                     </button>
                                 </div>
                             </div>
-                            <div class="table-responsive list-table-orgs" style="max-height: 600px;"></div>
+                            <div class="table-responsive list-table-orgs" style="max-height: 600px;">
+                                <div class="text-center py-5"><span class="loader"></span></div>
+                            </div>
                             <div class="pagination paginationButtons pagination-orgs mt-3 text-center"></div>
                         </div>
 
                         <div class="tab-pane fade" id="locais" role="tabpanel">
-                            <div class="row mb-3 align-items-end">
+                            <div class="row g-3 mb-3 align-items-end">
                                 <div class="col-md-4">
                                     <label class="form-label title">Filtrar por Paróquia:</label>
                                     <select id="filtro-org-locais" class="form-control select-orgs" placeholder="Selecione..."></select>
                                 </div>
                                 <div class="col-md-8 text-end">
-                                    <button class="btn-filter mt-4" onclick="modalLocal()">
-                                        <i class="fa-solid fa-plus"></i> Novo Local
+                                    <button class="btn btn-primary w-100 shadow-sm" onclick="modalLocal()">
+                                        <i class="fas fa-plus me-2"></i> Novo Local
                                     </button>
                                 </div>
                             </div>
-                            <div class="table-responsive list-table-locais" style="max-height: 600px;"></div>
-                            <div class="pagination paginationButtons pagination-locais mt-3 text-center"></div>
+                            <div class="table-responsive list-table-locais" style="max-height: 600px;">
+                                <div class="text-center py-5"><span class="loader"></span></div>
+                            </div>
+                            <div class="pagination paginationButtons pagination-locais mt-3 text-center justify-content-center"></div>
                         </div>
 
                     </div>
