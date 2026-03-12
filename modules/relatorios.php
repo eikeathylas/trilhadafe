@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Relatórios - Trilha da Fé</title>
     <?php include "./assets/components/Head.php"; ?>
 </head>
@@ -83,6 +82,8 @@
     <?php include "./assets/components/Modal-Audit.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/relatorios/headReport.js?v=<?php echo time(); ?>"></script>
     <script src="assets/relatorios/footerReport.js?v=<?php echo time(); ?>"></script>

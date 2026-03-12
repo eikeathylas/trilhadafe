@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Gestão de Turmas - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
 </head>
 
@@ -46,7 +44,7 @@
 
                 <div class="card-body px-0 pt-4">
                     <div class="table-responsive list-table-turmas">
-                        </div>
+                    </div>
                     <div class="pagination paginationButtons pagination-turmas mt-3 text-center"></div>
                 </div>
             </div>
@@ -296,4 +294,5 @@
     <script src="assets/js/turmas.js?v=<?php echo time(); ?>"></script>
 
 </body>
+
 </html>

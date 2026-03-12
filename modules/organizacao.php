@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Organização - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
 </head>
 

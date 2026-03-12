@@ -4,14 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Cursos - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-
 </head>
 
 <body>
@@ -210,6 +207,8 @@
     <?php include "./assets/components/Modal-Audit.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-pt-BR.min.js"></script>
     <script src="assets/js/cursos.js?v=<?php echo time(); ?>"></script>
