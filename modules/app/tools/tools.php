@@ -138,7 +138,6 @@ function logSystemError($scope, $module, $action, $errorType, $message, $input =
     ], "staff");
 }
 
-
 function verifyToken()
 {
     if (!isset($_POST["token"])) {
