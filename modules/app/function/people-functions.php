@@ -173,7 +173,6 @@ function upsertPerson($data, $files = [])
             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
         }
 
-        // ... (Sanitização e lógica de Eucaristia igual ao anterior) ...
         $sanitize = function ($val) {
             if (is_string($val)) {
                 $val = trim(preg_replace('/\s+/', ' ', $val));
@@ -337,6 +336,7 @@ function upsertPerson($data, $files = [])
 
         $conect->commit();
         syncUserLogin($personId);
+
         return success($msg, ['person_id' => $personId]);
     } catch (Exception $e) {
         if ($conect->inTransaction()) $conect->rollBack();
@@ -646,7 +646,7 @@ function syncUserLogin($personId)
                         ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash, 'id' => $staffUserId]);
                 } else {
                     // CRIA (Insert)
-                    $conectStaff->prepare("INSERT INTO users (name, email, password, create_in, updated_at) VALUES (:name, :email, :pass, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
+                    $conectStaff->prepare("INSERT INTO users (name, email, password, created_at, updated_at) VALUES (:name, :email, :pass, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
                         ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash]);
                     $staffUserId = $conectStaff->lastInsertId();
                 }
@@ -659,7 +659,7 @@ function syncUserLogin($personId)
                 $stmtLink->execute(['uid' => $staffUserId, 'cid' => $clientId]);
 
                 if (!$stmtLink->fetchColumn()) {
-                    $conectStaff->prepare("INSERT INTO users_clients_profiles (id_user, id_client, id_profile, create_in, updated_at) VALUES (:uid, :cid, :pid, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
+                    $conectStaff->prepare("INSERT INTO users_clients_profiles (id_user, id_client, id_profile, created_at, updated_at) VALUES (:uid, :cid, :pid, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
                         ->execute(['uid' => $staffUserId, 'cid' => $clientId, 'pid' => $profileId]);
                 } else {
                     // Opcional: Atualizar perfil se mudou
@@ -676,11 +676,8 @@ function syncUserLogin($personId)
         }
 
         // 5. Sincronização Local (security.users)
-        // Nota: Não usamos beginTransaction aqui pois esta função é chamada dentro da transação de upsertPerson
         if ($staffUserId) {
 
-            // Verifica novamente se existe (caso tenha sido criado agora no passo anterior não, mas se já existia sim)
-            // Usamos a variável $localUserId que pegamos lá no início
 
             if ($localUserId) {
                 // UPDATE: Corrigido o erro do fetchColumn duplo

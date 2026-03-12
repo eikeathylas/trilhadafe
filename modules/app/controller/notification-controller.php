@@ -1,141 +1,59 @@
 <?php
-
-// =========================================================
-// GESTÃO DE NOTIFICAÇÕES E WEB PUSH (CONTROLLER)
-// =========================================================
-
-// Exibir todos os erros para desenvolvimento (remover em produção)
 error_reporting(E_ALL);
 
 
-/**
- * Busca as notificações do usuário logado (ativas e não lidas + recentes)
- */
 function getNotifications()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
+    if (!verifyToken()) return;
 
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
-    // Executa a checagem de regras de negócio antes de listar
     runScheduledNotificationCheck($_POST["org_id"] ?? 2);
 
     $orgId = $_POST["org_id"] ?? 2;
-    $userId = $decoded["id_user"];
+    $userId = getAuthUserId();
 
     echo json_encode(fetchUserNotifications($userId, $orgId));
 }
 
-/**
- * Marca uma notificação específica como lida ou deletada
- */
 function markNotificationRead()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $notificationId = $_POST["id"] ?? 0;
-    $userId = $decoded["id_user"];
+    $userId = getAuthUserId();
 
     echo json_encode(setNotificationRead($userId, $notificationId));
 }
 
-/**
- * Marca todas as notificações como lidas ou limpa a gaveta (delete)
- */
 function markAllNotificationsRead()
 {
-    if (!isset($_POST["token"])) {
-        echo json_encode(failure("Token não informado.", null, false, 401));
-        return;
-    }
-
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
+    if (!verifyToken()) return;
 
     $orgId = $_POST["org_id"] ?? 2;
-    $userId = $decoded["id_user"];
+    $userId = getAuthUserId();
 
     echo json_encode(setAllNotificationsRead($userId, $orgId));
 }
 
-/**
- * Salva a assinatura do navegador para envio de Web Push
- */
 function savePushSubscription()
 {
-    if (!isset($_POST["token"]) || !isset($_POST["subscription"])) {
-        echo json_encode(failure("Dados incompletos.", null, false, 400));
-        return;
-    }
+    if (!verifyToken()) return;
 
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
-    $userId = $decoded["id_user"];
+    $userId = getAuthUserId();
     $subData = json_decode($_POST["subscription"], true);
     $userAgent = $_POST["userAgent"] ?? 'Desconhecido';
 
     echo json_encode(insertPushSubscription($userId, $subData, $userAgent));
 }
 
-/**
- * Remove a assinatura do Web Push (Logout ou Desativação)
- */
 function removePushSubscription()
 {
-    if (!isset($_POST["token"]) || !isset($_POST["endpoint"])) {
-        echo json_encode(failure("Dados incompletos.", null, false, 400));
-        return;
-    }
+    if (!verifyToken()) return;
 
-    $decoded = decodeAccessToken($_POST["token"]);
-    if (!$decoded || !isset($decoded["conexao"])) {
-        echo json_encode(failure("Token inválido.", null, false, 401));
-        return;
-    }
-
-    getLocal($decoded["conexao"]);
-
-    $userId = $decoded["id_user"];
+    $userId = getAuthUserId();
     $endpoint = $_POST["endpoint"];
 
     echo json_encode(deletePushSubscription($userId, $endpoint));
 }
-
-
-// =========================================================
-// CAMADA DE DADOS E QUERIES (PDO)
-// =========================================================
 
 function fetchUserNotifications($userId, $orgId)
 {
@@ -370,15 +288,11 @@ function deletePushSubscription($userId, $endpoint)
     }
 }
 
-/**
- * Insere uma nova notificação se ela ainda não existir hoje para o alvo
- */
 function createSystemNotification($orgId, $title, $message, $type, $targetType, $targetVal = null, $url = '#')
 {
     try {
         $conect = $GLOBALS["local"];
 
-        // TRAVA DE DUPLICIDADE
         $sqlCheck = "
             SELECT COUNT(n.notification_id) 
             FROM communication.notifications n
@@ -432,17 +346,14 @@ function createSystemNotification($orgId, $title, $message, $type, $targetType, 
     }
 }
 
-
 function runScheduledNotificationCheck($orgId)
 {
     try {
         $conect = $GLOBALS["local"] ?? null;
         if (!$conect) return;
 
-        // 1. CRIAÇÃO DE DIRETÓRIO GARANTIDA
         $lockDir = __DIR__ . DIRECTORY_SEPARATOR . '../temp';
 
-        // Se a pasta não existe, o PHP a cria com permissões adequadas
         if (!is_dir($lockDir)) {
             if (!@mkdir($lockDir, 0775, true)) {
                 error_log("TRILHA_ERRO: Falha ao criar a pasta temp no caminho: " . $lockDir);
@@ -467,7 +378,6 @@ function runScheduledNotificationCheck($orgId)
         $hojeMD = date('m-d');
         $hojeYMD = date('Y-m-d');
 
-        // --- REGRA 1: ANIVERSÁRIOS ALUNOS ---
         $stmtA = $conect->prepare("SELECT p.full_name, c.org_id FROM people.persons p 
                                    JOIN education.enrollments e ON p.person_id = e.student_id 
                                    JOIN education.classes c ON e.class_id = c.class_id 
@@ -477,7 +387,6 @@ function runScheduledNotificationCheck($orgId)
             createSystemNotification($aluno['org_id'], "Aniversário: " . $aluno['full_name'], "Hoje é aniversário do aluno(a) " . $aluno['full_name'], 'SUCCESS', 'ROLE', 3);
         }
 
-        // --- REGRA 2: PROFESSORES ---
         $stmtP = $conect->prepare("SELECT p.full_name, pr.org_id FROM people.persons p 
                                    JOIN people.person_roles pr ON p.person_id = pr.person_id 
                                    WHERE to_char(p.birth_date, 'MM-DD') = :h AND pr.role_id = 3");
@@ -486,7 +395,6 @@ function runScheduledNotificationCheck($orgId)
             createSystemNotification($prof['org_id'], "Aniversário Prof: " . $prof['full_name'], "Parabenize o prof: " . $prof['full_name'], 'INFO', 'ROLE', 2);
         }
 
-        // 4. FINALIZAÇÃO: Grava o arquivo de lock
         @file_put_contents($lockFile, $hojeJanela);
     } catch (Exception $e) {
         error_log("TRILHA_FATAL: " . $e->getMessage());

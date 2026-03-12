@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Organização - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
 </head>
 
@@ -38,7 +36,7 @@
                         </li>
                         <li class="nav-item">
                             <button class="nav-link txt-theme font-weight-bold" id="inst-tab" data-bs-toggle="tab" data-bs-target="#instituicoes" type="button">
-                                <i class="fas fa-church mr-2"></i> Instituições
+                                <i class="fas fa-church mr-2"></i> Paróquia
                             </button>
                         </li>
                         <li class="nav-item">
@@ -53,43 +51,49 @@
                     <div class="tab-content">
 
                         <div class="tab-pane fade show active" id="diocese" role="tabpanel">
-                            <div class="row mb-3">
-                                <div class="col-12 text-end">
-                                    <button class="btn-filter" onclick="modalDiocese()">
-                                        <i class="fas fa-plus mr-2"></i> Nova Diocese
+                            <div class="row g-3 mb-3">
+                                <div class="col-12">
+                                    <button class="btn btn-primary w-100 shadow-sm" onclick="modalDiocese()">
+                                        <i class="fas fa-user-plus me-2"></i> Nova Diocese
                                     </button>
                                 </div>
                             </div>
-                            <div class="table-responsive list-table-diocese" style="max-height: 600px;"></div>
+                            <div class="table-responsive list-table-diocese" style="max-height: 600px;">
+                                <div class="text-center py-5"><span class="loader"></span></div>
+                            </div>
                             <div class="pagination paginationButtons pagination-diocese mt-3 text-center"></div>
                         </div>
 
                         <div class="tab-pane fade" id="instituicoes" role="tabpanel">
-                            <div class="row mb-3">
+                            <div class="row g-3 mb-3">
                                 <div class="col-12 text-end">
-                                    <button class="btn-filter" onclick="modalInstituicao()">
-                                        <i class="fa-solid fa-plus"></i> Nova Instituição
+                                    <button class="btn btn-primary w-100 shadow-sm" onclick="modalInstituicao()">
+                                        <i class="fas fa-plus me-2"></i> Nova Paróquia
                                     </button>
                                 </div>
                             </div>
-                            <div class="table-responsive list-table-orgs" style="max-height: 600px;"></div>
+                            <div class="table-responsive list-table-orgs" style="max-height: 600px;">
+                                <div class="text-center py-5"><span class="loader"></span></div>
+                            </div>
                             <div class="pagination paginationButtons pagination-orgs mt-3 text-center"></div>
                         </div>
 
                         <div class="tab-pane fade" id="locais" role="tabpanel">
-                            <div class="row mb-3 align-items-end">
+                            <div class="row g-3 mb-3 align-items-end">
                                 <div class="col-md-4">
-                                    <label class="form-label title">Filtrar por Instituição:</label>
+                                    <label class="form-label title">Filtrar por Paróquia:</label>
                                     <select id="filtro-org-locais" class="form-control select-orgs" placeholder="Selecione..."></select>
                                 </div>
                                 <div class="col-md-8 text-end">
-                                    <button class="btn-filter mt-4" onclick="modalLocal()">
-                                        <i class="fa-solid fa-plus"></i> Novo Local
+                                    <button class="btn btn-primary w-100 shadow-sm" onclick="modalLocal()">
+                                        <i class="fas fa-plus me-2"></i> Novo Local
                                     </button>
                                 </div>
                             </div>
-                            <div class="table-responsive list-table-locais" style="max-height: 600px;"></div>
-                            <div class="pagination paginationButtons pagination-locais mt-3 text-center"></div>
+                            <div class="table-responsive list-table-locais" style="max-height: 600px;">
+                                <div class="text-center py-5"><span class="loader"></span></div>
+                            </div>
+                            <div class="pagination paginationButtons pagination-locais mt-3 text-center justify-content-center"></div>
                         </div>
 
                     </div>
@@ -104,7 +108,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fs-5 text-white" id="modalInstituicaoLabel">Gerenciar Instituição</h5>
+                    <h5 class="modal-title fs-5 text-white" id="modalInstituicaoLabel">Gerenciar Paróquia</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -220,7 +224,7 @@
                 <div class="modal-body">
                     <input type="hidden" id="loc_id">
                     <div class="mb-3">
-                        <label class="form-label title">Instituição Vinculada</label>
+                        <label class="form-label title">Paróquia Vinculada</label>
                         <select id="loc_org_id" class="form-control select-orgs-modal" placeholder="Selecione..."></select>
                     </div>
                     <div class="row g-3 mb-3">

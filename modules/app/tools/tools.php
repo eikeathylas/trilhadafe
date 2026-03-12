@@ -137,3 +137,27 @@ function logSystemError($scope, $module, $action, $errorType, $message, $input =
         ],
     ], "staff");
 }
+
+function verifyToken()
+{
+    if (!isset($_POST["token"])) {
+        echo json_encode(failure("Token não informado.", null, false, 401));
+        return false;
+    }
+
+    $decoded = decodeAccessToken($_POST["token"]);
+    if (!$decoded || !isset($decoded["conexao"])) {
+        echo json_encode(failure("Acesso negado. Token inválido.", null, false, 401));
+        return false;
+    }
+
+    getLocal($decoded["conexao"]);
+    return true;
+}
+
+function getAuthUserId()
+{
+    if (!isset($_POST["token"])) return null;
+    $decoded = decodeAccessToken($_POST["token"]);
+    return $decoded['id_user'] ?? null;
+}

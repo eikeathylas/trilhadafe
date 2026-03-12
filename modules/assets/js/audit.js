@@ -543,7 +543,7 @@ window.doRollback = (logId, dateStr = "") => {
     if (result.isConfirmed) {
       try {
         Swal.fire({ title: "Restaurando...", didOpen: () => Swal.showLoading() });
-        const res = await ajaxValidator({ validator: "rollbackChange", token: defaultApp.userInfo.token, log_id: logId });
+        const res = await ajaxValidator({ validator: "rollbackAuditLog", token: defaultApp.userInfo.token, log_id: logId });
         if (res.status) {
           Swal.fire({ title: "Restaurado!", icon: "success", timer: 2000, showConfirmButton: false }).then(() => {
             $("#modalAudit").modal("hide");

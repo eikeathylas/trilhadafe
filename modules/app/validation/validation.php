@@ -9,6 +9,7 @@ include "../tools/tools.php";
 // Controladores
 include "../controller/session-controller.php";
 include "../controller/audit-controller.php";
+
 include "../controller/dashboard-controller.php";
 include "../controller/organization-controller.php";
 include "../controller/people-controller.php";
@@ -17,16 +18,16 @@ include "../controller/course-controller.php";
 include "../controller/turmas-controller.php";
 include "../controller/diario-controller.php";
 include "../controller/events-controller.php";
+
 include "../controller/reports-controller.php";
+
 include "../controller/notification-controller.php";
 
 $validator = $_POST["validator"] ?? null;
 
 switch ($validator) {
 
-	// =========================================================
 	// MÓDULO: SESSÃO & SEGURANÇA (app.js)
-	// =========================================================
 	case "token":
 		validateSessionToken();
 		break;
@@ -37,32 +38,27 @@ switch ($validator) {
 		getGlobalContext();
 		break;
 
-	// =========================================================
 	// MÓDULO: NOTIFICAÇÕES E WEB PUSH (notifications.js)
-	// =========================================================
 	case "getNotifications":
-		getNotifications(); //
+		getNotifications();
 		break;
 
 	case "markRead":
-		// Atende tanto leitura individual quanto em massa (via parâmetro 'bulk')
 		if (isset($_POST['bulk']) && $_POST['bulk'] === 'true') {
-			markAllNotificationsRead(); //
+			markAllNotificationsRead();
 		} else {
-			markNotificationRead(); //
+			markNotificationRead();
 		}
 		break;
 
 	case "deleteNotification":
-		// Força a flag de deleção lógica antes de chamar o controller
 		$_POST['delete'] = 'true';
-		markNotificationRead(); //
+		markNotificationRead();
 		break;
 
 	case "clearNotifications":
-		// Limpeza total da gaveta (Deleção lógica em massa)
 		$_POST['delete'] = 'true';
-		markAllNotificationsRead(); //
+		markAllNotificationsRead();
 		break;
 
 	case "savePushSubscription":
@@ -72,9 +68,8 @@ switch ($validator) {
 	case "removePushSubscription":
 		removePushSubscription(); //
 		break;
-	// =========================================================
+
 	// MÓDULO: DASHBOARD (dashboard.js)
-	// =========================================================
 	case "getDashboardStats":
 		getDashboardStats();
 		break;
@@ -82,9 +77,7 @@ switch ($validator) {
 		getUpcomingEvents();
 		break;
 
-	// =========================================================
 	// MÓDULO: AUDITORIA (audit.js)
-	// =========================================================
 	case "getAuditLog":
 		getAuditLog();
 		break;
@@ -92,9 +85,7 @@ switch ($validator) {
 		rollbackAuditLog();
 		break;
 
-	// =========================================================
 	// MÓDULO: ORGANIZAÇÃO - INSTITUIÇÕES (organizacao.js)
-	// =========================================================
 	case "getDiocese":
 		getDiocese();
 		break;
@@ -114,9 +105,7 @@ switch ($validator) {
 		toggleOrganization();
 		break;
 
-	// =========================================================
 	// MÓDULO: ORGANIZAÇÃO - LOCAIS/SALAS (organizacao.js)
-	// =========================================================
 	case "getLocations":
 		getLocations();
 		break;
@@ -133,9 +122,7 @@ switch ($validator) {
 		getResponsiblesList();
 		break;
 
-	// =========================================================
 	// MÓDULO: PESSOAS (Secretaria)
-	// =========================================================
 	case "getPeople":
 		getPeople();
 		break;
@@ -161,9 +148,7 @@ switch ($validator) {
 		removeAttachment();
 		break;
 
-	// =========================================================
 	// MÓDULO: ACADÊMICO (Disciplinas)
-	// =========================================================
 	case "getSubjects":
 		getSubjects();
 		break;
@@ -180,9 +165,7 @@ switch ($validator) {
 		toggleSubject();
 		break;
 
-	// =========================================================
 	// MÓDULO: ACADÊMICO (Cursos)
-	// =========================================================
 	case "getCourses":
 		getCourses();
 		break;
@@ -205,9 +188,7 @@ switch ($validator) {
 		getSubjectsSelect();
 		break;
 
-	// =========================================================
 	// MÓDULO: TURMAS (turmas.js)
-	// =========================================================
 	case "getClasses":
 		getClasses();
 		break;
@@ -248,9 +229,7 @@ switch ($validator) {
 		deleteEnrollmentHistory();
 		break;
 
-	// =========================================================
 	// MÓDULO: DIÁRIO DE CLASSE (diario.js)
-	// =========================================================
 	case "getMyClasses":
 		getMyClasses();
 		break;
@@ -276,9 +255,7 @@ switch ($validator) {
 		deleteClassDiary();
 		break;
 
-	// =========================================================
 	// MÓDULO: EVENTOS
-	// =========================================================
 	case "getAllEvents":
 		getAllEvents();
 		break;
@@ -295,16 +272,12 @@ switch ($validator) {
 		toggleEventBlocker();
 		break;
 
-	// =========================================================
 	// MÓDULO: RELATÓRIOS (relatorios.js)
-	// =========================================================
 	case "getReportData":
 		getReportData();
 		break;
 
-	// =========================================================
 	// ROTAS PADRÃO
-	// =========================================================
 	case "ping":
 		echo json_encode(ping());
 		break;
@@ -313,12 +286,8 @@ switch ($validator) {
 		echo defaul();
 		break;
 }
-
 exit;
 
-// =========================================================
-// FUNÇÕES AUXILIARES INTERNAS
-// =========================================================
 
 function defaul()
 {
@@ -328,50 +297,110 @@ function defaul()
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Trilha da Fé - 404</title>
+        <title>404 - Rota Não Encontrada | Trilha da Fé</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
         <style>
+            :root {
+                --primary: #5C8EF1;
+                --primary-hover: #4A75CC;
+                --text-dark: #1E293B;
+                --text-muted: #64748B;
+                --bg-color: #F8FAFC;
+                --card-bg: #FFFFFF;
+            }
             body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                text-align: center;
-                background-color: #f8f9fc;
-                padding: 2rem;
+                font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                background-color: var(--bg-color);
+                color: var(--text-dark);
+                margin: 0;
+                min-height: 100vh;
                 display: flex;
-                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                height: 100vh;
-                margin: 0;
+                text-align: center;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            main {
+                max-width: 480px;
+                width: 100%;
+                background: var(--card-bg);
+                padding: 40px 30px;
+                border-radius: 16px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+                animation: slideUp 0.4s ease-out forwards;
+            }
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
             }
             img {
-                margin-bottom: 30px;
-                max-width: 300px;
-                opacity: 0.8;
+                max-width: 180px;
+                height: auto;
+                margin-bottom: 24px;
+            }
+            h1 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin: 0 0 10px 0;
+                color: var(--text-dark);
+                letter-spacing: -0.025em;
             }
             p {
-                color: #5a5c69;
-                font-weight: 700;
-                font-size: 1.2rem;
+                font-size: 0.95rem;
+                color: var(--text-muted);
+                line-height: 1.6;
+                margin: 0 0 30px 0;
             }
-            a {
-                color: #5C8EF1;
+            .actions {
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .btn {
                 text-decoration: none;
                 font-weight: 600;
-                border: 1px solid #5C8EF1;
-                padding: 10px 25px;
+                padding: 10px 20px;
                 border-radius: 8px;
-                margin-top: 20px;
-                transition: 0.3s;
+                transition: all 0.2s ease;
+                font-size: 0.9rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
             }
-            a:hover {
-                background-color: #5C8EF1;
-                color: white;
+            .btn-primary {
+                background-color: var(--primary);
+                color: #ffffff;
+                box-shadow: 0 4px 6px rgba(92, 142, 241, 0.2);
+            }
+            .btn-primary:hover {
+                background-color: var(--primary-hover);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(92, 142, 241, 0.3);
+            }
+            .btn-outline {
+                background-color: transparent;
+                color: var(--text-muted);
+                border: 1px solid #E2E8F0;
+            }
+            .btn-outline:hover {
+                background-color: #F1F5F9;
+                color: var(--text-dark);
+                border-color: #CBD5E1;
             }
         </style>
     </head>
     <body>
-        <img src="../../assets/img/404.svg" alt="Página não encontrada" onerror="this.style.display='none'"/>
-        <p>Ops! A rota solicitada não foi encontrada no sistema.</p>
-        <a href="../../index.php">Voltar ao Início</a>
+        <main>
+            <img src="../../assets/img/404.svg" alt="Erro 404 - Rota não encontrada" onerror="this.style.display='none'"/>
+            <h1>Rota não encontrada</h1>
+            <p>O endpoint que você tentou acessar não existe ou está temporariamente indisponível. Verifique a URL ou retorne ao sistema.</p>
+            <div class="actions">
+                <a href="javascript:history.back()" class="btn btn-outline">Voltar</a>
+                <a href="../../dashboard.php" class="btn btn-primary">Ir para o Painel</a>
+            </div>
+        </main>
     </body>
     </html>
     TEXT;

@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Gestão de Turmas - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
 </head>
 
@@ -31,23 +29,25 @@
 
             <div class="card list-commanded mb-4">
                 <div class="card-header border-bottom-0 bg-transparent px-0 pb-0">
-                    <div class="row align-items-end">
-                        <div class="col-md-8 mb-3 mb-md-0">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-8 mb-md-0">
                             <label class="form-label title">Buscar Turma:</label>
                             <input type="text" id="busca-texto" class="form-control" placeholder="Nome da turma, curso ou coordenador...">
                         </div>
-                        <div class="col-md-4 text-end">
-                            <button class="btn-filter mt-4" onclick="modalTurma()">
-                                <i class="fas fa-plus mr-1"></i> Nova Turma
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100 shadow-sm" onclick="modalTurma()">
+                                <i class="fas fa-plus me-2"></i> Nova Turma
                             </button>
                         </div>
                     </div>
                 </div>
-
+            </div>
+            <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-4">
-                    <div class="table-responsive list-table-turmas">
-                        </div>
-                    <div class="pagination paginationButtons pagination-turmas mt-3 text-center"></div>
+                    <div class="table-responsive list-table-turmas" style="max-height: 600px;">
+                        <div class="text-center py-5"><span class="loader"></span></div>
+                    </div>
+                    <div class="pagination paginationButtons pagination-turmas mt-3 text-center justify-content-center"></div>
                 </div>
             </div>
 
@@ -296,4 +296,5 @@
     <script src="assets/js/turmas.js?v=<?php echo time(); ?>"></script>
 
 </body>
+
 </html>

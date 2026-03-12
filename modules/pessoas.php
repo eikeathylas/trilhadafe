@@ -8,7 +8,7 @@
     <title>Pessoas - Trilha da Fé</title>
 
     <?php include "./assets/components/Head.php"; ?>
-    
+
     <link href="assets/css/foto.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
@@ -33,7 +33,7 @@
 
             <div class="card list-commanded mb-4">
                 <div class="card-header border-bottom-0 bg-transparent px-0 pb-0">
-                    <div class="row align-items-end">
+                    <div class="row g-3 align-items-end">
                         <div class="col-md-3 mb-3 mb-md-0">
                             <label class="form-label title">Filtrar por Função:</label>
                             <select id="filtro-role" class="form-control" placeholder="Todos...">
@@ -48,18 +48,21 @@
                             <label class="form-label title">Buscar:</label>
                             <input type="text" id="busca-texto" class="form-control" placeholder="Nome, CPF ou Email...">
                         </div>
-                        <div class="col-md-4 text-end">
-                            <button class="btn-filter mt-4" onclick="modalPessoa()">
-                                <i class="fas fa-user-plus mr-1"></i> Nova Pessoa
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100 shadow-sm" onclick="modalPessoa()">
+                                <i class="fas fa-user-plus me-2"></i> Nova Pessoa
                             </button>
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-4">
                     <div class="table-responsive list-table-pessoas" style="max-height: 600px;">
+                        <div class="text-center py-5"><span class="loader"></span></div>
                     </div>
-                    <div class="pagination paginationButtons pagination-pessoas mt-3 text-center"></div>
+                    <div class="pagination paginationButtons pagination-pessoas mt-3 text-center justify-content-center"></div>
                 </div>
             </div>
 

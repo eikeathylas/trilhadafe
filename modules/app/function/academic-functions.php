@@ -48,7 +48,18 @@ function getSubjectData($id)
 {
     try {
         $conect = $GLOBALS["local"];
-        $stmt = $conect->prepare("SELECT * FROM education.subjects WHERE subject_id = :id AND deleted IS FALSE LIMIT 1");
+        $sql = <<<SQL
+            SELECT
+                *
+            FROM
+                education.subjects
+            WHERE
+                subject_id = :id
+                AND deleted IS FALSE
+            LIMIT 1
+        SQL;
+
+        $stmt = $conect->prepare($sql);
         $stmt->execute(['id' => $id]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
 

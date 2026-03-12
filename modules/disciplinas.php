@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Disciplinas - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
 </head>
 
@@ -31,23 +29,26 @@
 
             <div class="card list-commanded mb-4">
                 <div class="card-header border-bottom-0 bg-transparent px-0 pb-0">
-                    <div class="row align-items-end">
+                    <div class="row g-3 align-items-end">
                         <div class="col-md-8">
                             <label class="form-label title">Buscar Disciplina:</label>
                             <input type="text" id="busca-texto" class="form-control" placeholder="Ex: Bíblia, Liturgia, História da Igreja...">
                         </div>
-                        <div class="col-md-4 text-end">
-                            <button class="btn-filter mt-4" onclick="modalDisciplina()">
-                                <i class="fas fa-plus mr-1"></i> Nova Disciplina
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100 shadow-sm" onclick="modalDisciplina()">
+                                <i class="fas fa-plus me-2"></i> Nova Disciplina
                             </button>
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-4">
-                    <div class="table-responsive list-table-disciplinas">
+                    <div class="table-responsive list-table-disciplinas" style="max-height: 600px;">
+                        <div class="text-center py-5"><span class="loader"></span></div>
                     </div>
-                    <div class="pagination paginationButtons pagination-disciplinas mt-3 text-center"></div>
+                    <div class="pagination paginationButtons pagination-disciplinas mt-3 text-center justify-content-center"></div>
                 </div>
             </div>
 

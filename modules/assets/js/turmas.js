@@ -101,8 +101,6 @@ const getTurmas = async () => {
       return;
     }
 
-    $(".list-table-turmas").html('<div class="text-center py-5"><span class="loader"></span></div>');
-
     const result = await window.ajaxValidator({
       validator: "getClasses",
       token: defaultApp.userInfo.token,
@@ -252,13 +250,15 @@ const renderTableClasses = (data) => {
             </div>
 
             <div class="mb-3 p-2 rounded border">
-                <div class="d-flex align-items-center text-muted small mb-1">
-                    <i class="fas fa-clock me-2 text-secondary"></i> 
-                    ${item.schedule_summary || "Sem horário"}
-                </div>
-                <div class="d-flex align-items-center text-muted small">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <div>
                     <i class="fas fa-user-tie me-2 text-secondary"></i> 
                     ${item.coordinator_name || "Sem coordenador"}
+                  </div>    
+                  <div>
+                    <i class="fas fa-clock me-2 text-secondary"></i> 
+                    ${item.schedule_summary || "Sem horário"}
+                  </div>
                 </div>
             </div>
             

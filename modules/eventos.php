@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Agenda e Eventos - Trilha da Fé</title>
     <?php include "./assets/components/Head.php"; ?>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 
@@ -48,10 +48,10 @@
 
             <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-0">
-                    <div class="table-responsive list-table-events">
+                    <div class="table-responsive list-table-events" style="max-height: 600px;">
                         <div class="text-center py-5"><span class="loader"></span></div>
                     </div>
-                    <div class="pagination paginationButtons pagination-events mt-3"></div>
+                    <div class="pagination paginationButtons pagination-events mt-3 text-center justify-content-center"></div>
                 </div>
             </div>
 

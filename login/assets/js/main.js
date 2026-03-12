@@ -8,7 +8,7 @@ const LoginApp = (() => {
   // --- 1. CONFIGURAÇÕES PRIVADAS ---
   const config = {
     validator: "app/validation/validation.php", // Caminho do seu backend
-    tokenFull: ""
+    tokenFull: "",
   };
 
   // --- 2. INICIALIZAÇÃO E TEMA ---
@@ -36,7 +36,11 @@ const LoginApp = (() => {
     console.log("%cPARE!", "color: red; font-size: 40px; font-weight: bold;");
     console.log("Este recurso é para desenvolvedores. Não cole códigos aqui.");
     setInterval(() => {
-      (function () { return false; }['constructor']('debugger')['call']());
+      (function () {
+        return false;
+      })
+        ["constructor"]("debugger")
+        ["call"]();
     }, 1000);
   };
 
@@ -105,7 +109,7 @@ const LoginApp = (() => {
         $("#userNameDisplay").text(response.data.name);
 
         // Parse necessário caso a string venha como JSON do backend
-        let information = typeof response.data.information === 'string' ? JSON.parse(response.data.information) : response.data.information;
+        let information = typeof response.data.information === "string" ? JSON.parse(response.data.information) : response.data.information;
         renderUnits(information);
 
         switchSection("access");
@@ -126,7 +130,7 @@ const LoginApp = (() => {
     const $container = $("#unitsContainer");
     $container.empty();
 
-    units.forEach(unit => {
+    units.forEach((unit) => {
       const card = `
                 <div class="unit-card" data-id="${unit.id_client}" data-name="${unit.name_client.toLowerCase()}">
                     <i class="fa-solid fa-church"></i>
@@ -141,36 +145,40 @@ const LoginApp = (() => {
     const clientId = $(this).data("id");
     loading(true, this); // Spinner na paróquia clicada
 
-    $.post(config.validator, {
-      validator: "toEnter",
-      clients: clientId,
-      token: config.tokenFull
-    }, (res) => {
-      const response = JSON.parse(res);
-      if (response.status) {
-        let jsonData = response.data;
-        let timeCurrent = new Date().getTime();
+    $.post(
+      config.validator,
+      {
+        validator: "toEnter",
+        clients: clientId,
+        token: config.tokenFull,
+      },
+      (res) => {
+        const response = JSON.parse(res);
+        if (response.status) {
+          let jsonData = response.data;
+          let timeCurrent = new Date().getTime();
 
-        // Mantém o tema atual antes de subscrever o tf_data
-        const currentData = JSON.parse(localStorage.getItem("tf_data") || "{}");
-        jsonData.theme = currentData.theme;
+          // Mantém o tema atual antes de subscrever o tf_data
+          const currentData = JSON.parse(localStorage.getItem("tf_data") || "{}");
+          jsonData.theme = currentData.theme;
 
-        // Salva rigorosamente nos padrões do sistema original
-        localStorage.setItem("tf_data", JSON.stringify(jsonData));
-        localStorage.setItem("tf_access", JSON.stringify(jsonData.access));
-        localStorage.setItem("tf_time", timeCurrent);
+          // Salva rigorosamente nos padrões do sistema original
+          localStorage.setItem("tf_data", JSON.stringify(jsonData));
+          localStorage.setItem("tf_access", JSON.stringify(jsonData.access));
+          localStorage.setItem("tf_time", timeCurrent);
 
-        // Redirecionamento dinâmico lido do banco de dados (link)
-        if (jsonData.link && jsonData.link !== "null" && jsonData.link !== "") {
-          window.location.href = jsonData.link;
+          // Redirecionamento dinâmico lido do banco de dados (link)
+          if (jsonData.link && jsonData.link !== "null" && jsonData.link !== "") {
+            window.location.href = jsonData.link;
+          } else {
+            window.location.href = "../modules/dashboard.php"; // Fallback seguro
+          }
         } else {
-          window.location.href = "../modules/dashboard.php"; // Fallback seguro
+          Swal.fire("Erro", response.alert, "error");
+          loading(false, this);
         }
-      } else {
-        Swal.fire("Erro", response.alert, "error");
-        loading(false, this);
-      }
-    }).fail(() => {
+      },
+    ).fail(() => {
       Swal.fire("Erro", "Falha na conexão.", "error");
       loading(false, this);
     });
@@ -202,7 +210,7 @@ const LoginApp = (() => {
     inputs.on("input", function () {
       const val = $(this).val();
       if (/[^0-9]/.test(val)) {
-        $(this).val(val.replace(/[^0-9]/g, ''));
+        $(this).val(val.replace(/[^0-9]/g, ""));
         return;
       }
       if (val !== "") {
@@ -223,9 +231,14 @@ const LoginApp = (() => {
     // Permitir colar os 6 números (Ctrl+V)
     inputs.on("paste", function (e) {
       e.preventDefault();
-      const pastedData = (e.originalEvent || e).clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+      const pastedData = (e.originalEvent || e).clipboardData
+        .getData("text")
+        .replace(/[^0-9]/g, "")
+        .slice(0, 6);
       if (pastedData) {
-        inputs.each(function (i) { $(this).val(pastedData[i] || ""); });
+        inputs.each(function (i) {
+          $(this).val(pastedData[i] || "");
+        });
         inputs.eq(pastedData.length < 6 ? pastedData.length : 5).focus();
         updateOtpCode();
       }
@@ -234,7 +247,9 @@ const LoginApp = (() => {
 
   const updateOtpCode = () => {
     let code = "";
-    $(".otp-input").each(function () { code += $(this).val(); });
+    $(".otp-input").each(function () {
+      code += $(this).val();
+    });
     $("#resetCode").val(code);
 
     if (code.length === 6) {
@@ -258,22 +273,29 @@ const LoginApp = (() => {
     }
 
     loading(true, ".btn-resetPassword");
-    $.post(config.validator, {
-      validator: "resetPassword",
-      resetEmail: $("#resetEmail").val(),
-      resetCode: code,
-      resetNewPassword: pass,
-      resetConfirmNewpassword: confirm,
-      token: "active"
-    }, (res) => {
-      const response = JSON.parse(res);
-      if (response.status) {
-        Swal.fire("Sucesso", response.alert, "success").then(() => location.reload());
-      } else {
-        Swal.fire("Erro", response.alert, "error");
-      }
-      loading(false, ".btn-resetPassword");
-    });
+    $.post(
+      config.validator,
+      {
+        validator: "resetPassword",
+        resetEmail: $("#resetEmail").val(),
+        resetCode: code,
+        resetNewPassword: pass,
+        resetConfirmNewpassword: confirm,
+        token: "active",
+      },
+      (res) => {
+        const response = JSON.parse(res);
+        if (response.status) {
+          $("#resetNewPassword").val("");
+          $("#resetConfirmNewpassword").val("");
+          $("#resetCode").val("");
+          Swal.fire("Sucesso", response.alert, "success").then(() => location.reload());
+        } else {
+          Swal.fire("Erro", response.alert, "error");
+        }
+        loading(false, ".btn-resetPassword");
+      },
+    );
   };
 
   // --- 8. EVENTOS GLOBAIS ---
@@ -325,7 +347,6 @@ const LoginApp = (() => {
 
   // Retorna a função de inicialização para ser chamada
   return { init };
-
 })();
 
 // Arranca o módulo assim que o documento estiver pronto

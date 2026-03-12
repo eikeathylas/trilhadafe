@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Diário de Classe - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -34,7 +32,7 @@
 
             <div class="card border-0 shadow-sm mb-4" style="margin: 3px; border-radius: 10px;">
                 <div class="card-body py-3">
-                    <div class="row g-2 g-md-3 align-items-end justify-content-center">
+                    <div class="row g-3 g-md-3 align-items-end justify-content-center">
                         <div class="col-12 col-md-5">
                             <label class="form-label fw-bold text-secondary small text-uppercase mb-1">1. Selecione a Turma</label>
                             <select id="sel_filter_class" class="form-control" placeholder="Buscando turmas..."></select>
@@ -44,8 +42,8 @@
                             <select id="sel_filter_subject" class="form-control" disabled placeholder="Primeiro selecione a turma..."></select>
                         </div>
                         <div class="col-12 col-md-2">
-                            <button id="btn_new_session" class="btn btn-success w-100 shadow-sm d-flex align-items-center justify-content-center" disabled onclick="openSessionModal()">
-                                <i class="fas fa-plus me-2"></i> Lançar Aula
+                            <button id="btn_new_session" class="btn btn-primary w-100 shadow-sm" disabled onclick="openSessionModal()">
+                                <i class="fas fa-plus me-2"></i> Nova Aula
                             </button>
                         </div>
                     </div>
@@ -54,7 +52,7 @@
 
             <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-0">
-                    <div class="table-responsive list-table-diario">
+                    <div class="table-responsive list-table-diario" style="max-height: 600px;">
                         <div class="text-center py-5 text-muted opacity-50">
                             <i class="fas fa-arrow-up mb-2 d-block" style="font-size: 2rem;"></i>
                             Selecione Turma e Disciplina acima para visualizar o diário.

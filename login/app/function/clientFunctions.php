@@ -5,9 +5,6 @@ function validateClientAccess($data)
     try {
         $conect = $GLOBALS["pdo"];
         
-        // 1. Query Principal
-        // Busca dados do usuário, do cliente (paróquia), configurações financeiras e credenciais do banco
-        // Também já traz o JSON de permissões (Menu)
         $sql = <<<'SQL'
             WITH user_context AS (
                 SELECT
@@ -50,8 +47,7 @@ function validateClientAccess($data)
                 s.name AS company_name,
                 s.city,
                 
-                -- Lista de Acessos (Menu Lateral)
-                -- Agrupa todas as ações permitidas para este perfil em um JSON
+                -- Lista de Acessos (Menu Lateral), agrupa todas as ações permitidas para este perfil em um JSON
                 TO_JSON(ARRAY_AGG(DISTINCT jsonb_build_object(
                     'slug', a.slug,
                     'name', a.name,
@@ -89,7 +85,7 @@ function validateClientAccess($data)
 
         $info = executeSQL([
             "retorno" => true,
-            "multiplo" => false, // Retorna apenas 1 linha (o contexto do usuário)
+            "multiplo" => false,
             "sql" => $sql,
             "parametros" => [
                 "id_user" => $data["id_user"],
@@ -101,8 +97,6 @@ function validateClientAccess($data)
             return failure("Acesso não autorizado ou configuração inválida para esta paróquia.");
         }
 
-        // 2. Lógica de Vencimento (Mantida apenas para controle interno)
-        // Se last_payment for nulo, conta a partir da criação + deadline
         $deadline = $info['deadline'] ?: 15;
         
         if ($info['last_payment']) {
@@ -113,13 +107,10 @@ function validateClientAccess($data)
             
         $hoje = date('Y-m-d');
         
-        // Define se está inadimplente (apenas flag, não bloqueia no código novo)
         $info['should_pay'] = ($hoje > $vencimento);
         
-        // Define chave PIX padrão caso precise exibir (compatibilidade)
         $info['pix'] = "81984529914"; 
 
-        // 3. Busca o Changelog (Últimas versões)
         $sqlVersions = <<<'SQL'
             WITH version_base AS (
                 SELECT DISTINCT
@@ -158,14 +149,12 @@ function validateClientAccess($data)
             "parametros" => [],
         ]);
 
-        // Retorna tudo pronto para o Controller
         return success("Acesso validado com sucesso", [
             'info' => $info,
             'versions' => $versions,
         ]);
 
     } catch (Exception $e) {
-        // Registra o erro no log do banco Staff
         registrarLogErro("validateClientAccess", $e->getMessage());
         return failure("Erro técnico ao carregar ambiente do cliente.");
     }
