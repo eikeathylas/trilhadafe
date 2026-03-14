@@ -26,56 +26,56 @@
                 </ol>
             </nav>
 
-            <div class="card list-commanded mb-4">
-                <div class="card-header border-bottom-0 bg-transparent px-0 pb-0">
-                    <ul class="nav nav-tabs card-header-tabs" id="orgTab" role="tablist">
-                        <li class="nav-item">
-                            <button class="nav-link active txt-theme font-weight-bold" id="dioc-tab" data-bs-toggle="tab" data-bs-target="#diocese" type="button">
-                                <i class="fa-solid fa-synagogue mr-2"></i> Diocese
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link txt-theme font-weight-bold" id="inst-tab" data-bs-toggle="tab" data-bs-target="#instituicoes" type="button">
-                                <i class="fas fa-church mr-2"></i> Paróquia
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link txt-theme font-weight-bold" id="locais-tab" data-bs-toggle="tab" data-bs-target="#locais" type="button">
-                                <i class="fas fa-door-open mr-2"></i> Salas/Espaços
-                            </button>
-                        </li>
-                    </ul>
+            <div class="card list-commanded border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0 px-0">
+                    <div class="modern-tabs-wrapper">
+                        <ul class="nav nav-pills m-0" id="orgTab" role="tablist" style="flex-wrap: nowrap;">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="dioc-tab" data-bs-toggle="tab" data-bs-target="#diocese" type="button" role="tab">
+                                    <i class="fa-solid fa-synagogue me-2 opacity-75"></i> Diocese
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="inst-tab" data-bs-toggle="tab" data-bs-target="#instituicoes" type="button" role="tab">
+                                    <i class="fas fa-church me-2 opacity-75"></i> Paróquia
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="locais-tab" data-bs-toggle="tab" data-bs-target="#locais" type="button" role="tab">
+                                    <i class="fas fa-door-open me-2 opacity-75"></i> Salas/Espaços
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
-                <div class="card-body pt-4">
+                <div class="card-body px-0 pt-4">
                     <div class="tab-content">
 
                         <div class="tab-pane fade show active" id="diocese" role="tabpanel">
-                            <div class="row g-3 mb-3">
-                                <div class="col-12">
-                                    <button class="btn btn-primary w-100 shadow-sm" onclick="modalDiocese()">
-                                        <i class="fas fa-user-plus me-2"></i> Nova Diocese
-                                    </button>
-                                </div>
+                            <div class="d-grid d-md-flex justify-content-md-end mb-4">
+                                <button class="btn btn-primary fw-bold shadow-sm" onclick="modalDiocese()">
+                                    <i class="fas fa-plus me-2"></i> Nova Diocese
+                                </button>
                             </div>
+
                             <div class="table-responsive list-table-diocese" style="max-height: 600px;">
                                 <div class="text-center py-5"><span class="loader"></span></div>
                             </div>
-                            <div class="pagination paginationButtons pagination-diocese mt-3 text-center"></div>
+                            <div class="pagination paginationButtons pagination-diocese mt-3 d-flex justify-content-center"></div>
                         </div>
 
                         <div class="tab-pane fade" id="instituicoes" role="tabpanel">
-                            <div class="row g-3 mb-3">
-                                <div class="col-12 text-end">
-                                    <button class="btn btn-primary w-100 shadow-sm" onclick="modalInstituicao()">
-                                        <i class="fas fa-plus me-2"></i> Nova Paróquia
-                                    </button>
-                                </div>
+                            <div class="d-grid d-md-flex justify-content-md-end mb-4">
+                                <button class="btn btn-primary fw-bold shadow-sm" onclick="modalInstituicao()">
+                                    <i class="fas fa-plus me-2"></i> Nova Paróquia
+                                </button>
                             </div>
+
                             <div class="table-responsive list-table-orgs" style="max-height: 600px;">
                                 <div class="text-center py-5"><span class="loader"></span></div>
                             </div>
-                            <div class="pagination paginationButtons pagination-orgs mt-3 text-center"></div>
+                            <div class="pagination paginationButtons pagination-orgs mt-3 d-flex justify-content-center"></div>
                         </div>
 
                         <div class="tab-pane fade" id="locais" role="tabpanel">
@@ -90,10 +90,11 @@
                                     </button>
                                 </div>
                             </div>
+
                             <div class="table-responsive list-table-locais" style="max-height: 600px;">
                                 <div class="text-center py-5"><span class="loader"></span></div>
                             </div>
-                            <div class="pagination paginationButtons pagination-locais mt-3 text-center justify-content-center"></div>
+                            <div class="pagination paginationButtons pagination-locais mt-3 d-flex justify-content-center"></div>
                         </div>
 
                     </div>
@@ -264,76 +265,76 @@
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_ac">
-                                <label class="form-check-label ms-1">Ar-Condicionado</label>
+                                <label class="form-check-label ms-1" for="loc_ac">Ar-Condicionado</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_fan">
-                                <label class="form-check-label ms-1">Ventilador</label>
+                                <label class="form-check-label ms-1" for="loc_fan">Ventilador</label>
                             </div>
                         </div>
 
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_access">
-                                <label class="form-check-label ms-1">Acessibilidade</label>
+                                <label class="form-check-label ms-1" for="loc_access">Acessibilidade</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_sacred">
-                                <label class="form-check-label ms-1">Altar/Sagrado</label>
+                                <label class="form-check-label ms-1" for="loc_sacred">Altar/Sagrado</label>
                             </div>
                         </div>
 
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_wifi">
-                                <label class="form-check-label ms-1">Wi-Fi</label>
+                                <label class="form-check-label ms-1" for="loc_wifi">Wi-Fi</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_projector">
-                                <label class="form-check-label ms-1">Projetor/TV</label>
+                                <label class="form-check-label ms-1" for="loc_projector">Projetor/TV</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_sound">
-                                <label class="form-check-label ms-1">Som</label>
+                                <label class="form-check-label ms-1" for="loc_sound">Som</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_computer">
-                                <label class="form-check-label ms-1">Computadores</label>
+                                <label class="form-check-label ms-1" for="loc_computer">Computadores</label>
                             </div>
                         </div>
 
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_whiteboard">
-                                <label class="form-check-label ms-1">Lousa/Quadro</label>
+                                <label class="form-check-label ms-1" for="loc_whiteboard">Lousa/Quadro</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_kitchen">
-                                <label class="form-check-label ms-1">Copa/Cozinha</label>
+                                <label class="form-check-label ms-1" for="loc_kitchen">Copa/Cozinha</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_water">
-                                <label class="form-check-label ms-1">Bebedouro</label>
+                                <label class="form-check-label ms-1" for="loc_water">Bebedouro</label>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="loc_parking">
-                                <label class="form-check-label ms-1">Estacionamento</label>
+                                <label class="form-check-label ms-1" for="loc_parking">Estacionamento</label>
                             </div>
                         </div>
                     </div>

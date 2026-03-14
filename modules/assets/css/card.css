@@ -354,3 +354,296 @@
 .nav-pills-wrapper .nav-pills {
   flex-wrap: nowrap;
 }
+
+
+/* ======================================================= */
+/* 1. CORES ADAPTATIVAS (CLARO E ESCURO)                   */
+/* ======================================================= */
+.tabs-scroll-wrapper {
+  position: relative;
+  background-color: #ffffff;
+}
+
+.tabs-scroll-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95));
+}
+
+.modal-body-scrollable {
+  background-color: #f8f9fa;
+}
+
+.modal-footer-fixed {
+  background-color: #ffffff;
+}
+
+/* Overrides para o Tema Escuro */
+[data-theme="escuro"] .tabs-scroll-wrapper,
+[data-theme="escuro"] .modal-footer-fixed {
+  background-color: #1e293b !important;
+  /* Mesma cor dos cards escuros */
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="escuro"] .tabs-scroll-wrapper::after {
+  background: linear-gradient(to right, rgba(30, 41, 59, 0), rgba(30, 41, 59, 0.95)) !important;
+}
+
+[data-theme="escuro"] .modal-body-scrollable {
+  background-color: #0f172a !important;
+  /* Mesma cor do fundo geral do sistema */
+}
+
+/* ======================================================= */
+/* 2. FUNCIONAMENTO DO SCROLL E ABAS                       */
+/* ======================================================= */
+#pessoaTab {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 4px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+  margin-bottom: 0;
+}
+
+[data-theme="escuro"] #pessoaTab {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+#pessoaTab::-webkit-scrollbar {
+  height: 6px;
+}
+
+#pessoaTab::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+}
+
+[data-theme="escuro"] #pessoaTab::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+#pessoaTab .nav-item {
+  flex: 0 0 auto;
+  color: #5b6b82;
+}
+
+#pessoaTab .nav-link {
+  border: none;
+  color: #5b6b82;
+  background: transparent;
+  padding: 8px 14px;
+  margin-right: 8px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+[data-theme="escuro"] #pessoaTab .nav-link {
+  color: #9fb3d9;
+}
+
+#pessoaTab .nav-link:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1e293b;
+}
+
+[data-theme="escuro"] #pessoaTab .nav-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+#pessoaTab .nav-link.active {
+  background: linear-gradient(135deg, #3c6df0, #5a8cff);
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(90, 140, 255, 0.35);
+}
+
+.tabs-scroll-hint {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+[data-theme="escuro"] .tabs-scroll-hint {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+  #pessoaTab .nav-link {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .tabs-scroll-wrapper::after {
+    width: 30px;
+  }
+
+  .modal-body-scrollable {
+    padding: 1rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+.modern-tabs-wrapper {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 6px;
+  display: inline-flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Esconde a barra de rolagem no Firefox */
+  max-width: 100%;
+}
+
+.modern-tabs-wrapper::-webkit-scrollbar {
+  display: none;
+  /* Esconde no Chrome/Safari */
+}
+
+.modern-tabs-wrapper .nav-link {
+  border: none !important;
+  border-radius: 8px !important;
+  color: #64748b;
+  font-weight: 600;
+  padding: 7px 14px;
+  margin: 0 3px;
+  white-space: nowrap;
+  transition: all 0.2s ease-in-out;
+  background: transparent;
+  display: flex;
+  align-items: center;
+}
+
+.modern-tabs-wrapper .nav-link:hover {
+  color: #1e293b;
+}
+
+.modern-tabs-wrapper .nav-link.active {
+  background-color: #ffffff !important;
+  color: #3b82f6 !important;
+  /* Azul de destaque */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="escuro"] .modern-tabs-wrapper {
+  background-color: #0f161f;
+}
+
+[data-theme="escuro"] .modern-tabs-wrapper .nav-link {
+  color: #94a3b8;
+}
+
+[data-theme="escuro"] .modern-tabs-wrapper .nav-link:hover {
+  color: #f8fafc;
+}
+
+[data-theme="escuro"] .modern-tabs-wrapper .nav-link.active {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.glass-header-mobile,
+.modern-bottom-nav {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+[data-theme="escuro"] .glass-header-mobile,
+[data-theme="escuro"] .modern-bottom-nav {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  /* Cor de fundo escuro do Trilha da Fé */
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 2. Bottom Nav (Rodapé de App Nativo) */
+.modern-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 10px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  /* iOS Safe Area */
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 1040;
+}
+
+.modern-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  gap: 4px;
+  min-width: 60px;
+}
+
+[data-theme="escuro"] .modern-bottom-nav-item {
+  color: #94a3b8;
+}
+
+.modern-bottom-nav-item .icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 28px;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.modern-bottom-nav-item:hover,
+.modern-bottom-nav-item:focus {
+  color: #3b82f6;
+}
+
+/* Estado Ativo (Pílula Flutuante) */
+.modern-bottom-nav-item.active {
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+.modern-bottom-nav-item.active .icon-wrapper {
+  background-color: rgba(59, 130, 246, 0.15);
+  /* bg-primary bg-opacity-15 */
+}
+
+/* Offcanvas Ghost Box */
+.ghost-box-notif {
+  background-color: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="escuro"] .ghost-box-notif {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}

@@ -1,172 +1,122 @@
 <div class="modal fade" id="duvidasFrequentes" aria-hidden="true" aria-labelledby="duvidas_frequentesLabel" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5 text-white" id="duvidas_frequentesLabel">
-          <i class="fas fa-question-circle m-2"></i> Central de Ajuda
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
+
+      <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
+        <h1 class="modal-title fs-4 fw-bold text-white d-flex align-items-center" id="duvidas_frequentesLabel">
+          <i class="fas fa-circle-question me-3 opacity-75"></i> Central de Ajuda
         </h1>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
-        <div class="accordion" id="accordionDuvidas">
+      <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
 
-          <div class="accordion-item">
+        <style>
+          #accordionDuvidas .accordion-item {
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            border-radius: 12px !important;
+            margin-bottom: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+          }
+
+          [data-theme="escuro"] #accordionDuvidas .accordion-item {
+            background: rgba(30, 41, 59, 0.4);
+            border-color: rgba(255, 255, 255, 0.05) !important;
+          }
+
+          #accordionDuvidas .accordion-button {
+            background: transparent !important;
+            box-shadow: none !important;
+            font-weight: 600;
+            padding: 1.25rem;
+            color: var(--bs-body-color);
+          }
+
+          #accordionDuvidas .accordion-button:not(.collapsed) {
+            color: var(--bs-primary);
+          }
+
+          #accordionDuvidas .accordion-button::after {
+            background-size: 1rem;
+          }
+
+          #accordionDuvidas .accordion-body {
+            padding-top: 0;
+            color: var(--bs-secondary-color);
+            line-height: 1.6;
+          }
+        </style>
+
+        <div class="accordion accordion-flush" id="accordionDuvidas">
+
+          <div class="accordion-item shadow-sm">
             <h2 class="accordion-header">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
-                <i class="fas fa-user m-2 txt-theme"></i> Como cadastrar um novo fiel, catequizando ou catequista?
+                <i class="fas fa-user-plus me-3 text-primary opacity-75"></i> Como cadastrar fiéis ou catequistas?
               </button>
             </h2>
             <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Todo cadastro começa no <strong>Diretório de Pessoas</strong>. Lá você preenche os dados pessoais, endereço e define o vínculo (se é catequizando, pai, catequista ou clero). É o "Prontuário Único" do sistema.
-                <div class="mt-3 text-end">
-                  <a href="pessoas.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Ir para Pessoas</a>
+                Todo cadastro começa no <span class="fw-bold text-primary">Diretório de Pessoas</span>. Preencha os dados e defina o vínculo. É o "Prontuário Único" que centraliza toda a vida do fiel no sistema.
+                <div class="mt-3">
+                  <a href="pessoas.php" class="btn btn-sm btn-light border fw-bold px-3 rounded-pill text-primary">
+                    <i class="fas fa-external-link-alt me-2"></i> Abrir Pessoas
+                  </a>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="accordion-item">
+          <div class="accordion-item shadow-sm">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
-                <i class="fas fa-book m-2 txt-theme"></i> Sou Catequista. Como faço a chamada?
+                <i class="fas fa-book-open me-3 text-primary opacity-75"></i> Sou Catequista. Como faço a chamada?
               </button>
             </h2>
             <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                No menu <strong>Escola da Fé > Diário de Classe</strong>, você verá suas turmas. Clique em "Acessar", selecione a data da aula e marque "Presente" ou "Ausente" para cada catequizando. Não esqueça de descrever o tema dado no dia.
-                <div class="mt-3 text-end">
-                  <a href="diario.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Meus Diários</a>
+                Acesse <span class="fw-bold text-primary">Escola da Fé > Diário</span>. Escolha sua turma, clique em "Acessar" e marque a presença. Lembre-se de registrar o tema da aula para gerar relatórios futuros.
+                <div class="mt-3">
+                  <a href="diario.php" class="btn btn-sm btn-light border fw-bold px-3 rounded-pill text-primary">
+                    <i class="fas fa-external-link-alt me-2"></i> Meus Diários
+                  </a>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="accordion-item">
+          <div class="accordion-item shadow-sm">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
-                <i class="fas fa-chalkboard-teacher m-2 txt-theme"></i> Como abrir novas turmas para o próximo ano?
+                <i class="fas fa-school me-3 text-primary opacity-75"></i> Como abrir novas turmas?
               </button>
             </h2>
             <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Vá em <strong>Gestão de Turmas</strong>. Clique em "Nova Turma", defina o Ano Letivo, o Curso (ex: Eucaristia I) e a Sala. Você também define o horário e o Catequista responsável nesta tela.
-                <div class="mt-3 text-end">
-                  <a href="turmas.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Gerenciar Turmas</a>
-                </div>
-              </div>
-            </div>
-          </div>
-<!-- 
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5">
-                <i class="fas fa-church m-2 txt-theme"></i> Como agendar Missas e Intenções?
-              </button>
-            </h2>
-            <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
-              <div class="accordion-body">
-                Acesse o módulo <strong>Liturgia</strong>. No calendário, clique no dia desejado para agendar uma celebração. Dentro da celebração, você pode adicionar as <strong>Intenções (Súplicas)</strong> dos fiéis e gerar o recibo da oferta.
-                <div class="mt-3 text-end">
-                  <a href="liturgia.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Agenda Litúrgica</a>
-                </div>
-              </div>
-            </div>
-          </div> -->
-<!-- 
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6">
-                <i class="fas fa-file-signature m-2 txt-theme"></i> Onde emito Certidões de Batismo?
-              </button>
-            </h2>
-            <div id="collapse6" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
-              <div class="accordion-body">
-                Utilize o módulo <strong>Livros de Tombo</strong>. Pesquise pelo nome do fiel. Ao encontrar o registro de batismo, clique no ícone de impressora para gerar o documento oficial com os dados do Livro/Folha/Termo.
-                <div class="mt-3 text-end">
-                  <a href="sacramentos.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Livros de Tombo</a>
-                </div>
-              </div>
-            </div>
-          </div> -->
-<!-- 
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7">
-                <i class="fas fa-hand-holding-usd m-2 txt-theme"></i> Como lançar Dízimo e Ofertas?
-              </button>
-            </h2>
-            <div id="collapse7" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
-              <div class="accordion-body">
-                No <strong>Financeiro</strong>, clique em "Nova Entrada". Se for Dízimo, selecione a categoria "Dízimo" e vincule a pessoa. Se for Oferta de Missa, selecione a categoria "Oferta" e vincule (opcionalmente) à celebração do dia.
-                <div class="mt-3 text-end">
-                  <a href="financeiro.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Caixa</a>
-                </div>
-              </div>
-            </div>
-          </div> -->
-<!-- 
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8">
-                <i class="fas fa-glass-cheers m-2 txt-theme"></i> Como funciona o sistema da Quermesse?
-              </button>
-            </h2>
-            <div id="collapse8" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
-              <div class="accordion-body">
-                Crie o evento em <strong>Eventos e Festas</strong>. Cadastre as Barracas (ex: Pastel, Bebidas). No dia da festa, utilize a tela de "Venda de Fichas/Caixa" para carregar saldo no cartão do fiel. As barracas apenas bipam o cartão para debitar.
-                <div class="mt-3 text-end">
-                  <a href="eventos.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Gerir Eventos</a>
-                </div>
-              </div>
-            </div>
-          </div> -->
-
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse9">
-                <i class="fas fa-building m-2 txt-theme"></i> Preciso cadastrar uma nova Sala ou Capela.
-              </button>
-            </h2>
-            <div id="collapse9" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
-              <div class="accordion-body">
-                Vá em <strong>Minha Paróquia</strong> (Configurações). Na aba "Salas e Espaços", você pode cadastrar novos locais, definir a capacidade máxima e se possui recursos como Ar-Condicionado.
-                <div class="mt-3 text-end">
-                  <a href="organizacao.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Estrutura</a>
+                Em <span class="fw-bold text-primary">Gestão de Turmas</span>, clique em "Nova Turma". Defina o Ano Letivo, o Curso e vincule o Catequista responsável e a sala de aula.
+                <div class="mt-3">
+                  <a href="turmas.php" class="btn btn-sm btn-light border fw-bold px-3 rounded-pill text-primary">
+                    <i class="fas fa-external-link-alt me-2"></i> Gerenciar Turmas
+                  </a>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse10">
-                <i class="fas fa-graduation-cap m-2 txt-theme"></i> Como definir o que é ensinado (Grade Curricular)?
-              </button>
-            </h2>
-            <div id="collapse10" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
-              <div class="accordion-body">
-                Primeiro cadastre as matérias em <strong>Disciplinas</strong> (ex: Bíblia). Depois vá em <strong>Cursos</strong> (ex: Crisma) e vincule quais disciplinas compõem aquele curso e a carga horária.
-                <div class="mt-3 text-end">
-                  <a href="cursos.php" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-right"></i> Configurar Cursos</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="accordion-item">
+          <div class="accordion-item shadow-sm border-primary border-opacity-25" style="background: rgba(37, 211, 102, 0.05) !important;">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse12">
-                <i class="fas fa-headset m-2 txt-theme"></i> Erro no sistema ou Dúvida Técnica?
+                <i class="fab fa-whatsapp me-3 text-success"></i> Dúvida Técnica ou Erro?
               </button>
             </h2>
             <div id="collapse12" class="accordion-collapse collapse" data-bs-parent="#accordionDuvidas">
               <div class="accordion-body">
-                Se encontrou um erro técnico ou precisa de ajuda urgente que não está listada aqui, entre em contato com nosso suporte via WhatsApp.
-                <div class="mt-3 text-end">
-                  <a class="btn btn-success text-white" target="_blank" href="https://wa.me/5581982549914?text=Olá,%20preciso%20de%20ajuda%20no%20sistema%20Trilha%20da%20Fé.">
-                    <i class="fab fa-whatsapp"></i> Falar com Suporte
+                Se encontrou algo que não funciona ou precisa de auxílio técnico urgente, chame nosso suporte oficial no WhatsApp.
+                <div class="mt-3">
+                  <a class="btn btn-success fw-bold px-4 py-2 rounded-pill text-white shadow-sm" target="_blank" href="https://wa.me/5581982549914?text=Olá,%20preciso%20de%20ajuda%20no%20sistema%20Trilha%20da%20Fé.">
+                    <i class="fab fa-whatsapp me-2"></i> Chamar no Zap
                   </a>
                 </div>
               </div>
@@ -176,9 +126,9 @@
         </div>
       </div>
 
-      <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
-        <button class="btn btn-secondary text-white" data-bs-dismiss="modal">
-          <i class="fas fa-times mr-1"></i> Fechar Ajuda
+      <div class="modal-footer border-0 p-4">
+        <button class="btn btn-light fw-bold px-4 py-2 rounded-3 border w-100 w-md-auto" data-bs-dismiss="modal">
+          Entendi, obrigado!
         </button>
       </div>
     </div>

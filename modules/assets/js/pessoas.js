@@ -218,53 +218,72 @@ const renderTablePeople = (data) => {
   // =========================================================
   const mobileRows = data
     .map((item) => {
-      // Avatar Mobile
+      // Avatar Mobile: Adicionado fallback com fundo translúcido para Modo Escuro
       let avatarHtml = "";
       if (item.profile_photo_url) {
         avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
-                           class="rounded-circle border shadow-sm" 
+                           class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
                            style="width:50px; height:50px; object-fit:cover; cursor: pointer;"
                            onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`;
       } else {
         const nameParts = item.full_name.trim().split(" ");
         const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold fs-5" style="width:50px; height:50px;">${initials}</div>`;
+        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5 shadow-sm" style="width:50px; height:50px;">${initials}</div>`;
       }
 
-      // Roles Mobile
+      // Roles Mobile: Transformados em Ghost Badges (Fundos Translúcidos)
       let rolesHtml = "";
       const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "dark", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
       const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
-      if (item.roles_array) {
+
+      if (item.roles_array && item.roles_array.length > 0) {
         item.roles_array.forEach((r) => {
-          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-dark border"} me-1 mb-1">${roleNames[r] || r}</span>`;
+          if (r) {
+            const color = roleColors[r] || "secondary";
+            const label = roleNames[r] || r;
+            rolesHtml += `<span class="badge bg-${color} bg-opacity-10 text-${color} border border-${color} border-opacity-25 me-1 mb-1 fw-medium px-2 py-1">${label}</span>`;
+          }
         });
       }
 
+      // WhatsApp Button: Formato "Pill" moderno e clicável
+      const wppHtml = item.phone_mobile
+        ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="d-flex align-items-center text-success fw-bold text-decoration-none bg-success bg-opacity-10 border border-success border-opacity-25 px-3 py-2 rounded-pill transition-all" style="font-size: 0.85rem;"><i class="fab fa-whatsapp fs-5 me-2"></i> WhatsApp</a>`
+        : ``;
+
       return `
-        <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex align-items-center flex-grow-1">
-                    <div class="me-3">${avatarHtml}</div>
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
+            
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="d-flex align-items-start flex-grow-1 pe-2">
+                    <div class="me-3 mt-1">${avatarHtml}</div>
                     <div>
-                        <h6 class="fw-bold mb-0">${item.full_name}</h6>
-                        <small class="text-muted d-block">${item.religious_name || ""}</small>
-                        <div class="mt-1">${rolesHtml}</div>
+                        <h6 class="fw-bold mb-1 fs-5 lh-sm">${item.full_name}</h6>
+                        ${item.religious_name ? `<div class="small text-muted mb-2 lh-1">${item.religious_name}</div>` : ''}
+                        
+                        <div class="mt-2 d-flex flex-wrap">${rolesHtml}</div>
                     </div>
                 </div>
-                <div class="ms-2">
+                
+                <div class="ms-2 text-end mt-1">
                     ${getMobileToggleHtml(item.person_id, item.is_active)}
                 </div>
             </div>
             
-            <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
-                <div class="text-muted small">
-                     ${item.phone_mobile ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="text-success fw-bold text-decoration-none"><i class="fab fa-whatsapp me-1"></i>WhatsApp</a>` : ""}
-                </div>
+            <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-3 mt-3">
                 <div>
-                    <button class="btn-icon-action text-warning" onclick="openAudit('people.persons', ${item.person_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                    <button class="btn-icon-action text-primary" onclick="modalPessoa(${item.person_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                    <button class="btn-icon-action text-danger" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                     ${wppHtml}
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('people.persons', ${item.person_id})" title="Log">
+                        <i class="fas fa-bolt"></i>
+                    </button>
+                    <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalPessoa(${item.person_id})" title="Editar">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deletePerson(${item.person_id})" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
         </div>`;
@@ -670,13 +689,13 @@ window.uploadAttachment = async () => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-          url: defaultApp.validator,
-          data: formData,
-          type: "POST",
-          processData: false,
-          contentType: false,
-          dataType: "json",
-        }));
+        url: defaultApp.validator,
+        data: formData,
+        type: "POST",
+        processData: false,
+        contentType: false,
+        dataType: "json",
+      }));
 
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
@@ -768,13 +787,13 @@ window.salvarPessoa = async () => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-          url: defaultApp.validator,
-          data: formData,
-          type: "POST",
-          processData: false,
-          contentType: false,
-          dataType: "json",
-        }));
+        url: defaultApp.validator,
+        data: formData,
+        type: "POST",
+        processData: false,
+        contentType: false,
+        dataType: "json",
+      }));
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");

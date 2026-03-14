@@ -232,26 +232,56 @@ const renderTableHistory = (data) => {
   // =========================================================
   let mobileRows = data
     .map((item) => {
+      // Formatação da data para DD/MM/AAAA
       let dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
       const rawIsoDate = item.session_date.split(" ")[0];
-      const total = parseInt(item.total_students);
-      const present = parseInt(item.present_count);
+
+      // Cálculos matemáticos puros
+      const total = parseInt(item.total_students) || 0;
+      const present = parseInt(item.present_count) || 0;
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
 
-      // Cor do texto da frequência
-      let freqClass = pct < 70 ? "text-danger" : pct < 90 ? "text-warning" : "text-success";
+      // Define a cor da badge dinamicamente, blindada contra total = 0
+      let badgeStyle = "bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-25"; // Padrão/Sem alunos
+      if (total > 0) {
+        badgeStyle = pct < 70
+          ? "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25"
+          : pct < 90
+            ? "bg-warning bg-opacity-10 text-warning border-warning border-opacity-25"
+            : "bg-success bg-opacity-10 text-success border-success border-opacity-25";
+      }
 
       return `
-        <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="fw-bold fs-6"><i class="far fa-calendar-alt me-2 text-primary"></i>${dateFmt}</div>
-                <div class="fw-bold ${freqClass}">${pct}% <small class="text-muted">Presentes</small></div>
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
+            <div class="d-flex justify-content-between align-items-start">
+                
+                <div class="flex-grow-1 pe-3">
+                    <h6 class="fw-bold mb-1 fs-5 d-flex align-items-center">
+                        <i class="far fa-calendar-alt me-2 text-primary opacity-75"></i> ${dateFmt}
+                    </h6>
+                    
+                    <div class="small text-muted mb-2 d-flex align-items-center lh-1 mt-2">
+                        <i class="fas fa-user-check me-2 opacity-50"></i> ${present} de ${total} presentes
+                    </div>
+                </div>
+                
+                <div class="text-end mt-1">
+                    <span class="badge ${badgeStyle} border px-2 py-1 fs-6 fw-bold">
+                        ${pct}%
+                    </span>
+                </div>
             </div>
             
-            <div class="mobile-actions ">
-              <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSession(${item.session_id})" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })

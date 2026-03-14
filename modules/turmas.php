@@ -27,18 +27,23 @@
                 </ol>
             </nav>
 
-            <div class="card list-commanded mb-4">
-                <div class="card-header border-bottom-0 bg-transparent px-0 pb-0">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-8 mb-md-0">
-                            <label class="form-label title">Buscar Turma:</label>
+            <div class="card list-commanded border-0 shadow-sm mb-4 rounded-4 bg-transparent-card">
+                <div class="card-body p-3 p-md-4">
+                    <div class="d-flex flex-column flex-md-row gap-3 align-items-md-end">
+
+                        <div class="flex-grow-1">
+                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="busca-texto" style="letter-spacing: 0.5px;">
+                                <i class="fas fa-search me-1 opacity-50"></i> Buscar Turma
+                            </label>
                             <input type="text" id="busca-texto" class="form-control" placeholder="Nome da turma, curso ou coordenador...">
                         </div>
-                        <div class="col-md-4">
-                            <button class="btn btn-primary w-100 shadow-sm" onclick="modalTurma()">
+
+                        <div class="d-grid d-md-block mt-2 mt-md-0">
+                            <button class="btn btn-primary fw-bold shadow-sm px-4" style="height: 42px;" onclick="modalTurma()">
                                 <i class="fas fa-plus me-2"></i> Nova Turma
                             </button>
                         </div>
+
                     </div>
                 </div>
             </div>

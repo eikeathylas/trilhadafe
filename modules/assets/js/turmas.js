@@ -237,42 +237,52 @@ const renderTableClasses = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       return `
-        <div class="mobile-card p-3 mb-3 border rounded shadow-sm">
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
             
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                    <div class="fw-bold fs-6">${item.name}</div>
-                    <div class="small text-primary">${item.course_name}</div>
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1 pe-3">
+                    <h6 class="fw-bold mb-1 fs-5">${item.name}</h6>
+                    
+                    <div class="small text-primary fw-medium mb-2 d-flex align-items-center lh-1 mt-1">
+                        <i class="fas fa-graduation-cap me-2 opacity-75"></i> ${item.course_name}
+                    </div>
                 </div>
-                <div>
+                
+                <div class="text-end mt-1">
                     ${getMobileToggleHtml(item.class_id, isActive)}
                 </div>
             </div>
 
-            <div class="mb-3 p-2 rounded border">
-                <div class="d-flex justify-content-between text-muted small mb-1">
-                  <div>
-                    <i class="fas fa-user-tie me-2 text-secondary"></i> 
-                    ${item.coordinator_name || "Sem coordenador"}
-                  </div>    
-                  <div>
-                    <i class="fas fa-clock me-2 text-secondary"></i> 
-                    ${item.schedule_summary || "Sem horário"}
-                  </div>
+            <div class="d-flex flex-column gap-2 mt-2 mb-3 p-2 px-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                <div class="d-flex align-items-center text-muted small lh-1 mt-1">
+                    <i class="fas fa-user-tie opacity-50 text-center" style="width: 18px; margin-right: 6px;"></i> 
+                    <span class="text-truncate">${item.coordinator_name || "Sem coordenador"}</span>
+                </div>    
+                <div class="d-flex align-items-center text-muted small lh-1 mb-1">
+                    <i class="fas fa-clock opacity-50 text-center" style="width: 18px; margin-right: 6px;"></i> 
+                    <span class="text-truncate">${item.schedule_summary || "Sem horário"}</span>
                 </div>
             </div>
             
-            <div class="mb-3">
-                 <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span class="text-uppercase fw-bold" style="font-size: 0.7rem;">Ocupação</span>
+            <div class="mb-2">
+                 <div class="d-flex justify-content-between small text-muted mb-2">
+                    <span class="text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">
+                        Ocupação da Turma
+                    </span>
                  </div>
                  ${getProgressHtml(item.enrolled_count, item.max_capacity).replace("max-width: 120px;", "max-width: 100%;")} 
             </div>
             
-            <div class="d-flex justify-content-end gap-2 pt-2 border-top">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalTurma(${item.class_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.classes', ${item.class_id})" title="Log">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalTurma(${item.class_id})" title="Editar">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteTurma(${item.class_id})" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })

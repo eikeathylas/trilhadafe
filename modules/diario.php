@@ -30,22 +30,30 @@
                 </ol>
             </nav>
 
-            <div class="card border-0 shadow-sm mb-4" style="margin: 3px; border-radius: 10px;">
-                <div class="card-body py-3">
-                    <div class="row g-3 g-md-3 align-items-end justify-content-center">
+            <div class="card border-0 shadow-sm mb-4 rounded-4 bg-transparent-card">
+                <div class="card-body p-3 p-md-4">
+                    <div class="row g-3 align-items-end justify-content-center">
+
                         <div class="col-12 col-md-5">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">1. Selecione a Turma</label>
+                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="sel_filter_class" style="letter-spacing: 0.5px;">
+                                <i class="fas fa-users me-1 opacity-50"></i> 1. Selecione a Turma
+                            </label>
                             <select id="sel_filter_class" class="form-control" placeholder="Buscando turmas..."></select>
                         </div>
+
                         <div class="col-12 col-md-5">
-                            <label class="form-label fw-bold text-secondary small text-uppercase mb-1">2. Selecione a Disciplina</label>
+                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="sel_filter_subject" style="letter-spacing: 0.5px;">
+                                <i class="fas fa-book-open me-1 opacity-50"></i> 2. Selecione a Disciplina
+                            </label>
                             <select id="sel_filter_subject" class="form-control" disabled placeholder="Primeiro selecione a turma..."></select>
                         </div>
-                        <div class="col-12 col-md-2">
-                            <button id="btn_new_session" class="btn btn-primary w-100 shadow-sm" disabled onclick="openSessionModal()">
+
+                        <div class="col-12 col-md-2 mt-4 mt-md-0">
+                            <button id="btn_new_session" class="btn btn-primary fw-bold w-100 shadow-sm" disabled onclick="openSessionModal()" style="height: 42px;">
                                 <i class="fas fa-plus me-2"></i> Nova Aula
                             </button>
                         </div>
+
                     </div>
                 </div>
             </div>

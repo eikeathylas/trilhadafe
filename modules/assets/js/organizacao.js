@@ -249,22 +249,42 @@ const renderTableDiocese = (data) => {
   // MOBILE
   let mobileRows = data
     .map((item) => {
+      // Captura as informações de tipo (Label e Ícone)
       let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
+
       return `
-        <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                    <div class="fw-bold fs-6">${item.display_name}</div>
-                    <div class="badge bg-light text-secondary border mt-1">${info.l}</div>
-                    <div class="small text-muted mt-1"><i class="fas fa-map-marker-alt me-1"></i> ${item.city_state || "-"}</div>
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
+            <div class="d-flex justify-content-between align-items-start">
+                
+                <div class="flex-grow-1 pe-3">
+                    <h6 class="fw-bold mb-1 fs-5">${item.display_name}</h6>
+                    
+                    <div class="small text-muted mb-2 d-flex align-items-center lh-1 mt-2">
+                        <i class="fas fa-map-marker-alt me-2 opacity-50"></i> ${item.city_state || "Local não informado"}
+                    </div>
+                    
+                    <div class="mt-2">
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-medium px-2 py-1">
+                            <i class="fas fa-${info.i} me-1 opacity-75"></i> ${info.l}
+                        </span>
+                    </div>
                 </div>
-                ${getMobileToggleHtml(item.org_id, item.is_active)}
+                
+                <div class="text-end mt-1">
+                    ${getMobileToggleHtml(item.org_id, item.is_active)}
+                </div>
             </div>
             
-            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Inativar"><i class="fas fa-trash"></i></button>
+            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('organization.organizations', ${item.org_id})" title="Log">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalInstituicao(${item.org_id})" title="Editar">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteOrg(${item.org_id})" title="Inativar">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })
@@ -359,21 +379,42 @@ const renderTableOrgs = (data) => {
 
   let mobileRows = data
     .map((item) => {
+      // Captura as informações de tipo (Label e Ícone)
       let info = tipoMap[item.org_type] || { l: item.org_type, i: "domain" };
+
       return `
-        <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                    <div class="fw-bold fs-6">${item.display_name}</div>
-                    <div class="badge bg-light text-secondary border mt-1">${info.l}</div>
-                    <div class="small text-muted mt-1"><i class="fas fa-map-marker-alt me-1"></i> ${item.city_state || "-"}</div>
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
+            <div class="d-flex justify-content-between align-items-start">
+                
+                <div class="flex-grow-1 pe-3">
+                    <h6 class="fw-bold mb-1 fs-5">${item.display_name}</h6>
+                    
+                    <div class="small text-muted mb-2 d-flex align-items-center">
+                        <i class="fas fa-map-marker-alt me-2 opacity-50"></i> ${item.city_state || "Local não informado"}
+                    </div>
+                    
+                    <div class="mt-2">
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-medium px-2 py-1">
+                            <i class="fas fa-${info.i} me-1 opacity-75"></i> ${info.l}
+                        </span>
+                    </div>
                 </div>
-                <div>${getMobileToggleHtml(item.org_id, item.is_active)}</div>
+                
+                <div class="text-end">
+                    ${getMobileToggleHtml(item.org_id, item.is_active)}
+                </div>
             </div>
-            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Inativar"><i class="fas fa-trash"></i></button>
+            
+            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('organization.organizations', ${item.org_id})" title="Log">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalInstituicao(${item.org_id})" title="Editar">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteOrg(${item.org_id})" title="Inativar">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })
@@ -452,10 +493,36 @@ const renderTableLocais = (data) => {
     .map((item) => {
       const itemStr = encodeURIComponent(JSON.stringify(item));
       let icons = "";
-      if (item.has_ac) icons += getResourceIcon("ac");
+
+      // 1. Checagem das propriedades diretas (Raiz do objeto)
+      if (item.has_ac) icons += window.getResourceIcon("ac");
+      if (item.has_ceiling_fan) icons += window.getResourceIcon("fan");
+      if (item.is_accessible) icons += window.getResourceIcon("access");
+      if (item.is_consecrated) icons += window.getResourceIcon("sacred");
+
+      // 2. Checagem das propriedades aninhadas (Objeto resources)
+      // Garantia caso venha como string JSON do Postgres
+      let resObj = item.resources || {};
+      if (typeof resObj === 'string') {
+        try { resObj = JSON.parse(resObj); } catch (e) { resObj = {}; }
+      }
+
+      // Adiciona os demais ícones lendo de 'resources'
+      // Evita duplicar o ventilador caso já tenha sido marcado no 'has_ceiling_fan'
+      if (resObj.fan && !item.has_ceiling_fan) icons += window.getResourceIcon("fan");
+
+      if (resObj.wifi) icons += window.getResourceIcon("wifi");
+      if (resObj.projector) icons += window.getResourceIcon("projector");
+      if (resObj.sound) icons += window.getResourceIcon("sound");
+      if (resObj.whiteboard) icons += window.getResourceIcon("whiteboard");
+      if (resObj.computer) icons += window.getResourceIcon("computer");
+      if (resObj.kitchen) icons += window.getResourceIcon("kitchen");
+      if (resObj.water) icons += window.getResourceIcon("water");
+      if (resObj.parking) icons += window.getResourceIcon("parking");
+
       return `<tr>
             <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">meeting_room</span></div></td>
-            <td><div class="fw-bold text-dark">${item.name}</div><small class="text-sub">${item.org_name}</small></td>
+            <td><div class="fw-bold text-dark">${item.name}</div><small class="text-sub">${item.org_name || ""}</small></td>
             <td class="text-center"><span class="fw-bold text-dark">${item.capacity || 0}</span></td>
             <td class="text-center fs-6"><div class="d-flex justify-content-center flex-wrap gap-1">${icons || "-"}</div></td>
             <td class="text-center align-middle">${getToggleHtml(item.location_id, item.is_active)}</td>
@@ -471,19 +538,64 @@ const renderTableLocais = (data) => {
   let mobileRows = data
     .map((item) => {
       const itemStr = encodeURIComponent(JSON.stringify(item));
+
+      // 1. Gera os ícones com a mesma lógica segura do desktop
+      let icons = "";
+      if (item.has_ac) icons += window.getResourceIcon("ac");
+      if (item.has_ceiling_fan) icons += window.getResourceIcon("fan");
+      if (item.is_accessible) icons += window.getResourceIcon("access");
+      if (item.is_consecrated) icons += window.getResourceIcon("sacred");
+
+      let resObj = item.resources || {};
+      if (typeof resObj === 'string') {
+        try { resObj = JSON.parse(resObj); } catch (e) { resObj = {}; }
+      }
+
+      if (resObj.fan && !item.has_ceiling_fan) icons += window.getResourceIcon("fan");
+      if (resObj.wifi) icons += window.getResourceIcon("wifi");
+      if (resObj.projector) icons += window.getResourceIcon("projector");
+      if (resObj.sound) icons += window.getResourceIcon("sound");
+      if (resObj.whiteboard) icons += window.getResourceIcon("whiteboard");
+      if (resObj.computer) icons += window.getResourceIcon("computer");
+      if (resObj.kitchen) icons += window.getResourceIcon("kitchen");
+      if (resObj.water) icons += window.getResourceIcon("water");
+      if (resObj.parking) icons += window.getResourceIcon("parking");
+
+      // Monta o bloco de ícones com um design "soft" translúcido (sem bordas duras)
+      const iconsHtml = icons
+        ? `<div class="d-flex flex-wrap align-items-center mt-3 p-2 px-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-10">${icons}</div>`
+        : '';
+
       return `
-        <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                    <div class="fw-bold">${item.name}</div>
-                    <div class="small text-muted"><i class="fas fa-users me-1"></i> Cap: ${item.capacity || 0}</div>
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1 pe-3">
+                    <h6 class="fw-bold mb-1 fs-5">${item.name}</h6>
+                    
+                    ${item.org_name ? `<div class="small text-muted mb-2 d-flex align-items-center"><i class="fas fa-church me-2 opacity-50"></i> ${item.org_name}</div>` : ''}
+                    
+                    <div class="small text-muted fw-medium d-flex align-items-center">
+                        <i class="fas fa-users me-2 opacity-50"></i> Cap: ${item.capacity || 0}
+                    </div>
                 </div>
-                <div>${getMobileToggleHtml(item.location_id, item.is_active)}</div>
+                
+                <div class="text-end">
+                    ${getMobileToggleHtml(item.location_id, item.is_active)}
+                </div>
             </div>
-            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.locations', ${item.location_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            
+            ${iconsHtml}
+            
+            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('organization.locations', ${item.location_id})" title="Log">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")))' title="Editar">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteLoc(${item.location_id})" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })

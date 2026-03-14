@@ -1594,7 +1594,7 @@ body {
 /* 2. Inputs, Selects e Textareas */
 [data-theme="escuro"] .form-control,
 [data-theme="escuro"] .form-select {
-  background-color: #0f172a;
+  /* background-color: #0f172a; */
   /* Mais escuro que o card para profundidade */
   border: 1px solid #374151;
   color: #fff;

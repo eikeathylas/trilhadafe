@@ -30,56 +30,50 @@
 
             <div class="list-commanded">
 
-                <div class="row">
+                <div class="row g-3">
 
-                    <div class="col-sm-12 col-md-6 col-xxl-6 mb-3">
-                        <div class="card card-stats border-left-primary shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold txt-theme text-uppercase mb-1">
-                                            Total de Pessoas
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-total-pessoas">...</div>
+                    <div class="col-6 col-md-6 col-xxl-3">
+                        <div class="card border-0 shadow-sm rounded-4 bg-transparent-card h-100 transition-all">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <p class="small fw-bold text-uppercase text-muted mb-1" style="letter-spacing: 0.5px;">Pessoas</p>
+                                        <h3 class="fw-bold mb-0 text-body" id="dash-total-pessoas">...</h3>
                                     </div>
-                                    <div class="col-auto">
-                                        <span class="material-symbols-outlined icon-widget-gray">group</span>
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                        <span class="material-symbols-outlined fs-2">group</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-sm-12 col-md-6 col-xxl-6 mb-3">
-                        <div class="card card-stats border-left-success shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                            Turmas Ativas
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-turmas-ativas">...</div>
+                    <div class="col-6 col-md-6 col-xxl-3">
+                        <div class="card border-0 shadow-sm rounded-4 bg-transparent-card h-100 transition-all">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <p class="small fw-bold text-uppercase text-muted mb-1" style="letter-spacing: 0.5px;">Turmas</p>
+                                        <h3 class="fw-bold mb-0 text-body" id="dash-turmas-ativas">...</h3>
                                     </div>
-                                    <div class="col-auto">
-                                        <span class="material-symbols-outlined icon-widget-gray">school</span>
+                                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                        <span class="material-symbols-outlined fs-2">school</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-sm-12 col-md-6 col-xxl-3 mb-3 permission-finance d-none">
-                        <div class="card card-stats border-left-danger shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                            Entradas (Mês)
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="dash-financeiro">R$ ...</div>
+                    <div class="col-12 col-md-12 col-xxl-6 permission-finance d-none">
+                        <div class="card border-0 shadow-sm rounded-4 bg-transparent-card h-100 transition-all">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <p class="small fw-bold text-uppercase text-muted mb-1" style="letter-spacing: 0.5px;">Entradas (Mês)</p>
+                                        <h3 class="fw-bold mb-0 text-success" id="dash-financeiro">R$ ...</h3>
                                     </div>
-                                    <div class="col-auto">
-                                        <span class="material-symbols-outlined icon-widget-gray">payments</span>
+                                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                        <span class="material-symbols-outlined fs-2">payments</span>
                                     </div>
                                 </div>
                             </div>
@@ -88,39 +82,41 @@
 
                 </div>
 
-                <hr class="my-4 hr">
+                <hr class="my-4 border-secondary border-opacity-10">
 
-                <div class="row">
+                <div class="row g-4">
 
-                    <div class="col-lg-8 mb-4">
-                        <div class="card shadow mb-4 h-100">
-                            <div class="card-header widget-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                <h6 class="m-0 font-weight-bold txt-theme">
-                                    <i class="fa-solid fa-bullhorn mr-2"></i> Mural de Avisos
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm rounded-4 bg-transparent-card h-100">
+                            <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4">
+                                <h6 class="m-0 fw-bold text-body d-flex align-items-center">
+                                    <i class="fa-solid fa-bullhorn me-2 text-primary"></i> Mural de Avisos
                                 </h6>
                             </div>
                             <div class="card-body p-0">
-                                <ul id="lista-avisos" class="list-group list-group-flush">
-                                    <li class="list-group-item text-center text-muted py-5">
-                                        <span class="loader-sm"></span> Carregando avisos...
+                                <ul id="lista-avisos" class="list-group list-group-flush rounded-bottom-4">
+                                    <li class="list-group-item text-center text-muted py-5 bg-transparent border-0">
+                                        <span class="loader-sm"></span>
+                                        <p class="mt-2 mb-0 small">Carregando avisos...</p>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-lg-4 mb-4">
-                        <div class="card shadow mb-4 h-100">
-                            <div class="card-header widget-header py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="m-0 font-weight-bold text-black">
-                                    <i class="fas fa-calendar-alt mr-2 text-warning"></i> Próximos Eventos
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-4 bg-transparent-card h-100">
+                            <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 fw-bold text-body d-flex align-items-center">
+                                    <i class="fas fa-calendar-alt me-2 text-warning"></i> Eventos
                                 </h6>
-                                <small class="txt-theme fw-bold" style="cursor:pointer; font-size: 0.8rem;" onclick="window.location.href='eventos.php'">Ver todos</small>
+                                <button class="btn btn-sm btn-link text-primary fw-bold text-decoration-none p-0" style="font-size: 0.75rem;" onclick="window.location.href='eventos.php'">Ver todos</button>
                             </div>
                             <div class="card-body p-0">
-                                <div id="lista-eventos" class="list-group list-group-flush">
-                                    <div class="text-center py-5 text-muted small">
-                                        <span class="loader-sm"></span> Carregando agenda...
+                                <div id="lista-eventos" class="list-group list-group-flush rounded-bottom-4">
+                                    <div class="text-center py-5 text-muted small bg-transparent border-0">
+                                        <span class="loader-sm"></span>
+                                        <p class="mt-2 mb-0">Carregando agenda...</p>
                                     </div>
                                 </div>
                             </div>

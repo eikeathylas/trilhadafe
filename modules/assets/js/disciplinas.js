@@ -148,18 +148,33 @@ const renderTableSubjects = (data) => {
   let mobileRows = data
     .map((item) => {
       return `
-        <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="fw-bold fs-6">${item.name}</div>
-                <div>
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
+            
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1 pe-3">
+                    <h6 class="fw-bold mb-1 fs-5 d-flex align-items-center">
+                        <i class="fas fa-book me-2 text-primary opacity-75"></i> ${item.name}
+                    </h6>
+                    <div class="small text-muted mt-1 lh-1">
+                        Disciplina
+                    </div>
+                </div>
+                
+                <div class="text-end mt-1">
                     ${getMobileToggleHtml(item.subject_id, item.is_active)}
                 </div>
             </div>
             
-            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.subjects', ${item.subject_id})" title="Log">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalDisciplina(${item.subject_id})" title="Editar">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSubject(${item.subject_id})" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })

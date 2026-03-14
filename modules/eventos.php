@@ -27,21 +27,23 @@
                 </ol>
             </nav>
 
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body py-3">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-8">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Buscar Evento</label>
-                            <div class="input-group">
-                                <span class="input-group-text border-end-0"><i class="fas fa-search text-muted"></i></span>
-                                <input type="text" id="search_event" class="form-control border-start-0" placeholder="Digite o nome ou descrição...">
-                            </div>
+            <div class="card border-0 shadow-sm mb-4 rounded-4 bg-transparent-card">
+                <div class="card-body p-3 p-md-4">
+                    <div class="d-flex flex-column flex-md-row gap-3 align-items-md-end">
+
+                        <div class="flex-grow-1">
+                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="search_event" style="letter-spacing: 0.5px;">
+                                <i class="fas fa-search me-1 opacity-50"></i> Buscar Evento
+                            </label>
+                            <input type="text" id="search_event" class="form-control" placeholder="Digite o nome ou descrição...">
                         </div>
-                        <div class="col-md-4">
-                            <button class="btn btn-primary w-100 shadow-sm" onclick="openEventModal()">
+
+                        <div class="d-grid d-md-block mt-2 mt-md-0">
+                            <button class="btn btn-primary fw-bold shadow-sm px-4" style="height: 42px;" onclick="openEventModal()">
                                 <i class="fas fa-plus me-2"></i> Novo Evento
                             </button>
                         </div>
+
                     </div>
                 </div>
             </div>

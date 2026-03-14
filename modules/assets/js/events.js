@@ -121,36 +121,50 @@ const renderTableEvents = (data) => {
   // =========================================================
   let mobileRows = data
     .map((item) => {
-      // Toggle Mobile com Spinner
+      // Toggle Mobile com Spinner perfeitamente alinhado
       const toggleHtml = `
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none" role="status"></span>
+        <div class="form-check form-switch mb-0 d-flex justify-content-end">
+            <input class="form-check-input m-0" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">
+            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
         </div>`;
 
-      const statusText = item.is_academic_blocker ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
+      const statusText = item.is_academic_blocker
+        ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>'
+        : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
 
       return `
-        <div class="mobile-card p-3">
-            <div class="d-flex align-items-center mb-3">
-                <div class="event-date-box me-3 text-center border p-2 rounded" style="min-width: 60px;">
-                    <div class="text-uppercase small fw-bold text-secondary">${item.day_week || "DIA"}</div>
-                    <div class="h4 fw-bold mb-0">${item.date_fmt.split("/")[0]}/${item.date_fmt.split("/")[1]}</div>
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
+            <div class="d-flex align-items-center">
+                
+                <div class="event-date-box me-3 text-center border border-secondary border-opacity-10 bg-secondary bg-opacity-10 p-2 rounded-3" style="min-width: 65px;">
+                    <div class="text-uppercase fw-bold text-secondary mb-1 lh-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">${item.day_week || "DIA"}</div>
+                    <div class="h5 fw-bold mb-0 lh-1 text-body">${item.date_fmt.split("/")[0]}/${item.date_fmt.split("/")[1]}</div>
                 </div>
-                <div class="flex-grow-1">
-                    <div class="fw-bold">${item.title}</div>
-                    <div class="small text-muted">${item.start_time ? item.start_time : "Dia todo"}</div>
+                
+                <div class="flex-grow-1 pe-2">
+                    <h6 class="fw-bold mb-1 fs-5">${item.title}</h6>
+                    <div class="small text-muted fw-medium d-flex align-items-center">
+                        <i class="far fa-clock me-2 opacity-50"></i> ${item.start_time ? item.start_time : "Dia todo"}
+                    </div>
                 </div>
-                <div class="d-flex flex-column align-items-end">
+                
+                <div class="d-flex flex-column align-items-end justify-content-center">
                     ${toggleHtml}
-                    <div id="lbl_mob_${item.event_id}" class="mt-1">${statusText}</div>
+                    <div id="lbl_mob_${item.event_id}" class="mt-2">${statusText}</div>
                 </div>
+                
             </div>
             
-            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('organization.events', ${item.event_id})" title="Log">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="editEvent(${item.event_id})" title="Editar">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteEvent(${item.event_id})" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })

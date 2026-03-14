@@ -221,30 +221,49 @@ const renderTableCourses = (data) => {
   // MOBILE
   let mobileRows = data
     .map((item) => {
+      // Lógica da Faixa Etária
       let ageLabel = "Livre";
-      if (item.min_age && item.max_age) ageLabel = `${item.min_age}-${item.max_age} anos`;
+      if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
       else if (item.min_age) ageLabel = `+${item.min_age} anos`;
 
       return `
-        <div class="mobile-card p-3">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                    <div class="fw-bold fs-6 mb-1">${item.name}</div>
-                    <div class="small text-muted mb-2">${ageLabel}</div>
-                    <div class="d-flex gap-2">
-                        <div class="badge bg-light text-secondary border">${item.total_workload_hours || 0}h</div>
-                        <div class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">${item.subjects_count || 0} Matérias</div>
+        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
+            
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1 pe-3">
+                    
+                    <h6 class="fw-bold mb-1 fs-5">${item.name}</h6>
+                    
+                    <div class="small text-muted mb-3 d-flex align-items-center lh-1 mt-1">
+                        <i class="fas fa-user-graduate me-2 opacity-50"></i> Faixa Etária: ${ageLabel}
+                    </div>
+                    
+                    <div class="d-flex flex-wrap gap-2 mt-1">
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-medium px-2 py-1">
+                            <i class="far fa-clock me-1 opacity-75"></i> ${item.total_workload_hours || 0}h
+                        </span>
+                        
+                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 fw-medium px-2 py-1">
+                            <i class="fas fa-book me-1 opacity-75"></i> ${item.subjects_count || 0} Matérias
+                        </span>
                     </div>
                 </div>
-                <div>
+                
+                <div class="text-end mt-1">
                     ${getMobileToggleHtml(item.course_id, item.is_active)}
                 </div>
             </div>
             
-            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id})" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.courses', ${item.course_id})" title="Log">
+                    <i class="fas fa-bolt"></i>
+                </button>
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalCurso(${item.course_id})" title="Editar">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteCourse(${item.course_id})" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>`;
     })

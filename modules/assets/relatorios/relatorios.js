@@ -140,34 +140,39 @@ function renderReports() {
     const starIcon = isFav ? "star" : "star_border";
     const starClass = isFav ? "text-warning" : "text-muted";
 
-    const badgeHtml = r.badge ? `<span class="badge bg-danger ms-2 align-middle" style="font-size: 0.65em; padding: 0.35em 0.65em;">${r.badge}</span>` : "";
+    // Badge de Notificação/Status com o estilo Ghost (Translúcido)
+    const badgeHtml = r.badge
+      ? `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 ms-2 align-middle" style="font-size: 0.65em; padding: 0.35em 0.65em;">${r.badge}</span>`
+      : "";
 
     $container.append(`
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="mobile-card h-100 hover-scale shadow-sm cursor-pointer p-3 rounded border" onclick="prepareReportConfig('${r.id}')">
-                    <div class="d-flex align-items-start gap-3">
-                        
-                        <div class="icon-circle bg-primary bg-opacity-10 text-primary p-3 rounded-circle d-flex align-items-center justify-content-center">
-                            <span class="material-symbols-outlined">${r.icon}</span>
-                        </div>
-                        
-                        <div class="flex-grow-1 pt-1">
-                            <h6 class="fw-bold mb-1 d-flex align-items-center flex-wrap">
-                                ${r.title} ${badgeHtml}
-                            </h6>
-                            <p class="small text-muted mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${r.description}</p>
-                        </div>
-                        
-                        <div class="ms-auto z-1" onclick="toggleFavorite(event, '${r.id}')" style="margin-top: -2px;">
-                            <span class="material-symbols-outlined ${starClass} fs-4 hover-opacity">
-                                ${starIcon}
-                            </span>
-                        </div>
-
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="mobile-card h-100 hover-scale shadow-sm cursor-pointer p-3 rounded-4 border border-secondary border-opacity-10 bg-transparent-card transition-all" onclick="prepareReportConfig('${r.id}')">
+                <div class="d-flex align-items-start gap-3">
+                    
+                    <div class="icon-circle bg-primary bg-opacity-10 text-primary p-3 rounded-circle d-flex align-items-center justify-content-center" style="min-width: 48px; min-height: 48px;">
+                        <span class="material-symbols-outlined fs-3">${r.icon}</span>
                     </div>
+                    
+                    <div class="flex-grow-1 pt-1">
+                        <h6 class="fw-bold mb-1 d-flex align-items-center flex-wrap text-body">
+                            ${r.title} ${badgeHtml}
+                        </h6>
+                        <p class="small text-muted mb-0 lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; opacity: 0.8;">
+                            ${r.description}
+                        </p>
+                    </div>
+                    
+                    <div class="ms-auto z-2 p-1" onclick="toggleFavorite(event, '${r.id}')" style="margin-top: -5px; margin-right: -5px;">
+                        <span class="material-symbols-outlined ${starClass} fs-4 transition-all">
+                            ${starIcon}
+                        </span>
+                    </div>
+
                 </div>
             </div>
-        `);
+        </div>
+    `);
   });
 }
 

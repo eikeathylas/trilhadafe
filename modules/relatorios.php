@@ -20,21 +20,25 @@
 
             <div class="d-flex justify-content-between align-items-center mb-4 no-print mt-5">
                 <div>
-                    <h4 class="fw-bold mb-1 title">Central de Relatórios</h4>
-                    <p class="text-muted small mb-0">Gestão modular e centralizada de documentos.</p>
+                    <h4 class="fw-bold mb-1 title fs-3">Central de Relatórios</h4>
+                    <p class="text-muted small mb-0 opacity-75">Gestão modular e centralizada de documentos.</p>
                 </div>
             </div>
 
-            <div class="row mb-4 no-print">
-                <div class="col-12 col-md-6">
-                    <div class="input-group shadow-sm">
-                        <span class="input-group-text border-end-0 text-muted">
-                            <span class="material-symbols-outlined">search</span>
-                        </span>
-                        <input type="text" id="reportSearch" class="form-control border-start-0 border-end-0" placeholder="Buscar por nome ou descrição...">
-                        <span class="input-group-text border-start-0 clear-search-btn" id="clearSearchBtn" title="Limpar busca">
-                            <span class="material-symbols-outlined text-danger">close</span>
-                        </span>
+            <div class="card border-0 shadow-sm mb-4 rounded-4 bg-transparent-card no-print">
+                <div class="card-body p-3 p-md-4">
+                    <div class="row align-items-end">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="reportSearch" style="letter-spacing: 0.5px;">
+                                <i class="fas fa-search me-1 opacity-50"></i> O que você procura?
+                            </label>
+                            <div class="input-group">
+                                <input type="text" id="reportSearch" class="form-control border-end-0" placeholder="Buscar por nome ou descrição..." style="height: 45px;">
+                                <span class="input-group-text bg-transparent border-start-0 clear-search-btn" id="clearSearchBtn" title="Limpar busca" style="cursor: pointer;">
+                                    <span class="material-symbols-outlined text-danger opacity-75">close</span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -48,9 +52,11 @@
             </div>
 
             <div id="emptyState" class="text-center py-5 no-print" style="display: none;">
-                <span class="material-symbols-outlined text-muted" style="font-size: 48px;">search_off</span>
-                <h6 class="fw-bold mt-3 text-secondary">Nenhum relatório encontrado</h6>
-                <p class="text-muted small">Não encontramos resultados para a sua busca. Tente usar outras palavras.</p>
+                <div class="bg-secondary bg-opacity-10 d-inline-flex p-4 rounded-circle mb-3">
+                    <span class="material-symbols-outlined text-muted" style="font-size: 48px;">search_off</span>
+                </div>
+                <h5 class="fw-bold text-body">Nenhum relatório encontrado</h5>
+                <p class="text-muted small mx-auto" style="max-width: 300px;">Não encontramos resultados para a sua busca. Tente usar outras palavras-chave.</p>
             </div>
 
             <?php include "./assets/components/Footer.php"; ?>
