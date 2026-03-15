@@ -127,6 +127,7 @@ const loadSubjects = async (classId) => {
   selSub.clear();
   selSub.clearOptions();
   selSub.disable();
+
   try {
     const res = await window.ajaxValidator({ validator: "getClassSubjects", token: defaultApp.userInfo.token, class_id: classId });
     if (res.status && res.data.length > 0) {
@@ -134,10 +135,12 @@ const loadSubjects = async (classId) => {
       res.data.forEach((item) => selSub.addOption(item));
       if (res.data.length === 1) selSub.setValue(res.data[0].subject_id);
     } else {
-      window.alertDefault("Esta turma não possui disciplinas.", "warning");
+      throw new Error(result.alert || "Erro ao obter disciplinas.");
     }
   } catch (e) {
-    console.error(e);
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar disciplinas da turma.";
+
+    window.alertErrorWithSupport(`Carregar Disciplinas da Turma`, errorMessage);
   }
 };
 
@@ -154,19 +157,67 @@ const resetInterface = () => {
 
 const getHistory = async () => {
   const page = Math.max(0, defaultDiary.currentPage - 1);
-  $(".list-table-diario").html('<div class="text-center py-5"><span class="loader"></span></div>');
+  const container = $(".list-table-diario");
+
+  // 1. Feedback Visual de Carregamento (Soft UI)
+  container.html(`
+    <div class="text-center py-5 opacity-50">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+        <p class="mt-3 fw-medium">Carregando histórico de aulas...</p>
+    </div>
+  `);
+
   try {
-    const res = await window.ajaxValidator({ validator: "getClassHistory", token: defaultApp.userInfo.token, class_id: diarioState.classId, subject_id: diarioState.subjectId, page: page * defaultDiary.rowsPerPage, limit: defaultDiary.rowsPerPage });
+    // 2. Chamada à API com prefixos padronizados
+    const res = await window.ajaxValidator({
+      validator: "getClassHistory",
+      token: window.defaultApp.userInfo.token,
+      class_id: diarioState.classId,
+      subject_id: diarioState.subjectId,
+      page: page * defaultDiary.rowsPerPage,
+      limit: defaultDiary.rowsPerPage,
+    });
+
+    // 3. Tratamento do Resultado
     if (res.status) {
-      const total = res.data[0]?.total_registros || 0;
-      defaultDiary.totalPages = Math.max(1, Math.ceil(total / defaultDiary.rowsPerPage));
-      renderTableHistory(res.data || []);
+      const dataArray = res.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso: Renderiza tabela e paginação
+        const total = dataArray[0]?.total_registros || 0;
+        defaultDiary.totalPages = Math.max(1, Math.ceil(total / defaultDiary.rowsPerPage));
+        renderTableHistory(dataArray);
+      } else {
+        // Estado Vazio: Sem aulas para este filtro (Não é um erro)
+        container.html(`
+            <div class="text-center py-5 opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 56px;">history_edu</span>
+                <p class="mt-3 fw-medium text-body">Nenhuma aula registrada para esta disciplina.</p>
+            </div>
+        `);
+        $(".pagination-diario").empty();
+      }
     } else {
-      $(".list-table-diario").html('<div class="text-center py-5 text-muted"><p>Nenhuma aula registrada.</p></div>');
-      $(".pagination-diario").empty();
+      // REGRA APLICADA: Lança o erro para o Catch tratar
+      throw new Error(res.alert || res.msg || "O servidor não conseguiu recuperar o histórico do diário.");
     }
   } catch (e) {
-    $(".list-table-diario").html('<p class="text-center py-4 text-danger">Erro ao carregar histórico.</p>');
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar o diário.";
+
+    // 4. Feedback Visual de Erro Integrado
+    container.html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-exclamation-triangle fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar histórico</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="getHistory()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport(`Listar Histórico do Diário`, errorMessage);
   }
 };
 
@@ -244,11 +295,7 @@ const renderTableHistory = (data) => {
       // Define a cor da badge dinamicamente, blindada contra total = 0
       let badgeStyle = "bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-25"; // Padrão/Sem alunos
       if (total > 0) {
-        badgeStyle = pct < 70
-          ? "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25"
-          : pct < 90
-            ? "bg-warning bg-opacity-10 text-warning border-warning border-opacity-25"
-            : "bg-success bg-opacity-10 text-success border-success border-opacity-25";
+        badgeStyle = pct < 70 ? "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25" : pct < 90 ? "bg-warning bg-opacity-10 text-warning border-warning border-opacity-25" : "bg-success bg-opacity-10 text-success border-success border-opacity-25";
       }
 
       return `
@@ -301,23 +348,21 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
   diarioState.sessionId = sessionId;
 
   const $dateInput = $("#diario_date");
-  const $editor = $("#diario_content"); // Referência cacheada
+  const $editor = $("#diario_content");
 
-  // 1. Reset UI e Limpeza Segura
+  // 1. Reset UI e Limpeza Segura (Soft UI)
   $dateInput.val("").prop("disabled", true);
-
   $("#date-status-icon").empty();
   $("#date-msg").text("");
-  $("#lista-alunos").html('<div class="text-center py-5"><span class="loader"></span></div>');
+  $("#lista-alunos").html('<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Carregando chamada...</p></div>');
 
   // Destroy Flatpickr (Seguro)
-  if (fpInstance) {
+  if (typeof fpInstance !== "undefined" && fpInstance) {
     fpInstance.destroy();
     fpInstance = null;
   }
 
   // Destroy Summernote (BLINDADO)
-  // Só tenta destruir se o editor visual já existir, evitando o erro "ownerDocument is null"
   if ($editor.next(".note-editor").length > 0) {
     try {
       $editor.summernote("destroy");
@@ -325,7 +370,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
       console.warn("Summernote cleanup:", e);
     }
   }
-  $editor.val("").hide(); // Reseta o textarea original
+  $editor.val("").hide();
 
   // Abre o Modal
   $("#modalSession").modal("show");
@@ -334,14 +379,13 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
   try {
     const resMeta = await window.ajaxValidator({
       validator: "getDiarioMetadata",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
     });
 
     if (resMeta.status) {
       diarioState.schedules = resMeta.data.schedules;
-
       const validDates = resMeta.data.valid_dates || [];
       const existingDates = resMeta.data.existing_dates || [];
       const holidays = resMeta.data.holidays || {};
@@ -353,9 +397,8 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
         if (!enableDates.includes(currentDate)) enableDates.push(currentDate);
       }
 
-      // Habilita o input ANTES de criar o Flatpickr (Evita bug do disabled)
-      $dateInput.prop("disabled", false);
-      $dateInput.removeAttr("disabled");
+      // Habilita o input ANTES de criar o Flatpickr
+      $dateInput.prop("disabled", false).removeAttr("disabled");
 
       // Inicializa Flatpickr
       fpInstance = flatpickr("#diario_date", {
@@ -368,7 +411,6 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
         minDate: resMeta.data.min_date,
         maxDate: resMeta.data.max_date,
         enable: enableDates,
-
         onDayCreate: function (dObj, dStr, fp, dayElem) {
           const offsetDate = new Date(dayElem.dateObj.getTime() - dayElem.dateObj.getTimezoneOffset() * 60000);
           const dateKey = offsetDate.toISOString().split("T")[0];
@@ -379,13 +421,13 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
             dayElem.innerHTML += "<span class='event busy'></span>";
           } else if (existingDates.includes(dateKey)) {
             dayElem.innerHTML += "<span class='event existing'></span>";
-            dayElem.setAttribute("title", "Diário preenchido");
+            dayElem.setAttribute("title", "Diário já preenchido");
           } else if (validDates.includes(dateKey)) {
             dayElem.innerHTML += "<span class='event'></span>";
           }
         },
         onChange: function (selectedDates, dateStr, instance) {
-          checkDateLogic(dateStr);
+          if (typeof checkDateLogic === "function") checkDateLogic(dateStr);
         },
         onReady: function (selectedDates, dateStr, instance) {
           if (instance.altInput) {
@@ -401,33 +443,31 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
         fpInstance.setDate(cleanDate, true);
       }
     } else {
-      window.alertDefault(resMeta.alert || "Erro ao carregar dados.", "warning");
+      throw new Error(resMeta.alert || "Não foi possível carregar as regras de datas do diário.");
     }
   } catch (e) {
-    console.error(e);
-    window.alertDefault("Erro de conexão.", "error");
+    const errorMessage = e.message || "Falha de conexão ao carregar metadados do diário.";
+    $("#lista-alunos").html(`<div class='text-center py-5 text-danger'><i class='fas fa-exclamation-circle fs-2 mb-2'></i><p>${errorMessage}</p></div>`);
+
+    window.alertErrorWithSupport(`Abrir Modal de Diário`, errorMessage);
   }
 
-  // Inicializa Summernote (Ao final de tudo, garantindo que o DOM está pronto)
-  if ($editor.length) {
-    $editor.summernote(summernoteConfig);
+  // Inicializa Summernote (Garantindo que o DOM está pronto e resiliência)
+  if ($editor.length && typeof $.fn.summernote !== "undefined") {
+    $editor.summernote(window.summernoteConfig || {});
   }
 };
 
-const checkDateLogic = async (dateStr) => {
+window.checkDateLogic = async (dateStr) => {
   if (!dateStr) return;
 
   const $statusIcon = $("#date-status-icon");
   const $msgContainer = $("#date-msg");
-
-  $statusIcon.html('<span class="loader-sm"></span>');
-  $msgContainer.text("");
-
-  // 1. Validação de Dia da Semana (Apenas aviso visual)
-  // Como removemos a hora, verificamos apenas se é o dia da grade
-  // O "enableDates" já filtra a seleção, mas caso edite data antiga:
-  const dateObj = new Date(dateStr + "T00:00:00"); // Força midnight local
-  const dayOfWeek = dateObj.getDay(); // 0-6
+  // 1. UI Reset & Loading Localizado
+  $statusIcon.html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div>');
+  $msgContainer.text("Validando data...").removeClass("text-warning text-danger text-success text-primary");
+  const dateObj = new Date(dateStr + "T00:00:00");
+  const dayOfWeek = dateObj.getDay();
 
   if (diarioState.schedules.length > 0) {
     const isScheduledDay = diarioState.schedules.some((s) => parseInt(s.day_of_week) === dayOfWeek);
@@ -477,10 +517,15 @@ const checkDateLogic = async (dateStr) => {
         }
         loadStudentsList(null);
       }
+    } else {
+      throw new Error(res.alert || "Não foi possível validar as regras desta data.");
     }
   } catch (e) {
-    console.error(e);
-    $statusIcon.html('<i class="fas fa-exclamation-triangle text-warning"></i>');
+    $statusIcon.html('<i class="fas fa-exclamation-triangle text-warning fs-5"></i>');
+    $msgContainer.text("Erro ao validar data.").addClass("text-warning");
+
+    const errorMessage = e.message || "Falha na comunicação com o servidor.";
+    window.alertErrorWithSupport(`Validar Data do Diário (Data: ${dateStr})`, errorMessage);
   }
 };
 
@@ -518,9 +563,24 @@ const loadStudentsList = async (existingAttendance = null) => {
       });
 
       renderStudents();
+    } else {
+      throw new Error(res.alert || "Não foi possível carregar a lista de alunos da turma.");
     }
   } catch (e) {
-    console.error(e);
+    const errorMessage = e.message || "Falha ao carregar lista de presença.";
+
+    // 4. Feedback Visual de Erro dentro do container da lista
+    container.html(`
+        <div class="text-center py-5">
+            <i class="fas fa-users-slash fs-1 text-muted mb-3"></i>
+            <h6 class="text-secondary fw-bold">Falha ao carregar alunos</h6>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-4" onclick="loadStudentsList(${existingAttendance ? JSON.stringify(existingAttendance) : "null"})">
+                <i class="fas fa-sync-alt me-2"></i> Tentar novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport(`Carregar Lista de Chamada`, errorMessage);
   }
 };
 
@@ -689,40 +749,49 @@ window.salvarDiario = async () => {
       $("#modalSession").modal("hide");
       getHistory();
     } else {
-      window.alertDefault(res.alert, "error");
+      throw new Error(res.alert || res.msg || "O servidor recusou o salvamento do diário.");
     }
   } catch (e) {
-    window.alertDefault("Erro técnico ao salvar.", "error");
-    console.error(e);
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar o diário.";
+    window.alertErrorWithSupport(`Salvar Diário`, errorMessage);
   } finally {
+    // 5. Sempre restaura o botão, mesmo em erro (para o usuário tentar novamente)
     window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Diário');
   }
 };
 
 window.deleteSession = (sessionId) => {
   Swal.fire({
-    title: "Excluir Diário?",
-    text: "O registro da aula e a frequência serão removidos.",
+    title: "Excluir Registro de Aula?",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    confirmButtonText: "Excluir",
+    cancelButtonColor: "#6c757d", // Cinza padrão Soft UI
+    confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
+        // 1. Chamada à API com prefixos padronizados
         const res = await window.ajaxValidator({
           validator: "deleteClassDiary",
-          token: defaultApp.userInfo.token,
+          token: window.defaultApp.userInfo.token,
           session_id: sessionId,
         });
+
+        // 2. Tratamento do Resultado
         if (res.status) {
-          window.alertDefault("Excluído com sucesso.", "success");
-          getHistory();
+          window.alertDefault("Registro de aula removido.", "success");
+
+          // Atualiza a listagem de histórico
+          if (typeof getHistory === "function") window.getHistory();
         } else {
-          window.alertDefault(res.alert, "error");
+          throw new Error(res.alert || res.msg || "O servidor não permitiu excluir este registro.");
         }
       } catch (e) {
-        window.alertDefault("Erro ao excluir.", "error");
+        const errorMessage = e.message || "Falha de conexão ao tentar excluir o diário.";
+        window.alertErrorWithSupport(`Excluir Diário/Sessão`, errorMessage);
       }
     }
   });

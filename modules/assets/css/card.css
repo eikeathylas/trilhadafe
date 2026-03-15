@@ -51,7 +51,7 @@
   display: inline-block;
   padding: 10px 20px;
   background: #000000;
-  color: #FFFFFF;
+  color: #ffffff;
   border-radius: 40px;
   text-decoration: none;
   margin-top: 20px;
@@ -93,7 +93,6 @@
     font-size: 17px;
     padding: 5px 0;
   }
-
 }
 
 /* Estilo Geral */
@@ -108,7 +107,9 @@
   padding: 15px;
   margin-bottom: 15px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .pedido-card:hover {
@@ -149,7 +150,6 @@
   font-style: italic;
 }
 
-
 .btn-imprimir {
   background-color: #28a745;
   color: #fff;
@@ -167,7 +167,6 @@
 .btn-imprimir:hover {
   background-color: #218838;
 }
-
 
 .filter-buttons {
   margin-bottom: 20px;
@@ -198,7 +197,6 @@
 }
 
 @media (max-width: 768px) {
-
   /* Adjust breakpoint as needed */
   .cards-view {
     display: grid;
@@ -245,7 +243,6 @@
   color: #666;
 }
 
-
 .list-view .order-table {
   border-collapse: collapse;
 }
@@ -289,7 +286,6 @@
 
 /* Media query for smaller screens: allow wrapping */
 @media (max-width: 768px) {
-
   /* Adjust breakpoint as needed */
   .order-table th,
   .order-table td {
@@ -354,7 +350,6 @@
 .nav-pills-wrapper .nav-pills {
   flex-wrap: nowrap;
 }
-
 
 /* ======================================================= */
 /* 1. CORES ADAPTATIVAS (CLARO E ESCURO)                   */
@@ -514,11 +509,15 @@
   scrollbar-width: none;
   /* Esconde a barra de rolagem no Firefox */
   max-width: 100%;
+
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* Garante scroll suave no iOS (iPhone) */
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
 }
 
 .modern-tabs-wrapper::-webkit-scrollbar {
   display: none;
-  /* Esconde no Chrome/Safari */
 }
 
 .modern-tabs-wrapper .nav-link {

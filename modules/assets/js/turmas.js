@@ -10,60 +10,6 @@ const defaultClass = {
 
 let currentSchedules = [];
 
-// =========================================================
-// FUNÇÃO AUXILIAR DE TOGGLE (COM SPINNER E BADGE)
-// =========================================================
-
-const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
-  const $chk = $(element);
-  const $wrapper = $chk.closest(".form-check");
-  const $loader = $wrapper.find(".toggle-loader");
-  const $labels = $(labelSelector);
-  const status = $chk.is(":checked");
-
-  // Define os estados visuais (Feedback Imediato com Badge)
-  const setVisualState = (isActive) => {
-    if (isActive) {
-      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
-    } else {
-      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
-    }
-  };
-
-  try {
-    // 1. Bloqueia e mostra loader
-    $chk.prop("disabled", true);
-    $loader.removeClass("d-none");
-
-    // 2. Atualiza visualmente (Otimista)
-    setVisualState(status);
-
-    // 3. Chamada API
-    const result = await window.ajaxValidator({
-      validator: validator,
-      token: defaultApp.userInfo.token,
-      id: id,
-      active: status,
-    });
-
-    if (result.status) {
-      window.alertDefault(successMsg, "success");
-    } else {
-      throw new Error(result.alert || "Erro ao atualizar");
-    }
-  } catch (e) {
-    console.error(e);
-    // Reverte estado
-    $chk.prop("checked", !status);
-    setVisualState(!status);
-    window.alertDefault(e.message || "Erro de conexão.", "error");
-  } finally {
-    // 4. Libera
-    $chk.prop("disabled", false);
-    $loader.addClass("d-none");
-  }
-};
-
 window.toggleTurma = (id, element) => handleToggle("toggleClass", id, element, "Status atualizado.", `.status-text-turma-${id}`);
 
 $(document).ready(() => {
@@ -85,22 +31,24 @@ $(document).ready(() => {
   });
 });
 
-// =========================================================
-// 2. LISTAGEM (COM FILTRO GLOBAL)
-// =========================================================
 const getTurmas = async () => {
   try {
     const page = Math.max(0, defaultClass.currentPage - 1);
     const search = $("#busca-texto").val();
-
-    // --- MUDANÇA CRÍTICA: LÊ DO LOCALSTORAGE (MENU LATERAL) ---
     const year = localStorage.getItem("sys_active_year");
 
+    // 1. Validação de Ano Letivo
     if (!year) {
-      $(".list-table-turmas").html('<div class="text-center py-5 text-muted"><i class="fas fa-arrow-left fa-2x mb-3 opacity-25"></i><p>Selecione um Ano Letivo no menu lateral.</p></div>');
+      $(".list-table-turmas").html(`
+        <div class="text-center py-5 opacity-50">
+            <span class="material-symbols-outlined fs-1">event_busy</span>
+            <p class="mt-3 fw-medium text-body">Selecione um Ano Letivo no menu lateral.</p>
+        </div>
+      `);
       return;
     }
 
+    // 3. Chamada à API
     const result = await window.ajaxValidator({
       validator: "getClasses",
       token: defaultApp.userInfo.token,
@@ -111,15 +59,29 @@ const getTurmas = async () => {
       year: year,
     });
 
+    // 4. Tratamento do Resultado
     if (result.status) {
       const total = result.data[0]?.total_registros || 0;
       defaultClass.totalPages = Math.max(1, Math.ceil(total / defaultClass.rowsPerPage));
       renderTableClasses(result.data || []);
     } else {
-      $(".list-table-turmas").html('<div class="text-center py-5 text-muted"><i class="fas fa-chalkboard fa-3x mb-3 opacity-25"></i><p>Nenhuma turma encontrada neste ano.</p></div>');
+      throw new Error(result.alert || "Erro ao obter turmas.");
     }
   } catch (e) {
-    $(".list-table-turmas").html('<p class="text-center py-4 text-danger">Erro ao carregar dados.</p>');
+    const errorMessage = e.message || "Falha ao conectar com o servidor para buscar as turmas.";
+    $(".list-table-turmas").html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-exclamation-triangle fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="getTurmas()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport("Listar Turmas", errorMessage);
   }
 };
 
@@ -349,7 +311,11 @@ window.modalTurma = (id = null) => {
 
 const loadClassData = async (id) => {
   try {
-    const result = await window.ajaxValidator({ validator: "getClassById", token: defaultApp.userInfo.token, id: id });
+    const result = await window.ajaxValidator({
+      validator: "getClassById",
+      token: defaultApp.userInfo.token,
+      id: id,
+    });
 
     if (result.status) {
       const d = result.data;
@@ -358,7 +324,7 @@ const loadClassData = async (id) => {
       $("#class_capacity").val(d.max_capacity);
       $("#class_status").val(d.status);
 
-      // INJEÇÃO MANUAL DE OPÇÕES (Fix Amnesia)
+      // INJEÇÃO MANUAL DE OPÇÕES (Fix Amnesia do Selectize)
       if (d.course_id && d.course_name_text) {
         const sel = $("#sel_course")[0].selectize;
         sel.addOption({ id: d.course_id, title: d.course_name_text });
@@ -390,10 +356,11 @@ const loadClassData = async (id) => {
       $("#modalLabel").text("Editar Turma");
       $("#modalTurma").modal("show");
     } else {
-      window.alertDefault(result.alert, "error");
+      throw new Error(result.alert || "Erro ao carregar os dados da turma.");
     }
   } catch (e) {
-    window.alertDefault("Erro ao carregar dados.", "error");
+    const errorMessage = e.message || "Falha ao conectar com o servidor para carregar a turma.";
+    window.alertErrorWithSupport(`Abrir Edição de Turma`, errorMessage);
   }
 };
 
@@ -520,10 +487,12 @@ window.salvarTurma = async () => {
       $("#modalTurma").modal("hide");
       getTurmas();
     } else {
-      window.alertDefault(result.alert, "error");
+      throw new Error(result.alert || "Erro inesperado ao salvar a turma no banco de dados.");
     }
   } catch (e) {
-    window.alertDefault("Erro ao salvar.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor. Tente novamente.";
+    const acaoContexto = data.class_id ? `Atualizar Turma` : "Criar Nova Turma";
+    window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
     window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
   }
@@ -536,16 +505,41 @@ window.salvarTurma = async () => {
 const loadClassStudents = async (classId) => {
   const container = $("#lista-alunos");
   try {
-    const result = await window.ajaxValidator({ validator: "getClassStudents", token: defaultApp.userInfo.token, class_id: classId });
+    // 1. Feedback Visual de Carregamento (Respeitando a tabela)
+    container.html('<tr><td colspan="5" class="text-center py-4 opacity-50"><span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span> Carregando catequizandos...</td></tr>');
 
-    if (result.status && result.data.length > 0) {
-      container.empty();
-      renderStudentsList(result.data);
+    // 2. Chamada à API
+    const result = await window.ajaxValidator({
+      validator: "getClassStudents",
+      token: defaultApp.userInfo.token,
+      class_id: classId,
+    });
+
+    // 3. Tratamento do Resultado
+    if (result.status) {
+      const dataArray = result.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso com dados
+        container.empty();
+        renderStudentsList(dataArray);
+      } else {
+        // Estado Vazio (Sem catequizando, mas sem erro)
+        container.html(`
+        <tr>
+          <td colspan="5" class="text-center text-muted py-5 opacity-75">
+            <i class="fas fa-user-graduate fa-2x mb-2 opacity-50"></i>
+            <p class="mb-0 small fw-medium">Nenhum catequizando matriculado nesta turma.</p>
+          </td>
+        </tr>
+      `);
+      }
     } else {
-      container.html('<tr><td colspan="5" class="text-center text-muted py-4">Nenhum catequizando matriculado nesta turma.</td></tr>');
+      throw new Error(result.alert || "Falha ao obter lista de catequizandos do banco de dados.");
     }
   } catch (e) {
-    container.html('<tr><td colspan="5" class="text-center text-danger">Erro ao carregar catequizandos.</td></tr>');
+    const errorMessage = e.message || "Falha de conexão ao tentar carregar a lista de catequizandos.";
+    window.alertErrorWithSupport(`Carregar Catequizandos da Turma`, errorMessage);
   }
 };
 
@@ -599,22 +593,35 @@ window.matricularAluno = async () => {
   const classId = $("#class_id").val();
   const studentId = $("#sel_new_student").val();
 
-  if (!classId) return window.alertDefault("Salve a turma antes de matricular.", "warning");
-  if (!studentId) return window.alertDefault("Selecione um catequizando.", "warning");
+  // Validações de Front-end (Alertas rápidos, sem acionar o suporte)
+  if (!classId) return window.alertDefault("Salve a turma antes de realizar matrículas.", "warning");
+  if (!studentId) return window.alertDefault("Selecione um catequizando para matricular.", "warning");
 
   try {
-    const result = await window.ajaxValidator({ validator: "enrollStudent", token: defaultApp.userInfo.token, class_id: classId, student_id: studentId });
+    // Chamada à API
+    const result = await window.ajaxValidator({
+      validator: "enrollStudent",
+      token: defaultApp.userInfo.token,
+      class_id: classId,
+      student_id: studentId,
+    });
 
+    // Tratamento do Resultado
     if (result.status) {
-      window.alertDefault("Catequizando matriculado!", "success");
+      window.alertDefault("Catequizando matriculado com sucesso!", "success");
+
+      // Limpa o selectize para a próxima matrícula
       $("#sel_new_student")[0].selectize.clear();
+
+      // Atualiza as listagens na tela
       loadClassStudents(classId);
       getTurmas();
     } else {
-      window.alertDefault(result.alert, "error");
+      throw new Error(result.alert || "Não foi possível efetuar a matrícula no banco de dados.");
     }
   } catch (e) {
-    window.alertDefault("Erro ao matricular.", "error");
+    const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar matricular.";
+    window.alertErrorWithSupport(`Matricular Catequizando`, errorMessage);
   }
 };
 
@@ -656,61 +663,100 @@ window.openHistory = (enrollmentId, studentName) => {
 
 const loadEnrollmentHistory = async (enrollmentId) => {
   const container = $("#lista-historico-detalhe");
-  container.html('<div class="text-center py-5 opacity-50"><span class="loader-sm"></span><p class="mt-2 small">Carregando...</p></div>');
+
+  // 1. Feedback Visual de Carregamento (Loader Otimista Soft UI)
+  container.html(`
+    <div class="text-center py-5 opacity-50">
+        <div class="spinner-border text-primary" style="width: 2rem; height: 2rem;" role="status"></div>
+        <p class="mt-3 fw-medium small">Carregando histórico...</p>
+    </div>
+  `);
 
   try {
-    const result = await window.ajaxValidator({ validator: "getEnrollmentHistory", token: defaultApp.userInfo.token, enrollment_id: enrollmentId });
+    // 2. Chamada à API
+    const result = await window.ajaxValidator({
+      validator: "getEnrollmentHistory",
+      token: defaultApp.userInfo.token,
+      enrollment_id: enrollmentId,
+    });
 
-    if (result.status && result.data.length > 0) {
-      container.empty();
+    // 3. Tratamento do Resultado
+    if (result.status) {
+      const dataArray = result.data || [];
 
-      const actionMap = {
-        ENROLLED: { t: "Matrícula Inicial", c: "success", i: "person_add" },
-        SUSPENDED: { t: "Suspensão", c: "warning", i: "pause_circle" },
-        DROPPED: { t: "Desistência", c: "danger", i: "block" },
-        TRANSFERRED: { t: "Transferência", c: "info", i: "move_up" },
-        ACTIVE: { t: "Reativação", c: "success", i: "check_circle" },
-        COMPLETED: { t: "Conclusão", c: "primary", i: "auto_awesome" },
-        COMMENT: { t: "Observação", c: "secondary", i: "chat_bubble" },
-      };
+      if (dataArray.length > 0) {
+        container.empty();
 
-      result.data.forEach((item) => {
-        const act = actionMap[item.action_type] || { t: item.action_type, c: "secondary", i: "info" };
+        const actionMap = {
+          ENROLLED: { t: "Matrícula Inicial", c: "success", i: "person_add" },
+          SUSPENDED: { t: "Suspensão", c: "warning", i: "pause_circle" },
+          DROPPED: { t: "Desistência", c: "danger", i: "block" },
+          TRANSFERRED: { t: "Transferência", c: "info", i: "move_up" },
+          ACTIVE: { t: "Reativação", c: "success", i: "check_circle" },
+          COMPLETED: { t: "Conclusão", c: "primary", i: "auto_awesome" },
+          COMMENT: { t: "Observação", c: "secondary", i: "chat_bubble" },
+        };
 
-        container.append(`
-            <div class="position-relative ps-4 border-start border-2 border-secondary border-opacity-25 pb-3 ms-2">
-                <div class="position-absolute start-0 top-0 translate-middle-x bg-${act.c} rounded-circle border border-3 border-body shadow-sm" 
-                     style="width: 14px; height: 14px; margin-left: -1px; margin-top: 14px;"></div>
-                
-                <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 shadow-sm">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="badge bg-${act.c} bg-opacity-10 text-${act.c} border border-${act.c} border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.7rem;">
-                            ${act.t}
-                        </span>
-                        <div class="text-muted fw-medium" style="font-size: 0.7rem;">
-                            <i class="far fa-clock me-1 opacity-50"></i> ${item.action_date_fmt}
-                        </div>
-                    </div>
-                    
-                    <p class="mb-3 text-body small lh-sm opacity-90">${item.observation || "Sem observação detalhada."}</p>
-                    
-                    <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-2">
-                        <div class="small text-muted" style="font-size: 0.75rem;">
-                            <i class="fas fa-user-circle me-1 opacity-50"></i> Por: <span class="fw-bold">${item.user_name}</span>
-                        </div>
-                        <button class="btn btn-link text-danger p-0 text-decoration-none" onclick="deleteHistoryItem(${item.history_id}, ${enrollmentId})">
-                            <i class="fas fa-trash-can" style="font-size: 0.8rem;"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+        dataArray.forEach((item) => {
+          const act = actionMap[item.action_type] || { t: item.action_type, c: "secondary", i: "info" };
+
+          // Mantida a sua estrutura visual impecável de Timeline
+          container.append(`
+              <div class="position-relative ps-4 border-start border-2 border-secondary border-opacity-25 pb-3 ms-2">
+                  <div class="position-absolute start-0 top-0 translate-middle-x bg-${act.c} rounded-circle border border-3 border-body shadow-sm" 
+                       style="width: 14px; height: 14px; margin-left: -1px; margin-top: 14px;"></div>
+                  
+                  <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 shadow-sm">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                          <span class="badge bg-${act.c} bg-opacity-10 text-${act.c} border border-${act.c} border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.7rem;">
+                              ${act.t}
+                          </span>
+                          <div class="text-muted fw-medium" style="font-size: 0.7rem;">
+                              <i class="far fa-clock me-1 opacity-50"></i> ${item.action_date_fmt}
+                          </div>
+                      </div>
+                      
+                      <p class="mb-3 text-body small lh-sm opacity-90">${item.observation || "Sem observação detalhada."}</p>
+                      
+                      <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-2">
+                          <div class="small text-muted" style="font-size: 0.75rem;">
+                              <i class="fas fa-user-circle me-1 opacity-50"></i> Por: <span class="fw-bold">${item.user_name}</span>
+                          </div>
+                          <button class="btn btn-link text-danger p-0 text-decoration-none shadow-none transition-all" onclick="deleteHistoryItem(${item.history_id}, ${enrollmentId})" title="Excluir Registro">
+                              <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          `);
+        });
+      } else {
+        // Estado Vazio (Sem histórico para este aluno, sem erro)
+        container.html(`
+          <div class="text-center py-5 opacity-50">
+              <span class="material-symbols-outlined fs-1">history</span>
+              <p class="mt-2 fw-medium text-body small mb-0">Nenhum registro encontrado no histórico.</p>
+          </div>
         `);
-      });
+      }
     } else {
-      container.html('<div class="text-center py-5 text-muted small"><i class="fas fa-inbox fa-2x mb-2 opacity-25"></i><p>Nenhum registro no histórico.</p></div>');
+      throw new Error(result.alert || "Falha ao obter os registros de histórico acadêmico.");
     }
   } catch (e) {
-    container.html('<div class="text-center py-4 text-danger small">Erro ao carregar histórico acadêmico.</div>');
+    const errorMessage = e.message || "Falha de conexão ao tentar carregar o histórico.";
+
+    container.html(`
+        <div class="text-center py-4">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                <i class="fas fa-exclamation-triangle fs-4"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="loadEnrollmentHistory(${enrollmentId})">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+    window.alertErrorWithSupport(`Carregar Histórico`, errorMessage);
   }
 };
 
@@ -719,10 +765,12 @@ window.addHistoryItem = async () => {
   const action = $("#hist_action").val();
   const obs = $("#hist_obs").val();
 
+  // Validações de Front-end (Sem acionar suporte)
   if (!eid) return;
   if (!obs && action === "COMMENT") return window.alertDefault("Digite uma observação.", "warning");
 
   try {
+    // Chamada à API
     const result = await window.ajaxValidator({
       validator: "addEnrollmentHistory",
       token: defaultApp.userInfo.token,
@@ -731,22 +779,27 @@ window.addHistoryItem = async () => {
       observation: obs,
     });
 
+    // Tratamento do Resultado
     if (result.status) {
+      window.alertDefault("Anotação adicionada ao histórico!", "success");
+
+      // Limpa o campo e atualiza as listagens
       $("#hist_obs").val("");
       loadEnrollmentHistory(eid);
       if ($("#class_id").val()) loadClassStudents($("#class_id").val());
     } else {
-      window.alertDefault(result.alert, "error");
+      throw new Error(result.alert || "Não foi possível salvar o registro no banco de dados.");
     }
   } catch (e) {
-    window.alertDefault("Erro ao salvar.", "error");
+    const errorMessage = e.message || "Falha de comunicação com o servidor ao salvar o histórico.";
+    window.alertErrorWithSupport(`Adicionar histórico do catequizando`, errorMessage);
   }
 };
 
 window.deleteHistoryItem = (historyId, enrollmentId) => {
   Swal.fire({
     title: "Apagar registro?",
-    text: "Isso não desfaz a mudança de status, apenas remove o log.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
@@ -796,19 +849,31 @@ const initSelects = () => {
 window.deleteTurma = (id) => {
   Swal.fire({
     title: "Excluir Turma?",
-    text: "Isso não apaga o histórico dos catequizandos, mas remove a turma da lista.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
     confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
-      const res = await window.ajaxValidator({ validator: "deleteClass", token: defaultApp.userInfo.token, id: id });
-      if (res.status) {
-        window.alertDefault("Excluído.", "success");
-        getTurmas();
-      } else {
-        window.alertDefault(res.alert, "error");
+      try {
+        const res = await window.ajaxValidator({
+          validator: "deleteClass",
+          token: defaultApp.userInfo.token,
+          id: id,
+        });
+
+        if (res.status) {
+          window.alertDefault("Turma excluída com sucesso.", "success");
+          getTurmas();
+        } else {
+          throw new Error(res.alert || "O banco de dados bloqueou a exclusão desta turma.");
+        }
+      } catch (e) {
+        const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar excluir.";
+        window.alertErrorWithSupport(`Excluir Turma`, errorMessage);
       }
     }
   });

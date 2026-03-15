@@ -8,54 +8,6 @@ const defaultCourse = {
 let currentCurriculumList = [];
 let editingCurriculumIndex = -1;
 
-// =========================================================
-// FUNÇÃO AUXILIAR DE TOGGLE (COM SPINNER E BADGE)
-// =========================================================
-
-const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
-  const $chk = $(element);
-  const $wrapper = $chk.closest(".form-check");
-  const $loader = $wrapper.find(".toggle-loader");
-  const $labels = $(labelSelector);
-  const status = $chk.is(":checked");
-
-  // Define os estados visuais (Feedback Imediato com Badge)
-  const setVisualState = (isActive) => {
-    if (isActive) {
-      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
-    } else {
-      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
-    }
-  };
-
-  try {
-    $chk.prop("disabled", true);
-    $loader.removeClass("d-none");
-    setVisualState(status);
-
-    const result = await window.ajaxValidator({
-      validator: validator,
-      token: defaultApp.userInfo.token,
-      id: id,
-      active: status,
-    });
-
-    if (result.status) {
-      window.alertDefault(successMsg, "success");
-    } else {
-      throw new Error(result.alert || "Erro ao atualizar");
-    }
-  } catch (e) {
-    console.error(e);
-    $chk.prop("checked", !status);
-    setVisualState(!status);
-    window.alertDefault(e.message || "Erro de conexão.", "error");
-  } finally {
-    $chk.prop("disabled", false);
-    $loader.addClass("d-none");
-  }
-};
-
 window.toggleCourse = (id, element) => handleToggle("toggleCourse", id, element, "Status atualizado.", `.status-text-course-${id}`);
 
 // =========================================================
@@ -104,37 +56,62 @@ const summernoteConfig = {
 // 1. LISTAGEM
 // =========================================================
 
-const getCursos = async () => {
+window.getCursos = async () => {
+  const container = $(".list-table-cursos");
+
   try {
     const page = Math.max(0, defaultCourse.currentPage - 1);
     const search = $("#busca-texto").val();
 
-    $(".list-table-cursos").html('<div class="text-center py-5"><span class="loader"></span></div>');
-
+    // 2. Chamada à API com prefixos padronizados
     const result = await window.ajaxValidator({
       validator: "getCourses",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       limit: defaultCourse.rowsPerPage,
       page: page * defaultCourse.rowsPerPage,
       search: search,
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
+    // 3. Tratamento do Resultado
     if (result.status) {
-      const total = result.data[0]?.total_registros || 0;
-      defaultCourse.totalPages = Math.max(1, Math.ceil(total / defaultCourse.rowsPerPage));
-      renderTableCourses(result.data || []);
-    } else {
-      $(".list-table-cursos").html(`
+      const dataArray = result.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso: Atualiza paginação e renderiza tabela
+        const total = dataArray[0]?.total_registros || 0;
+        defaultCourse.totalPages = Math.max(1, Math.ceil(total / defaultCourse.rowsPerPage));
+        renderTableCourses(dataArray);
+      } else {
+        // Estado Vazio: Sem resultados (Não é um erro)
+        container.html(`
             <div class="text-center py-5 opacity-50">
                 <span class="material-symbols-outlined" style="font-size: 64px;">school</span>
-                <p class="mt-2">Nenhum curso encontrado.</p>
+                <p class="mt-3 fw-medium text-body">Nenhum curso encontrado no sistema.</p>
             </div>
         `);
+      }
+    } else {
+      // REGRA APLICADA: Lança o erro para o Catch tratar
+      throw new Error(result.alert || result.msg || "O servidor não conseguiu processar a lista de cursos.");
     }
   } catch (e) {
-    console.error(e);
-    $(".list-table-cursos").html('<p class="text-center py-4 text-danger">Erro ao carregar dados.</p>');
+    const errorMessage = e.message || "Falha na comunicação com o servidor.";
+
+    // 4. Feedback Visual de Erro com botão de recuperação
+    container.html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-book-reader fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar cursos</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="getCursos()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport("Listar Cursos (getCourses)", errorMessage);
   }
 };
 
@@ -314,12 +291,19 @@ window.modalCurso = (id = null) => {
   }
 };
 
-const loadCourseData = async (id) => {
+window.loadCourseData = async (id) => {
   try {
-    const result = await window.ajaxValidator({ validator: "getCourseById", token: defaultApp.userInfo.token, id: id });
+    // 1. Chamada à API com prefixos padronizados
+    const result = await window.ajaxValidator({
+      validator: "getCourseById",
+      token: window.defaultApp.userInfo.token,
+      id: id,
+    });
 
     if (result.status) {
       const d = result.data;
+
+      // PREENCHIMENTO DOS CAMPOS BÁSICOS
       $("#course_id").val(d.course_id);
       $("#course_name").val(d.name);
       $("#course_description").val(d.description);
@@ -327,22 +311,29 @@ const loadCourseData = async (id) => {
       $("#max_age").val(d.max_age);
       $("#total_workload").val(d.total_workload_hours);
 
-      currentCurriculumList = d.curriculum || [];
-      currentCurriculumList.forEach((item) => {
+      // 2. Gestão de Matriz Curricular (Garantia de integridade)
+      // Se d.curriculum vier null ou undefined, inicializa como array vazio
+      window.currentCurriculumList = Array.isArray(d.curriculum) ? d.curriculum : [];
+
+      window.currentCurriculumList.forEach((item) => {
+        // Garante que a propriedade plans sempre exista como array para não quebrar o render
         if (!Array.isArray(item.plans)) item.plans = [];
       });
 
-      renderCurriculumTable();
-      initSelectSubjects();
+      // 3. Inicialização da Interface do Modal
+      if (typeof renderCurriculumTable === "function") renderCurriculumTable();
+      if (typeof initSelectSubjects === "function") initSelectSubjects();
 
-      $("#modalLabel").text("Editar Curso");
+      $("#modalLabel").text("Editar Estrutura do Curso");
       $("#modalCurso").modal("show");
     } else {
-      window.alertDefault(result.alert, "error");
+      // REGRA APLICADA: Lança o erro para o Catch tratar
+      throw new Error(result.alert || "O servidor não retornou os dados deste curso.");
     }
   } catch (e) {
-    console.error(e);
-    window.alertDefault("Erro ao carregar curso.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar curso.";
+
+    window.alertErrorWithSupport(`Abrir Edição de Curso`, errorMessage);
   }
 };
 
@@ -350,31 +341,56 @@ const loadCourseData = async (id) => {
 // 3. GRADE CURRICULAR (ADD/REMOVE)
 // =========================================================
 
-const initSelectSubjects = () => {
+window.initSelectSubjects = () => {
   const $select = $("#curr_subject");
-  if ($select[0].selectize) {
-    $select[0].selectize.destroy();
+
+  // 1. Destruição Segura da Instância Anterior
+  if ($select[0] && $select[0].selectize) {
+    try {
+      $select[0].selectize.destroy();
+    } catch (e) {
+      console.warn("Aviso Selectize: Erro ao destruir instância de disciplinas.", e);
+    }
   }
 
+  // 2. Inicialização com Carregamento Remoto
   $select.selectize({
     valueField: "id",
     labelField: "title",
     searchField: "title",
-    placeholder: "Busque uma disciplina...",
+    placeholder: "Busque uma disciplina para adicionar...",
     preload: true,
-    maxOptions: 100,
+    maxOptions: 50,
     render: {
       option: function (item, escape) {
-        return `<div><span class="fw-bold">${escape(item.title)}</span></div>`;
+        return `
+          <div class="py-1 px-2 border-bottom border-light">
+            <div class="fw-bold text-dark">${escape(item.title)}</div>
+            ${item.summary ? `<small class="text-muted d-block opacity-75">${escape(item.summary)}</small>` : ""}
+          </div>`;
       },
     },
     load: async function (query, callback) {
+      // Evita chamadas vazias desnecessárias se não houver token
+      if (!window.defaultApp?.userInfo?.token) return callback();
+
       try {
-        const result = await window.ajaxValidator({ validator: "getSubjectsSelect", token: defaultApp.userInfo.token, search: query });
-        if (result.status) callback(result.data);
-        else callback();
+        const result = await window.ajaxValidator({
+          validator: "getSubjectsSelect",
+          token: window.defaultApp.userInfo.token,
+          search: query,
+        });
+
+        if (result.status) {
+          callback(result.data || []);
+        } else {
+          // REGRA APLICADA: Notifica o callback e lança erro interno
+          callback();
+          throw new Error(result.alert || "Erro ao buscar disciplinas.");
+        }
       } catch (e) {
         callback();
+        window.alertErrorWithSupport(`Busca Selectize Disciplinas`, e.message);
       }
     },
   });
@@ -454,9 +470,7 @@ const renderCurriculumTable = () => {
     let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
     const planIconClass = plansCount > 0 ? "text-primary" : "text-muted opacity-50";
     const planBtnClass = plansCount > 0 ? "bg-primary" : "bg-secondary";
-    const planTextHtml = plansCount > 0
-      ? `<span class="small text-success fw-bold ms-2" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas</span>`
-      : `<span class="small text-muted fst-italic ms-2 opacity-75" style="font-size: 0.75rem;">Sem plano</span>`;
+    const planTextHtml = plansCount > 0 ? `<span class="small text-success fw-bold ms-2" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas</span>` : `<span class="small text-muted fst-italic ms-2 opacity-75" style="font-size: 0.75rem;">Sem plano</span>`;
 
     container.append(`
         <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-sm transition-all">
@@ -819,61 +833,101 @@ window.closeTemplateModal = () => {
 };
 
 window.salvarCurso = async () => {
-  const name = $("#course_name").val().trim();
-  if (!name) return window.alertDefault("Nome do curso é obrigatório.", "warning");
+  const name = $("#course_name").val()?.trim();
+  const id = $("#course_id").val();
 
-  window.saveActiveSummernote();
+  // 1. Validação de Front-end (Sem suporte)
+  if (!name) return window.alertDefault("O nome do curso é obrigatório.", "warning");
+
+  // Sincroniza editores de texto (Summernote) antes de capturar o JSON
+  if (typeof window.saveActiveSummernote === "function") {
+    window.saveActiveSummernote();
+  }
+
+  // Fecha accordions abertos para garantir que o DOM esteja estável
   $(".accordion-collapse.show").collapse("hide");
 
+  // Pequeno delay para garantir que os valores dos inputs/summernote foram processados
   setTimeout(async () => {
     const btn = $(".btn-save");
     window.setButton(true, btn, "Salvando...");
 
     const data = {
-      course_id: $("#course_id").val(),
+      course_id: id,
       name: name,
       description: $("#course_description").val(),
       min_age: $("#min_age").val(),
       max_age: $("#max_age").val(),
       total_workload_hours: $("#total_workload").val(),
-      curriculum_json: JSON.stringify(currentCurriculumList),
+      // Garantimos o envio da matriz curricular global
+      curriculum_json: JSON.stringify(window.currentCurriculumList || []),
     };
 
     try {
-      const result = await window.ajaxValidator({ validator: "saveCourse", token: defaultApp.userInfo.token, data: data, org_id: localStorage.getItem("tf_active_parish") });
+      // 2. Chamada à API com prefixos padronizados
+      const result = await window.ajaxValidator({
+        validator: "saveCourse",
+        token: window.defaultApp.userInfo.token,
+        data: data,
+        org_id: localStorage.getItem("tf_active_parish"),
+      });
+
       if (result.status) {
-        window.alertDefault("Curso salvo com sucesso!", "success");
+        window.alertDefault("Estrutura do curso salva com sucesso!", "success");
         $("#modalCurso").modal("hide");
-        getCursos();
+
+        if (typeof getCursos === "function") window.getCursos();
       } else {
-        window.alertDefault(result.alert, "error");
+        // REGRA APLICADA: Lança o erro para o Catch tratar
+        throw new Error(result.alert || result.msg || "O servidor recusou o salvamento do curso.");
       }
     } catch (e) {
-      console.error(e);
-      window.alertDefault("Erro ao salvar.", "error");
+      const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar.";
+
+      const acaoContexto = id ? `Editar Curso` : "Criar Novo Curso";
+
+      window.alertErrorWithSupport(acaoContexto, errorMessage);
     } finally {
+      // 4. Sempre libera o botão
       window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Curso');
     }
-  }, 300);
+  }, 350); // Delay técnico para sincronização de UI
 };
 
 window.deleteCourse = (id) => {
   Swal.fire({
     title: "Excluir Curso?",
-    text: "Isso não apaga turmas passadas, mas impede novas.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d", // Cinza padrão Soft UI
     confirmButtonText: "Sim, excluir",
     cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
-      const res = await window.ajaxValidator({ validator: "deleteCourse", token: defaultApp.userInfo.token, id: id });
-      if (res.status) {
-        window.alertDefault("Excluído.", "success");
-        getCursos();
-      } else {
-        window.alertDefault(res.alert, "error");
+      try {
+        // 1. Chamada à API com prefixos padronizados
+        const res = await window.ajaxValidator({
+          validator: "deleteCourse",
+          token: window.defaultApp.userInfo.token,
+          id: id,
+        });
+
+        // 2. Tratamento do Resultado
+        if (res.status) {
+          window.alertDefault("Curso movido para a lixeira com sucesso.", "success");
+
+          // Atualiza a listagem de cursos se a função existir
+          if (typeof getCursos === "function") window.getCursos();
+        } else {
+          // REGRA APLICADA: Lança o erro para o Catch tratar e reportar
+          throw new Error(res.alert || res.msg || "O servidor não permitiu excluir este curso.");
+        }
+      } catch (e) {
+        const errorMessage = e.message || "Falha de conexão ao tentar remover o curso.";
+
+        window.alertErrorWithSupport(`Excluir Curso`, errorMessage);
       }
     }
   });

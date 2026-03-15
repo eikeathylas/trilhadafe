@@ -7,63 +7,8 @@ const defaultOrg = {
   locTotalPages: 1,
 };
 
-// =========================================================
-// FUNÇÕES AUXILIARES GLOBAIS DO MÓDULO
-// =========================================================
-
-// Atualizado para aceitar seletor de label global (sincroniza mobile/desktop)
-const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
-  const $chk = $(element);
-  const $wrapper = $chk.closest(".form-check");
-  const $loader = $wrapper.find(".toggle-loader");
-  const $labels = $(labelSelector); // Seleciona todas as ocorrências (Desk e Mobile)
-  const status = $chk.is(":checked");
-
-  // [ATUALIZADO] Define os estados visuais com BADGES
-  const setVisualState = (isActive) => {
-    if (isActive) {
-      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
-    } else {
-      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
-    }
-  };
-
-  try {
-    // 1. Bloqueia e mostra loader local
-    $chk.prop("disabled", true);
-    $loader.removeClass("d-none");
-
-    // 2. Atualiza visualmente (Otimista)
-    setVisualState(status);
-
-    // 3. Chamada API
-    const result = await ajaxValidator({
-      validator: validator,
-      token: defaultApp.userInfo.token,
-      id: id,
-      active: status,
-    });
-
-    if (result.status) {
-      alertDefault(successMsg, "success");
-    } else {
-      throw new Error(result.alert || "Erro ao atualizar");
-    }
-  } catch (e) {
-    console.error(e);
-    // Reverte estado
-    $chk.prop("checked", !status);
-    setVisualState(!status);
-    alertDefault(e.message || "Erro de conexão.", "error");
-  } finally {
-    // 4. Libera
-    $chk.prop("disabled", false);
-    $loader.addClass("d-none");
-  }
-};
-
 window.toggleOrg = (id, element) => handleToggle("toggleOrganization", id, element, "Informação atualizada.", `.status-text-org-${id}`);
-window.toggleLoc = (id, element) => handleToggle("toggleLocation", id, element, "Local atualizado.", `.status-text-loc-${id}`);
+window.toggleLoc = (id, element) => handleToggle("toggleLocation", id, element, "Informação atualizada.", `.status-text-loc-${id}`);
 
 // =========================================================
 // 1. INSTITUIÇÕES (PARÓQUIAS)
@@ -133,9 +78,17 @@ window.modalDiocese = () => {
 
 const loadOrgData = async (id) => {
   try {
-    const result = await ajaxValidator({ validator: "getOrgById", token: defaultApp.userInfo.token, id: id });
+    // Chamada à API com prefixo window. padronizado
+    const result = await window.ajaxValidator({
+      validator: "getOrgById",
+      token: window.defaultApp.userInfo.token,
+      id: id,
+    });
+
     if (result.status) {
       const data = result.data;
+
+      // PREENCHIMENTO DE DADOS
       $("#org_id").val(data.org_id);
       $("#org_display_name").val(data.display_name);
       $("#org_legal_name").val(data.legal_name);
@@ -155,38 +108,76 @@ const loadOrgData = async (id) => {
       $("#org_city").val(data.address_city);
       $("#org_state").val(data.address_state);
 
-      if ($("#org_type")[0].selectize) $("#org_type")[0].selectize.setValue(data.org_type);
+      if ($("#org_type")[0] && $("#org_type")[0].selectize) {
+        $("#org_type")[0].selectize.setValue(data.org_type);
+      }
 
       $("#modalInstituicaoLabel").text("Editar Paróquia");
+
+      // Força a aplicação das máscaras
       $("#org_tax_id, #org_phone, #org_phone2, #org_zip").trigger("input");
+
       $("#modalInstituicao").modal("show");
     } else {
-      alertDefault(result.alert, "error");
+      throw new Error(result.alert || "Erro inesperado ao carregar os dados desta instituição.");
     }
   } catch (e) {
-    console.error(e);
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao tentar carregar a instituição.";
+    window.alertErrorWithSupport(`Abrir Cadastro`, errorMessage);
   }
 };
 
 // --- GETTERS & RENDERS ---
 
 window.getDiocese = async () => {
+  const container = $(".list-table-diocese");
+
   try {
-    $(".list-table-diocese").html('<div class="text-center py-5"><span class="loader"></span></div>');
-    const result = await ajaxValidator({
+    // 2. Chamada à API com prefixos padronizados
+    const result = await window.ajaxValidator({
       validator: "getDiocese",
-      token: defaultApp.userInfo.token,
-      type: "dio",
+      token: window.defaultApp.userInfo.token,
+      type: "dio", // Filtro de tipo mantido
     });
 
+    // 3. Tratamento do Resultado
     if (result.status) {
-      renderTableDiocese(result.data || []);
+      const dataArray = result.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso: Renderiza a tabela (Certifique-se que renderTableDiocese esteja no escopo)
+        if (typeof renderTableDiocese === "function") {
+          renderTableDiocese(dataArray);
+        } else {
+          throw new Error("Função de renderização da tabela não encontrada.");
+        }
+      } else {
+        container.html(`
+            <div class="text-center py-5 opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 64px;">account_balance</span>
+                <p class="mt-3 fw-medium text-body">Nenhuma diocese encontrada no sistema.</p>
+            </div>
+        `);
+      }
     } else {
-      $(".list-table-diocese").html('<p class="text-center py-3">Nenhuma diocese encontrada.</p>');
+      throw new Error(result.alert || result.msg || "O servidor não conseguiu processar a lista de dioceses.");
     }
   } catch (e) {
-    console.error(e);
-    $(".list-table-diocese").html('<p class="text-center py-3 text-danger">Erro ao carregar.</p>');
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar dioceses.";
+
+    container.html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-church fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="getDiocese()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport("Listar Dioceses", errorMessage);
   }
 };
 
@@ -299,26 +290,53 @@ const renderTableDiocese = (data) => {
 window.getOrganizacoes = async () => {
   try {
     let page = Math.max(0, defaultOrg.orgCurrentPage - 1);
-    $(".list-table-orgs").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
-    const result = await ajaxValidator({
+    // 2. Chamada à API
+    const result = await window.ajaxValidator({
       validator: "getOrganizations",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       limit: defaultOrg.orgRowsPerPage,
       page: page * defaultOrg.orgRowsPerPage,
       type: "org",
     });
 
+    // 3. Tratamento do Resultado
     if (result.status) {
-      defaultOrg.orgTotalPages = Math.max(1, Math.ceil((result.data[0]?.total_registros || 0) / defaultOrg.orgRowsPerPage));
-      renderTableOrgs(result.data || []);
-      populateOrgSelects(result.data || []);
+      const dataArray = result.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso com dados: Atualiza paginação, tabela e selects
+        defaultOrg.orgTotalPages = Math.max(1, Math.ceil((dataArray[0]?.total_registros || 0) / defaultOrg.orgRowsPerPage));
+        renderTableOrgs(dataArray);
+        populateOrgSelects(dataArray);
+      } else {
+        // Estado Vazio: Não há paróquias (Não é um erro)
+        $(".list-table-orgs").html(`
+              <div class="text-center py-5 opacity-50">
+                  <span class="material-symbols-outlined" style="font-size: 56px;">church</span>
+                  <p class="mt-3 fw-medium text-body">Nenhuma paróquia encontrada no sistema.</p>
+              </div>
+          `);
+      }
     } else {
-      $(".list-table-orgs").html('<p class="text-center py-3">Nenhuma paróquia encontrada.</p>');
+      throw new Error(result.alert || "Erro inesperado ao obter a lista de paróquias.");
     }
   } catch (e) {
-    console.error(e);
-    $(".list-table-orgs").html('<p class="text-center py-3 text-danger">Erro ao carregar.</p>');
+    const errorMessage = e.message || "Falha na comunicação com o servidor. Tente novamente.";
+
+    $(".list-table-orgs").html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-exclamation-triangle fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="window.getOrganizacoes()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport("Listar Paróquias/Organizações", errorMessage);
   }
 };
 
@@ -431,27 +449,55 @@ const renderTableOrgs = (data) => {
 // 2. LOCAIS / SALAS (RENDER)
 // =========================================================
 
-const getLocais = async () => {
+window.getLocais = async () => {
   try {
     let page = Math.max(0, defaultOrg.locCurrentPage - 1);
-    $(".list-table-locais").html('<div class="text-center py-5"><span class="loader"></span></div>');
 
-    const result = await ajaxValidator({
+    // 2. Chamada à API
+    const result = await window.ajaxValidator({
       validator: "getLocations",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       limit: defaultOrg.locRowsPerPage,
       page: page * defaultOrg.locRowsPerPage,
       org_id: $("#filtro-org-locais").val(),
     });
+
+    // 3. Tratamento do Resultado
     if (result.status) {
-      defaultOrg.locTotalPages = Math.max(1, Math.ceil((result.data[0]?.total_registros || 0) / defaultOrg.locRowsPerPage));
-      renderTableLocais(result.data || []);
+      const dataArray = result.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso com dados: Atualiza paginação e tabela
+        defaultOrg.locTotalPages = Math.max(1, Math.ceil((dataArray[0]?.total_registros || 0) / defaultOrg.locRowsPerPage));
+        renderTableLocais(dataArray);
+      } else {
+        // Estado Vazio: Nenhum local cadastrado para esta paróquia (Não é um erro)
+        $(".list-table-locais").html(`
+            <div class="text-center py-5 opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 56px;">location_on</span>
+                <p class="mt-3 fw-medium text-body">Nenhum local de encontro cadastrado.</p>
+            </div>
+        `);
+      }
     } else {
-      $(".list-table-locais").html('<p class="text-center py-3">Nenhum local encontrado.</p>');
+      throw new Error(result.alert || "Erro inesperado ao obter a lista de locais.");
     }
   } catch (e) {
-    console.error(e);
-    $(".list-table-locais").html('<p class="text-center py-3 text-danger">Erro ao carregar.</p>');
+    const errorMessage = e.message || "Falha na comunicação com o servidor. Tente novamente.";
+
+    $(".list-table-locais").html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-exclamation-triangle fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="window.getLocais()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport("Listar Locais", errorMessage);
   }
 };
 
@@ -503,8 +549,12 @@ const renderTableLocais = (data) => {
       // 2. Checagem das propriedades aninhadas (Objeto resources)
       // Garantia caso venha como string JSON do Postgres
       let resObj = item.resources || {};
-      if (typeof resObj === 'string') {
-        try { resObj = JSON.parse(resObj); } catch (e) { resObj = {}; }
+      if (typeof resObj === "string") {
+        try {
+          resObj = JSON.parse(resObj);
+        } catch (e) {
+          resObj = {};
+        }
       }
 
       // Adiciona os demais ícones lendo de 'resources'
@@ -547,8 +597,12 @@ const renderTableLocais = (data) => {
       if (item.is_consecrated) icons += window.getResourceIcon("sacred");
 
       let resObj = item.resources || {};
-      if (typeof resObj === 'string') {
-        try { resObj = JSON.parse(resObj); } catch (e) { resObj = {}; }
+      if (typeof resObj === "string") {
+        try {
+          resObj = JSON.parse(resObj);
+        } catch (e) {
+          resObj = {};
+        }
       }
 
       if (resObj.fan && !item.has_ceiling_fan) icons += window.getResourceIcon("fan");
@@ -562,9 +616,7 @@ const renderTableLocais = (data) => {
       if (resObj.parking) icons += window.getResourceIcon("parking");
 
       // Monta o bloco de ícones com um design "soft" translúcido (sem bordas duras)
-      const iconsHtml = icons
-        ? `<div class="d-flex flex-wrap align-items-center mt-3 p-2 px-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-10">${icons}</div>`
-        : '';
+      const iconsHtml = icons ? `<div class="d-flex flex-wrap align-items-center mt-3 p-2 px-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-10">${icons}</div>` : "";
 
       return `
         <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
@@ -572,7 +624,7 @@ const renderTableLocais = (data) => {
                 <div class="flex-grow-1 pe-3">
                     <h6 class="fw-bold mb-1 fs-5">${item.name}</h6>
                     
-                    ${item.org_name ? `<div class="small text-muted mb-2 d-flex align-items-center"><i class="fas fa-church me-2 opacity-50"></i> ${item.org_name}</div>` : ''}
+                    ${item.org_name ? `<div class="small text-muted mb-2 d-flex align-items-center"><i class="fas fa-church me-2 opacity-50"></i> ${item.org_name}</div>` : ""}
                     
                     <div class="small text-muted fw-medium d-flex align-items-center">
                         <i class="fas fa-users me-2 opacity-50"></i> Cap: ${item.capacity || 0}
@@ -609,78 +661,99 @@ const renderTableLocais = (data) => {
 };
 
 // Funções de CRUD (Mantidas as originais)
-const salvarInstituicao = async () => {
-  const nome = $("#org_display_name").val();
-  if (!nome) return alertDefault("Nome Fantasia é obrigatório.", "warning");
+window.salvarInstituicao = async () => {
+  const nome = $("#org_display_name").val()?.trim();
+
+  // Validação de Front-end (Sem acionar suporte)
+  if (!nome) return window.alertDefault("Nome Fantasia é obrigatório.", "warning");
 
   const btn = $(".btn-save-org");
-  setButton(true, btn, "Salvando...");
+  window.setButton(true, btn, "Salvando...");
+
+  const orgId = $("#org_id").val();
+  const data = {
+    org_id: orgId,
+    display_name: nome,
+    legal_name: $("#org_legal_name").val(),
+    org_type: $("#org_type").val(),
+    tax_id: $("#org_tax_id").val(),
+    phone_main: $("#org_phone").val(),
+    phone_secondary: $("#org_phone2").val(),
+    email_contact: $("#org_email").val(),
+    website_url: $("#org_website").val(),
+    patron_saint: $("#org_patron").val(),
+    decree_number: $("#org_decree").val(),
+    diocese_name: $("#org_diocese").val(),
+    foundation_date: $("#org_foundation").val(),
+    zip_code: $("#org_zip").val(),
+    address_street: $("#org_street").val(),
+    address_number: $("#org_number").val(),
+    address_district: $("#org_district").val(),
+    address_city: $("#org_city").val(),
+    address_state: $("#org_state").val(),
+  };
 
   try {
-    const result = await ajaxValidator({
+    // Chamada à API
+    const result = await window.ajaxValidator({
       validator: "saveOrganization",
-      token: defaultApp.userInfo.token,
-      data: {
-        org_id: $("#org_id").val(),
-        display_name: nome,
-        legal_name: $("#org_legal_name").val(),
-        org_type: $("#org_type").val(),
-        tax_id: $("#org_tax_id").val(),
-        phone_main: $("#org_phone").val(),
-        phone_secondary: $("#org_phone2").val(),
-        email_contact: $("#org_email").val(),
-        website_url: $("#org_website").val(),
-        patron_saint: $("#org_patron").val(),
-        decree_number: $("#org_decree").val(),
-        diocese_name: $("#org_diocese").val(),
-        foundation_date: $("#org_foundation").val(),
-        zip_code: $("#org_zip").val(),
-        address_street: $("#org_street").val(),
-        address_number: $("#org_number").val(),
-        address_district: $("#org_district").val(),
-        address_city: $("#org_city").val(),
-        address_state: $("#org_state").val(),
-      },
+      token: window.defaultApp.userInfo.token,
+      data: data,
     });
+
     if (result.status) {
-      alertDefault("Salvo com sucesso!", "success");
+      window.alertDefault("Dados da instituição salvos!", "success");
       $("#modalInstituicao").modal("hide");
-      getDiocese();
-      getOrganizacoes();
+
+      // Atualiza as listagens
+      if (typeof getDiocese === "function") getDiocese();
+      if (typeof getOrganizacoes === "function") getOrganizacoes();
     } else {
-      alertDefault(result.alert, "error");
+      throw new Error(result.alert || "O servidor recusou o salvamento dos dados da paróquia.");
     }
   } catch (e) {
-    console.error(e);
-    alertDefault("Erro ao salvar.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar.";
+    const acaoContexto = orgId ? `Editar Instituição` : "Criar Nova Instituição";
+    window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
-    setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
+    // 4. Sempre libera o botão, mesmo em erro
+    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
   }
 };
 
-const deleteOrg = (id) => {
+window.deleteOrg = (id) => {
   Swal.fire({
     title: "Excluir Paróquia?",
-    text: "Ela será movida para a lixeira.",
+    text: "Ela será movida para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Sim, inativar",
+    cancelButtonColor: "#6c757d", // Cinza padrão Soft UI
+    confirmButtonText: "Sim, excluir",
     cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        const res = await ajaxValidator({ validator: "deleteOrganization", token: defaultApp.userInfo.token, id: id });
+        // Chamada à API
+        const res = await window.ajaxValidator({
+          validator: "deleteOrganization",
+          token: window.defaultApp.userInfo.token,
+          id: id,
+        });
+
+        // Tratamento do Resultado
         if (res.status) {
-          alertDefault("Paróquia inativada.", "success");
-          getDiocese();
-          getOrganizacoes();
+          window.alertDefault("Paróquia movida para a lixeira.", "success");
+
+          // Atualiza as listagens se as funções existirem no escopo
+          if (typeof getDiocese === "function") getDiocese();
+          if (typeof getOrganizacoes === "function") getOrganizacoes();
         } else {
-          alertDefault(res.alert, "error");
+          throw new Error(res.alert || "O banco de dados não permitiu a exclusão desta paróquia.");
         }
       } catch (e) {
-        alertDefault("Erro ao excluir.", "error");
+        const errorMessage = e.message || "Falha de conexão ao tentar excluir a instituição.";
+        window.alertErrorWithSupport(`Excluir Paróquia/Org`, errorMessage);
       }
     }
   });
@@ -707,14 +780,39 @@ const buscarCepLoc = (valor) => {
 
 const loadResponsibles = async () => {
   try {
-    const result = await ajaxValidator({ validator: "getResponsiblesList", token: defaultApp.userInfo.token });
+    // 1. Chamada à API com prefixo window. padronizado
+    const result = await window.ajaxValidator({
+      validator: "getResponsiblesList",
+      token: window.defaultApp.userInfo.token,
+    });
+
     if (result.status) {
-      const options = result.data.map((p) => ({ id: p.person_id, title: p.full_name }));
-      $("#loc_responsible").each((_, el) => el.selectize?.destroy());
-      $("#loc_responsible").selectize({ valueField: "id", labelField: "title", searchField: ["title"], options: options, create: false, placeholder: "Selecione..." });
+      const options = (result.data || []).map((p) => ({
+        id: p.person_id,
+        title: p.full_name,
+      }));
+
+      // 2. Reinicialização Segura do Selectize
+      const $select = $("#loc_responsible");
+
+      $select.each((_, el) => {
+        if (el.selectize) el.selectize.destroy();
+      });
+
+      $select.selectize({
+        valueField: "id",
+        labelField: "title",
+        searchField: ["title"],
+        options: options,
+        create: false,
+        placeholder: "Selecione um responsável...",
+      });
+    } else {
+      throw new Error(result.alert || "Erro ao carregar a lista de responsáveis.");
     }
   } catch (e) {
-    console.error(e);
+    const errorMessage = e.message || "Não foi possível carregar a lista de pessoas para este campo.";
+    window.alertErrorWithSupport("Carregar Lista de Responsáveis (getResponsiblesList)", errorMessage);
   }
 };
 
@@ -780,15 +878,16 @@ const editarLocalObj = (item) => {
   });
 };
 
-const salvarLocal = async () => {
+window.salvarLocal = async () => {
   const id = $("#loc_id").val();
-  const nome = $("#loc_name").val().trim();
+  const nome = $("#loc_name").val()?.trim();
   const orgId = $("#loc_org_id").val();
 
-  if (!nome || !orgId) return alertDefault("Nome e Paróquia obrigatórios.", "warning");
+  // Validações de Front-end (Rápidas, sem acionar suporte)
+  if (!nome || !orgId) return window.alertDefault("Nome e Paróquia são obrigatórios.", "warning");
 
   const modalBtn = $(".btn-save-loc");
-  setButton(true, modalBtn, "Salvando...");
+  window.setButton(true, modalBtn, "Salvando...");
 
   try {
     const data = {
@@ -809,44 +908,68 @@ const salvarLocal = async () => {
       has_fan: $("#loc_fan").is(":checked"),
       has_water: $("#loc_water").is(":checked"),
       has_computer: $("#loc_computer").is(":checked"),
+      // Lógica de endereço condicional
       address_street: $("#loc_diff_address").is(":checked") ? $("#loc_street").val() : "",
       address_number: $("#loc_diff_address").is(":checked") ? $("#loc_number").val() : "",
       address_district: $("#loc_diff_address").is(":checked") ? $("#loc_district").val() : "",
       zip_code: $("#loc_diff_address").is(":checked") ? $("#loc_zip").val() : "",
     };
 
-    const result = await ajaxValidator({ validator: "saveLocation", token: defaultApp.userInfo.token, data: data });
+    // Chamada à API
+    const result = await window.ajaxValidator({
+      validator: "saveLocation",
+      token: window.defaultApp.userInfo.token,
+      data: data,
+    });
+
     if (result.status) {
-      alertDefault("Salvo!", "success");
+      window.alertDefault("Local salvo com sucesso!", "success");
       $("#modalLocal").modal("hide");
-      getLocais();
+
+      if (typeof getLocais === "function") window.getLocais();
     } else {
-      alertDefault(result.alert, "error");
+      throw new Error(result.alert || "O servidor recusou o salvamento deste local.");
     }
   } catch (e) {
-    console.error(e);
-    alertDefault("Erro ao salvar.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar o local.";
+    const acaoContexto = id ? `Editar Local` : "Criar Novo Local";
+    window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
-    setButton(false, modalBtn, "Salvar");
+    // 4. Libera o botão independente do resultado
+    window.setButton(false, modalBtn, '<i class="fas fa-save me-2"></i> Salvar');
   }
 };
 
 window.deleteLoc = (id) => {
   Swal.fire({
     title: "Excluir Local?",
-    text: "Ele será movido para a lixeira.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    confirmButtonText: "Sim",
+    cancelButtonColor: "#6c757d", // Cinza padrão do sistema
+    confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
-      const res = await ajaxValidator({ validator: "deleteLocation", token: defaultApp.userInfo.token, id: id });
-      if (res.status) {
-        alertDefault("Excluído.", "success");
-        getLocais();
-      } else {
-        alertDefault(res.alert, "error");
+      try {
+        // Chamada à API
+        const res = await window.ajaxValidator({
+          validator: "deleteLocation",
+          token: window.defaultApp.userInfo.token,
+          id: id,
+        });
+
+        if (res.status) {
+          window.alertDefault("Local movido para a lixeira.", "success");
+
+          if (typeof getLocais === "function") window.getLocais();
+        } else {
+          throw new Error(res.alert || "O banco de dados não permitiu a exclusão deste local.");
+        }
+      } catch (e) {
+        const errorMessage = e.message || "Falha de conexão ao tentar excluir o local.";
+        window.alertErrorWithSupport(`Excluir Local`, errorMessage);
       }
     }
   });

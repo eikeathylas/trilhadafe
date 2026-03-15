@@ -51,7 +51,10 @@
             <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-0">
                     <div class="table-responsive list-table-events" style="max-height: 600px;">
-                        <div class="text-center py-5"><span class="loader"></span></div>
+                        <div class="text-center py-5 opacity-50">
+                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                            <p class="mt-3 fw-medium">Carregando calendário de eventos...</p>
+                        </div>
                     </div>
                     <div class="pagination paginationButtons pagination-events mt-3 text-center justify-content-center"></div>
                 </div>

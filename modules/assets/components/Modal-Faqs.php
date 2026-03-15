@@ -115,9 +115,9 @@
               <div class="accordion-body">
                 Se encontrou algo que não funciona ou precisa de auxílio técnico urgente, chame nosso suporte oficial no WhatsApp.
                 <div class="mt-3">
-                  <a class="btn btn-success fw-bold px-4 py-2 rounded-pill text-white shadow-sm" target="_blank" href="https://wa.me/5581982549914?text=Olá,%20preciso%20de%20ajuda%20no%20sistema%20Trilha%20da%20Fé.">
+                  <button class="btn btn-success fw-bold px-4 py-2 rounded-pill text-white shadow-sm" onclick="abrirWhatsAppSuporte();">
                     <i class="fab fa-whatsapp me-2"></i> Chamar no Zap
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>

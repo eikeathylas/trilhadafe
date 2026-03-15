@@ -7,60 +7,6 @@ const defaultPeople = {
 let currentFamilyList = [];
 let currentAttachmentsList = [];
 
-// =========================================================
-// FUNÇÃO AUXILIAR DE TOGGLE (COM SPINNER E BADGE)
-// =========================================================
-
-const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
-  const $chk = $(element);
-  const $wrapper = $chk.closest(".form-check");
-  const $loader = $wrapper.find(".toggle-loader");
-  const $labels = $(labelSelector); // Seleciona todas as ocorrências (Desk e Mobile)
-  const status = $chk.is(":checked");
-
-  // Define os estados visuais (Feedback Imediato com Badge)
-  const setVisualState = (isActive) => {
-    if (isActive) {
-      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
-    } else {
-      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
-    }
-  };
-
-  try {
-    // 1. Bloqueia e mostra loader
-    $chk.prop("disabled", true);
-    $loader.removeClass("d-none");
-
-    // 2. Atualiza visualmente (Otimista)
-    setVisualState(status);
-
-    // 3. Chamada API
-    const result = await window.ajaxValidator({
-      validator: validator,
-      token: defaultApp.userInfo.token,
-      id: id,
-      active: status,
-    });
-
-    if (result.status) {
-      window.alertDefault(successMsg, "success");
-    } else {
-      throw new Error(result.alert || "Erro ao atualizar");
-    }
-  } catch (e) {
-    console.error(e);
-    // Reverte estado
-    $chk.prop("checked", !status);
-    setVisualState(!status);
-    window.alertDefault(e.message || "Erro de conexão.", "error");
-  } finally {
-    // 4. Libera
-    $chk.prop("disabled", false);
-    $loader.addClass("d-none");
-  }
-};
-
 window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Status atualizado.", `.status-text-person-${id}`);
 
 // =========================================================
@@ -73,8 +19,7 @@ const getPessoas = async () => {
     const search = $("#busca-texto").val();
     const role = $("#filtro-role").val();
 
-    $(".list-table-pessoas").html('<div class="text-center py-5"><span class="loader"></span></div>');
-
+    // 2. Chamada à API
     const result = await window.ajaxValidator({
       validator: "getPeople",
       token: defaultApp.userInfo.token,
@@ -85,16 +30,42 @@ const getPessoas = async () => {
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
+    // 3. Tratamento do Resultado
     if (result.status) {
-      const total = result.data[0]?.total_registros || 0;
-      defaultPeople.totalPages = Math.max(1, Math.ceil(total / defaultPeople.rowsPerPage));
-      renderTablePeople(result.data || []);
+      const dataArray = result.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso com dados: Renderiza a tabela
+        const total = dataArray[0]?.total_registros || 0;
+        defaultPeople.totalPages = Math.max(1, Math.ceil(total / defaultPeople.rowsPerPage));
+        renderTablePeople(dataArray);
+      } else {
+        // Estado Vazio: Busca não retornou resultados (Não é um erro)
+        $(".list-table-pessoas").html(`
+            <div class="text-center py-5 opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 56px;">group_off</span>
+                <p class="mt-3 fw-medium text-body">Nenhuma pessoa encontrada com estes filtros.</p>
+            </div>
+        `);
+      }
     } else {
-      $(".list-table-pessoas").html('<p class="text-center py-4 text-muted">Nenhuma pessoa encontrada.</p>');
+      throw new Error(result.alert || "Erro inesperado ao obter o diretório de pessoas.");
     }
   } catch (e) {
-    console.error(e);
-    $(".list-table-pessoas").html('<p class="text-center py-4 text-danger">Erro ao carregar dados.</p>');
+    const errorMessage = e.message || "Falha na comunicação com o servidor. Tente novamente.";
+    $(".list-table-pessoas").html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-exclamation-triangle fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="getPessoas()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport("Listar Pessoas", errorMessage);
   }
 };
 
@@ -160,12 +131,12 @@ const renderTablePeople = (data) => {
 
       // Badges de Funções
       let rolesHtml = "";
-      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "dark", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
+      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
       const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
 
       if (item.roles_array) {
         item.roles_array.forEach((r) => {
-          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-dark border"} me-1">${roleNames[r] || r}</span>`;
+          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-secondary border"} me-1">${roleNames[r] || r}</span>`;
         });
       }
 
@@ -231,9 +202,8 @@ const renderTablePeople = (data) => {
         avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5 shadow-sm" style="width:50px; height:50px;">${initials}</div>`;
       }
 
-      // Roles Mobile: Transformados em Ghost Badges (Fundos Translúcidos)
       let rolesHtml = "";
-      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "dark", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
+      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
       const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
 
       if (item.roles_array && item.roles_array.length > 0) {
@@ -253,22 +223,22 @@ const renderTablePeople = (data) => {
 
       return `
         <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
-            
-            <div class="d-flex justify-content-between align-items-start mb-2">
+                
+                <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="d-flex align-items-start flex-grow-1 pe-2">
                     <div class="me-3 mt-1">${avatarHtml}</div>
-                    <div>
+                        <div>
                         <h6 class="fw-bold mb-1 fs-5 lh-sm">${item.full_name}</h6>
-                        ${item.religious_name ? `<div class="small text-muted mb-2 lh-1">${item.religious_name}</div>` : ''}
+                        ${item.religious_name ? `<div class="small text-muted mb-2 lh-1">${item.religious_name}</div>` : ""}
                         
                         <div class="mt-2 d-flex flex-wrap">${rolesHtml}</div>
+                        </div>
                     </div>
-                </div>
-                
+
                 <div class="ms-2 text-end mt-1">
                     ${getMobileToggleHtml(item.person_id, item.is_active)}
-                </div>
-            </div>
+                        </div>
+                    </div>
             
             <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-3 mt-3">
                 <div>
@@ -347,11 +317,16 @@ window.modalPessoa = (id = null) => {
 
 const loadPersonData = async (id) => {
   try {
-    const result = await window.ajaxValidator({ validator: "getPerson", token: defaultApp.userInfo.token, id: id });
+    const result = await window.ajaxValidator({
+      validator: "getPerson",
+      token: defaultApp.userInfo.token,
+      id: id,
+    });
 
     if (result.status) {
       const d = result.data;
 
+      // PREENCHIMENTO DE DADOS BÁSICOS
       $("#person_id").val(d.person_id);
       $("#full_name").val(d.full_name);
       $("#religious_name").val(d.religious_name);
@@ -373,12 +348,14 @@ const loadPersonData = async (id) => {
       $("#is_pcd").prop("checked", d.is_pcd);
       if (d.is_pcd) $("#pcd_details").removeClass("d-none").val(d.pcd_details);
 
+      // FOTO DE PERFIL
       if (d.profile_photo_url) {
         $("#img-preview").attr("src", d.profile_photo_url).show();
         $("#placeholder-foto").hide();
         $("#btn-remove-foto").removeClass("d-none");
       }
 
+      // PERFIS (ROLES)
       if (d.roles) {
         if (d.roles.includes("STUDENT")) $("#role_student").prop("checked", true);
         if (d.roles.includes("CATECHIST")) $("#role_catechist").prop("checked", true);
@@ -407,7 +384,7 @@ const loadPersonData = async (id) => {
       $("#has_confirmation").prop("checked", sac.confirmation === true || sac.confirmation === "true");
       $("#has_marriage").prop("checked", sac.marriage === true || sac.marriage === "true");
 
-      // LISTAS
+      // LISTAS DINÂMICAS
       currentFamilyList = d.family || [];
       renderFamilyTable();
 
@@ -416,16 +393,19 @@ const loadPersonData = async (id) => {
 
       initSelectRelatives();
 
+      // RENDERIZAÇÃO FINAL
       $("#modalPessoaLabel").text("Editar Pessoa");
+
+      // Força a formatação visual imediata
       $("#tax_id, #phone_mobile, #phone_landline, #zip_code").trigger("input");
 
       $("#modalPessoa").modal("show");
     } else {
-      window.alertDefault(result.alert, "error");
+      throw new Error(result.alert || "Erro inesperado ao carregar os dados deste cadastro.");
     }
   } catch (e) {
-    console.error(e);
-    window.alertDefault("Erro ao carregar cadastro.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao tentar carregar o cadastro.";
+    window.alertErrorWithSupport(`Abrir Cadastro de Pessoa`, errorMessage);
   }
 };
 
@@ -689,13 +669,13 @@ window.uploadAttachment = async () => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-        url: defaultApp.validator,
-        data: formData,
-        type: "POST",
-        processData: false,
-        contentType: false,
-        dataType: "json",
-      }));
+          url: defaultApp.validator,
+          data: formData,
+          type: "POST",
+          processData: false,
+          contentType: false,
+          dataType: "json",
+        }));
 
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
@@ -707,7 +687,6 @@ window.uploadAttachment = async () => {
       window.alertDefault(res.alert, "error");
     }
   } catch (e) {
-    console.error(e);
     window.alertDefault("Erro no upload.", "error");
   } finally {
     window.setButton(false, btn, '<i class="fas fa-plus"></i> Adicionar');
@@ -717,27 +696,34 @@ window.uploadAttachment = async () => {
 window.removeAttachment = (id) => {
   Swal.fire({
     title: "Excluir documento?",
-    text: "Essa ação não pode ser desfeita.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
     confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
+        // Chamada à API
         const res = await window.ajaxValidator({
           validator: "removeAttachment",
           token: defaultApp.userInfo.token,
           id: id,
         });
+
         if (res.status) {
-          window.alertDefault("Documento removido.", "success");
-          loadPersonData($("#person_id").val());
+          window.alertDefault("Documento removido com sucesso.", "success");
+
+          const currentPersonId = $("#person_id").val();
+          if (currentPersonId) loadPersonData(currentPersonId);
         } else {
-          window.alertDefault(res.alert, "error");
+          throw new Error(res.alert || "Erro inesperado ao remover o arquivo no servidor.");
         }
       } catch (e) {
-        window.alertDefault("Erro ao excluir.", "error");
+        const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar excluir o documento.";
+        window.alertErrorWithSupport(`Excluir Documento/Anexo`, errorMessage);
       }
     }
   });
@@ -787,13 +773,13 @@ window.salvarPessoa = async () => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-        url: defaultApp.validator,
-        data: formData,
-        type: "POST",
-        processData: false,
-        contentType: false,
-        dataType: "json",
-      }));
+          url: defaultApp.validator,
+          data: formData,
+          type: "POST",
+          processData: false,
+          contentType: false,
+          dataType: "json",
+        }));
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");
@@ -803,7 +789,6 @@ window.salvarPessoa = async () => {
       window.alertDefault(res.alert, "error");
     }
   } catch (e) {
-    console.error(e);
     window.alertDefault("Erro ao salvar.", "error");
   } finally {
     window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Cadastro');
@@ -829,14 +814,34 @@ window.buscarCep = (valor) => {
 };
 
 window.deletePerson = (id) => {
-  Swal.fire({ title: "Excluir?", text: "Vai para a lixeira.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim" }).then(async (r) => {
+  Swal.fire({
+    title: "Excluir cadastro?",
+    text: "O registro será movido para a lixeira do sistema.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
+  }).then(async (r) => {
     if (r.isConfirmed) {
-      const res = await window.ajaxValidator({ validator: "deletePerson", token: defaultApp.userInfo.token, id: id });
-      if (res.status) {
-        window.alertDefault("Excluído.", "success");
-        getPessoas();
-      } else {
-        window.alertDefault(res.alert, "error");
+      try {
+        // Chamada à API
+        const res = await window.ajaxValidator({
+          validator: "deletePerson",
+          token: defaultApp.userInfo.token,
+          id: id,
+        });
+
+        if (res.status) {
+          window.alertDefault("Cadastro movido para a lixeira com sucesso.", "success");
+          getPessoas();
+        } else {
+          throw new Error(res.alert || "O servidor recusou a exclusão deste cadastro.");
+        }
+      } catch (e) {
+        const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar excluir a pessoa.";
+        window.alertErrorWithSupport(`Excluir Pessoa`, errorMessage);
       }
     }
   });

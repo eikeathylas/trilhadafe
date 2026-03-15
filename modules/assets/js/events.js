@@ -31,28 +31,58 @@ $(document).ready(() => {
 // 1. LISTAGEM
 const loadEvents = async () => {
   const container = $(".list-table-events");
-  container.html('<div class="text-center py-5"><span class="loader"></span></div>');
-
   try {
-    const res = await ajaxValidator({
+    const page = Math.max(0, defaultEvents.currentPage - 1);
+
+    // 2. Chamada à API com prefixos padronizados
+    const res = await window.ajaxValidator({
       validator: "getAllEvents",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       limit: defaultEvents.rowsPerPage,
-      page: (defaultEvents.currentPage - 1) * defaultEvents.rowsPerPage,
+      page: page * defaultEvents.rowsPerPage,
       search: $("#search_event").val(),
       org_id: localStorage.getItem("tf_active_parish"),
       year: localStorage.getItem("sys_active_year"),
     });
 
+    // 3. Tratamento do Resultado
     if (res.status) {
-      const total = res.data[0]?.total_registros || 0;
-      defaultEvents.totalPages = Math.max(1, Math.ceil(total / defaultEvents.rowsPerPage));
-      renderTableEvents(res.data || []);
+      const dataArray = res.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso: Renderiza a tabela e atualiza paginação
+        const total = dataArray[0]?.total_registros || 0;
+        defaultEvents.totalPages = Math.max(1, Math.ceil(total / defaultEvents.rowsPerPage));
+        renderTableEvents(dataArray);
+      } else {
+        // Estado Vazio: Nenhum evento encontrado (Sem erro)
+        container.html(`
+          <div class="text-center py-5 opacity-50">
+              <span class="material-symbols-outlined" style="font-size: 56px;">event_busy</span>
+              <p class="mt-3 fw-medium text-body">Nenhum evento agendado para este período.</p>
+          </div>
+        `);
+      }
     } else {
-      renderTableEvents([]);
+      throw new Error(res.alert || "Não foi possível carregar a lista de eventos.");
     }
   } catch (e) {
-    container.html('<div class="alert alert-danger m-3">Erro ao carregar eventos.</div>');
+    const errorMessage = e.message || "Falha de conexão ao carregar o calendário.";
+
+    // 4. Feedback Visual de Erro Integrado
+    container.html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-calendar-times fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar calendário</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="loadEvents()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport("Listar Eventos", errorMessage);
   }
 };
 
@@ -70,7 +100,10 @@ const renderTableEvents = (data) => {
   }
 
   // Helper de Label
-  const getBlockerLabel = (is) => (is ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>');
+  const getBlockerLabel = (is) =>
+    is
+      ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>'
+      : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
 
   // =========================================================
   // 1. VISÃO DESKTOP
@@ -196,39 +229,44 @@ window.toggleBlocker = async (id, element) => {
   const $loader = $chk.siblings(".toggle-loader");
   const status = $chk.is(":checked");
 
-  // Labels (Desktop e Mobile)
-  const $labelDesk = $(`#lbl_${id}`);
-  const $labelMob = $(`#lbl_mob_${id}`);
+  // Labels (Desktop e Mobile) - Seleção unificada para performance
+  const $labels = $(`#lbl_${id}, #lbl_mob_${id}`);
+
+  // Função interna para atualizar o badge visual (UI Otimista ou Reversão)
+  const setVisualState = (isBlocker) => {
+    const badge = isBlocker ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado/Bloqueio</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda Aberta</span>';
+    $labels.html(badge);
+  };
 
   try {
-    // Bloqueia e mostra loader
+    // 1. Bloqueia interação e mostra loader
     $chk.prop("disabled", true);
     $loader.removeClass("d-none");
 
-    const res = await ajaxValidator({
+    // 2. Feedback Visual Imediato (Otimista)
+    setVisualState(status);
+
+    // 3. Chamada à API
+    const res = await window.ajaxValidator({
       validator: "toggleEventBlocker",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       id: id,
       is_blocker: status,
     });
 
     if (res.status) {
-      window.alertDefault("Status atualizado.", "success");
-
-      // Atualiza Labels Visualmente
-      const newBadge = status ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
-
-      $labelDesk.html(newBadge);
-      $labelMob.html(newBadge);
+      window.alertDefault("Status do calendário atualizado.", "success");
     } else {
-      window.alertDefault(res.msg, "error");
-      $chk.prop("checked", !status); // Reverte
+      throw new Error(res.msg || res.alert || "O servidor não permitiu alterar o bloqueio deste evento.");
     }
   } catch (e) {
-    window.alertDefault("Erro de conexão.", "error");
-    $chk.prop("checked", !status); // Reverte
+    $chk.prop("checked", !status);
+    setVisualState(!status);
+
+    const errorMessage = e.message || "Falha de conexão ao tentar atualizar o bloqueio.";
+    window.alertErrorWithSupport(`Alternar Bloqueio de Agenda`, errorMessage);
   } finally {
-    // Libera e esconde loader
+    // 6. Libera o componente
     $chk.prop("disabled", false);
     $loader.addClass("d-none");
   }
@@ -245,46 +283,65 @@ window.openEventModal = () => {
 
 window.editEvent = async (id) => {
   try {
-    const res = await ajaxValidator({
+    // 1. Chamada à API com prefixos padronizados
+    const res = await window.ajaxValidator({
       validator: "getEventData",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       id: id,
     });
 
     if (res.status) {
       const d = res.data;
+
+      // PREENCHIMENTO DOS CAMPOS
       $("#event_id").val(d.event_id);
       $("#evt_title").val(d.title);
       $("#evt_desc").val(d.description);
 
-      fpEventDate.setDate(d.event_date);
+      // Atualiza o Flatpickr (Supondo que fpEventDate seja a instância global)
+      if (typeof fpEventDate !== "undefined") {
+        fpEventDate.setDate(d.event_date);
+      }
 
       $("#evt_start").val(d.start_time);
       $("#evt_end").val(d.end_time);
-      $("#evt_blocker").prop("checked", d.is_academic_blocker === true || d.is_academic_blocker === "t");
 
+      // Tratamento booleano rigoroso para o checkbox
+      $("#evt_blocker").prop("checked", d.is_academic_blocker === true || d.is_academic_blocker === "t" || d.is_academic_blocker === 1);
+
+      // INTERFACE
       $("#modalEventTitle").text("Editar Evento");
       $("#modalEvent").modal("show");
+    } else {
+      throw new Error(res.alert || res.msg || "O servidor não retornou os dados deste evento.");
     }
   } catch (e) {
-    window.alertDefault("Erro ao carregar dados.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar o evento.";
+
+    window.alertErrorWithSupport(`Abrir Edição de Evento`, errorMessage);
   }
 };
 
 window.saveEvent = async () => {
   const id = $("#event_id").val();
-  const title = $("#evt_title").val().trim();
+  const title = $("#evt_title").val()?.trim();
   const date = $("#evt_date").val();
 
+  // 1. Validação de Front-end (Rápida)
   if (!title || !date) {
-    window.alertDefault("Preencha título e data.", "warning");
+    window.alertDefault("Título e data são obrigatórios.", "warning");
     return;
   }
 
+  // Referência do botão para feedback visual
+  const btn = $(".btn-save-event");
+  window.setButton(true, btn, "Salvando...");
+
   try {
-    const res = await ajaxValidator({
+    // 2. Chamada à API
+    const res = await window.ajaxValidator({
       validator: "upsertEvent",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       event_id: id,
       title: title,
       description: $("#evt_desc").val(),
@@ -292,48 +349,65 @@ window.saveEvent = async () => {
       start_time: $("#evt_start").val(),
       end_time: $("#evt_end").val(),
       is_academic_blocker: $("#evt_blocker").is(":checked"),
-      user_id: defaultApp.userInfo.id,
+      user_id: window.defaultApp.userInfo.id,
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
+    // 3. Tratamento do Resultado
     if (res.status) {
-      window.alertDefault(res.msg, "success");
+      window.alertDefault(res.msg || "Evento salvo com sucesso!", "success");
       $("#modalEvent").modal("hide");
-      loadEvents();
+
+      if (typeof loadEvents === "function") loadEvents();
     } else {
-      window.alertDefault(res.msg, "error");
+      // REGRA APLICADA: Lança o erro para o Catch tratar
+      throw new Error(res.msg || res.alert || "O servidor recusou o salvamento deste evento.");
     }
   } catch (e) {
-    window.alertDefault("Erro ao salvar.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar o evento.";
+
+    const acaoContexto = id ? `Editar Evento` : "Criar Novo Evento";
+
+    window.alertErrorWithSupport(acaoContexto, errorMessage);
+  } finally {
+    // 5. Restaura o estado do botão
+    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
   }
 };
 
-// 3. EXCLUSÃO
 window.deleteEvent = (id) => {
   Swal.fire({
     title: "Excluir Evento?",
-    text: "Esta ação não pode ser desfeita.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    confirmButtonText: "Excluir",
+    cancelButtonColor: "#6c757d", // Cinza padrão Soft UI
+    confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        const res = await ajaxValidator({
+        // Chamada à API com prefixos padronizados
+        const res = await window.ajaxValidator({
           validator: "removeEvent",
-          token: defaultApp.userInfo.token,
+          token: window.defaultApp.userInfo.token,
           id: id,
-          user_id: defaultApp.userInfo.id,
+          user_id: window.defaultApp.userInfo.id,
         });
+
+        // Tratamento do Resultado
         if (res.status) {
-          window.alertDefault("Evento excluído.", "success");
-          loadEvents();
+          window.alertDefault("Evento removido com sucesso.", "success");
+
+          if (typeof loadEvents === "function") loadEvents();
         } else {
-          window.alertDefault(res.msg, "error");
+          // REGRA APLICADA: Lança o erro para o Catch interceptar
+          throw new Error(res.msg || res.alert || "O servidor não permitiu excluir este evento.");
         }
       } catch (e) {
-        window.alertDefault("Erro ao excluir.", "error");
+        const errorMessage = e.message || "Falha de conexão ao tentar remover o evento.";
+        window.alertErrorWithSupport(`Excluir Evento`, errorMessage);
       }
     }
   });

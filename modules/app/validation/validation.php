@@ -415,6 +415,8 @@ function ping()
 	return success("Sistema operacional", [
 		"status" => "ok",
 		"version" => "1.0.0",
+		"system" => "Trilha da Fé",
+		"ip" => getIp(), 
 		"server_time" => date("Y-m-d H:i:s")
 	]);
 }

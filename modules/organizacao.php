@@ -60,7 +60,10 @@
                             </div>
 
                             <div class="table-responsive list-table-diocese" style="max-height: 600px;">
-                                <div class="text-center py-5"><span class="loader"></span></div>
+                                <div class="text-center py-5 opacity-50">
+                                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                                    <p class="mt-3 fw-medium">Carregando dioceses...</p>
+                                </div>
                             </div>
                             <div class="pagination paginationButtons pagination-diocese mt-3 d-flex justify-content-center"></div>
                         </div>
@@ -73,7 +76,10 @@
                             </div>
 
                             <div class="table-responsive list-table-orgs" style="max-height: 600px;">
-                                <div class="text-center py-5"><span class="loader"></span></div>
+                                <div class="text-center py-5 opacity-50">
+                                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                                    <p class="mt-3 fw-medium">Carregando paróquias...</p>
+                                </div>
                             </div>
                             <div class="pagination paginationButtons pagination-orgs mt-3 d-flex justify-content-center"></div>
                         </div>
@@ -92,7 +98,10 @@
                             </div>
 
                             <div class="table-responsive list-table-locais" style="max-height: 600px;">
-                                <div class="text-center py-5"><span class="loader"></span></div>
+                                <div class="text-center py-5 opacity-50">
+                                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                                    <p class="mt-3 fw-medium">Carregando locais...</p>
+                                </div>
                             </div>
                             <div class="pagination paginationButtons pagination-locais mt-3 d-flex justify-content-center"></div>
                         </div>

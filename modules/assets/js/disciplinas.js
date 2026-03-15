@@ -4,53 +4,6 @@ const defaultSubject = {
   totalPages: 1,
 };
 
-// =========================================================
-// FUNÇÃO AUXILIAR DE TOGGLE (COM SPINNER E BADGE)
-// =========================================================
-
-const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
-  const $chk = $(element);
-  const $wrapper = $chk.closest(".form-check");
-  const $loader = $wrapper.find(".toggle-loader");
-  const $labels = $(labelSelector);
-  const status = $chk.is(":checked");
-
-  const setVisualState = (isActive) => {
-    if (isActive) {
-      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
-    } else {
-      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
-    }
-  };
-
-  try {
-    $chk.prop("disabled", true);
-    $loader.removeClass("d-none");
-    setVisualState(status);
-
-    const result = await window.ajaxValidator({
-      validator: validator,
-      token: defaultApp.userInfo.token,
-      id: id,
-      active: status,
-    });
-
-    if (result.status) {
-      window.alertDefault(successMsg, "success");
-    } else {
-      throw new Error(result.alert || "Erro ao atualizar");
-    }
-  } catch (e) {
-    console.error(e);
-    $chk.prop("checked", !status);
-    setVisualState(!status);
-    window.alertDefault(e.message || "Erro de conexão.", "error");
-  } finally {
-    $chk.prop("disabled", false);
-    $loader.addClass("d-none");
-  }
-};
-
 window.toggleSubject = (id, element) => handleToggle("toggleSubject", id, element, "Status atualizado.", `.status-text-sub-${id}`);
 
 // =========================================================
@@ -62,27 +15,54 @@ const getDisciplinas = async () => {
     const page = Math.max(0, defaultSubject.currentPage - 1);
     const search = $("#busca-texto").val();
 
-    $(".list-table-disciplinas").html('<div class="text-center py-5"><span class="loader"></span></div>');
-
+    // 2. Chamada à API com prefixo window. padronizado
     const result = await window.ajaxValidator({
       validator: "getSubjects",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       limit: defaultSubject.rowsPerPage,
       page: page * defaultSubject.rowsPerPage,
       search: search,
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
+    // 3. Tratamento do Resultado
     if (result.status) {
-      const total = result.data[0]?.total_registros || 0;
-      defaultSubject.totalPages = Math.max(1, Math.ceil(total / defaultSubject.rowsPerPage));
-      renderTableSubjects(result.data || []);
+      const dataArray = result.data || [];
+
+      if (dataArray.length > 0) {
+        // Sucesso com dados: Renderiza a tabela e atualiza paginação
+        const total = dataArray[0]?.total_registros || 0;
+        defaultSubject.totalPages = Math.max(1, Math.ceil(total / defaultSubject.rowsPerPage));
+        renderTableSubjects(dataArray);
+      } else {
+        // Estado Vazio: Busca não retornou resultados (Não é um erro)
+        $(".list-table-disciplinas").html(`
+            <div class="text-center py-5 opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 56px;">menu_book</span>
+                <p class="mt-3 fw-medium text-body">Nenhuma disciplina ou etapa encontrada.</p>
+            </div>
+        `);
+      }
     } else {
-      $(".list-table-disciplinas").html('<p class="text-center py-4 text-muted">Nenhuma disciplina encontrada.</p>');
+      throw new Error(result.alert || "O servidor não conseguiu processar a lista de disciplinas.");
     }
   } catch (e) {
-    console.error(e);
-    $(".list-table-disciplinas").html('<p class="text-center py-4 text-danger">Erro ao carregar dados.</p>');
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar disciplinas.";
+
+    // 4. Feedback Visual de Erro Integrado à Interface
+    $(".list-table-disciplinas").html(`
+        <div class="text-center py-5">
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                <i class="fas fa-exclamation-circle fs-3"></i>
+            </div>
+            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="getDisciplinas()">
+                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
+            </button>
+        </div>
+    `);
+
+    window.alertErrorWithSupport("Listar Disciplinas/Etapas", errorMessage);
   }
 };
 
@@ -220,56 +200,72 @@ window.modalDisciplina = (id = null) => {
 
 const loadSubjectData = async (id) => {
   try {
-    const result = await window.ajaxValidator({ validator: "getSubjectById", token: defaultApp.userInfo.token, id: id });
+    // 1. Chamada à API com prefixos padronizados
+    const result = await window.ajaxValidator({
+      validator: "getSubjectById",
+      token: window.defaultApp.userInfo.token,
+      id: id,
+    });
 
     if (result.status) {
       const d = result.data;
+
+      // PREENCHIMENTO DOS CAMPOS
       $("#subject_id").val(d.subject_id);
       $("#subject_name").val(d.name);
       $("#subject_summary").val(d.syllabus_summary);
 
-      $("#modalLabel").text("Editar Disciplina");
+      // INTERFACE
+      $("#modalLabel").text("Editar Disciplina/Etapa");
       $("#modalDisciplina").modal("show");
     } else {
-      window.alertDefault(result.alert, "error");
+      throw new Error(result.alert || "O servidor não retornou os dados desta disciplina.");
     }
   } catch (e) {
-    console.error(e);
-    window.alertDefault("Erro ao carregar.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar dados.";
+    window.alertErrorWithSupport(`Abrir Edição de Disciplina`, errorMessage);
   }
 };
 
 window.salvarDisciplina = async () => {
-  const name = $("#subject_name").val().trim();
+  const name = $("#subject_name").val()?.trim();
+  const id = $("#subject_id").val();
+
+  // 1. Validação de Front-end (Sem suporte)
   if (!name) return window.alertDefault("Nome da disciplina é obrigatório.", "warning");
 
   const btn = $(".btn-save");
   window.setButton(true, btn, "Salvando...");
 
   const data = {
-    subject_id: $("#subject_id").val(),
+    subject_id: id,
     name: name,
-    syllabus_summary: $("#subject_summary").val().trim(),
+    syllabus_summary: $("#subject_summary").val()?.trim(),
   };
 
   try {
+    // 2. Chamada à API com prefixos padronizados
     const result = await window.ajaxValidator({
       validator: "saveSubject",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       data: data,
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
     if (result.status) {
-      window.alertDefault("Salvo com sucesso!", "success");
+      window.alertDefault("Disciplina salva com sucesso!", "success");
       $("#modalDisciplina").modal("hide");
-      getDisciplinas();
+
+      if (typeof getDisciplinas === "function") getDisciplinas();
     } else {
-      window.alertDefault(result.alert, "error");
+      throw new Error(result.alert || "O servidor recusou o salvamento desta disciplina.");
     }
   } catch (e) {
-    window.alertDefault("Erro ao salvar.", "error");
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar.";
+    const acaoContexto = id ? `Editar Disciplina` : "Criar Nova Disciplina";
+    window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
+    // 4. Sempre libera o botão
     window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
   }
 };
@@ -281,19 +277,35 @@ window.salvarDisciplina = async () => {
 window.deleteSubject = (id) => {
   Swal.fire({
     title: "Excluir Disciplina?",
-    text: "Vai para a lixeira.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    confirmButtonText: "Sim",
+    cancelButtonColor: "#6c757d", // Cinza padrão EaCode
+    confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
-      const res = await window.ajaxValidator({ validator: "deleteSubject", token: defaultApp.userInfo.token, id: id });
-      if (res.status) {
-        window.alertDefault("Excluído.", "success");
-        getDisciplinas();
-      } else {
-        window.alertDefault(res.alert, "error");
+      try {
+        // Chamada à API com prefixos padronizados
+        const res = await window.ajaxValidator({
+          validator: "deleteSubject",
+          token: window.defaultApp.userInfo.token,
+          id: id,
+        });
+
+        // Tratamento do Resultado
+        if (res.status) {
+          window.alertDefault("Disciplina movida para a lixeira.", "success");
+
+          if (typeof getDisciplinas === "function") window.getDisciplinas();
+        } else {
+          throw new Error(res.alert || "O banco de dados não permitiu a exclusão desta disciplina.");
+        }
+      } catch (e) {
+        const errorMessage = e.message || "Falha de conexão ao tentar excluir a disciplina.";
+
+        window.alertErrorWithSupport(`Excluir Disciplina`, errorMessage);
       }
     }
   });

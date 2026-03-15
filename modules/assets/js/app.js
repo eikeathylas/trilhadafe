@@ -66,8 +66,8 @@ window.initMasks = () => {
 
     // Máscara dinâmica para celular (8 ou 9 dígitos)
     var phoneMaskBehavior = function (val) {
-      return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
-    },
+        return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
+      },
       phoneOptions = {
         onKeyPress: function (val, e, field, options) {
           field.mask(phoneMaskBehavior.apply({}, arguments), options);
@@ -95,22 +95,22 @@ window.getResourceIcon = (key) => {
     ac: '<i class="fas fa-snowflake text-info me-2" title="Ar-Condicionado"></i>',
     fan: '<i class="fas fa-fan text-info me-2" title="Ventilador"></i>',
     water: '<i class="fas fa-glass-water text-info me-2" title="Bebedouro"></i>',
-    
+
     // DESTAQUES (Amarelo, Verde, Vermelho)
-    sacred: '<i class="fas fa-cross text-warning me-2" title="Local Sagrado / Altar"></i>', 
-    kitchen: '<i class="fas fa-mug-hot text-danger me-2" title="Copa / Cozinha"></i>', 
+    sacred: '<i class="fas fa-cross text-warning me-2" title="Local Sagrado / Altar"></i>',
+    kitchen: '<i class="fas fa-mug-hot text-danger me-2" title="Copa / Cozinha"></i>',
     parking: '<i class="fas fa-square-parking text-success me-2" title="Estacionamento"></i>',
-    
+
     // TECNOLOGIA E ACESSO (Azul Primário - Cor base do sistema)
     access: '<i class="fas fa-wheelchair text-primary me-2" title="Acessibilidade"></i>',
     wifi: '<i class="fas fa-wifi text-primary me-2" title="Wi-Fi"></i>',
-    projector: '<i class="fas fa-display text-primary me-2" title="Projetor / TV"></i>', 
+    projector: '<i class="fas fa-display text-primary me-2" title="Projetor / TV"></i>',
     sound: '<i class="fas fa-volume-high text-primary me-2" title="Som"></i>',
     computer: '<i class="fas fa-laptop text-primary me-2" title="Computadores"></i>',
-    
+
     // INFRAESTRUTURA BÁSICA (Cinza Adaptativo - Resolve o problema do ícone invisível)
     whiteboard: '<i class="fas fa-chalkboard text-secondary me-2" title="Lousa / Quadro"></i>',
-};
+  };
   return icons[key] || "";
 };
 
@@ -360,6 +360,187 @@ window.initGlobalContext = async () => {
     }
   } catch (e) {
     console.error("Erro contexto:", e);
+  }
+};
+
+window.abrirWhatsAppSuporte = async (acaoErro = "Dúvida / Contato via Menu", descricaoErro = "Preciso de ajuda com o sistema.") => {
+  // 1. EXTRAIR DADOS DO LOCAL STORAGE (Prevenção de Erros)
+  let usuario = "Desconhecido";
+  let cliente = "Desconhecido";
+  let cargo = "Desconhecido";
+  let token = "";
+
+  try {
+    const tfData = JSON.parse(localStorage.getItem("tf_data") || "{}");
+    if (tfData.name_user) {
+      usuario = tfData.name_user;
+      cliente = tfData.name_client || "Não informado";
+      cargo = tfData.office || "Não informado";
+      token = tfData.token || "";
+    }
+  } catch (e) {
+    console.warn("Aviso: Falha ao ler tf_data do LocalStorage.");
+  }
+
+  // 2. HELPERS DE NAVEGADOR E SO
+  const getBrowser = () => {
+    const ua = navigator.userAgent;
+    if (ua.includes("Chrome") && !ua.includes("Edg")) return "Google Chrome";
+    if (ua.includes("Firefox")) return "Mozilla Firefox";
+    if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
+    if (ua.includes("Edg")) return "Microsoft Edge";
+    if (ua.includes("Opera") || ua.includes("OPR")) return "Opera";
+    return "Navegador desconhecido";
+  };
+
+  const getOS = () => {
+    const ua = navigator.userAgent;
+    if (ua.includes("Windows")) return "Windows";
+    if (ua.includes("Mac")) return "MacOS";
+    if (ua.includes("Android")) return "Android";
+    if (ua.includes("iPhone") || ua.includes("iPad")) return "iOS";
+    if (ua.includes("Linux")) return "Linux";
+    return "SO desconhecido";
+  };
+
+  // 3. BUSCAR STATUS DO SERVIDOR (PING) VIA AJAX VALIDATOR
+  let serverVersion = "Desconhecida";
+  let serverIp = "Desconhecido";
+  let pingStatus = "Falha na comunicação (Offline/Erro)";
+
+  if (token) {
+    try {
+      // Usando sua função nativa de requisição
+      const resData = await window.ajaxValidator({
+        validator: "ping",
+        token: token,
+      });
+
+      if (resData.status) {
+        const d = resData.data || {};
+        serverVersion = d.version || "1.0.0";
+        serverIp = d.ip || "Desconhecido";
+        pingStatus = "Online";
+      }
+    } catch (e) {
+      console.warn("Ping falhou. O usuário pode estar sem internet ou servidor offline.");
+    }
+  }
+
+  // 4. PREPARAR VARIÁVEIS DE AMBIENTE
+  const plataforma = `${getBrowser()} no ${getOS()}`;
+  const tela = document.title || window.location.pathname;
+  const dataHora = new Date().toLocaleString("pt-BR");
+
+  // 5. MONTAR A MENSAGEM (Com formatação nativa do WhatsApp)
+  const mensagem = `*SUPORTE TÉCNICO - TRILHA DA FÉ*
+-----------------------------------
+
+*DADOS DO USUÁRIO*
+• *Nome:* ${usuario}
+• *Perfil:* ${cargo}
+• *Paróquia:* ${cliente}
+
+*CONTEXTO DO SISTEMA*
+• *Tela:* ${tela}
+• *Plataforma:* ${plataforma}
+• *Horário:* ${dataHora}
+
+*STATUS DA CONEXÃO*
+• *Servidor:* ${pingStatus}
+• *Versão:* ${serverVersion}
+• *IP:* ${serverIp}
+
+*MOTIVO DO CHAMADO*
+• *Ação Tentada:* ${acaoErro}
+
+*DESCRIÇÃO / LOG DO ERRO:*
+\`\`\`
+${descricaoErro}
+\`\`\``;
+
+  // 6. GERAR LINK E ABRIR (Com Bypass para iPhone/iOS)
+  const telefoneEaCode = "5581982549914";
+  const url = `https://wa.me/${telefoneEaCode}?text=${encodeURIComponent(mensagem)}`;
+
+  // Detecta se é um dispositivo Apple (iPhone, iPad, iPod)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (isIOS) {
+    // No iPhone, forçamos o redirecionamento da página atual.
+    // Isso aciona o "Deep Link" e o iOS pergunta se quer abrir o App do WhatsApp.
+    window.location.href = url;
+  } else {
+    // No Android e Computador, abrir em nova aba funciona perfeitamente
+    window.open(url, "_blank");
+  }
+};
+
+window.alertErrorWithSupport = (acao, mensagemErro) => {
+  Swal.fire({
+    icon: "error",
+    title: "Ops! Ocorreu um erro",
+    text: mensagemErro,
+    showCancelButton: true,
+    confirmButtonColor: "#25D366", // Cor oficial do WhatsApp
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: '<i class="fab fa-whatsapp me-2"></i> Contatar Suporte',
+    cancelButtonText: "Fechar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.abrirWhatsAppSuporte(acao, mensagemErro);
+    }
+  });
+};
+
+const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
+  const $chk = $(element);
+  const $wrapper = $chk.closest(".form-check");
+  const $loader = $wrapper.find(".toggle-loader");
+  const $labels = $(labelSelector);
+  const status = $chk.is(":checked");
+
+  // Define os estados visuais (Feedback Imediato com Badge)
+  const setVisualState = (isActive) => {
+    if (isActive) {
+      $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
+    } else {
+      $labels.html('<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>');
+    }
+  };
+
+  try {
+    // 1. Bloqueia e mostra loader
+    $chk.prop("disabled", true);
+    $loader.removeClass("d-none");
+
+    // 2. Atualiza visualmente (Otimista)
+    setVisualState(status);
+
+    // 3. Chamada API
+    const result = await window.ajaxValidator({
+      validator: validator,
+      token: defaultApp.userInfo.token,
+      id: id,
+      active: status,
+    });
+
+    if (result.status) {
+      window.alertDefault(successMsg, "success");
+    } else {
+      throw new Error(result.alert || "Erro ao atualizar");
+    }
+  } catch (e) {
+    // Reverte estado
+    $chk.prop("checked", !status);
+    setVisualState(!status);
+
+    const errorMessage = e.message || "Erro de conexão com o servidor.";
+    window.alertErrorWithSupport(`Alternar Status`, errorMessage);
+  } finally {
+    // 4. Libera
+    $chk.prop("disabled", false);
+    $loader.addClass("d-none");
   }
 };
 

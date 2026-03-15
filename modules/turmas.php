@@ -50,7 +50,10 @@
             <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-4">
                     <div class="table-responsive list-table-turmas" style="max-height: 600px;">
-                        <div class="text-center py-5"><span class="loader"></span></div>
+                        <div class="text-center py-5 opacity-50">
+                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                            <p class="mt-3 fw-medium">Carregando turmas...</p>
+                        </div>
                     </div>
                     <div class="pagination paginationButtons pagination-turmas mt-3 text-center justify-content-center"></div>
                 </div>
@@ -73,21 +76,21 @@
 
                 <div class="modal-body p-0"> <input type="hidden" id="class_id">
 
-                    <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 bg-body z-2 shadow-sm">
                         <div class="modern-tabs-wrapper">
                             <ul class="nav nav-pills gap-1" id="turmaTab" role="tablist" style="flex-wrap: nowrap;">
-                                <li class="nav-item">
-                                    <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active fw-medium" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab" aria-selected="true">
                                         <i class="fas fa-circle-info me-2"></i> Dados Gerais
                                     </button>
                                 </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="horario-tab" data-bs-toggle="tab" data-bs-target="#tab-horarios" type="button">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link fw-medium" id="horario-tab" data-bs-toggle="tab" data-bs-target="#tab-horarios" type="button" role="tab" aria-selected="false" tabindex="-1">
                                         <i class="fas fa-clock me-2"></i> Grade Horária
                                     </button>
                                 </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="alunos-tab" data-bs-toggle="tab" data-bs-target="#tab-alunos" type="button">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link fw-medium" id="alunos-tab" data-bs-toggle="tab" data-bs-target="#tab-alunos" type="button" role="tab" aria-selected="false" tabindex="-1">
                                         <i class="fas fa-user-graduate me-2"></i> Catequizandos
                                     </button>
                                 </li>
@@ -105,7 +108,7 @@
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label class="form-label small fw-bold text-uppercase text-muted mb-2">Curso Vinculado *</label>
-                                    <select id="sel_course" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none"></select>
+                                    <select id="sel_course" class="form-control bg-body border-0 shadow-none"></select>
                                 </div>
 
                                 <div class="col-12">

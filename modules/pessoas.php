@@ -68,7 +68,10 @@
             <div class="card list-commanded mb-4 border-0 shadow-sm">
                 <div class="card-body px-0 pt-4">
                     <div class="table-responsive list-table-pessoas" style="max-height: 600px;">
-                        <div class="text-center py-5"><span class="loader"></span></div>
+                        <div class="text-center py-5 opacity-50">
+                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                            <p class="mt-3 fw-medium">Carregando diretório de pessoas...</p>
+                        </div>
                     </div>
                     <div class="pagination paginationButtons pagination-pessoas mt-3 text-center justify-content-center"></div>
                 </div>
@@ -93,22 +96,34 @@
                     <div class="modern-tabs-wrapper">
                         <ul class="nav nav-pills gap-1" id="pessoaTab" role="tablist" style="flex-wrap: nowrap;">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active fw-medium" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab"><i class="fas fa-id-card me-2"></i> Pessoal</button>
+                                <button class="nav-link active fw-medium" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab" aria-selected="true">
+                                    <i class="fas fa-id-card me-2"></i> Pessoal
+                                </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-medium" id="contato-tab" data-bs-toggle="tab" data-bs-target="#tab-contato" type="button" role="tab"><i class="fas fa-map-marker-alt me-2"></i> Contato</button>
+                                <button class="nav-link fw-medium" id="contato-tab" data-bs-toggle="tab" data-bs-target="#tab-contato" type="button" role="tab" aria-selected="false" tabindex="-1">
+                                    <i class="fas fa-map-marker-alt me-2"></i> Contato
+                                </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-medium" id="vinculos-tab" data-bs-toggle="tab" data-bs-target="#tab-vinculos" type="button" role="tab"><i class="fas fa-users-cog me-2"></i> Vínculos</button>
+                                <button class="nav-link fw-medium" id="vinculos-tab" data-bs-toggle="tab" data-bs-target="#tab-vinculos" type="button" role="tab" aria-selected="false" tabindex="-1">
+                                    <i class="fas fa-users-cog me-2"></i> Vínculos
+                                </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-medium" id="familia-tab" data-bs-toggle="tab" data-bs-target="#tab-familia" type="button" role="tab"><i class="fas fa-home me-2"></i> Família</button>
+                                <button class="nav-link fw-medium" id="familia-tab" data-bs-toggle="tab" data-bs-target="#tab-familia" type="button" role="tab" aria-selected="false" tabindex="-1">
+                                    <i class="fas fa-home me-2"></i> Família
+                                </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-medium" id="sacra-tab" data-bs-toggle="tab" data-bs-target="#tab-sacramentos" type="button" role="tab"><i class="fas fa-church me-2"></i> Sacramentos</button>
+                                <button class="nav-link fw-medium" id="sacra-tab" data-bs-toggle="tab" data-bs-target="#tab-sacramentos" type="button" role="tab" aria-selected="false" tabindex="-1">
+                                    <i class="fas fa-church me-2"></i> Sacramentos
+                                </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-medium" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#tab-anexos" type="button" role="tab"><i class="fas fa-paperclip me-2"></i> Arquivos</button>
+                                <button class="nav-link fw-medium" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#tab-anexos" type="button" role="tab" aria-selected="false" tabindex="-1">
+                                    <i class="fas fa-paperclip me-2"></i> Arquivos
+                                </button>
                             </li>
                         </ul>
                     </div>
