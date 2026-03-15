@@ -595,7 +595,7 @@ function syncUserLogin($personId)
         $conectStaff = getStaff(); // Conexão com o banco global/staff
 
         // 1. Busca dados da Pessoa
-        $stmtP = $conect->prepare("SELECT full_name, email, tax_id FROM people.persons WHERE person_id = :id");
+        $stmtP = $conect->prepare("SELECT full_name, profile_photo_url, email, tax_id FROM people.persons WHERE person_id = :id");
         $stmtP->execute(['id' => $personId]);
         $person = $stmtP->fetch(PDO::FETCH_ASSOC);
 
@@ -642,12 +642,12 @@ function syncUserLogin($personId)
 
                 if ($staffUserId) {
                     // ATUALIZA (Update)
-                    $conectStaff->prepare("UPDATE users SET name = :name, email = :email, password = :pass, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
-                        ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash, 'id' => $staffUserId]);
+                    $conectStaff->prepare("UPDATE users SET name = :name, email = :email, password = :pass, img = :img, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
+                        ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash, 'img' => $person['profile_photo_url'], 'id' => $staffUserId]);
                 } else {
                     // CRIA (Insert)
-                    $conectStaff->prepare("INSERT INTO users (name, email, password, created_at, updated_at) VALUES (:name, :email, :pass, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
-                        ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash]);
+                    $conectStaff->prepare("INSERT INTO users (name, email, password, img, created_at, updated_at) VALUES (:name, :email, :pass, :img, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
+                        ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash, 'img' => $person['profile_photo_url']]);
                     $staffUserId = $conectStaff->lastInsertId();
                 }
 

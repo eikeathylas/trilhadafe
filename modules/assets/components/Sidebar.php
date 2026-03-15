@@ -9,9 +9,8 @@
             <span class="material-symbols-outlined text-body" style="font-size: 22px;">notifications</span>
             <span class="position-absolute top-0 start-100 translate-middle badge border border-2 border-white rounded-circle bg-danger p-1 d-none" id="mob-notif-badge" style="width: 12px; height: 12px;"><span class="visually-hidden">Alertas não lidos</span></span>
         </div>
-
-        <div class="user-avatar-container shadow-sm border border-secondary border-opacity-25" style="width: 36px; height: 36px;">
-            <img src="./assets/img/trilhadafe.png" alt="User" class="user-avatar-img">
+        <div class="user-avatar-container shadow-sm border border-secondary border-opacity-25" style="width: 36px; height: 36px; cursor: pointer;" onclick="window.zoomAvatar(window.defaultApp.userInfo.img_user, 'Minha Foto')">
+            <img src="./assets/img/trilhadafe.png" alt="User" class="user-avatar-img" id="sidebar-user-photo">
         </div>
     </div>
 </div>
@@ -39,19 +38,19 @@
             <div class="menu-only">
                 <p class="title-only">Visão Geral</p>
                 <ul style="padding: 0;">
-                    <li>
+                    <li data-slug="dashboard">
                         <a href="dashboard.php" class="<?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : '' ?>" data-tooltip="Dashboard">
                             <span class="material-symbols-outlined icon-only">dashboard</span>
                             <span class="text-only">Início</span>
                         </a>
                     </li>
-                    <li>
+                    <li data-slug="eventos">
                         <a href="eventos.php" class="<?= basename($_SERVER['PHP_SELF']) == 'eventos.php' ? 'active' : '' ?>" data-tooltip="Agenda">
                             <span class="material-symbols-outlined icon-only">event</span>
                             <span class="text-only">Agenda</span>
                         </a>
                     </li>
-                    <li>
+                    <li data-slug="relatorios">
                         <a href="relatorios.php" class="<?= basename($_SERVER['PHP_SELF']) == 'relatorios.php' ? 'active' : '' ?>" data-tooltip="Relatórios">
                             <span class="material-symbols-outlined icon-only">description</span>
                             <span class="text-only">Relatórios</span>
@@ -63,19 +62,19 @@
             <div class="menu-only">
                 <p class="title-only">Escola da Fé</p>
                 <ul style="padding: 0;">
-                    <li>
+                    <li data-slug="diario">
                         <a href="diario.php" class="<?= basename($_SERVER['PHP_SELF']) == 'diario.php' ? 'active' : '' ?>" data-tooltip="Diário">
                             <span class="material-symbols-outlined icon-only">menu_book</span>
                             <span class="text-only">Diário de Classe</span>
                         </a>
                     </li>
-                    <li>
+                    <li data-slug="turmas">
                         <a href="turmas.php" class="<?= basename($_SERVER['PHP_SELF']) == 'turmas.php' ? 'active' : '' ?>" data-tooltip="Turmas">
                             <span class="material-symbols-outlined icon-only">school</span>
                             <span class="text-only">Turmas</span>
                         </a>
                     </li>
-                    <li>
+                    <li data-slug="academico">
                         <a href="#" onclick="return false;" class="<?= in_array(basename($_SERVER['PHP_SELF']), ['disciplinas.php', 'cursos.php']) ? 'active' : '' ?>" data-tooltip="Acadêmico">
                             <span class="material-symbols-outlined icon-only">settings_accessibility</span>
                             <span class="text-only">Config. Acadêmica</span>
@@ -92,13 +91,13 @@
             <div class="menu-only">
                 <p class="title-only">Secretaria</p>
                 <ul style="padding: 0;">
-                    <li>
+                    <li data-slug="pessoas">
                         <a href="pessoas.php" class="<?= basename($_SERVER['PHP_SELF']) == 'pessoas.php' ? 'active' : '' ?>" data-tooltip="Pessoas">
                             <span class="material-symbols-outlined icon-only">group</span>
                             <span class="text-only">Pessoas</span>
                         </a>
                     </li>
-                    <li>
+                    <li data-slug="organizacao">
                         <a href="organizacao.php" class="<?= basename($_SERVER['PHP_SELF']) == 'organizacao.php' ? 'active' : '' ?>" data-tooltip="Organização">
                             <span class="material-symbols-outlined icon-only">domain</span>
                             <span class="text-only">Minha Paróquia</span>
@@ -136,22 +135,22 @@
 </div>
 
 <div class="d-md-none modern-bottom-nav pb-safe">
-    <a href="dashboard.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : '' ?>">
+    <a href="dashboard.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : '' ?>" data-slug="dashboard">
         <div class="icon-wrapper"><span class="material-symbols-outlined">dashboard</span></div>
         <span>Início</span>
     </a>
 
-    <a href="relatorios.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'relatorios.php' ? 'active' : '' ?>">
+    <a href="relatorios.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'relatorios.php' ? 'active' : '' ?>" data-slug="relatorios">
         <div class="icon-wrapper"><span class="material-symbols-outlined">description</span></div>
         <span>Relatórios</span>
     </a>
 
-    <a href="pessoas.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'pessoas.php' ? 'active' : '' ?>">
+    <a href="pessoas.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'pessoas.php' ? 'active' : '' ?>" data-slug="pessoas">
         <div class="icon-wrapper"><span class="material-symbols-outlined">group</span></div>
         <span>Pessoas</span>
     </a>
 
-    <a href="diario.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'diario.php' ? 'active' : '' ?>">
+    <a href="diario.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'diario.php' ? 'active' : '' ?>" data-slug="diario">
         <div class="icon-wrapper"><span class="material-symbols-outlined">menu_book</span></div>
         <span>Diário</span>
     </a>
