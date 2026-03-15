@@ -75,67 +75,81 @@
     </div>
 
     <div class="modal fade" id="modalSession" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content border-0">
-                <div class="modal-header bg-primary text-white">
-                    <div>
-                        <h5 class="modal-title fs-5" id="modalSessionLabel">Diário de Classe</h5>
-                        <div class="small opacity-75">Registro de conteúdo e frequência</div>
+        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
+
+                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-20 p-2 rounded-3 me-3">
+                            <i class="fas fa-book-open text-white fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-white mb-0" id="modalSessionLabel">Diário de Classe</h5>
+                            <div class="small text-white opacity-75">Registro de conteúdo e frequência</div>
+                        </div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body">
+                <div class="modal-body p-3 p-md-4">
                     <input type="hidden" id="session_id">
 
-                    <div class="row g-3">
-
+                    <div class="row g-4">
                         <div class="col-lg-8">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-bottom-0 pt-3">
+                            <div class="card border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 h-100 overflow-hidden">
+                                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-3">
                                     <div class="row align-items-center">
                                         <div class="col-md-7">
-                                            <label class="form-label small fw-bold text-uppercase text-muted mb-1">Data e Hora da Aula</label>
+                                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
+                                                <i class="far fa-calendar-check me-1"></i> Data e Hora da Aula
+                                            </label>
                                             <div class="input-group">
-                                                <input type="text" id="diario_date" class="form-control fw-bold border-end-0" placeholder="Toque para selecionar..." readonly>
-                                                <span class="input-group-text border-start-0 text-muted" id="date-status-icon"></span>
+                                                <input type="text" id="diario_date" class="form-control fw-bold border-0 bg-body shadow-none" placeholder="Toque para selecionar..." readonly style="height: 45px;">
+                                                <span class="input-group-text border-0 bg-body text-muted" id="date-status-icon"></span>
                                             </div>
-                                            <small id="date-msg" class="d-block mt-1 fw-bold" style="font-size: 0.8rem;"></small>
+                                            <small id="date-msg" class="d-block mt-2 fw-bold text-truncate" style="font-size: 0.75rem;"></small>
                                         </div>
-                                        <div class="col-md-5 text-end d-none d-md-block">
-                                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">
-                                                <i class="fas fa-info-circle me-1"></i> Auto-Plano
+                                        <div class="col-md-5 text-end d-none d-md-block mt-3">
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill fw-medium">
+                                                <i class="fas fa-magic me-1"></i> Preenchimento Inteligente
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body p-0 border-top">
-                                    <textarea id="diario_content"></textarea>
+
+                                <div class="card-body p-0 border-top border-secondary border-opacity-10 bg-body">
+                                    <textarea id="diario_content" class="border-0"></textarea>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-lg-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-bottom py-3">
+                            <div class="card border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 h-100 d-flex flex-column">
+                                <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-3">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="m-0 fw-bold text-secondary"><i class="fas fa-user-check me-2"></i>Frequência</h6>
-                                        <small class="text-muted">Padrão: Presente</small>
+                                        <h6 class="m-0 fw-bold text-body d-flex align-items-center">
+                                            <i class="fas fa-user-check me-2 text-success"></i>Frequência
+                                        </h6>
+                                        <span class="badge bg-secondary bg-opacity-10 text-muted fw-normal rounded-pill" style="font-size: 0.7rem;">Padrão: Presente</span>
                                     </div>
                                 </div>
-                                <div class="card-body p-0 attendance-scroll bg-body-tertiary">
-                                    <div id="lista-alunos" class="p-2">
-                                        <div class="text-center py-4 text-muted small">Carregando lista...</div>
+
+                                <div class="card-body p-0 attendance-scroll bg-transparent" style="max-height: 450px; overflow-y: auto;">
+                                    <div id="lista-alunos" class="p-2 px-3">
+                                        <div class="text-center py-5 text-muted opacity-50">
+                                            <span class="material-symbols-outlined spin fs-1">sync</span>
+                                            <p class="mt-2 small mb-0">Carregando lista...</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="card-footer border-top p-3">
-                                    <button class="btn btn-primary w-100 shadow-sm py-2" id="btn-save-diario" onclick="salvarDiario()">
-                                        <i class="fas fa-save me-2"></i> Salvar Diário
+
+                                <div class="card-footer bg-transparent border-top border-secondary border-opacity-10 p-3">
+                                    <button class="btn btn-primary btn-lg w-100 shadow-sm rounded-3 fw-bold py-3 d-flex align-items-center justify-content-center transition-all" id="btn-save-diario" onclick="salvarDiario()">
+                                        <i class="fas fa-cloud-upload-alt me-2"></i> Salvar Diário
                                     </button>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>

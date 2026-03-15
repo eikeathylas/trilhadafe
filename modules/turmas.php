@@ -61,172 +61,140 @@
     </div>
 
     <div class="modal fade" id="modalTurma" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fs-5 text-white" id="modalLabel">Gerenciar Turma</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
+
+                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center" id="modalLabel">
+                        <i class="fas fa-people-group me-3 opacity-75"></i> Gerenciar Turma
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" id="class_id">
 
-                    <ul class="nav nav-tabs mb-3" id="turmaTab" role="tablist">
-                        <li class="nav-item">
-                            <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button">
-                                <i class="fas fa-info-circle mr-2"></i> Dados Gerais
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" id="horario-tab" data-bs-toggle="tab" data-bs-target="#tab-horarios" type="button">
-                                <i class="fas fa-clock mr-2"></i> Grade Horária
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" id="alunos-tab" data-bs-toggle="tab" data-bs-target="#tab-alunos" type="button">
-                                <i class="fas fa-user-graduate mr-2"></i> Catequizandos
-                            </button>
-                        </li>
-                    </ul>
+                <div class="modal-body p-0"> <input type="hidden" id="class_id">
 
-                    <div class="tab-content pt-3">
+                    <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10">
+                        <div class="modern-tabs-wrapper">
+                            <ul class="nav nav-pills gap-1" id="turmaTab" role="tablist" style="flex-wrap: nowrap;">
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button">
+                                        <i class="fas fa-circle-info me-2"></i> Dados Gerais
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="horario-tab" data-bs-toggle="tab" data-bs-target="#tab-horarios" type="button">
+                                        <i class="fas fa-clock me-2"></i> Grade Horária
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="alunos-tab" data-bs-toggle="tab" data-bs-target="#tab-alunos" type="button">
+                                        <i class="fas fa-user-graduate me-2"></i> Catequizandos
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="tab-content p-4">
 
                         <div class="tab-pane fade show active" id="tab-dados">
                             <div class="row g-3">
                                 <div class="col-12 col-md-8">
-                                    <label class="form-label">Nome da Turma <span class="text-danger">*</span></label>
-                                    <input type="text" id="class_name" class="form-control" placeholder="Ex: Eucaristia Sábado Manhã">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome da Turma *</label>
+                                    <input type="text" id="class_name" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none" placeholder="Ex: Eucaristia Sábado Manhã">
                                 </div>
                                 <div class="col-12 col-md-4">
-                                    <label class="form-label">Curso Vinculado <span class="text-danger">*</span></label>
-                                    <select id="sel_course" class="form-control" placeholder="Selecione o curso..."></select>
-                                    <small class="text-muted">Define a grade curricular.</small>
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Curso Vinculado *</label>
+                                    <select id="sel_course" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none"></select>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label">Coordenador / Catequista</label>
-                                    <select id="sel_coordinator" class="form-control" placeholder="Selecione..."></select>
+
+                                <div class="col-12">
+                                    <div class="card border-0 rounded-3 bg-secondary bg-opacity-10 p-3">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Coordenador / Catequista</label>
+                                                <select id="sel_coordinator" class="form-control bg-body border-0 shadow-none"></select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Auxiliar de Turma</label>
+                                                <select id="sel_assistant" class="form-control bg-body border-0 shadow-none"></select>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label">Auxiliar de Turma</label>
-                                    <select id="sel_assistant" class="form-control" placeholder="Selecione o auxiliar..."></select>
+
+                                <div class="col-6 col-md-4">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Capacidade</label>
+                                    <input type="number" id="class_capacity" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none">
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <label class="form-label">Capacidade Máxima</label>
-                                    <input type="number" id="class_capacity" class="form-control" placeholder="Ex: 30">
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <label class="form-label">Status</label>
-                                    <select id="class_status" class="form-select">
+                                <div class="col-6 col-md-4">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Status</label>
+                                    <select id="class_status" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none">
+                                        <option value="ACTIVE">Ativa</option>
                                         <option value="PLANNED">Planejada</option>
-                                        <option value="ACTIVE" selected>Ativa (Matrículas Abertas)</option>
                                         <option value="FINISHED">Encerrada</option>
-                                        <option value="CANCELLED">Cancelada</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-md-4">
-                                    <label class="form-label">Sala Principal</label>
-                                    <select id="sel_location" class="form-control" placeholder="Sala padrão..."></select>
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Sala Principal</label>
+                                    <select id="sel_location" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none"></select>
                                 </div>
                             </div>
                         </div>
 
                         <div class="tab-pane fade" id="tab-horarios">
-                            <div class="card bg-light border-0 mb-3">
-                                <div class="card-body py-2">
-                                    <div class="row g-2 align-items-end">
-                                        <div class="col-md-3">
-                                            <label class="form-label small fw-bold">Dia da Semana</label>
-                                            <select id="sched_day" class="form-select form-select-sm">
-                                                <option value="6">Sábado</option>
-                                                <option value="0">Domingo</option>
-                                                <option value="1">Segunda</option>
-                                                <option value="2">Terça</option>
-                                                <option value="3">Quarta</option>
-                                                <option value="4">Quinta</option>
-                                                <option value="5">Sexta</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label small fw-bold">Início</label>
-                                            <input type="time" id="sched_start" class="form-control form-control-sm">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label small fw-bold">Fim</label>
-                                            <input type="time" id="sched_end" class="form-control form-control-sm">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label small fw-bold">Sala (Opcional)</label>
-                                            <select id="sel_location_sched" class="form-control form-control-sm" placeholder="Sala da Turma..."></select>
-                                        </div>
-                                        <div class="col-md-1">
-                                            <button class="btn btn-sm btn-success w-100" onclick="addSchedule()" title="Adicionar">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
+                            <div class="card border-0 rounded-3 bg-secondary bg-opacity-10 p-3 mb-4">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Dia</label>
+                                        <select id="sched_day" class="form-control border-0 shadow-none">
+                                            <option value="6">Sábado</option>
+                                            <option value="0">Domingo</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-3 col-md-2">
+                                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Início</label>
+                                        <input type="time" id="sched_start" class="form-control border-0 shadow-none px-2">
+                                    </div>
+                                    <div class="col-3 col-md-2">
+                                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Fim</label>
+                                        <input type="time" id="sched_end" class="form-control border-0 shadow-none px-2">
+                                    </div>
+                                    <div class="col-10 col-md-4">
+                                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Sala Local</label>
+                                        <select id="sel_location_sched" class="form-control border-0 shadow-none"></select>
+                                    </div>
+                                    <div class="col-2 col-md-1">
+                                        <button class="btn btn-primary w-100 rounded-3" onclick="addSchedule()" style="height: 38px;">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Dia</th>
-                                            <th>Horário</th>
-                                            <th>Local</th>
-                                            <th class="text-center" width="50">Ação</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-horarios">
-                                        <tr>
-                                            <td colspan="4" class="text-center text-muted py-3">Nenhum horário definido.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div id="lista-horarios" class="d-flex flex-column gap-2">
                             </div>
                         </div>
 
                         <div class="tab-pane fade" id="tab-alunos">
-                            <div class="card bg-light border-0 mb-3 shadow-sm">
-                                <div class="card-body py-2">
-                                    <div class="row g-2 align-items-end">
-                                        <div class="col-md-9">
-                                            <label class="form-label small fw-bold">Nova Matrícula:</label>
-                                            <select id="sel_new_student" class="form-control" placeholder="Busque o catequizando..."></select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <button class="btn btn-success w-100" onclick="matricularAluno()">
-                                                <i class="fas fa-plus mr-2"></i> Matricular
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div class="d-flex gap-2 mb-4">
+                                <div class="flex-grow-1">
+                                    <select id="sel_new_student" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none" placeholder="Busque o catequizando..."></select>
                                 </div>
+                                <button class="btn btn-primary fw-bold px-3 shadow-sm rounded-3" onclick="matricularAluno()">
+                                    <i class="fas fa-plus me-2"></i> Matricular
+                                </button>
                             </div>
 
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Catequizando</th>
-                                            <th>Data Matrícula</th>
-                                            <th class="text-center">Status Atual</th>
-                                            <th class="text-center">Média</th>
-                                            <th class="text-center">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-alunos">
-                                        <tr>
-                                            <td colspan="5" class="text-center text-muted py-4">Nenhum catequizando matriculado nesta turma.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div id="lista-alunos" class="d-flex flex-column gap-2">
                             </div>
                         </div>
 
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-theme btn-save" onclick="salvarTurma()">
+
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarTurma()">
                         <i class="fas fa-save me-2"></i> Salvar Turma
                     </button>
                 </div>
@@ -234,61 +202,66 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalHistoricoAluno" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-secondary text-white">
-                    <h5 class="modal-title fs-6">
-                        <i class="fas fa-history mr-2"></i> Histórico Acadêmico: <span id="hist_student_name" class="fw-bold"></span>
+    <div class="modal fade no-print" id="modalHistoricoAluno" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
+
+                <div class="modal-header border-0 bg-secondary bg-opacity-75 py-3 px-4">
+                    <h5 class="modal-title fs-5 fw-bold text-white d-flex align-items-center" id="modalLabel">
+                        <i class="fas fa-clock-rotate-left me-3 opacity-75"></i>
+                        Histórico: <span id="hist_student_name" class="ms-1 fw-light"></span>
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body bg-light">
+
+                <div class="modal-body p-4">
                     <input type="hidden" id="hist_enrollment_id">
 
-                    <div class="card border-0 mb-3">
+                    <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-4">
                         <div class="card-body p-3">
-                            <h6 class="card-title text-primary mb-2">Registrar Ocorrência / Mudança de Status</h6>
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <select id="hist_action" class="form-select form-select-sm">
+                            <label class="form-label small fw-bold text-uppercase text-primary mb-2" style="letter-spacing: 0.5px;">
+                                <i class="fas fa-pen-to-square me-1"></i> Nova Ocorrência / Status
+                            </label>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-12 col-md-4">
+                                    <select id="hist_action" class="form-control bg-body border-0 shadow-none">
                                         <option value="COMMENT">Apenas Observação</option>
-                                        <option value="SUSPENDED">Suspender Catequizando</option>
+                                        <option value="SUSPENDED">Suspender</option>
                                         <option value="DROPPED">Desistência / Abandono</option>
                                         <option value="TRANSFERRED">Transferido</option>
                                         <option value="ACTIVE">Reativar Matrícula</option>
                                         <option value="COMPLETED">Concluiu o Curso</option>
                                     </select>
                                 </div>
-                                <div class="col-md-6">
-                                    <input type="text" id="hist_obs" class="form-control form-control-sm" placeholder="Motivo ou observação...">
+                                <div class="col-12 col-md-6">
+                                    <input type="text" id="hist_obs" class="form-control bg-body border-0 shadow-none" placeholder="Motivo ou detalhe...">
                                 </div>
-                                <div class="col-md-2">
-                                    <button class="btn btn-sm btn-primary w-100" onclick="addHistoryItem()">Registrar</button>
+                                <div class="col-12 col-md-2">
+                                    <button class="btn btn-primary fw-bold w-100 shadow-sm" onclick="addHistoryItem()">
+                                        <i class="fas fa-check"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="table-responsive bg-white border rounded" style="max-height: 300px; overflow-y: auto;">
-                        <table class="table table-sm table-striped mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Movimento</th>
-                                    <th>Data</th>
-                                    <th>Observação</th>
-                                    <th>Autor</th>
-                                    <th class="text-center">Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lista-historico-detalhe">
-                            </tbody>
-                        </table>
+                    <div class="d-flex align-items-center mb-3">
+                        <hr class="flex-grow-1 opacity-10">
+                        <span class="mx-3 small fw-bold text-uppercase text-muted" style="letter-spacing: 1px;">Linha do Tempo</span>
+                        <hr class="flex-grow-1 opacity-10">
+                    </div>
+
+                    <div id="lista-historico-detalhe" class="d-flex flex-column gap-3" style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
+                        <div class="text-center py-5 opacity-50">
+                            <span class="material-symbols-outlined fs-1">manage_search</span>
+                            <p class="mt-2 small mb-0">Carregando movimentos...</p>
+                        </div>
                     </div>
 
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Fechar</button>
+
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent text-center justify-content-center">
+                    <button type="button" class="btn btn-light fw-bold px-5 rounded-3 border" data-bs-dismiss="modal">Fechar Histórico</button>
                 </div>
             </div>
         </div>

@@ -39,7 +39,7 @@
                             <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="filtro-role" style="letter-spacing: 0.5px;">
                                 <i class="fas fa-filter me-1 opacity-50"></i> Filtrar por Função
                             </label>
-                            <select id="filtro-role" class="form-select" placeholder="Todos...">
+                            <select id="filtro-role" class="form-control" placeholder="Todos...">
                                 <option value="">Todos</option>
                                 <option value="STUDENT">Catequizandos</option>
                                 <option value="CATECHIST">Catequistas</option>
@@ -79,94 +79,103 @@
     </div>
 
     <div class="modal fade" id="modalPessoa" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
-            <div class="modal-content border-0 shadow-lg">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-lg-down">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header bg-primary text-white rounded-top-md">
-                    <h5 class="modal-title fs-5" id="modalPessoaLabel">Cadastro de Pessoa</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5" id="modalPessoaLabel">
+                        <i class="fas fa-user-plus me-3 opacity-75"></i> Cadastro de Pessoa
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="tabs-scroll-wrapper pt-3 z-2 shadow-sm">
-                    <ul class="nav nav-tabs mb-2" id="pessoaTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab"><i class="fas fa-id-card"></i> Pessoal</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="contato-tab" data-bs-toggle="tab" data-bs-target="#tab-contato" type="button" role="tab"><i class="fas fa-map-marker-alt"></i> Contato</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="vinculos-tab" data-bs-toggle="tab" data-bs-target="#tab-vinculos" type="button" role="tab"><i class="fas fa-users-cog"></i> Vínculos</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="familia-tab" data-bs-toggle="tab" data-bs-target="#tab-familia" type="button" role="tab"><i class="fas fa-home"></i> Família</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="sacra-tab" data-bs-toggle="tab" data-bs-target="#tab-sacramentos" type="button" role="tab"><i class="fas fa-church"></i> Sacramentos</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#tab-anexos" type="button" role="tab"><i class="fas fa-paperclip"></i> Arquivos</button>
-                        </li>
-                    </ul>
-                    <div class="tabs-scroll-hint"><i class="fas fa-chevron-right"></i></div>
+                <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 bg-body z-2 shadow-sm">
+                    <div class="modern-tabs-wrapper">
+                        <ul class="nav nav-pills gap-1" id="pessoaTab" role="tablist" style="flex-wrap: nowrap;">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active fw-medium" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab"><i class="fas fa-id-card me-2"></i> Pessoal</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-medium" id="contato-tab" data-bs-toggle="tab" data-bs-target="#tab-contato" type="button" role="tab"><i class="fas fa-map-marker-alt me-2"></i> Contato</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-medium" id="vinculos-tab" data-bs-toggle="tab" data-bs-target="#tab-vinculos" type="button" role="tab"><i class="fas fa-users-cog me-2"></i> Vínculos</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-medium" id="familia-tab" data-bs-toggle="tab" data-bs-target="#tab-familia" type="button" role="tab"><i class="fas fa-home me-2"></i> Família</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-medium" id="sacra-tab" data-bs-toggle="tab" data-bs-target="#tab-sacramentos" type="button" role="tab"><i class="fas fa-church me-2"></i> Sacramentos</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-medium" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#tab-anexos" type="button" role="tab"><i class="fas fa-paperclip me-2"></i> Arquivos</button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
-                <div class="modal-body modal-body-scrollable">
+                <div class="modal-body p-0 modal-body-scrollable">
                     <input type="hidden" id="person_id" value="" />
 
-                    <div class="tab-content" id="pessoaTabContent">
+                    <div class="tab-content p-4" id="pessoaTabContent">
 
                         <div class="tab-pane fade show active" id="tab-dados" role="tabpanel">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-3 text-center mb-3">
-                                            <label class="form-label fw-bold">Foto de Perfil</label>
-                                            <div id="image-upload-container" class="border border-2 border-dashed p-2 rounded bg-light" style="cursor: pointer; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative">
-                                                <div id="placeholder-foto">
-                                                    <i class="fas fa-camera fa-3x text-muted opacity-50"></i>
-                                                    <p class="text-muted small mt-2 mb-0">Clique para foto</p>
-                                                </div>
-                                                <img id="img-preview" src="" class="img-fluid w-100 h-100 object-fit-cover" style="display: none;" />
-                                                <input type="file" id="person_photo" class="d-none" accept="image/*" />
-                                            </div>
-                                            <button type="button" class="btn btn-sm btn-outline-danger mt-2 w-100 d-none" id="btn-remove-foto" onclick="removeFoto()"><i class="fas fa-trash mr-1"></i> Remover</button>
+                            <div class="row g-4">
+                                <div class="col-12 col-md-3 d-flex flex-column align-items-center">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Foto de Perfil</label>
+                                    <div id="image-upload-container" class="border border-2 border-secondary border-opacity-25 p-1 rounded-circle bg-secondary bg-opacity-10 position-relative shadow-sm transition-all" style="cursor: pointer; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <div id="placeholder-foto" class="text-center">
+                                            <i class="fas fa-camera fa-2x text-primary opacity-50 mb-1"></i>
+                                            <p class="text-muted small mb-0 lh-1" style="font-size: 0.75rem;">Adicionar</p>
                                         </div>
-                                        <div class="col-md-9">
-                                            <div class="row g-3">
-                                                <div class="col-md-8">
-                                                    <label class="form-label">Nome Completo <span class="text-danger">*</span></label>
-                                                    <input type="text" id="full_name" class="form-control" />
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Nome Social / Religioso</label>
-                                                    <input type="text" id="religious_name" class="form-control" />
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Data de Nascimento</label>
-                                                    <input type="date" id="birth_date" class="form-control" />
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label class="form-label">CPF</label>
-                                                    <input type="text" id="tax_id" class="form-control mask-cpf" maxlength="14" />
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Gênero</label>
-                                                    <select id="gender" class="form-select">
-                                                        <option value="M">Masculino</option>
-                                                        <option value="F">Feminino</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label class="form-label">RG (Opcional)</label>
-                                                    <input type="text" id="national_id" class="form-control" />
-                                                </div>
-                                                <div class="col-md-12">
-                                                    <div class="form-check form-switch mt-2">
-                                                        <input class="form-check-input" type="checkbox" id="is_pcd" />
-                                                        <label class="form-check-label ms-2 fw-bold text-primary" for="is_pcd">Pessoa com Deficiência (PCD)</label>
+                                        <img id="img-preview" src="" class="img-fluid w-100 h-100 object-fit-cover rounded-circle position-absolute top-0 start-0" style="display: none; z-index: 2;" />
+                                        <input type="file" id="person_photo" class="d-none" accept="image/*" />
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-3 rounded-pill px-3 d-none fw-medium" id="btn-remove-foto" onclick="removeFoto()">
+                                        <i class="fas fa-trash-can me-1"></i> Remover Foto
+                                    </button>
+                                </div>
+
+                                <div class="col-12 col-md-9">
+                                    <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 p-md-4 shadow-inner">
+                                        <div class="row g-3">
+                                            <div class="col-md-8">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome Completo <span class="text-danger">*</span></label>
+                                                <input type="text" id="full_name" class="form-control bg-body border-0 shadow-none" placeholder="Nome na certidão" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome Social / Apelido</label>
+                                                <input type="text" id="religious_name" class="form-control bg-body border-0 shadow-none" placeholder="Como gosta de ser chamado" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nascimento</label>
+                                                <input type="date" id="birth_date" class="form-control bg-body border-0 shadow-none" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">CPF</label>
+                                                <input type="text" id="tax_id" class="form-control bg-body border-0 shadow-none mask-cpf" maxlength="14" placeholder="000.000.000-00" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Gênero</label>
+                                                <select id="gender" class="form-control bg-body border-0 shadow-none">
+                                                    <option value="M">Masculino</option>
+                                                    <option value="F">Feminino</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">RG / Documento (Opcional)</label>
+                                                <input type="text" id="national_id" class="form-control bg-body border-0 shadow-none" placeholder="Nº do Documento" />
+                                            </div>
+
+                                            <div class="col-md-12 mt-4">
+                                                <div class="bg-body p-3 rounded-3 border border-secondary border-opacity-10">
+                                                    <div class="form-check form-switch mb-0 d-flex align-items-center">
+                                                        <input class="form-check-input shadow-none fs-5 m-0 me-3" type="checkbox" id="is_pcd" style="cursor:pointer;" />
+                                                        <label class="form-check-label fw-bold text-primary m-0" for="is_pcd" style="cursor:pointer;">
+                                                            Pessoa com Deficiência (PCD) / Necessidades Especiais
+                                                        </label>
                                                     </div>
-                                                    <input type="text" id="pcd_details" class="form-control mt-2 d-none" placeholder="Descreva a necessidade (Ex: Cadeirante)..." />
+                                                    <input type="text" id="pcd_details" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none mt-3 d-none" placeholder="Descreva a necessidade para prepararmos a acessibilidade (Ex: Transtorno do Espectro Autista, Cadeirante)..." />
                                                 </div>
                                             </div>
                                         </div>
@@ -176,103 +185,118 @@
                         </div>
 
                         <div class="tab-pane fade" id="tab-contato" role="tabpanel">
-                            <div class="card border-0 shadow-sm mb-3">
-                                <div class="card-body">
-                                    <h6 class="txt-theme border-bottom pb-2 mb-3 fw-bold">Contatos</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-4">
-                                            <label class="form-label">WhatsApp/Celular</label>
-                                            <input type="text" id="phone_mobile" class="form-control mask-phone" maxlength="15" />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Telefone Fixo</label>
-                                            <input type="text" id="phone_landline" class="form-control mask-phone" maxlength="15" />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">E-mail</label>
-                                            <input type="email" id="email" class="form-control" />
-                                        </div>
+
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 p-md-4 mb-4 shadow-inner">
+                                <h6 class="fw-bold text-primary mb-3 d-flex align-items-center">
+                                    <i class="fas fa-phone-volume me-2 opacity-75"></i> Telefones e Email
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">WhatsApp/Celular</label>
+                                        <input type="text" id="phone_mobile" class="form-control bg-body border-0 shadow-none mask-phone" maxlength="15" placeholder="(00) 00000-0000" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">Fixo (Opcional)</label>
+                                        <input type="text" id="phone_landline" class="form-control bg-body border-0 shadow-none mask-phone" maxlength="15" placeholder="(00) 0000-0000" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">E-mail</label>
+                                        <input type="email" id="email" class="form-control bg-body border-0 shadow-none" placeholder="email@exemplo.com" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body">
-                                    <h6 class="txt-theme border-bottom pb-2 mb-3 fw-bold">Endereço</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-3">
-                                            <label class="form-label">CEP</label>
-                                            <div class="input-group">
-                                                <input type="text" id="zip_code" class="form-control mask-cep" onblur="buscarCep(this.value)" maxlength="9" />
-                                                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
-                                            </div>
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 p-md-4 shadow-inner">
+                                <h6 class="fw-bold text-primary mb-3 d-flex align-items-center">
+                                    <i class="fas fa-map-location-dot me-2 opacity-75"></i> Endereço
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">CEP</label>
+                                        <div class="input-group">
+                                            <input type="text" id="zip_code" class="form-control bg-body border-0 shadow-none mask-cep" onblur="buscarCep(this.value)" maxlength="9" placeholder="00000-000" />
+                                            <span class="input-group-text bg-body border-0 text-primary cursor-pointer" onclick="buscarCep($('#zip_code').val())"><i class="fas fa-search"></i></span>
                                         </div>
-                                        <div class="col-md-7">
-                                            <label class="form-label">Logradouro</label>
-                                            <input type="text" id="address_street" class="form-control" />
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Número</label>
-                                            <input type="text" id="address_number" class="form-control" />
-                                        </div>
-                                        <div class="col-md-5">
-                                            <label class="form-label">Bairro</label>
-                                            <input type="text" id="address_district" class="form-control" />
-                                        </div>
-                                        <div class="col-md-5">
-                                            <label class="form-label">Cidade</label>
-                                            <input type="text" id="address_city" class="form-control" />
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">UF</label>
-                                            <input type="text" id="address_state" class="form-control" maxlength="2" />
-                                        </div>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">Logradouro</label>
+                                        <input type="text" id="address_street" class="form-control bg-body border-0 shadow-none" placeholder="Rua, Avenida..." />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">Número</label>
+                                        <input type="text" id="address_number" class="form-control bg-body border-0 shadow-none" placeholder="Nº" />
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">Bairro</label>
+                                        <input type="text" id="address_district" class="form-control bg-body border-0 shadow-none" />
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">Cidade</label>
+                                        <input type="text" id="address_city" class="form-control bg-body border-0 shadow-none" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">UF</label>
+                                        <input type="text" id="address_state" class="form-control bg-body border-0 shadow-none text-center" maxlength="2" placeholder="PE" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="tab-pane fade" id="tab-vinculos" role="tabpanel">
-                            <div class="alert alert-primary bg-primary bg-opacity-10 border-0 mb-4">
-                                <i class="fas fa-info-circle me-2"></i> Selecione os papéis que esta pessoa exerce na paróquia.
+                            <div class="alert bg-primary bg-opacity-10 text-primary border-0 rounded-4 d-flex align-items-center mb-4 shadow-sm p-3">
+                                <i class="fas fa-circle-info fs-4 me-3"></i>
+                                <div class="small fw-medium">Selecione os papéis que esta pessoa exerce na paróquia. Uma pessoa pode ter múltiplos vínculos.</div>
                             </div>
+
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="card h-100 border-0 shadow-sm cursor-pointer border-start border-4 border-primary" onclick="$('#role_student').click()">
-                                        <div class="card-body d-flex align-items-center">
-                                            <div class="form-check form-switch me-3"><input class="form-check-input fs-5" type="checkbox" id="role_student" onclick="event.stopPropagation()" /></div>
+                                <div class="col-12 col-md-6">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 cursor-pointer transition-all border-start border-4 border-primary" onclick="$('#role_student').click()">
+                                        <div class="card-body p-4 d-flex align-items-center">
+                                            <div class="form-check form-switch m-0 me-3">
+                                                <input class="form-check-input fs-4 shadow-none m-0" type="checkbox" id="role_student" onclick="event.stopPropagation()" />
+                                            </div>
                                             <div>
-                                                <h6 class="mb-1 fw-bold text-primary">Catequizando (Aluno)</h6><small class="text-muted lh-1">Habilita matrícula e histórico.</small>
+                                                <h6 class="mb-1 fw-bold text-primary">Catequizando (Aluno)</h6>
+                                                <small class="text-muted lh-sm d-block opacity-75">Habilita matrícula em turmas e gera histórico acadêmico no sistema.</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="card h-100 border-0 shadow-sm cursor-pointer border-start border-4 border-warning" onclick="$('#role_catechist').click()">
-                                        <div class="card-body d-flex align-items-center">
-                                            <div class="form-check form-switch me-3"><input class="form-check-input fs-5" type="checkbox" id="role_catechist" onclick="event.stopPropagation()" /></div>
+                                <div class="col-12 col-md-6">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 cursor-pointer transition-all border-start border-4 border-warning" onclick="$('#role_catechist').click()">
+                                        <div class="card-body p-4 d-flex align-items-center">
+                                            <div class="form-check form-switch m-0 me-3">
+                                                <input class="form-check-input fs-4 shadow-none m-0" type="checkbox" id="role_catechist" onclick="event.stopPropagation()" />
+                                            </div>
                                             <div>
-                                                <h6 class="mb-1 fw-bold text-warning">Catequista (Professor)</h6><small class="text-muted lh-1">Acesso aos diários de classe.</small>
+                                                <h6 class="mb-1 fw-bold text-warning">Catequista (Professor)</h6>
+                                                <small class="text-muted lh-sm d-block opacity-75">Permite assumir turmas, preencher diários de classe e planejar aulas.</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="card h-100 border-0 shadow-sm cursor-pointer border-start border-4 border-success" onclick="$('#role_parent').click()">
-                                        <div class="card-body d-flex align-items-center">
-                                            <div class="form-check form-switch me-3"><input class="form-check-input fs-5" type="checkbox" id="role_parent" onclick="event.stopPropagation()" /></div>
+                                <div class="col-12 col-md-6">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 cursor-pointer transition-all border-start border-4 border-success" onclick="$('#role_parent').click()">
+                                        <div class="card-body p-4 d-flex align-items-center">
+                                            <div class="form-check form-switch m-0 me-3">
+                                                <input class="form-check-input fs-4 shadow-none m-0" type="checkbox" id="role_parent" onclick="event.stopPropagation()" />
+                                            </div>
                                             <div>
-                                                <h6 class="mb-1 fw-bold text-success">Responsável / Pai</h6><small class="text-muted lh-1">Vínculo financeiro e autorizações.</small>
+                                                <h6 class="mb-1 fw-bold text-success">Responsável / Pais</h6>
+                                                <small class="text-muted lh-sm d-block opacity-75">Vínculo familiar exigido para menores de idade e gestão financeira.</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="card h-100 border-0 shadow-sm cursor-pointer border-start border-4 border-dark" onclick="$('#role_priest').click()">
-                                        <div class="card-body d-flex align-items-center">
-                                            <div class="form-check form-switch me-3"><input class="form-check-input fs-5" type="checkbox" id="role_priest" onclick="event.stopPropagation()" /></div>
+                                <div class="col-12 col-md-6">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 cursor-pointer transition-all border-start border-4 border-dark" onclick="$('#role_priest').click()">
+                                        <div class="card-body p-4 d-flex align-items-center">
+                                            <div class="form-check form-switch m-0 me-3">
+                                                <input class="form-check-input fs-4 shadow-none m-0" type="checkbox" id="role_priest" onclick="event.stopPropagation()" />
+                                            </div>
                                             <div>
-                                                <h6 class="mb-1 fw-bold text-dark">Clero (Padre/Diácono)</h6><small class="text-muted lh-1">Funções litúrgicas e agenda.</small>
+                                                <h6 class="mb-1 fw-bold text-dark">Clero (Padre / Diácono)</h6>
+                                                <small class="text-muted lh-sm d-block opacity-75">Permite celebrar sacramentos, missas e assinar documentos oficiais.</small>
                                             </div>
                                         </div>
                                     </div>
@@ -281,106 +305,101 @@
                         </div>
 
                         <div class="tab-pane fade" id="tab-familia" role="tabpanel">
-                            <div class="card border-0 shadow-sm mb-3">
-                                <div class="card-body">
-                                    <label class="form-label fw-bold">Buscar e Vincular Parente:</label>
-                                    <select id="search_relative" class="form-control" placeholder="Digite o nome do pai, mãe..."></select>
-                                </div>
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 mb-4 shadow-inner">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Buscar e Vincular Parente</label>
+                                <select id="search_relative" class="form-control bg-body border-0 shadow-none" placeholder="Digite o nome do pai, mãe, filho..."></select>
                             </div>
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover align-middle mb-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th class="ps-3">Nome</th>
-                                                    <th>Vínculo</th>
-                                                    <th class="text-center">Permissões</th>
-                                                    <th class="text-end pe-3">Ação</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="lista-familia">
-                                                <tr>
-                                                    <td colspan="4" class="text-center text-muted py-4">Nenhum familiar vinculado.</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+
+                            <div class="d-flex flex-column gap-2" id="lista-familia-cards">
+                                <div class="text-center py-5 opacity-50">
+                                    <span class="material-symbols-outlined fs-1">family_restroom</span>
+                                    <p class="mt-2 small mb-0 fw-medium">Nenhum familiar vinculado a este cadastro.</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="tab-pane fade" id="tab-sacramentos" role="tabpanel">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body">
-                                    <h6 class="txt-theme border-bottom pb-2 mb-3 fw-bold">Situação Canônica Atual</h6>
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner">
+                                <h6 class="fw-bold text-primary border-bottom border-secondary border-opacity-10 pb-3 mb-4 d-flex align-items-center">
+                                    <i class="fas fa-cross me-2 opacity-75"></i> Situação Canônica e Histórico
+                                </h6>
 
-                                    <div class="mb-4">
-                                        <div class="form-check form-switch fs-6 mb-2">
-                                            <input class="form-check-input" type="checkbox" id="has_baptism" />
-                                            <label class="form-check-label fw-bold" for="has_baptism">Batizado na Igreja Católica</label>
-                                        </div>
-                                        <div id="baptism_details" class="ms-md-5 ms-3 ps-3 border-start border-2 border-primary d-none">
-                                            <div class="row g-2">
-                                                <div class="col-md-7"><input type="text" class="form-control" id="baptism_place" placeholder="Paróquia do Batismo" /></div>
-                                                <div class="col-md-5"><input type="date" class="form-control" id="baptism_date" /></div>
+                                <div class="mb-4">
+                                    <div class="form-check form-switch d-flex align-items-center mb-3">
+                                        <input class="form-check-input fs-4 shadow-none m-0 me-3" type="checkbox" id="has_baptism" style="cursor:pointer;" />
+                                        <label class="form-check-label fw-bold text-body m-0" for="has_baptism" style="cursor:pointer;">Batizado na Igreja Católica</label>
+                                    </div>
+                                    <div id="baptism_details" class="ms-md-5 ms-3 ps-3 border-start border-2 border-primary d-none">
+                                        <div class="row g-2">
+                                            <div class="col-md-7">
+                                                <input type="text" class="form-control bg-body border-0 shadow-none" id="baptism_place" placeholder="Paróquia do Batismo" />
+                                            </div>
+                                            <div class="col-md-5">
+                                                <input type="date" class="form-control bg-body border-0 shadow-none" id="baptism_date" />
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div class="mb-4">
-                                        <div class="form-check form-switch fs-6 mb-2">
-                                            <input class="form-check-input" type="checkbox" id="has_eucharist" />
-                                            <label class="form-check-label fw-bold" for="has_eucharist">Recebeu Primeira Eucaristia</label>
-                                        </div>
-                                        <div id="eucharist_details" class="ms-md-5 ms-3 ps-3 border-start border-2 border-warning d-none">
-                                            <div class="row g-2">
-                                                <div class="col-md-7"><input type="text" class="form-control" id="eucharist_place" placeholder="Paróquia da Eucaristia" /></div>
-                                                <div class="col-md-5"><input type="date" class="form-control" id="eucharist_date" /></div>
+                                <div class="mb-4">
+                                    <div class="form-check form-switch d-flex align-items-center mb-3">
+                                        <input class="form-check-input fs-4 shadow-none m-0 me-3" type="checkbox" id="has_eucharist" style="cursor:pointer;" />
+                                        <label class="form-check-label fw-bold text-body m-0" for="has_eucharist" style="cursor:pointer;">Recebeu Primeira Eucaristia</label>
+                                    </div>
+                                    <div id="eucharist_details" class="ms-md-5 ms-3 ps-3 border-start border-2 border-warning d-none">
+                                        <div class="row g-2">
+                                            <div class="col-md-7">
+                                                <input type="text" class="form-control bg-body border-0 shadow-none" id="eucharist_place" placeholder="Paróquia da Eucaristia" />
+                                            </div>
+                                            <div class="col-md-5">
+                                                <input type="date" class="form-control bg-body border-0 shadow-none" id="eucharist_date" />
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div class="form-check form-switch fs-6 mb-3">
-                                        <input class="form-check-input" type="checkbox" id="has_confirmation" />
-                                        <label class="form-check-label" for="has_confirmation">Crismado</label>
+                                <hr class="border-secondary border-opacity-10 my-4">
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch d-flex align-items-center bg-body p-3 rounded-3 border border-secondary border-opacity-10">
+                                            <input class="form-check-input fs-4 shadow-none m-0 me-3" type="checkbox" id="has_confirmation" style="cursor:pointer;" />
+                                            <label class="form-check-label fw-bold text-body m-0" for="has_confirmation" style="cursor:pointer;">Sacramento da Crisma</label>
+                                        </div>
                                     </div>
-                                    <div class="form-check form-switch fs-6">
-                                        <input class="form-check-input" type="checkbox" id="has_marriage" />
-                                        <label class="form-check-label" for="has_marriage">Casado na Igreja (Matrimônio)</label>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch d-flex align-items-center bg-body p-3 rounded-3 border border-secondary border-opacity-10">
+                                            <input class="form-check-input fs-4 shadow-none m-0 me-3" type="checkbox" id="has_marriage" style="cursor:pointer;" />
+                                            <label class="form-check-label fw-bold text-body m-0" for="has_marriage" style="cursor:pointer;">Casado(a) na Igreja</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="tab-pane fade disabled" id="tab-anexos" role="tabpanel">
-                            <div class="card border-0 shadow-sm bg-primary bg-opacity-10 mb-4">
-                                <div class="card-body">
-                                    <div class="row g-3 align-items-end">
-                                        <div class="col-md-5">
-                                            <label class="form-label small fw-bold">DESCRIÇÃO DO DOC <span class="text-danger">*</span></label>
-                                            <input type="text" id="new_attachment_desc" class="form-control bg-white" placeholder="Ex: Certidão de Batismo..." />
-                                        </div>
-                                        <div class="col-md-5">
-                                            <label class="form-label small fw-bold">ARQUIVO <span class="text-danger">*</span></label>
-                                            <input type="file" id="new_attachment_file" class="form-control bg-white" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx" />
-                                        </div>
-                                        <div class="col-md-2 text-md-end">
-                                            <button class="btn btn-primary w-100 fw-bold shadow-sm" id="btn-add-attachment" onclick="uploadAttachment()">
-                                                <i class="fas fa-upload me-2"></i> Enviar
-                                            </button>
-                                        </div>
+                            <div class="card border-0 rounded-4 bg-primary bg-opacity-10 p-3 p-md-4 mb-4 shadow-inner border border-primary border-opacity-25">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-uppercase text-primary mb-2">Descrição do Documento *</label>
+                                        <input type="text" id="new_attachment_desc" class="form-control bg-body border-0 shadow-none" placeholder="Ex: Certidão de Batismo, RG..." />
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-uppercase text-primary mb-2">Selecionar Arquivo *</label>
+                                        <input type="file" id="new_attachment_file" class="form-control bg-body border-0 shadow-none" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-primary w-100 fw-bold shadow-sm rounded-3 py-2" id="btn-add-attachment" onclick="uploadAttachment()">
+                                            <i class="fas fa-cloud-upload-alt me-2"></i> Enviar
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body p-0">
-                                    <div id="lista-anexos">
-                                        <div class="text-center py-5 text-muted"><i class="fas fa-folder-open fa-3x mb-2 opacity-50"></i>
-                                            <p>Nenhum documento anexado.</p>
-                                        </div>
-                                    </div>
+                            <div class="d-flex flex-column gap-2" id="lista-anexos-cards">
+                                <div class="text-center py-5 opacity-50">
+                                    <span class="material-symbols-outlined fs-1">folder_open</span>
+                                    <p class="mt-2 small mb-0 fw-medium">Nenhum documento anexado ao prontuário.</p>
                                 </div>
                             </div>
                         </div>
@@ -388,10 +407,10 @@
                     </div>
                 </div>
 
-                <div class="modal-footer bg-white border-top shadow-sm z-2">
-                    <button type="button" class="btn btn-light border fw-medium" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 btn-save-person" onclick="salvarPessoa()">
-                        <i class="fas fa-save me-2"></i> Salvar Cadastro
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save-person" onclick="salvarPessoa()">
+                        <i class="fas fa-user-check me-2"></i> Salvar Cadastro
                     </button>
                 </div>
 

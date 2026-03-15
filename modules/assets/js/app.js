@@ -66,8 +66,8 @@ window.initMasks = () => {
 
     // Máscara dinâmica para celular (8 ou 9 dígitos)
     var phoneMaskBehavior = function (val) {
-        return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
-      },
+      return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
+    },
       phoneOptions = {
         onKeyPress: function (val, e, field, options) {
           field.mask(phoneMaskBehavior.apply({}, arguments), options);
@@ -91,19 +91,26 @@ window.setButton = (isLoading, element, originalText = "Salvar") => {
 // --- ÍCONES DE RECURSOS (USADO EM GRIDS) ---
 window.getResourceIcon = (key) => {
   const icons = {
+    // CLIMATIZAÇÃO E ÁGUA (Cyan/Info - Excelente contraste em ambos)
     ac: '<i class="fas fa-snowflake text-info me-2" title="Ar-Condicionado"></i>',
-    fan: '<i class="fas fa-fan text-secondary me-2" title="Ventilador"></i>',
+    fan: '<i class="fas fa-fan text-info me-2" title="Ventilador"></i>',
+    water: '<i class="fas fa-glass-water text-info me-2" title="Bebedouro"></i>',
+    
+    // DESTAQUES (Amarelo, Verde, Vermelho)
+    sacred: '<i class="fas fa-cross text-warning me-2" title="Local Sagrado / Altar"></i>', 
+    kitchen: '<i class="fas fa-mug-hot text-danger me-2" title="Copa / Cozinha"></i>', 
+    parking: '<i class="fas fa-square-parking text-success me-2" title="Estacionamento"></i>',
+    
+    // TECNOLOGIA E ACESSO (Azul Primário - Cor base do sistema)
     access: '<i class="fas fa-wheelchair text-primary me-2" title="Acessibilidade"></i>',
-    sacred: '<i class="fas fa-church text-secondary me-2" title="Local Sagrado"></i>',
-    wifi: '<i class="fas fa-wifi text-secondary me-2" title="Wi-Fi"></i>',
-    projector: '<i class="fas fa-video text-secondary me-2" title="Projetor"></i>',
-    sound: '<i class="fas fa-volume-up text-secondary me-2" title="Som"></i>',
-    whiteboard: '<i class="fas fa-chalkboard text-secondary me-2" title="Lousa"></i>',
-    computer: '<i class="fas fa-desktop text-secondary me-2" title="PC"></i>',
-    kitchen: '<i class="fas fa-utensils text-secondary me-2" title="Cozinha"></i>',
-    water: '<i class="fas fa-tint text-info me-2" title="Água"></i>',
-    parking: '<i class="fas fa-parking text-secondary me-2" title="Estacionamento"></i>',
-  };
+    wifi: '<i class="fas fa-wifi text-primary me-2" title="Wi-Fi"></i>',
+    projector: '<i class="fas fa-display text-primary me-2" title="Projetor / TV"></i>', 
+    sound: '<i class="fas fa-volume-high text-primary me-2" title="Som"></i>',
+    computer: '<i class="fas fa-laptop text-primary me-2" title="Computadores"></i>',
+    
+    // INFRAESTRUTURA BÁSICA (Cinza Adaptativo - Resolve o problema do ícone invisível)
+    whiteboard: '<i class="fas fa-chalkboard text-secondary me-2" title="Lousa / Quadro"></i>',
+};
   return icons[key] || "";
 };
 

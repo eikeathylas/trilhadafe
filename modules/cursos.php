@@ -65,54 +65,68 @@
     </div>
 
     <div class="modal fade" id="modalCurso" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fs-5" id="modalLabel">Gerenciar Curso</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
+
+                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center" id="modalLabel">
+                        <i class="fas fa-layer-group me-3 opacity-75"></i> Gerenciar Curso
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body p-4">
+                <div class="modal-body p-0">
                     <input type="hidden" id="course_id">
 
-                    <ul class="nav nav-tabs nav-tabs-custom mb-4" id="courseTab" role="tablist">
-                        <li class="nav-item">
-                            <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button">
-                                <i class="fas fa-info-circle me-2"></i> Dados
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" id="grade-tab" data-bs-toggle="tab" data-bs-target="#tab-grade" type="button">
-                                <i class="fas fa-layer-group me-2"></i> Grade Curricular
-                            </button>
-                        </li>
-                    </ul>
+                    <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10">
+                        <div class="modern-tabs-wrapper">
+                            <ul class="nav nav-pills gap-1" id="courseTab" role="tablist" style="flex-wrap: nowrap;">
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button">
+                                        <i class="fas fa-circle-info me-2"></i> Dados Gerais
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="grade-tab" data-bs-toggle="tab" data-bs-target="#tab-grade" type="button">
+                                        <i class="fas fa-list-check me-2"></i> Grade Curricular
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
 
-                    <div class="tab-content" id="courseTabContent">
+                    <div class="tab-content p-4">
 
                         <div class="tab-pane fade show active" id="tab-dados">
                             <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label class="form-label opacity-75 small fw-bold">NOME DO CURSO <span class="text-danger">*</span></label>
-                                    <input type="text" id="course_name" class="form-control" placeholder="Ex: Iniciação à Vida Cristã">
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Nome do Curso *</label>
+                                    <input type="text" id="course_name" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none" placeholder="Ex: Iniciação à Vida Cristã">
                                 </div>
-                                <div class="col-md-12">
-                                    <label class="form-label opacity-75 small fw-bold">DESCRIÇÃO</label>
-                                    <textarea id="course_description" class="form-control" rows="3"></textarea>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Descrição</label>
+                                    <textarea id="course_description" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none" rows="3" placeholder="Breve resumo do conteúdo..."></textarea>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label opacity-75 small fw-bold">IDADE MÍNIMA</label>
-                                    <input type="number" id="min_age" class="form-control">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label opacity-75 small fw-bold">IDADE MÁXIMA</label>
-                                    <input type="number" id="max_age" class="form-control">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label opacity-75 small fw-bold">CARGA TOTAL</label>
-                                    <div class="input-group">
-                                        <input type="text" id="total_workload" class="form-control" readonly style="opacity: 0.7;">
-                                        <span class="input-group-text border-start-0 bg-transparent"><i class="fas fa-clock"></i></span>
+
+                                <div class="col-12">
+                                    <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3">
+                                        <div class="row g-3">
+                                            <div class="col-4">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Idade Mín.</label>
+                                                <input type="number" id="min_age" class="form-control bg-body border-0 shadow-none text-center">
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Idade Máx.</label>
+                                                <input type="number" id="max_age" class="form-control bg-body border-0 shadow-none text-center">
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Carga Total</label>
+                                                <div class="input-group">
+                                                    <input type="text" id="total_workload" class="form-control bg-body border-0 shadow-none text-center fw-bold text-primary" readonly>
+                                                    <span class="input-group-text border-0 bg-body text-muted"><i class="fas fa-clock"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -120,46 +134,40 @@
 
                         <div class="tab-pane fade" id="tab-grade">
 
-                            <div class="p-3 mb-4 rounded border border-dashed d-flex flex-wrap align-items-end gap-3" style="background-color: rgba(128,128,128, 0.03);">
-                                <div class="flex-grow-1" style="min-width: 250px;">
-                                    <label class="form-label small mb-1 opacity-75">ADICIONAR DISCIPLINA</label>
-                                    <select id="curr_subject" class="form-control"></select>
-                                </div>
-                                <div style="width: 100px;">
-                                    <label class="form-label small mb-1 opacity-75">HORAS</label>
-                                    <input type="number" id="curr_hours" class="form-control text-center" placeholder="20">
-                                </div>
-                                <div class="d-flex align-items-center pb-2">
-                                    <div class="form-check form-switch me-3">
-                                        <input class="form-check-input" type="checkbox" id="curr_mandatory" checked>
-                                        <label class="form-check-label small" for="curr_mandatory">Obrigatória</label>
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 mb-4">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">Adicionar Disciplina</label>
+                                        <select id="curr_subject" class="form-control border-0 shadow-none"></select>
                                     </div>
-                                    <button class="btn btn-primary btn-sm px-3 shadow-sm btn-hover-effect" onclick="addSubjectToGrid()">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
+                                    <div class="col-6 col-md-2">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2">Horas</label>
+                                        <input type="number" id="curr_hours" class="form-control border-0 shadow-none text-center" placeholder="20">
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input shadow-none" type="checkbox" id="curr_mandatory" checked>
+                                            <label class="form-check-label small fw-bold" for="curr_mandatory">Obrigatória</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-1">
+                                        <button class="btn btn-primary w-100 rounded-3" onclick="addSubjectToGrid()" style="height: 38px;">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="table-responsive rounded border">
-                                <table class="table table-hover align-middle mb-0" id="table-grade">
-                                    <thead style="background-color: rgba(128,128,128,0.05);">
-                                        <tr>
-                                            <th class="ps-3 py-3 border-0 small opacity-75">DISCIPLINA</th>
-                                            <th class="text-center py-3 border-0 small opacity-75">CARGA</th>
-                                            <th class="text-center py-3 border-0 small opacity-75">TIPO</th>
-                                            <th class="text-end pe-3 py-3 border-0 small opacity-75">AÇÕES</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-grade"></tbody>
-                                </table>
+                            <div id="lista-grade" class="d-flex flex-column gap-2">
                             </div>
                         </div>
 
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary btn-hover-effect" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary px-4 btn-save btn-hover-effect" onclick="salvarCurso()">
+
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save" onclick="salvarCurso()">
                         <i class="fas fa-save me-2"></i> Salvar Curso
                     </button>
                 </div>
@@ -167,45 +175,57 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalTemplateAula" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white border-0">
-                    <div class="d-flex flex-column">
-                        <h5 class="modal-title fs-5" id="modalTemplateAulaLabel">Planejamento</h5>
-                        <small class="opacity-75" style="font-size: 0.8rem;">Organize o conteúdo programático</small>
+    <div class="modal fade no-print" id="modalTemplateAula" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
+
+                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-opacity-20 p-2 rounded-3 me-3">
+                            <i class="fas fa-map-location-dot text-white fs-4"></i>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <h5 class="modal-title fw-bold text-white mb-0" id="modalTemplateAulaLabel">Planejamento de Curso</h5>
+                            <small class="text-white opacity-75">Organize o roteiro de encontros e temas</small>
+                        </div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" onclick="closeTemplateModal()"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none" onclick="closeTemplateModal()"></button>
                 </div>
 
-                <div class="modal-body p-0 bg-body">
-                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="background-color: rgba(128,128,128, 0.05);">
-                        <div>
-                            <button class="btn btn-success btn-sm shadow-sm btn-hover-effect me-2" onclick="addPlan()">
-                                <i class="fas fa-plus-circle me-1"></i> Adicionar Encontro
+                <div class="modal-body p-0">
+                    <div class="sticky-top d-flex justify-content-between align-items-center p-3 border-bottom border-secondary border-opacity-10 shadow-sm" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); z-index: 10;">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center px-3" onclick="addPlan()">
+                                <i class="fas fa-plus-circle me-2"></i> Adicionar Encontro
                             </button>
-                            <button class="btn btn-outline-primary btn-sm shadow-sm btn-hover-effect" onclick="addDefaultModel()">
-                                <i class="fas fa-magic me-1"></i> Modelo Padrão
+                            <button class="btn btn-outline-primary fw-bold shadow-sm d-flex align-items-center px-3 bg-body" onclick="addDefaultModel()">
+                                <i class="fas fa-wand-magic-sparkles me-2"></i> Gerar Modelo Padrão
                             </button>
                         </div>
 
-                        <!-- <div class="btn-group shadow-sm">
-                            <button class="btn btn-outline-secondary btn-sm border bg-body btn-hover-effect" onclick="importPlansXlsx()">
-                                <i class="fas fa-file-excel text-success me-1"></i> Importar XLSX
+                        <div class="d-none d-md-flex gap-2">
+                            <input type="file" id="importFileXlsx" accept=".xlsx" class="d-none">
+                            <button class="btn btn-link text-muted text-decoration-none small fw-bold" onclick="$('#importFileXlsx').click()">
+                                <i class="fas fa-file-import me-1"></i> Importar
                             </button>
-                            <button class="btn btn-outline-secondary btn-sm border bg-body btn-hover-effect" onclick="exportPlansXlsx()">
-                                <i class="fas fa-download text-primary me-1"></i> Baixar XLSX
+                            <button class="btn btn-link text-muted text-decoration-none small fw-bold" onclick="exportPlansXlsx()">
+                                <i class="fas fa-file-export me-1"></i> Exportar
                             </button>
-                        </div> -->
-                        <input type="file" id="importFileXlsx" accept=".xlsx" class="d-none">
+                        </div>
                     </div>
 
-                    <div id="accordionPlans" class="accordion accordion-flush"></div>
+                    <div id="accordionPlans" class="accordion accordion-flush p-3 p-md-4">
+                        <div class="text-center py-5 opacity-50">
+                            <span class="material-symbols-outlined fs-1 spin">auto_mode</span>
+                            <p class="mt-2 fw-medium">Carregando roteiro...</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary px-4 btn-hover-effect" onclick="closeTemplateModal()">
-                        <i class="fas fa-check me-2"></i> Concluir Planejamento
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" onclick="closeTemplateModal()">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-3 shadow-sm transition-all" onclick="closeTemplateModal()">
+                        <i class="fas fa-check-double me-2"></i> Concluir Planejamento
                     </button>
                 </div>
             </div>

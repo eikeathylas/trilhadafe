@@ -65,18 +65,26 @@
 
     <div class="modal fade no-print" id="modalReportConfig" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="reportTitle">Configurar Relatório</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body pt-2">
-                    <p id="reportDesc" class="text-muted small mb-4"></p>
-                    <form id="formReport">
-                        <div id="reportFiltersArea"></div>
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                        <div class="mt-4 d-flex gap-2">
-                            <button type="button" class="btn btn-primary flex-grow-1" id="btnGenerateReport">Visualizar Relatório</button>
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold d-flex align-items-center fs-4 text-body" id="reportTitle">
+                        <i class="fas fa-sliders me-3 text-primary opacity-75"></i> Configurar Relatório
+                    </h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body pt-2 px-4 pb-4">
+                    <p id="reportDesc" class="text-muted small mb-4 lh-sm opacity-75"></p>
+
+                    <form id="formReport">
+                        <div id="reportFiltersArea" class="rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 p-3 shadow-inner">
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="button" class="btn btn-primary fw-bold w-100 py-2 shadow-sm rounded-3 d-flex align-items-center justify-content-center" id="btnGenerateReport">
+                                <span class="material-symbols-outlined me-2">description</span> Visualizar Relatório
+                            </button>
                         </div>
                     </form>
                 </div>

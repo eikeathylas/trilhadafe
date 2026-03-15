@@ -62,29 +62,40 @@
     </div>
 
     <div class="modal fade" id="modalDisciplina" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fs-5 text-white" id="modalLabel">Gerenciar Disciplina</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
+
+                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center" id="modalLabel">
+                        <i class="fas fa-book-open me-3 opacity-75"></i> Gerenciar Disciplina
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+
+                <div class="modal-body p-4">
                     <input type="hidden" id="subject_id">
 
-                    <div class="mb-3">
-                        <label class="form-label">Nome da Matéria <span class="text-danger">*</span></label>
-                        <input type="text" id="subject_name" class="form-control" placeholder="Ex: Novo Testamento">
-                    </div>
+                    <div class="card border-0 shadow-sm mb-0 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
+                        <div class="card-body p-3 p-md-4">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Nome da Matéria <span class="text-danger">*</span></label>
+                                <input type="text" id="subject_name" class="form-control bg-body border-0 shadow-none" placeholder="Ex: Novo Testamento">
+                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Ementa / Resumo</label>
-                        <textarea id="subject_summary" class="form-control" rows="4" placeholder="Descreva brevemente o que será ensinado..."></textarea>
-                        <small class="text-muted">Aparecerá no plano de ensino do curso.</small>
+                            <div class="mb-0">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Ementa / Resumo</label>
+                                <textarea id="subject_summary" class="form-control bg-body border-0 shadow-none" rows="4" placeholder="Descreva brevemente o que será ensinado..."></textarea>
+                                <small class="text-muted d-block mt-2 lh-sm opacity-75">
+                                    <i class="fas fa-circle-info me-1"></i> Aparecerá no plano de ensino do curso.
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-theme btn-save" onclick="salvarDisciplina()">
+
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save" onclick="salvarDisciplina()">
                         <i class="fas fa-save me-2"></i> Salvar
                     </button>
                 </div>

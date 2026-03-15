@@ -434,7 +434,12 @@ const renderSchedulesTable = () => {
   container.empty();
 
   if (currentSchedules.length === 0) {
-    container.html('<tr><td colspan="4" class="text-center text-muted py-3">Nenhum horário definido.</td></tr>');
+    container.html(`
+        <div class="text-center py-4 opacity-50">
+            <i class="fas fa-clock fa-2x mb-2"></i>
+            <p class="small mb-0">Nenhum horário definido.</p>
+        </div>
+    `);
     return;
   }
 
@@ -443,20 +448,33 @@ const renderSchedulesTable = () => {
   currentSchedules.forEach((item, index) => {
     const st = item.start_time.substring(0, 5);
     const et = item.end_time.substring(0, 5);
-    const locLabel = item.location_id ? "Sala da Turma" : "Padrão";
+
+    // Label de Localização com ícone
+    const locLabel = item.location_name || (item.location_id ? "Sala Específica" : "Sala da Turma");
 
     container.append(`
-            <tr>
-                <td>${daysMap[item.day_of_week]}</td>
-                <td>${st} - ${et}</td>
-                <td><small class="text-muted">${locLabel}</small></td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-danger border-0" onclick="removeSchedule(${index})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </td>
-            </tr>
-        `);
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-sm transition-all">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2 text-center" style="min-width: 50px;">
+                    <div class="fw-bold" style="font-size: 0.85rem;">${daysMap[item.day_of_week].substring(0, 3)}</div>
+                </div>
+                
+                <div>
+                    <div class="fw-bold text-body fs-6">
+                        <i class="far fa-clock me-1 opacity-50"></i> ${st} — ${et}
+                    </div>
+                    <div class="small text-muted d-flex align-items-center mt-1">
+                        <i class="fas fa-location-dot me-2 opacity-50" style="font-size: 0.75rem;"></i> ${locLabel}
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-sm btn-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" 
+                    style="width: 32px; height: 32px;" onclick="removeSchedule(${index})" title="Remover Horário">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `);
   });
 };
 
@@ -533,6 +551,8 @@ const loadClassStudents = async (classId) => {
 
 const renderStudentsList = (data) => {
   const container = $("#lista-alunos");
+  container.empty();
+
   const statusMap = {
     ACTIVE: { l: "Ativo", c: "success" },
     SUSPENDED: { l: "Suspenso", c: "warning" },
@@ -544,18 +564,34 @@ const renderStudentsList = (data) => {
 
   data.forEach((item) => {
     const st = statusMap[item.status] || { l: item.status, c: "secondary" };
+
+    // Injeção de Card Moderno (EaCode Soft UI)
     container.append(`
-            <tr>
-                <td class="fw-bold">${item.student_name}</td>
-                <td>${item.enrollment_date_fmt}</td>
-                <td class="text-center"><span class="badge bg-${st.c}">${st.l}</span></td>
-                <td class="text-center">${item.final_grade || "-"}</td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary" onclick="openHistory(${item.enrollment_id}, '${item.student_name}')" title="Histórico"><i class="fas fa-history"></i></button>
-                    <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        `);
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 transition-all shadow-sm">
+            <div class="flex-grow-1 pe-2">
+                <div class="fw-bold text-body fs-6 mb-1">${item.student_name}</div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-${st.c} bg-opacity-10 text-${st.c} border border-${st.c} border-opacity-25 fw-medium px-2 py-1" style="font-size: 0.7rem;">
+                        ${st.l}
+                    </span>
+                    <span class="small text-muted" style="font-size: 0.75rem;">
+                        <i class="far fa-calendar-alt me-1 opacity-50"></i> ${item.enrollment_date_fmt}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" 
+                        style="width: 36px; height: 36px;" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Histórico">
+                    <i class="fas fa-history fs-6"></i>
+                </button>
+                <button class="btn btn-sm btn-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" 
+                        style="width: 36px; height: 36px;" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover">
+                    <i class="fas fa-trash-can fs-6"></i>
+                </button>
+            </div>
+        </div>
+    `);
   });
 };
 
@@ -620,49 +656,61 @@ window.openHistory = (enrollmentId, studentName) => {
 
 const loadEnrollmentHistory = async (enrollmentId) => {
   const container = $("#lista-historico-detalhe");
-  container.html('<tr><td colspan="5" class="text-center py-3"><span class="loader-sm"></span> Carregando...</td></tr>');
+  container.html('<div class="text-center py-5 opacity-50"><span class="loader-sm"></span><p class="mt-2 small">Carregando...</p></div>');
 
   try {
-    const result = await window.ajaxValidator({
-      validator: "getEnrollmentHistory",
-      token: defaultApp.userInfo.token,
-      enrollment_id: enrollmentId,
-    });
+    const result = await window.ajaxValidator({ validator: "getEnrollmentHistory", token: defaultApp.userInfo.token, enrollment_id: enrollmentId });
 
     if (result.status && result.data.length > 0) {
-      let rows = "";
+      container.empty();
+
       const actionMap = {
-        ENROLLED: { t: "Matrícula Inicial", c: "success" },
-        SUSPENDED: { t: "Suspensão", c: "warning" },
-        DROPPED: { t: "Desistência", c: "danger" },
-        TRANSFERRED: { t: "Transferência", c: "info" },
-        ACTIVE: { t: "Reativação", c: "success" },
-        COMPLETED: { t: "Conclusão", c: "primary" },
-        COMMENT: { t: "Observação", c: "secondary" },
+        ENROLLED: { t: "Matrícula Inicial", c: "success", i: "person_add" },
+        SUSPENDED: { t: "Suspensão", c: "warning", i: "pause_circle" },
+        DROPPED: { t: "Desistência", c: "danger", i: "block" },
+        TRANSFERRED: { t: "Transferência", c: "info", i: "move_up" },
+        ACTIVE: { t: "Reativação", c: "success", i: "check_circle" },
+        COMPLETED: { t: "Conclusão", c: "primary", i: "auto_awesome" },
+        COMMENT: { t: "Observação", c: "secondary", i: "chat_bubble" },
       };
 
       result.data.forEach((item) => {
-        const act = actionMap[item.action_type] || { t: item.action_type, c: "secondary" };
-        rows += `
-                    <tr>
-                        <td><span class="badge bg-${act.c}">${act.t}</span></td>
-                        <td><small>${item.action_date_fmt}</small></td>
-                        <td>${item.observation || "-"}</td>
-                        <td><small class="text-muted">${item.user_name}</small></td>
-                        <td class="text-center">
-                            <button class="btn btn-xs text-danger" onclick="deleteHistoryItem(${item.history_id}, ${enrollmentId})" title="Apagar registro">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+        const act = actionMap[item.action_type] || { t: item.action_type, c: "secondary", i: "info" };
+
+        container.append(`
+            <div class="position-relative ps-4 border-start border-2 border-secondary border-opacity-25 pb-3 ms-2">
+                <div class="position-absolute start-0 top-0 translate-middle-x bg-${act.c} rounded-circle border border-3 border-body shadow-sm" 
+                     style="width: 14px; height: 14px; margin-left: -1px; margin-top: 14px;"></div>
+                
+                <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-${act.c} bg-opacity-10 text-${act.c} border border-${act.c} border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.7rem;">
+                            ${act.t}
+                        </span>
+                        <div class="text-muted fw-medium" style="font-size: 0.7rem;">
+                            <i class="far fa-clock me-1 opacity-50"></i> ${item.action_date_fmt}
+                        </div>
+                    </div>
+                    
+                    <p class="mb-3 text-body small lh-sm opacity-90">${item.observation || "Sem observação detalhada."}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-2">
+                        <div class="small text-muted" style="font-size: 0.75rem;">
+                            <i class="fas fa-user-circle me-1 opacity-50"></i> Por: <span class="fw-bold">${item.user_name}</span>
+                        </div>
+                        <button class="btn btn-link text-danger p-0 text-decoration-none" onclick="deleteHistoryItem(${item.history_id}, ${enrollmentId})">
+                            <i class="fas fa-trash-can" style="font-size: 0.8rem;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `);
       });
-      container.html(rows);
     } else {
-      container.html('<tr><td colspan="5" class="text-center text-muted py-3">Nenhum registro encontrado.</td></tr>');
+      container.html('<div class="text-center py-5 text-muted small"><i class="fas fa-inbox fa-2x mb-2 opacity-25"></i><p>Nenhum registro no histórico.</p></div>');
     }
   } catch (e) {
-    container.html('<tr><td colspan="5" class="text-center text-danger">Erro ao carregar histórico.</td></tr>');
+    container.html('<div class="text-center py-4 text-danger small">Erro ao carregar histórico acadêmico.</div>');
   }
 };
 

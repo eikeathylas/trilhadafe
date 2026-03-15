@@ -435,30 +435,62 @@ const renderCurriculumTable = () => {
   container.empty();
 
   if (currentCurriculumList.length === 0) {
-    container.html('<tr><td colspan="4" class="text-center text-muted py-4 opacity-50"><i class="fas fa-inbox fa-2x mb-2"></i><br>Nenhuma disciplina adicionada.</td></tr>');
+    container.html(`
+        <div class="text-center py-5 opacity-50">
+            <span class="material-symbols-outlined fs-1">menu_book</span>
+            <p class="mt-2 small mb-0">Nenhuma disciplina adicionada à grade.</p>
+        </div>
+    `);
     return;
   }
 
   currentCurriculumList.forEach((item, index) => {
-    const mandatoryBadge = item.is_mandatory ? '<span class="badge bg-danger bg-opacity-75">Obrigatória</span>' : '<span class="badge bg-secondary bg-opacity-50">Opcional</span>';
+    // Badges Modernas com Transparência
+    const mandatoryBadge = item.is_mandatory
+      ? '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.65rem;">Obrigatória</span>'
+      : '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.65rem;">Opcional</span>';
 
+    // Lógica Visual para Aulas Planejadas
     let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
-    const btnClass = plansCount > 0 ? "btn-primary" : "btn-outline-secondary";
-    const infoText = plansCount > 0 ? `<div class="mt-1 small text-success fw-bold"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas planejadas</div>` : `<div class="mt-1 small text-muted fst-italic opacity-75">Sem planejamento</div>`;
+    const planIconClass = plansCount > 0 ? "text-primary" : "text-muted opacity-50";
+    const planBtnClass = plansCount > 0 ? "bg-primary" : "bg-secondary";
+    const planTextHtml = plansCount > 0
+      ? `<span class="small text-success fw-bold ms-2" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas</span>`
+      : `<span class="small text-muted fst-italic ms-2 opacity-75" style="font-size: 0.75rem;">Sem plano</span>`;
 
     container.append(`
-        <tr class="align-middle border-bottom">
-            <td class="ps-3 border-0 py-3">
-                <div class="fw-bold fs-6">${item.subject_name}</div>
-                ${infoText}
-            </td>
-            <td class="text-center border-0"><span class="badge border text-body bg-transparent opacity-75">${item.workload_hours}h</span></td>
-            <td class="text-center border-0">${mandatoryBadge}</td>
-            <td class="text-end pe-3 border-0">
-                <button class="btn btn-sm ${btnClass} me-2 shadow-sm" onclick="configureTemplate(${index})" title="Planejar Aulas"><i class="fas fa-book-reader"></i></button>
-                <button class="btn btn-sm btn-outline-danger border-0" onclick="removeSubjectFromGrid(${index})" title="Remover"><i class="fas fa-trash-alt"></i></button>
-            </td>
-        </tr>
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-sm transition-all">
+            
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center shadow-inner" style="width: 42px; height: 42px;">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                
+                <div>
+                    <div class="fw-bold text-body fs-6 mb-1">${item.subject_name}</div>
+                    <div class="d-flex align-items-center flex-wrap gap-1">
+                        <span class="badge bg-body text-body border fw-medium px-2 py-1 shadow-sm" style="font-size: 0.7rem;">
+                            <i class="far fa-clock me-1 opacity-75"></i> ${item.workload_hours}h
+                        </span>
+                        ${mandatoryBadge}
+                        ${planTextHtml}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn-icon-action ${planBtnClass} bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" 
+                        style="width: 36px; height: 36px;" onclick="configureTemplate(${index})" title="Planejar Aulas">
+                    <i class="fas fa-book-reader ${planIconClass} fs-6"></i>
+                </button>
+
+                <button class="btn-icon-action btn-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" 
+                        style="width: 36px; height: 36px;" onclick="removeSubjectFromGrid(${index})" title="Remover">
+                    <i class="fas fa-trash-can text-danger fs-6"></i>
+                </button>
+            </div>
+            
+        </div>
     `);
   });
 };
@@ -491,11 +523,11 @@ const renderAccordionList = () => {
   if (plans.length === 0) {
     container.html(`
         <div class="text-center py-5 opacity-50">
-            <span class="material-symbols-outlined" style="font-size: 48px;">calendar_month</span>
-            <p class="mt-2">Nenhum encontro planejado.</p>
-            <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-success btn-sm" onclick="addPlan()"><i class="fas fa-plus me-1"></i> Criar 1º Encontro</button>
-                <button class="btn btn-primary btn-sm" onclick="addDefaultModel()"><i class="fas fa-magic me-1"></i> Modelo Padrão</button>
+            <span class="material-symbols-outlined" style="font-size: 56px;">calendar_month</span>
+            <p class="mt-3 fw-medium text-body">Nenhum encontro planejado.</p>
+            <div class="d-flex justify-content-center gap-2 mt-3">
+                <button class="btn btn-primary btn-sm px-3 shadow-sm rounded-pill" onclick="addPlan()"><i class="fas fa-plus me-1"></i> Criar 1º Encontro</button>
+                <button class="btn btn-outline-primary btn-sm px-3 shadow-sm rounded-pill" onclick="addDefaultModel()"><i class="fas fa-magic me-1"></i> Modelo</button>
             </div>
         </div>
     `);
@@ -508,26 +540,38 @@ const renderAccordionList = () => {
     const isFirst = i === 0;
     const isLast = i === plans.length - 1;
 
-    const upBtn = `<button class="btn btn-sm btn-link text-secondary p-0 me-1" ${isFirst ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
-    const downBtn = `<button class="btn btn-sm btn-link text-secondary p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
+    const upBtn = `<button class="btn btn-sm btn-link text-body p-0 me-1" ${isFirst ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
+    const downBtn = `<button class="btn btn-sm btn-link text-body p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
 
+    // Container do item com design Soft UI
     const html = `
-        <div class="plan-item">
+        <div class="plan-item card border-0 rounded-4 bg-secondary bg-opacity-10 mb-3 shadow-sm overflow-hidden">
             <div class="accordion-header" id="${headingId}">
                 <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                    <div class="me-3 d-flex align-items-center text-muted" style="min-width: 40px;">${upBtn}${downBtn}</div>
-                    <div class="me-3"><span class="badge rounded-pill bg-secondary bg-opacity-25 text-body fw-normal border">#${i + 1}</span></div>
-                    <div class="flex-grow-1 me-3">
-                        <input type="text" class="form-control form-control-sm input-ghost" value="${plan.title || "Encontro " + (i + 1)}" onclick="event.stopPropagation()" onchange="updatePlanTitle(${i}, this.value)" placeholder="Título do Encontro">
+                    
+                    <div class="me-3 d-flex align-items-center opacity-75" style="min-width: 40px;">${upBtn}${downBtn}</div>
+                    
+                    <div class="me-3">
+                        <span class="badge rounded-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 d-flex align-items-center justify-content-center shadow-inner" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                            ${i + 1}
+                        </span>
                     </div>
+                    
+                    <div class="flex-grow-1 me-3">
+                        <input type="text" class="form-control bg-transparent border-0 shadow-none fw-bold text-body fs-6 px-0" value="${plan.title || "Encontro " + (i + 1)}" onclick="event.stopPropagation()" onchange="updatePlanTitle(${i}, this.value)" placeholder="Título do Encontro...">
+                    </div>
+                    
                     <div class="ms-auto d-flex align-items-center">
-                        <i class="fas fa-chevron-down text-muted small me-3 transition-icon"></i>
-                        <button class="btn btn-sm btn-link text-danger p-0" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                        <i class="fas fa-chevron-down text-muted me-3 transition-icon"></i>
+                        <button class="btn-icon-action btn-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 32px; height: 32px;" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
+                            <i class="fas fa-trash-can text-danger"></i>
+                        </button>
                     </div>
                 </div>
             </div>
+            
             <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionPlans">
-                <div class="p-0 border-top">
+                <div class="p-3 pt-0 border-top border-secondary border-opacity-10 bg-body">
                     <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
                 </div>
             </div>
@@ -536,15 +580,16 @@ const renderAccordionList = () => {
     container.append(html);
   });
 
+  // Re-inicializa o Summernote com os ícones corretos
   const collapses = document.querySelectorAll(".accordion-collapse");
   collapses.forEach((el) => {
     el.addEventListener("shown.bs.collapse", function () {
-      $(this).prev().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-up");
+      $(this).prev().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-up text-primary");
       const textarea = this.querySelector(".summernote-dynamic");
       $(textarea).summernote(summernoteConfig);
     });
     el.addEventListener("hide.bs.collapse", function () {
-      $(this).prev().find(".fa-chevron-up").removeClass("fa-chevron-up").addClass("fa-chevron-down");
+      $(this).prev().find(".fa-chevron-up").removeClass("fa-chevron-up text-primary").addClass("fa-chevron-down");
       const textarea = this.querySelector(".summernote-dynamic");
       if ($(textarea).next(".note-editor").length > 0) {
         window.saveActiveSummernote();
