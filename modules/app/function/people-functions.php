@@ -592,10 +592,10 @@ function syncUserLogin($personId)
 {
     try {
         $conect = $GLOBALS["local"];
-        $conectStaff = getStaff(); // Conexão com o banco global/staff
+        $conectStaff = getStaff();
 
-        // 1. Busca dados da Pessoa
-        $stmtP = $conect->prepare("SELECT full_name, profile_photo_url, email, tax_id FROM people.persons WHERE person_id = :id");
+        // 1. Busca dados da Pessoa (incluindo org_id_origin para o id_client)
+        $stmtP = $conect->prepare("SELECT full_name, profile_photo_url, email, tax_id, org_id_origin FROM people.persons WHERE person_id = :id");
         $stmtP->execute(['id' => $personId]);
         $person = $stmtP->fetch(PDO::FETCH_ASSOC);
 
@@ -612,28 +612,27 @@ function syncUserLogin($personId)
         elseif (in_array('SECRETARY', $roles)) $roleLevel = 'SECRETARY';
         elseif (in_array('CATECHIST', $roles)) $roleLevel = 'TEACHER';
 
-        // Se não tiver cargo compatível, encerra (não cria/atualiza login)
+        // Se não tiver cargo compatível, encerra
         if (!$roleLevel) return;
 
-        // Dados para Login
+        // Configuração de IDs e Senha
+        $clientId = !empty($person['org_id_origin']) ? $person['org_id_origin'] : 1;
+        $profileId = ($roleLevel == 'MANAGER') ? 50 : (($roleLevel == 'SECRETARY') ? 40 : 30);
         $cpfLimpo = preg_replace('/[^0-9]/', '', $person['tax_id'] ?? '');
-        $rawPassword = !empty($cpfLimpo) ? $cpfLimpo : 'mudar123';
-        // Nota: Se o seu sistema usa hash (Bcrypt/Argon), aplique password_hash($rawPassword, ...) aqui.
-        $hash = $rawPassword;
+        $hash = !empty($cpfLimpo) ? $cpfLimpo : 'mudar123';
 
-        // 3. Verifica se JÁ EXISTE login local (para pegar o ID do Staff vinculado)
+        // 3. Verifica login local
         $stmtLocal = $conect->prepare("SELECT user_id FROM security.users WHERE person_id = :id");
         $stmtLocal->execute(['id' => $personId]);
-        $localUserId = $stmtLocal->fetchColumn(); // Esse ID geralmente é o mesmo do Staff
+        $localUserId = $stmtLocal->fetchColumn();
 
         $staffUserId = $localUserId ? $localUserId : null;
 
-        // 4. Sincronização com Banco STAFF (Se disponível)
+        // 4. Sincronização com Banco STAFF
         if ($conectStaff) {
             try {
                 $conectStaff->beginTransaction();
 
-                // Se não temos o ID ainda, busca pelo E-mail no Staff
                 if (!$staffUserId) {
                     $stmtS = $conectStaff->prepare("SELECT id FROM users WHERE email = :email");
                     $stmtS->execute(['email' => $person['email']]);
@@ -641,20 +640,15 @@ function syncUserLogin($personId)
                 }
 
                 if ($staffUserId) {
-                    // ATUALIZA (Update)
                     $conectStaff->prepare("UPDATE users SET name = :name, email = :email, password = :pass, img = :img, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
                         ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash, 'img' => $person['profile_photo_url'], 'id' => $staffUserId]);
                 } else {
-                    // CRIA (Insert)
                     $conectStaff->prepare("INSERT INTO users (name, email, password, img, created_at, updated_at) VALUES (:name, :email, :pass, :img, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
                         ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash, 'img' => $person['profile_photo_url']]);
                     $staffUserId = $conectStaff->lastInsertId();
                 }
 
-                // Vínculo com Cliente (Tabela users_clients_profiles)
-                $clientId = 1; // Ajuste se seu sistema for multi-cliente dinâmico
-                $profileId = ($roleLevel == 'MANAGER') ? 50 : (($roleLevel == 'SECRETARY') ? 40 : 30);
-
+                // Vínculo Client/Profile no Staff
                 $stmtLink = $conectStaff->prepare("SELECT id FROM users_clients_profiles WHERE id_user = :uid AND id_client = :cid");
                 $stmtLink->execute(['uid' => $staffUserId, 'cid' => $clientId]);
 
@@ -662,7 +656,6 @@ function syncUserLogin($personId)
                     $conectStaff->prepare("INSERT INTO users_clients_profiles (id_user, id_client, id_profile, created_at, updated_at) VALUES (:uid, :cid, :pid, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
                         ->execute(['uid' => $staffUserId, 'cid' => $clientId, 'pid' => $profileId]);
                 } else {
-                    // Opcional: Atualizar perfil se mudou
                     $conectStaff->prepare("UPDATE users_clients_profiles SET id_profile = :pid, updated_at = CURRENT_TIMESTAMP WHERE id_user = :uid AND id_client = :cid")
                         ->execute(['uid' => $staffUserId, 'cid' => $clientId, 'pid' => $profileId]);
                 }
@@ -670,42 +663,45 @@ function syncUserLogin($personId)
                 $conectStaff->commit();
             } catch (Exception $eStaff) {
                 if ($conectStaff->inTransaction()) $conectStaff->rollBack();
-                // Loga erro mas não para o fluxo local
                 logSystemError("painel", "people", "syncUserLogin_Staff", "sql", $eStaff->getMessage(), ['person_id' => $personId]);
             }
         }
 
-        // 5. Sincronização Local (security.users)
+        // 5. Sincronização Local (security.users) e Perfil Temporal
         if ($staffUserId) {
+            // Atualiza ou Insere na security.users
+            $sqlSecurity = "INSERT INTO security.users (user_id, org_id, person_id, name, email, role_level) 
+                            VALUES (:uid, :oid, :pid, :name, :email, :role)
+                            ON CONFLICT (user_id) DO UPDATE 
+                            SET email = EXCLUDED.email, name = EXCLUDED.name, role_level = EXCLUDED.role_level";
 
+            $conect->prepare($sqlSecurity)->execute([
+                'uid' => $staffUserId,
+                'oid' => $clientId,
+                'pid' => $personId,
+                'name' => $person['full_name'],
+                'email' => $person['email'],
+                'role' => $roleLevel
+            ]);
 
-            if ($localUserId) {
-                // UPDATE: Corrigido o erro do fetchColumn duplo
-                $conect->prepare("UPDATE security.users SET email = :em, role_level = :rl, name = :nm WHERE user_id = :uid")
-                    ->execute([
-                        'em' => $person['email'],
-                        'rl' => $roleLevel,
-                        'nm' => $person['full_name'],
-                        'uid' => $localUserId // Usa a variável, não chama fetchColumn de novo
-                    ]);
-            } else {
-                // INSERT: Usa ON CONFLICT para segurança caso o ID já exista (race condition ou dados sujos)
-                $sqlInsert = "INSERT INTO security.users (user_id, org_id, person_id, name, email, role_level) 
-                              VALUES (:uid, 1, :pid, :name, :email, :role)
-                              ON CONFLICT (user_id) DO UPDATE 
-                              SET email = EXCLUDED.email, name = EXCLUDED.name, role_level = EXCLUDED.role_level";
+            // GRAVAÇÃO DO PERFIL POR ANO (security.users_years)
+            // Vincula ao ano letivo atual/ativo se existir
+            $stmtYear = $conect->prepare("SELECT id FROM education.academic_years WHERE is_active IS TRUE LIMIT 1");
+            $stmtYear->execute();
+            $currentYearId = $stmtYear->fetchColumn();
 
-                $conect->prepare($sqlInsert)->execute([
+            if ($currentYearId) {
+                $sqlYearProfile = "INSERT INTO security.users_years (user_id, year_id, id_profile) 
+                                   VALUES (:uid, :yid, :pid)
+                                   ON CONFLICT (user_id, year_id) DO UPDATE SET id_profile = EXCLUDED.id_profile";
+                $conect->prepare($sqlYearProfile)->execute([
                     'uid' => $staffUserId,
-                    'pid' => $personId,
-                    'name' => $person['full_name'],
-                    'email' => $person['email'],
-                    'role' => $roleLevel
+                    'yid' => $currentYearId,
+                    'pid' => $profileId
                 ]);
             }
         }
     } catch (Exception $e) {
-        // Loga o erro para você saber o que houve
         logSystemError("painel", "people", "syncUserLogin_Local", "exception", $e->getMessage(), ['person_id' => $personId]);
     }
 }

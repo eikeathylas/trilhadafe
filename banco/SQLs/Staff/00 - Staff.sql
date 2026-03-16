@@ -249,7 +249,8 @@ INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, co
 (14, 'liturgia', 'Liturgia e Missas', 'Agenda de celebrações.', TRUE, 'icon-church', 'PastoralController'),
 (15, 'eventos', 'Eventos e Festas', 'Gestão de quermesses.', TRUE, 'icon-ticket', 'EventsController'),
 (16, 'comunicacao', 'Site e App', 'Gerenciamento de notícias.', TRUE, 'icon-rss', 'CommunicationController'),
-(17, 'relatorios', 'Relatórios', 'Análise de dados.', TRUE, 'icon-description', 'ReportsController');
+(17, 'relatorios', 'Relatórios', 'Análise de dados.', TRUE, 'icon-description', 'ReportsController'),
+(18, 'usuarios', 'Usuários', 'Gerenciamento de usuários.', TRUE, 'icon-users', 'UsersController');
 
 -- Sub-ações
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
@@ -265,7 +266,7 @@ INSERT INTO public.profiles_actions (id_profile, id_action) SELECT 99, id FROM p
 
 -- PÁROCO (50)
 INSERT INTO public.profiles_actions (id_profile, id_action) VALUES 
-(50, 1), (50, 2), (50, 3), (50, 7), (50, 8), (50, 11), (50, 13), (50, 14), (50, 15);
+(50, 1), (50, 2), (50, 3), (50, 7), (50, 8), (50, 11), (50, 13), (50, 14), (50, 15), (50, 18);
 
 -- CATEQUISTA (30) - Com acesso ao DIÁRIO (12)
 INSERT INTO public.profiles_actions (id_profile, id_action) VALUES 

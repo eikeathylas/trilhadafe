@@ -7,7 +7,7 @@
     <div class="d-flex align-items-center gap-3">
         <div class="position-relative d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded-circle" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNotifications" style="cursor: pointer; width: 36px; height: 36px;">
             <span class="material-symbols-outlined text-body" style="font-size: 22px;">notifications</span>
-            <span class="position-absolute top-0 start-100 translate-middle badge border border-2 border-white rounded-circle bg-danger p-1 d-none" id="mob-notif-badge" style="width: 12px; height: 12px;"><span class="visually-hidden">Alertas não lidos</span></span>
+            <span class="position-absolute top-0 start-100 translate-middle badge border border-2 border-white rounded-circle bg-danger p-1 d-none" id="mob-notif-badge" style="width: 12px; height: 18px;"><span class="visually-hidden">Alertas não lidos</span></span>
         </div>
         <div class="user-avatar-container shadow-sm border border-secondary border-opacity-25" style="width: 36px; height: 36px; cursor: pointer;" onclick="window.zoomAvatar(window.defaultApp.userInfo.img_user, 'Minha Foto')">
             <img src="./assets/img/trilhadafe.png" alt="User" class="user-avatar-img" id="sidebar-user-photo">
@@ -101,6 +101,12 @@
                         <a href="organizacao.php" class="<?= basename($_SERVER['PHP_SELF']) == 'organizacao.php' ? 'active' : '' ?>" data-tooltip="Organização">
                             <span class="material-symbols-outlined icon-only">domain</span>
                             <span class="text-only">Minha Paróquia</span>
+                        </a>
+                    </li>
+                    <li data-slug="usuarios">
+                        <a href="usuarios.php" class="<?= basename($_SERVER['PHP_SELF']) == 'usuarios.php' ? 'active' : '' ?>" data-tooltip="Usuários">
+                            <span class="material-symbols-outlined icon-only">person</span>
+                            <span class="text-only">Usuários</span>
                         </a>
                     </li>
                 </ul>

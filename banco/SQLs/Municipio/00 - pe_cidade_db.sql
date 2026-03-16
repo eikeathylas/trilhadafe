@@ -1087,7 +1087,6 @@ CREATE TABLE IF NOT EXISTS security.users (
     
     name VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
-    -- [REMOVIDO] password_hash - Agora somente no Staff DB
     
     role_level VARCHAR(50) DEFAULT 'USER', -- ADMIN, MANAGER, SECRETARY, TEACHER
     is_active BOOLEAN DEFAULT TRUE,
@@ -1097,6 +1096,17 @@ CREATE TABLE IF NOT EXISTS security.users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
+
+-- Nova tabela com Perfil por Ano
+CREATE TABLE security.users_years (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    year_id INTEGER NOT NULL,
+    id_profile INTEGER NOT NULL, -- Perfil específico para este ano
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_users_years_year FOREIGN KEY (year_id) REFERENCES education.academic_years(year_id) ON DELETE CASCADE
+);
+CREATE INDEX idx_users_years_user_year ON security.users_years(user_id, year_id, id_profile);
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON security.users(email);
 CREATE INDEX IF NOT EXISTS idx_users_person ON security.users(person_id);

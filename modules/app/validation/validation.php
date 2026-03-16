@@ -18,6 +18,7 @@ include "../controller/course-controller.php";
 include "../controller/turmas-controller.php";
 include "../controller/diario-controller.php";
 include "../controller/events-controller.php";
+include "../controller/user-controller.php";
 
 include "../controller/reports-controller.php";
 
@@ -272,6 +273,20 @@ switch ($validator) {
 		toggleEventBlocker();
 		break;
 
+	// MÓDULO: USUÁRIOS DA PARÓQUIA
+	case "getUsuarios":
+		getUsuarios();
+		break;
+	case "saveUsuarioInfo":
+		saveUsuarioInfo();
+		break;
+	case "resetUsuarioPassword":
+		resetUsuarioPassword();
+		break;
+	case "getUsuarioHistorico":
+		getUsuarioHistorico();
+		break;
+
 	// MÓDULO: RELATÓRIOS (relatorios.js)
 	case "getReportData":
 		getReportData();
@@ -416,7 +431,7 @@ function ping()
 		"status" => "ok",
 		"version" => "1.0.0",
 		"system" => "Trilha da Fé",
-		"ip" => getIp(), 
+		"ip" => getIp(),
 		"server_time" => date("Y-m-d H:i:s")
 	]);
 }
