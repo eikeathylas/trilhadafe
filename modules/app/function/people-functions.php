@@ -335,7 +335,7 @@ function upsertPerson($data, $files = [])
         }
 
         $conect->commit();
-        syncUserLogin($personId);
+        syncUserLogin($personId, $data['id_client']);
 
         return success($msg, ['person_id' => $personId]);
     } catch (Exception $e) {
@@ -588,13 +588,13 @@ function getCatechistsForSelect($search = "")
     }
 }
 
-function syncUserLogin($personId)
+function syncUserLogin($personId, $clientId)
 {
     try {
         $conect = $GLOBALS["local"];
         $conectStaff = getStaff();
 
-        // 1. Busca dados da Pessoa (incluindo org_id_origin para o id_client)
+        // 1. Busca dados da Pessoa
         $stmtP = $conect->prepare("SELECT full_name, profile_photo_url, email, tax_id, org_id_origin FROM people.persons WHERE person_id = :id");
         $stmtP->execute(['id' => $personId]);
         $person = $stmtP->fetch(PDO::FETCH_ASSOC);
@@ -608,16 +608,27 @@ function syncUserLogin($personId)
         $roles = $stmtRoles->fetchAll(PDO::FETCH_COLUMN);
 
         $roleLevel = null;
-        if (in_array('PRIEST', $roles)) $roleLevel = 'MANAGER';
-        elseif (in_array('SECRETARY', $roles)) $roleLevel = 'SECRETARY';
-        elseif (in_array('CATECHIST', $roles)) $roleLevel = 'TEACHER';
+        $profileId = 10; // Padrão Fiel/Aluno
 
-        // Se não tiver cargo compatível, encerra
+        if (in_array('PRIEST', $roles)) {
+            $roleLevel = 'MANAGER';
+            $profileId = 50;
+        } elseif (in_array('SECRETARY', $roles)) {
+            $roleLevel = 'SECRETARY';
+            $profileId = 40;
+        } elseif (in_array('CATECHIST', $roles)) {
+            $roleLevel = 'TEACHER';
+            $profileId = 30;
+        } elseif (in_array('STUDENT', $roles) || in_array('PARENT', $roles)) {
+            $roleLevel = 'USER';
+            $profileId = 10;
+        }
+
+        // Se não tiver nenhum cargo dos mapeados, encerra
         if (!$roleLevel) return;
 
-        // Configuração de IDs e Senha
-        $clientId = !empty($person['org_id_origin']) ? $person['org_id_origin'] : 1;
-        $profileId = ($roleLevel == 'MANAGER') ? 50 : (($roleLevel == 'SECRETARY') ? 40 : 30);
+        // Configuração de IDs e Senha Inicial
+        $orgId = !empty($person['org_id_origin']) ? $person['org_id_origin'] : 1;
         $cpfLimpo = preg_replace('/[^0-9]/', '', $person['tax_id'] ?? '');
         $hash = !empty($cpfLimpo) ? $cpfLimpo : 'mudar123';
 
@@ -640,9 +651,11 @@ function syncUserLogin($personId)
                 }
 
                 if ($staffUserId) {
-                    $conectStaff->prepare("UPDATE users SET name = :name, email = :email, password = :pass, img = :img, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
-                        ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash, 'img' => $person['profile_photo_url'], 'id' => $staffUserId]);
+                    // [CORREÇÃO] Não sobrescreve a senha no UPDATE!
+                    $conectStaff->prepare("UPDATE users SET name = :name, email = :email, img = :img, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
+                        ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'img' => $person['profile_photo_url'], 'id' => $staffUserId]);
                 } else {
+                    // [CORREÇÃO] Senha definida apenas no INSERT
                     $conectStaff->prepare("INSERT INTO users (name, email, password, img, created_at, updated_at) VALUES (:name, :email, :pass, :img, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")
                         ->execute(['name' => $person['full_name'], 'email' => $person['email'], 'pass' => $hash, 'img' => $person['profile_photo_url']]);
                     $staffUserId = $conectStaff->lastInsertId();
@@ -664,44 +677,58 @@ function syncUserLogin($personId)
             } catch (Exception $eStaff) {
                 if ($conectStaff->inTransaction()) $conectStaff->rollBack();
                 logSystemError("painel", "people", "syncUserLogin_Staff", "sql", $eStaff->getMessage(), ['person_id' => $personId]);
+                return; // Impede salvar no local se falhar no Staff
             }
         }
 
         // 5. Sincronização Local (security.users) e Perfil Temporal
         if ($staffUserId) {
-            // Atualiza ou Insere na security.users
-            $sqlSecurity = "INSERT INTO security.users (user_id, org_id, person_id, name, email, role_level) 
-                            VALUES (:uid, :oid, :pid, :name, :email, :role)
-                            ON CONFLICT (user_id) DO UPDATE 
-                            SET email = EXCLUDED.email, name = EXCLUDED.name, role_level = EXCLUDED.role_level";
+            try {
+                // [CORREÇÃO] Protege o bloco local com Transaction
+                $conect->beginTransaction();
 
-            $conect->prepare($sqlSecurity)->execute([
-                'uid' => $staffUserId,
-                'oid' => $clientId,
-                'pid' => $personId,
-                'name' => $person['full_name'],
-                'email' => $person['email'],
-                'role' => $roleLevel
-            ]);
+                // Atualiza ou Insere na security.users
+                $sqlSecurity = "INSERT INTO security.users (user_id, org_id, person_id, name, email, role_level, updated_at) 
+                                VALUES (:uid, :oid, :pid, :name, :email, :role, CURRENT_TIMESTAMP)
+                                ON CONFLICT (user_id) DO UPDATE 
+                                SET email = EXCLUDED.email, 
+                                    name = EXCLUDED.name, 
+                                    role_level = EXCLUDED.role_level,
+                                    updated_at = CURRENT_TIMESTAMP";
 
-            // GRAVAÇÃO DO PERFIL POR ANO (security.users_years)
-            // Vincula ao ano letivo atual/ativo se existir
-            $stmtYear = $conect->prepare("SELECT id FROM education.academic_years WHERE is_active IS TRUE LIMIT 1");
-            $stmtYear->execute();
-            $currentYearId = $stmtYear->fetchColumn();
-
-            if ($currentYearId) {
-                $sqlYearProfile = "INSERT INTO security.users_years (user_id, year_id, id_profile) 
-                                   VALUES (:uid, :yid, :pid)
-                                   ON CONFLICT (user_id, year_id) DO UPDATE SET id_profile = EXCLUDED.id_profile";
-                $conect->prepare($sqlYearProfile)->execute([
+                $conect->prepare($sqlSecurity)->execute([
                     'uid' => $staffUserId,
-                    'yid' => $currentYearId,
-                    'pid' => $profileId
+                    'oid' => $orgId,
+                    'pid' => $personId,
+                    'name' => $person['full_name'],
+                    'email' => $person['email'],
+                    'role' => $roleLevel
                 ]);
+
+                // GRAVAÇÃO DO PERFIL POR ANO (security.users_years)
+                // [CORREÇÃO] Filtro deleted IS FALSE adicionado
+                $stmtYear = $conect->prepare("SELECT year_id FROM education.academic_years WHERE is_active IS TRUE AND deleted IS FALSE LIMIT 1");
+                $stmtYear->execute();
+                $currentYearId = $stmtYear->fetchColumn();
+
+                if ($currentYearId) {
+                    $sqlYearProfile = "INSERT INTO security.users_years (user_id, year_id, id_profile) 
+                                       VALUES (:uid, :yid, :pid)
+                                       ON CONFLICT (user_id, year_id) DO UPDATE SET id_profile = EXCLUDED.id_profile";
+                    $conect->prepare($sqlYearProfile)->execute([
+                        'uid' => $staffUserId,
+                        'yid' => $currentYearId,
+                        'pid' => $profileId
+                    ]);
+                }
+
+                $conect->commit();
+            } catch (Exception $eLocal) {
+                if ($conect->inTransaction()) $conect->rollBack();
+                logSystemError("painel", "people", "syncUserLogin_Local", "sql", $eLocal->getMessage(), ['person_id' => $personId]);
             }
         }
     } catch (Exception $e) {
-        logSystemError("painel", "people", "syncUserLogin_Local", "exception", $e->getMessage(), ['person_id' => $personId]);
+        logSystemError("painel", "people", "syncUserLogin_General", "exception", $e->getMessage(), ['person_id' => $personId]);
     }
 }

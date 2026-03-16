@@ -32,7 +32,6 @@ function savePerson()
 
     $data = $_POST;
     $data['user_id'] = getAuthUserId();
-    $data['id_client'] = $decoded['id_client'] ?? ($_POST['id_client'] ?? 0);
 
     echo json_encode(upsertPerson($data, $_FILES));
 }

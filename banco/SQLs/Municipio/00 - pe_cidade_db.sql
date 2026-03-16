@@ -1106,10 +1106,14 @@ CREATE TABLE security.users_years (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_users_years_year FOREIGN KEY (year_id) REFERENCES education.academic_years(year_id) ON DELETE CASCADE
 );
-CREATE INDEX idx_users_years_user_year ON security.users_years(user_id, year_id, id_profile);
+
+
+ALTER TABLE security.users ADD CONSTRAINT unique_user_id UNIQUE (user_id);
+ALTER TABLE security.users_years ADD CONSTRAINT unique_user_year UNIQUE (user_id, year_id);
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON security.users(email);
 CREATE INDEX IF NOT EXISTS idx_users_person ON security.users(person_id);
+CREATE INDEX idx_users_years_user_year ON security.users_years(user_id, year_id, id_profile);
 
 COMMENT ON TABLE security.users IS 'Tabela de autenticação (Login). Vinculada a uma Pessoa Física.';
 COMMENT ON COLUMN security.users.person_id IS 'Link com o cadastro completo da pessoa.';
