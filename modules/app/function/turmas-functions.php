@@ -21,7 +21,7 @@ function getAllClasses($data)
         }
 
         if (!empty($data['year'])) {
-            $where .= " AND c.academic_year_id = :year";
+            $where .= " AND c.year_id = :year";
             $params[':year'] = (int)$data['year'];
         }
 
@@ -35,7 +35,7 @@ function getAllClasses($data)
                 (SELECT COUNT(*) FROM education.enrollments e WHERE e.class_id = c.class_id AND e.deleted IS FALSE AND e.status = 'ACTIVE') as enrolled_count,
                 (SELECT STRING_AGG(CASE cs.day_of_week WHEN 0 THEN 'Dom' WHEN 1 THEN 'Seg' WHEN 2 THEN 'Ter' WHEN 3 THEN 'Qua' WHEN 4 THEN 'Qui' WHEN 5 THEN 'Sex' WHEN 6 THEN 'Sáb' END || ' ' || TO_CHAR(cs.start_time, 'HH24:MI'), ', ') FROM education.class_schedules cs WHERE cs.class_id = c.class_id AND cs.is_active IS TRUE) as schedule_summary
             FROM education.classes c
-            LEFT JOIN education.academic_years y ON c.academic_year_id = y.year_id
+            LEFT JOIN education.academic_years y ON c.year_id = y.year_id
             JOIN education.courses co ON c.course_id = co.course_id
             LEFT JOIN people.persons p ON c.coordinator_id = p.person_id
             LEFT JOIN people.persons pa ON c.class_assistant_id = pa.person_id
@@ -114,13 +114,13 @@ function upsertClass($data)
             'coordinator_id' => !empty($data['coordinator_id']) ? $data['coordinator_id'] : null,
             'class_assistant_id' => !empty($data['class_assistant_id']) ? $data['class_assistant_id'] : null,
             'name' => $data['name'],
-            'academic_year_id' => $data['academic_year_id'],
+            'year_id' => $data['year_id'],
             'max_capacity' => !empty($data['max_capacity']) ? $data['max_capacity'] : null,
             'status' => $data['status'] ?? 'PLANNED'
         ];
 
         if (!empty($data['class_id'])) {
-            $sql = "UPDATE education.classes SET course_id=:course_id, main_location_id=:main_location_id, coordinator_id=:coordinator_id, class_assistant_id=:class_assistant_id, name=:name, academic_year_id=:academic_year_id, max_capacity=:max_capacity, status=:status, updated_at=CURRENT_TIMESTAMP WHERE class_id=:class_id";
+            $sql = "UPDATE education.classes SET course_id=:course_id, main_location_id=:main_location_id, coordinator_id=:coordinator_id, class_assistant_id=:class_assistant_id, name=:name, year_id=:year_id, max_capacity=:max_capacity, status=:status, updated_at=CURRENT_TIMESTAMP WHERE class_id=:class_id";
             $params['class_id'] = $data['class_id'];
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
@@ -132,7 +132,7 @@ function upsertClass($data)
                 return failure("Organização não definida.");
             }
             $params['org_id'] = $data['org_id'];
-            $sql = "INSERT INTO education.classes (course_id, org_id, main_location_id, coordinator_id, class_assistant_id, name, academic_year_id, max_capacity, status) VALUES (:course_id, :org_id, :main_location_id, :coordinator_id, :class_assistant_id, :name, :academic_year_id, :max_capacity, :status) RETURNING class_id";
+            $sql = "INSERT INTO education.classes (course_id, org_id, main_location_id, coordinator_id, class_assistant_id, name, year_id, max_capacity, status) VALUES (:course_id, :org_id, :main_location_id, :coordinator_id, :class_assistant_id, :name, :year_id, :max_capacity, :status) RETURNING class_id";
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
             $classId = $stmt->fetchColumn();

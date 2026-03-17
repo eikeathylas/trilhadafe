@@ -273,18 +273,34 @@ switch ($validator) {
 		toggleEventBlocker();
 		break;
 
-	// MÓDULO: USUÁRIOS DA PARÓQUIA
+	// =========================================================
+	// MÓDULO: USUÁRIOS DA PARÓQUIA E ACESSOS
+	// =========================================================
 	case "getUsuarios":
 		getUsuarios();
 		break;
-	case "saveUsuarioInfo":
+	case "getUsuarioDetails": // Rota para buscar usuário isolado (Edição Segura)
+		getUsuarioDetails();
+		break;
+	case "saveUsuarioInfo": // Rota para Criar/Atualizar usuário
 		saveUsuarioInfo();
+		break;
+	case "deleteUsuario": // Rota para Deletar usuário (Hard/Soft Delete)
+		deleteUsuario();
 		break;
 	case "resetUsuarioPassword":
 		resetUsuarioPassword();
 		break;
 	case "getUsuarioHistorico":
 		getUsuarioHistorico();
+		break;
+
+	// Rotas de Apoio (Dropdowns)
+	case "getAnosLetivosDropdown": // Rota para popular o Selectize de Anos Letivos
+		getAnosLetivosDropdown();
+		break;
+	case "searchPessoasDropdown": // Rota para popular a busca de Pessoas (Novo Usuário)
+		searchPessoasDropdown();
 		break;
 
 	// MÓDULO: RELATÓRIOS (relatorios.js)

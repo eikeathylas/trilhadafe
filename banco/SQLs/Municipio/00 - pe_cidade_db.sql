@@ -374,7 +374,7 @@ CREATE TABLE education.classes (
     class_id SERIAL PRIMARY KEY,
     course_id INT NOT NULL REFERENCES education.courses(course_id),
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
-    academic_year_id INT NOT NULL REFERENCES education.academic_years(year_id),
+    year_id INT NOT NULL REFERENCES education.academic_years(year_id),
     
     main_location_id INT REFERENCES organization.locations(location_id),
     coordinator_id INT REFERENCES people.persons(person_id),
@@ -1088,13 +1088,13 @@ CREATE TABLE IF NOT EXISTS security.users (
     name VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     
+    force_password_change BOOLEAN DEFAULT FALSE,
     role_level VARCHAR(50) DEFAULT 'USER', -- ADMIN, MANAGER, SECRETARY, TEACHER
     is_active BOOLEAN DEFAULT TRUE,
-    force_password_change BOOLEAN DEFAULT FALSE,
-    
+    deleted BOOLEAN DEFAULT FALSE,
     last_login TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Nova tabela com Perfil por Ano
@@ -1103,7 +1103,10 @@ CREATE TABLE security.users_years (
     user_id INTEGER NOT NULL,
     year_id INTEGER NOT NULL,
     id_profile INTEGER NOT NULL, -- Perfil específico para este ano
+    is_active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     CONSTRAINT fk_users_years_year FOREIGN KEY (year_id) REFERENCES education.academic_years(year_id) ON DELETE CASCADE
 );
 
@@ -1403,7 +1406,7 @@ INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES
 (2, 1, 40), (2, 2, 40);
 
 -- Turma (Com Academic Year ID)
-INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, academic_year_id, status) VALUES 
+INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, year_id, status) VALUES 
 (1, 1, 2, 3, 3, 'Turma Sábado Manhã', 2026, 'ACTIVE');
 
 INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, subject_id, location_id, instructor_id) VALUES 

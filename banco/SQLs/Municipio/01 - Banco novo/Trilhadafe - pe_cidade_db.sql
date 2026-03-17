@@ -301,7 +301,7 @@ CREATE TABLE education.classes (
     class_id SERIAL PRIMARY KEY,
     course_id INT NOT NULL REFERENCES education.courses(course_id),
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
-    academic_year_id INT NOT NULL REFERENCES education.academic_years(year_id),
+    year_id INT NOT NULL REFERENCES education.academic_years(year_id),
     main_location_id INT REFERENCES organization.locations(location_id),
     coordinator_id INT REFERENCES people.persons(person_id),
     class_assistant_id INT REFERENCES people.persons(person_id),

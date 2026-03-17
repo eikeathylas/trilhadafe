@@ -464,7 +464,7 @@ window.salvarTurma = async () => {
   const data = {
     class_id: $("#class_id").val(),
     name: name,
-    academic_year_id: yearId,
+    year_id: yearId,
     course_id: course,
     coordinator_id: $("#sel_coordinator").val(),
     class_assistant_id: $("#sel_assistant").val(),

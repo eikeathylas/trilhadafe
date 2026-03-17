@@ -13,7 +13,7 @@ function getTeacherClassesF($userId, $roleLevel, $yearId, $orgId)
 
         // Filtro de Ano (Opcional ou Obrigatório dependendo do fluxo)
         if (!empty($yearId)) {
-            $yearFilter = "AND c.academic_year_id = :yid";
+            $yearFilter = "AND c.year_id = :yid";
             $params['yid'] = $yearId;
         } else {
             // Se não vier ano, pega os ativos (fallback)
@@ -27,7 +27,7 @@ function getTeacherClassesF($userId, $roleLevel, $yearId, $orgId)
             $sql = "SELECT c.class_id, c.name as class_name, co.name as course_name, ay.name as year_name, l.name as location_name
                     FROM education.classes c
                     JOIN education.courses co ON c.course_id = co.course_id
-                    JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
+                    JOIN education.academic_years ay ON c.year_id = ay.year_id
                     LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
                     WHERE c.deleted IS FALSE 
                     AND c.status = 'ACTIVE' 
@@ -50,7 +50,7 @@ function getTeacherClassesF($userId, $roleLevel, $yearId, $orgId)
             $sql = "SELECT DISTINCT c.class_id, c.name as class_name, co.name as course_name, ay.name as year_name, l.name as location_name
                     FROM education.classes c
                     JOIN education.courses co ON c.course_id = co.course_id
-                    JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
+                    JOIN education.academic_years ay ON c.year_id = ay.year_id
                     LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
                     LEFT JOIN education.class_schedules cs ON c.class_id = cs.class_id
                     WHERE c.deleted IS FALSE 
@@ -99,7 +99,7 @@ function getDiarioMetadataF($data)
         // 1. Busca Dados da Turma (Org e Datas Limites)
         $sqlClass = "SELECT c.org_id, ay.start_date, ay.end_date 
                      FROM education.classes c
-                     JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
+                     JOIN education.academic_years ay ON c.year_id = ay.year_id
                      WHERE c.class_id = :cid LIMIT 1";
         $stmtClass = $conect->prepare($sqlClass);
         $stmtClass->execute(['cid' => $classId]);

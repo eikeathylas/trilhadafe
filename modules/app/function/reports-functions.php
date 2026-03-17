@@ -66,7 +66,7 @@ function _reportListaPresenca($data)
                          WHERE e2.class_id = c.class_id AND e2.status = 'ACTIVE' AND e2.deleted IS FALSE) as current_enrollments
                     FROM education.classes c
                     JOIN education.courses co ON c.course_id = co.course_id
-                    JOIN education.academic_years ay ON c.academic_year_id = ay.year_id
+                    JOIN education.academic_years ay ON c.year_id = ay.year_id
                     LEFT JOIN organization.locations l ON c.main_location_id = l.location_id
                     LEFT JOIN people.persons p ON c.coordinator_id = p.person_id
                     WHERE c.class_id = :cid AND c.deleted IS FALSE";

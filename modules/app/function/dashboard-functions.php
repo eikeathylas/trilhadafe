@@ -24,7 +24,7 @@ function getDashboardStatsData($data)
         $sql = "SELECT COUNT(*) as total FROM education.classes 
                 WHERE is_active IS TRUE AND deleted IS FALSE 
                 AND org_id = :oid
-                AND academic_year_id = :yid";
+                AND year_id = :yid";
         $stmt = $conect->prepare($sql);
         $stmt->execute(['oid' => $orgId, 'yid' => $yearId]);
         $stats['total_turmas'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
