@@ -1,13 +1,9 @@
-// =========================================================
-// 1. CONFIGURAÇÃO DE TEMA (CLARO/ESCURO)
-// =========================================================
 const configTheme = (ele) => {
   let themeActive = localStorage.getItem("mode");
   let button = $('ul > li [onclick="configTheme(this)"] .icon-only');
   let temaBoot = $("body");
 
   if (ele !== undefined) {
-    // Alternância pelo clique
     if (!themeActive || themeActive === "claro") {
       localStorage.setItem("mode", "escuro");
       temaBoot.attr("data-bs-theme", "dark").attr("data-theme", "escuro");
@@ -18,7 +14,6 @@ const configTheme = (ele) => {
       if (button.length) button.html("dark_mode");
     }
   } else {
-    // Carregamento inicial (persistência)
     if (themeActive === "escuro") {
       temaBoot.attr("data-bs-theme", "dark").attr("data-theme", "escuro");
       if (button.length) button.html("light_mode");
@@ -28,12 +23,7 @@ const configTheme = (ele) => {
     }
   }
 };
-// Executa imediatamente ao carregar
 configTheme();
-
-// =========================================================
-// 2. CONFIGURAÇÕES GLOBAIS & UTILITÁRIOS
-// =========================================================
 
 const getUrl = () => {
   let path = window.location.pathname;
@@ -54,7 +44,6 @@ window.defaultApp = {
   validator: `app/validation/validation.php`,
 };
 
-// --- MÁSCARAS (jQuery Mask Plugin) ---
 window.initMasks = () => {
   if ($.fn.mask) {
     $(".mask-date").mask("00/00/0000");
@@ -64,10 +53,9 @@ window.initMasks = () => {
     $(".mask-cnpj").mask("00.000.000/0000-00", { reverse: true });
     $(".mask-money").mask("000.000.000,00", { reverse: true });
 
-    // Máscara dinâmica para celular (8 ou 9 dígitos)
     var phoneMaskBehavior = function (val) {
-        return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
-      },
+      return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
+    },
       phoneOptions = {
         onKeyPress: function (val, e, field, options) {
           field.mask(phoneMaskBehavior.apply({}, arguments), options);
@@ -77,44 +65,57 @@ window.initMasks = () => {
   }
 };
 
-// --- CONTROLE DE BOTÃO (LOADING) ---
-window.setButton = (isLoading, element, originalText = "Salvar") => {
-  if (isLoading) {
-    element.prop("disabled", true);
-    element.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processando...');
+window.setButton = (loading, btn, temporaryText = " Processando...") => {
+  const $btn = $(btn);
+
+  if (loading) {
+    // Salva o conteúdo original para restauração posterior
+    if (!$btn.data("original-html")) {
+      $btn.data("original-html", $btn.html());
+    }
+
+    // Define uma largura mínima para o botão não "dançar" na tela
+    const currentWidth = $btn.outerWidth();
+    $btn.css("min-width", `${currentWidth}px`);
+
+    $btn.prop("disabled", true)
+      .addClass("disabled")
+      .html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>${temporaryText}`);
+
   } else {
-    element.prop("disabled", false);
-    element.html(originalText);
+    // Restaura o estado original
+    const originalHtml = $btn.data("original-html");
+    if (originalHtml) {
+      $btn.html(originalHtml);
+    }
+
+    $btn.prop("disabled", false)
+      .removeClass("disabled")
+      .css("min-width", ""); // Remove a trava de largura
   }
 };
 
-// --- ÍCONES DE RECURSOS (USADO EM GRIDS) ---
 window.getResourceIcon = (key) => {
   const icons = {
-    // CLIMATIZAÇÃO E ÁGUA (Cyan/Info - Excelente contraste em ambos)
     ac: '<i class="fas fa-snowflake text-info me-2" title="Ar-Condicionado"></i>',
     fan: '<i class="fas fa-fan text-info me-2" title="Ventilador"></i>',
     water: '<i class="fas fa-glass-water text-info me-2" title="Bebedouro"></i>',
 
-    // DESTAQUES (Amarelo, Verde, Vermelho)
     sacred: '<i class="fas fa-cross text-warning me-2" title="Local Sagrado / Altar"></i>',
     kitchen: '<i class="fas fa-mug-hot text-danger me-2" title="Copa / Cozinha"></i>',
     parking: '<i class="fas fa-square-parking text-success me-2" title="Estacionamento"></i>',
 
-    // TECNOLOGIA E ACESSO (Azul Primário - Cor base do sistema)
     access: '<i class="fas fa-wheelchair text-primary me-2" title="Acessibilidade"></i>',
     wifi: '<i class="fas fa-wifi text-primary me-2" title="Wi-Fi"></i>',
     projector: '<i class="fas fa-display text-primary me-2" title="Projetor / TV"></i>',
     sound: '<i class="fas fa-volume-high text-primary me-2" title="Som"></i>',
     computer: '<i class="fas fa-laptop text-primary me-2" title="Computadores"></i>',
 
-    // INFRAESTRUTURA BÁSICA (Cinza Adaptativo - Resolve o problema do ícone invisível)
     whiteboard: '<i class="fas fa-chalkboard text-secondary me-2" title="Lousa / Quadro"></i>',
   };
   return icons[key] || "";
 };
 
-// --- GERADOR DE TOGGLE (HTML PADRÃO) ---
 window.renderToggle = (id, isChecked, onChangeFunction) => {
   const checkedAttr = isChecked ? "checked" : "";
   return `
@@ -126,7 +127,6 @@ window.renderToggle = (id, isChecked, onChangeFunction) => {
     `;
 };
 
-// --- ZOOM DE IMAGEM (SWEETALERT) ---
 window.zoomAvatar = (url, altText = "Foto") => {
   if (!url) return;
   Swal.fire({
@@ -144,10 +144,6 @@ window.zoomAvatar = (url, altText = "Foto") => {
     animation: true,
   });
 };
-
-// =========================================================
-// 3. COMUNICAÇÃO E SESSÃO
-// =========================================================
 
 window.logOut = (reason = null) => {
   localStorage.removeItem("tf_data");
@@ -185,7 +181,6 @@ window.alertDefault = (msg = "Sucesso!", icon = "success", time = 3, position = 
   }).fire();
 };
 
-// Wrapper de AJAX (Dados)
 window.ajaxValidator = (data) => {
   return new Promise((resolve, reject) => {
     $.ajax({
@@ -205,7 +200,6 @@ window.ajaxValidator = (data) => {
   });
 };
 
-// Wrapper de AJAX (Arquivos/FormData)
 window.ajaxValidatorFoto = (data) => {
   return new Promise((resolve, reject) => {
     $.ajax({
@@ -226,7 +220,6 @@ window.ajaxValidatorFoto = (data) => {
   });
 };
 
-// Verifica validade do token periodicamente
 const checkSessionStatus = () => {
   if (!defaultApp.userInfo.token) return;
   ajaxValidator({ validator: "token", token: defaultApp.userInfo.token })
@@ -245,10 +238,6 @@ const keepAlive = () => {
   ajaxValidator({ validator: "confirm", token: defaultApp.userInfo.token });
 };
 
-// =========================================================
-// 4. CONTEXTO GLOBAL (UNIDADE E ANO)
-// =========================================================
-
 window.initGlobalContext = async () => {
   if (!defaultApp.userInfo.token) return;
 
@@ -257,17 +246,15 @@ window.initGlobalContext = async () => {
 
   if (!$elParish.length || !$elYear.length) return;
 
-  // Configuração comum para ambos os selects
   const commonConfig = {
     create: false,
     sortField: "text",
     searchField: ["text"],
     placeholder: "Carregando...",
-    dropdownParent: "body", // <--- CRÍTICO: Tira o menu de dentro da sidebar
+    dropdownParent: "body",
     render: { option: (item, escape) => `<div class="option"><span>${escape(item.text)}</span></div>` },
   };
 
-  // --- SELETOR DE UNIDADE ---
   const selectParish = $elParish.selectize({
     ...commonConfig,
     onChange: function (val) {
@@ -281,10 +268,8 @@ window.initGlobalContext = async () => {
     },
   })[0].selectize;
 
-  // Adiciona classe para estilização CSS
   selectParish.$dropdown.addClass("sidebar-context-dropdown");
 
-  // --- SELETOR DE ANO LETIVO ---
   const selectYear = $elYear.selectize({
     ...commonConfig,
     onChange: function (val) {
@@ -300,13 +285,11 @@ window.initGlobalContext = async () => {
     },
   })[0].selectize;
 
-  // Adiciona classe para estilização CSS
   selectYear.$dropdown.addClass("sidebar-context-dropdown");
 
   selectParish.disable();
   selectYear.disable();
 
-  // Carregamento de Dados
   try {
     const res = await ajaxValidator({
       validator: "getGlobalContext",
@@ -316,7 +299,6 @@ window.initGlobalContext = async () => {
     if (res.status) {
       const data = res.data;
 
-      // Paróquias
       selectParish.clearOptions();
       selectParish.enable();
       selectParish.settings.placeholder = "Selecione...";
@@ -337,7 +319,6 @@ window.initGlobalContext = async () => {
         }
       }
 
-      // Anos
       selectYear.clearOptions();
       selectYear.enable();
       selectYear.settings.placeholder = "Selecione...";
@@ -364,7 +345,6 @@ window.initGlobalContext = async () => {
 };
 
 window.abrirWhatsAppSuporte = async (acaoErro = "Dúvida / Contato via Menu", descricaoErro = "Preciso de ajuda com o sistema.") => {
-  // 1. EXTRAIR DADOS DO LOCAL STORAGE (Prevenção de Erros)
   let usuario = "Desconhecido";
   let cliente = "Desconhecido";
   let cargo = "Desconhecido";
@@ -382,7 +362,6 @@ window.abrirWhatsAppSuporte = async (acaoErro = "Dúvida / Contato via Menu", de
     console.warn("Aviso: Falha ao ler tf_data do LocalStorage.");
   }
 
-  // 2. HELPERS DE NAVEGADOR E SO
   const getBrowser = () => {
     const ua = navigator.userAgent;
     if (ua.includes("Chrome") && !ua.includes("Edg")) return "Google Chrome";
@@ -403,14 +382,12 @@ window.abrirWhatsAppSuporte = async (acaoErro = "Dúvida / Contato via Menu", de
     return "SO desconhecido";
   };
 
-  // 3. BUSCAR STATUS DO SERVIDOR (PING) VIA AJAX VALIDATOR
   let serverVersion = "Desconhecida";
   let serverIp = "Desconhecido";
   let pingStatus = "Falha na comunicação (Offline/Erro)";
 
   if (token) {
     try {
-      // Usando sua função nativa de requisição
       const resData = await window.ajaxValidator({
         validator: "ping",
         token: token,
@@ -427,12 +404,10 @@ window.abrirWhatsAppSuporte = async (acaoErro = "Dúvida / Contato via Menu", de
     }
   }
 
-  // 4. PREPARAR VARIÁVEIS DE AMBIENTE
   const plataforma = `${getBrowser()} no ${getOS()}`;
   const tela = document.title || window.location.pathname;
   const dataHora = new Date().toLocaleString("pt-BR");
 
-  // 5. MONTAR A MENSAGEM (Com formatação nativa do WhatsApp)
   const mensagem = `*SUPORTE TÉCNICO - TRILHA DA FÉ*
 -----------------------------------
 
@@ -459,19 +434,14 @@ window.abrirWhatsAppSuporte = async (acaoErro = "Dúvida / Contato via Menu", de
 ${descricaoErro}
 \`\`\``;
 
-  // 6. GERAR LINK E ABRIR (Com Bypass para iPhone/iOS)
   const telefoneEaCode = "5581982549914";
   const url = `https://wa.me/${telefoneEaCode}?text=${encodeURIComponent(mensagem)}`;
 
-  // Detecta se é um dispositivo Apple (iPhone, iPad, iPod)
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   if (isIOS) {
-    // No iPhone, forçamos o redirecionamento da página atual.
-    // Isso aciona o "Deep Link" e o iOS pergunta se quer abrir o App do WhatsApp.
     window.location.href = url;
   } else {
-    // No Android e Computador, abrir em nova aba funciona perfeitamente
     window.open(url, "_blank");
   }
 };
@@ -482,9 +452,9 @@ window.alertErrorWithSupport = (acao, mensagemErro) => {
     title: "Ops! Ocorreu um erro",
     text: mensagemErro,
     showCancelButton: true,
-    confirmButtonColor: "#25D366", // Cor oficial do WhatsApp
+    confirmButtonColor: "#25D366",
     cancelButtonColor: "#6c757d",
-    confirmButtonText: '<i class="fab fa-whatsapp me-2"></i> Contatar Suporte',
+    confirmButtonText: '<i class="fab fa-whatsapp me-2"></i> Suporte',
     cancelButtonText: "Fechar",
   }).then((result) => {
     if (result.isConfirmed) {
@@ -500,7 +470,6 @@ const handleToggle = async (validator, id, element, successMsg, labelSelector) =
   const $labels = $(labelSelector);
   const status = $chk.is(":checked");
 
-  // Define os estados visuais (Feedback Imediato com Badge)
   const setVisualState = (isActive) => {
     if (isActive) {
       $labels.html('<span class="badge bg-success-subtle text-success border border-success">Ativa</span>');
@@ -510,14 +479,11 @@ const handleToggle = async (validator, id, element, successMsg, labelSelector) =
   };
 
   try {
-    // 1. Bloqueia e mostra loader
     $chk.prop("disabled", true);
     $loader.removeClass("d-none");
 
-    // 2. Atualiza visualmente (Otimista)
     setVisualState(status);
 
-    // 3. Chamada API
     const result = await window.ajaxValidator({
       validator: validator,
       token: defaultApp.userInfo.token,
@@ -531,35 +497,26 @@ const handleToggle = async (validator, id, element, successMsg, labelSelector) =
       throw new Error(result.alert || "Erro ao atualizar");
     }
   } catch (e) {
-    // Reverte estado
     $chk.prop("checked", !status);
     setVisualState(!status);
 
     const errorMessage = e.message || "Erro de conexão com o servidor.";
     window.alertErrorWithSupport(`Alternar Status`, errorMessage);
   } finally {
-    // 4. Libera
     $chk.prop("disabled", false);
     $loader.addClass("d-none");
   }
 };
 
-// =========================================================
-// 5. INICIALIZAÇÃO FINAL
-// =========================================================
-
 $(document).ready(() => {
-  // Monitoramento de Sessão
   checkSessionStatus();
-  setInterval(checkSessionStatus, 600000); // 10 min
-  setInterval(keepAlive, 300000); // 5 min
+  setInterval(checkSessionStatus, 600000);
+  setInterval(keepAlive, 300000);
 
-  // Remove loader inicial
   setTimeout(() => {
     $("#div-loader").fadeOut();
   }, 500);
 
-  // Inicia componentes
   initMasks();
   initGlobalContext();
 });

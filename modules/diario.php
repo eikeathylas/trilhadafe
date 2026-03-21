@@ -144,8 +144,8 @@
                                 </div>
 
                                 <div class="card-footer bg-transparent border-top border-secondary border-opacity-10 p-3">
-                                    <button class="btn btn-primary w-100 shadow-sm rounded-3 fw-bold py-2 d-flex align-items-center justify-content-center transition-all" id="btn-save-diario" onclick="salvarDiario()">
-                                        <i class="fas fa-cloud-upload-alt me-2"></i> Salvar Diário
+                                    <button class="btn btn-primary w-100 shadow-sm rounded-3 fw-bold py-2 d-flex align-items-center justify-content-center transition-all" onclick="salvarDiario(this)">
+                                        <i class="fas fa-cloud-upload-alt me-2"></i> Salvar
                                     </button>
                                 </div>
                             </div>

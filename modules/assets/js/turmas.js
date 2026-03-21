@@ -1,7 +1,3 @@
-// =========================================================
-// GESTÃO DE TURMAS - PADRÃO OURO V3.0 (GLOBAL YEAR AWARE)
-// =========================================================
-
 const defaultClass = {
   currentPage: 1,
   rowsPerPage: 10,
@@ -15,7 +11,6 @@ window.toggleTurma = (id, element) => handleToggle("toggleClass", id, element, "
 $(document).ready(() => {
   initSelects();
 
-  // Busca textual
   $("#busca-texto").on("keyup", function () {
     clearTimeout(window.searchTimeout);
     window.searchTimeout = setTimeout(() => {
@@ -24,7 +19,6 @@ $(document).ready(() => {
     }, 500);
   });
 
-  // LISTENER GLOBAL: Quando o Ano mudar no Sidebar
   window.addEventListener("yearChanged", () => {
     defaultClass.currentPage = 1;
     getTurmas();
@@ -37,7 +31,6 @@ const getTurmas = async () => {
     const search = $("#busca-texto").val();
     const year = localStorage.getItem("sys_active_year");
 
-    // 1. Validação de Ano Letivo
     if (!year) {
       $(".list-table-turmas").html(`
         <div class="text-center py-5 opacity-50">
@@ -48,7 +41,6 @@ const getTurmas = async () => {
       return;
     }
 
-    // 3. Chamada à API
     const result = await window.ajaxValidator({
       validator: "getClasses",
       token: defaultApp.userInfo.token,
@@ -59,7 +51,6 @@ const getTurmas = async () => {
       year: year,
     });
 
-    // 4. Tratamento do Resultado
     if (result.status) {
       const total = result.data[0]?.total_registros || 0;
       defaultClass.totalPages = Math.max(1, Math.ceil(total / defaultClass.rowsPerPage));
@@ -93,7 +84,6 @@ const renderTableClasses = (data) => {
     return;
   }
 
-  // Helper para barra de progresso (Reutilizável)
   const getProgressHtml = (enrolled, cap) => {
     if (!cap || parseInt(cap) === 0) return '<span class="badge bg-light text-dark border">Ilimitado</span>';
 
@@ -117,7 +107,6 @@ const renderTableClasses = (data) => {
         </div>`;
   };
 
-  // Helper Toggle Desktop
   const getToggleHtml = (id, active) => {
     const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
 
@@ -130,7 +119,6 @@ const renderTableClasses = (data) => {
     </div>`;
   };
 
-  // Helper Toggle Mobile
   const getMobileToggleHtml = (id, active) => {
     const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
 
@@ -144,12 +132,8 @@ const renderTableClasses = (data) => {
     </div>`;
   };
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (TABELA)
-  // =========================================================
   let desktopRows = data
     .map((item) => {
-      // Avatar do Coordenador
       let avatarHtml = `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border small fw-bold" style="width:32px; height:32px;">?</div>`;
       if (item.coordinator_photo) {
         avatarHtml = `<img src="${item.coordinator_photo}" class="rounded-circle border" style="width:32px; height:32px; object-fit:cover;">`;
@@ -183,17 +167,14 @@ const renderTableClasses = (data) => {
                 ${getToggleHtml(item.class_id, isActive)}
             </td>
             <td class="text-end align-middle pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalTurma(${item.class_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
                 <button class="btn-icon-action text-danger" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
     .join("");
 
-  // =========================================================
-  // 2. VISÃO MOBILE (CARDS OTIMIZADOS)
-  // =========================================================
   let mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
@@ -236,10 +217,10 @@ const renderTableClasses = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.classes', ${item.class_id})" title="Log">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log">
                     <i class="fas fa-bolt"></i>
                 </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalTurma(${item.class_id})" title="Editar">
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalTurma(${item.class_id}, this)" title="Editar">
                     <i class="fas fa-pen"></i>
                 </button>
                 <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteTurma(${item.class_id})" title="Excluir">
@@ -250,7 +231,6 @@ const renderTableClasses = (data) => {
     })
     .join("");
 
-  // Renderiza HTML Híbrido
   container.html(`
     <div class="d-none d-md-block table-responsive">
         <table class="table-custom">
@@ -275,11 +255,9 @@ const renderTableClasses = (data) => {
   _generatePaginationButtons("pagination-turmas", "currentPage", "totalPages", "getTurmas", defaultClass);
 };
 
-// =========================================================
-// 3. CADASTRO E EDIÇÃO
-// =========================================================
 
-window.modalTurma = (id = null) => {
+window.modalTurma = (id = null, btn = false) => {
+  if (btn) btn = $(btn);
   const modal = $("#modalTurma");
 
   $("#class_id").val("");
@@ -287,7 +265,6 @@ window.modalTurma = (id = null) => {
   $("#class_capacity").val("");
   $("#class_status").val("PLANNED");
 
-  // Limpa Selects (Com verificação de existência)
   if ($("#sel_course")[0]?.selectize) $("#sel_course")[0].selectize.clear();
   if ($("#sel_coordinator")[0]?.selectize) $("#sel_coordinator")[0].selectize.clear();
   if ($("#sel_assistant")[0]?.selectize) $("#sel_assistant")[0].selectize.clear();
@@ -299,7 +276,7 @@ window.modalTurma = (id = null) => {
 
   if (id) {
     $("#alunos-tab").removeClass("disabled");
-    loadClassData(id);
+    loadClassData(id, btn);
   } else {
     $("#alunos-tab").addClass("disabled");
     $("#modalLabel").text("Nova Turma");
@@ -309,8 +286,10 @@ window.modalTurma = (id = null) => {
   $("#turmaTab button:first").tab("show");
 };
 
-const loadClassData = async (id) => {
+const loadClassData = async (id, btn) => {
   try {
+
+    window.setButton(true, btn, "");
     const result = await window.ajaxValidator({
       validator: "getClassById",
       token: defaultApp.userInfo.token,
@@ -324,7 +303,6 @@ const loadClassData = async (id) => {
       $("#class_capacity").val(d.max_capacity);
       $("#class_status").val(d.status);
 
-      // INJEÇÃO MANUAL DE OPÇÕES (Fix Amnesia do Selectize)
       if (d.course_id && d.course_name_text) {
         const sel = $("#sel_course")[0].selectize;
         sel.addOption({ id: d.course_id, title: d.course_name_text });
@@ -361,19 +339,17 @@ const loadClassData = async (id) => {
   } catch (e) {
     const errorMessage = e.message || "Falha ao conectar com o servidor para carregar a turma.";
     window.alertErrorWithSupport(`Abrir Edição de Turma`, errorMessage);
+    $("#modalTurma").modal("hide");
+  } finally {
+    window.setButton(false, btn);
   }
 };
-
-// =========================================================
-// 4. GRADE HORÁRIA
-// =========================================================
 
 window.addSchedule = () => {
   const day = $("#sched_day").val();
   const start = $("#sched_start").val();
   const end = $("#sched_end").val();
 
-  // Herança de Sala
   let locId = $("#sel_location_sched").val();
   if (!locId) {
     locId = $("#sel_location").val();
@@ -416,7 +392,6 @@ const renderSchedulesTable = () => {
     const st = item.start_time.substring(0, 5);
     const et = item.end_time.substring(0, 5);
 
-    // Label de Localização com ícone
     const locLabel = item.location_name || (item.location_id ? "Sala Específica" : "Sala da Turma");
 
     container.append(`
@@ -445,21 +420,17 @@ const renderSchedulesTable = () => {
   });
 };
 
-// =========================================================
-// 5. SALVAR TURMA
-// =========================================================
-
-window.salvarTurma = async () => {
+window.salvarTurma = async (btn) => {
   const name = $("#class_name").val().trim();
   const course = $("#sel_course").val();
   const yearId = localStorage.getItem("sys_active_year");
+  btn = $(btn);
 
   if (!name) return window.alertDefault("Nome da turma é obrigatório.", "warning");
   if (!course) return window.alertDefault("Selecione um curso.", "warning");
   if (!yearId) return window.alertDefault("Selecione o ano letivo.", "warning");
 
-  const btn = $(".btn-save");
-  window.setButton(true, btn, "Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   const data = {
     class_id: $("#class_id").val(),
@@ -494,37 +465,28 @@ window.salvarTurma = async () => {
     const acaoContexto = data.class_id ? `Atualizar Turma` : "Criar Nova Turma";
     window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
-    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
+    window.setButton(false, btn);
   }
 };
-
-// =========================================================
-// 6. MATRÍCULAS E ALUNOS
-// =========================================================
 
 const loadClassStudents = async (classId) => {
   const container = $("#lista-alunos");
   try {
-    // 1. Feedback Visual de Carregamento (Respeitando a tabela)
     container.html('<tr><td colspan="5" class="text-center py-4 opacity-50"><span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span> Carregando catequizandos...</td></tr>');
 
-    // 2. Chamada à API
     const result = await window.ajaxValidator({
       validator: "getClassStudents",
       token: defaultApp.userInfo.token,
       class_id: classId,
     });
 
-    // 3. Tratamento do Resultado
     if (result.status) {
       const dataArray = result.data || [];
 
       if (dataArray.length > 0) {
-        // Sucesso com dados
         container.empty();
         renderStudentsList(dataArray);
       } else {
-        // Estado Vazio (Sem catequizando, mas sem erro)
         container.html(`
         <tr>
           <td colspan="5" class="text-center text-muted py-5 opacity-75">
@@ -559,7 +521,6 @@ const renderStudentsList = (data) => {
   data.forEach((item) => {
     const st = statusMap[item.status] || { l: item.status, c: "secondary" };
 
-    // Injeção de Card Moderno (EaCode Soft UI)
     container.append(`
         <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 transition-all shadow-sm">
             <div class="flex-grow-1 pe-2">
@@ -589,16 +550,17 @@ const renderStudentsList = (data) => {
   });
 };
 
-window.matricularAluno = async () => {
+window.matricularAluno = async (btn) => {
   const classId = $("#class_id").val();
   const studentId = $("#sel_new_student").val();
+  btn = $(btn);
 
-  // Validações de Front-end (Alertas rápidos, sem acionar o suporte)
   if (!classId) return window.alertDefault("Salve a turma antes de realizar matrículas.", "warning");
   if (!studentId) return window.alertDefault("Selecione um catequizando para matricular.", "warning");
 
+  window.setButton(true, btn, " Matriculando...");
+
   try {
-    // Chamada à API
     const result = await window.ajaxValidator({
       validator: "enrollStudent",
       token: defaultApp.userInfo.token,
@@ -606,14 +568,9 @@ window.matricularAluno = async () => {
       student_id: studentId,
     });
 
-    // Tratamento do Resultado
     if (result.status) {
       window.alertDefault("Catequizando matriculado com sucesso!", "success");
-
-      // Limpa o selectize para a próxima matrícula
       $("#sel_new_student")[0].selectize.clear();
-
-      // Atualiza as listagens na tela
       loadClassStudents(classId);
       getTurmas();
     } else {
@@ -622,6 +579,8 @@ window.matricularAluno = async () => {
   } catch (e) {
     const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar matricular.";
     window.alertErrorWithSupport(`Matricular Catequizando`, errorMessage);
+  } finally {
+    window.setButton(false, btn);
   }
 };
 
@@ -647,10 +606,6 @@ window.deleteEnrollment = (id) => {
   });
 };
 
-// =========================================================
-// 7. HISTÓRICO DE MATRÍCULA
-// =========================================================
-
 window.openHistory = (enrollmentId, studentName) => {
   $("#hist_enrollment_id").val(enrollmentId);
   $("#hist_student_name").text(studentName);
@@ -664,7 +619,6 @@ window.openHistory = (enrollmentId, studentName) => {
 const loadEnrollmentHistory = async (enrollmentId) => {
   const container = $("#lista-historico-detalhe");
 
-  // 1. Feedback Visual de Carregamento (Loader Otimista Soft UI)
   container.html(`
     <div class="text-center py-5 opacity-50">
         <div class="spinner-border text-primary" style="width: 2rem; height: 2rem;" role="status"></div>
@@ -673,14 +627,12 @@ const loadEnrollmentHistory = async (enrollmentId) => {
   `);
 
   try {
-    // 2. Chamada à API
     const result = await window.ajaxValidator({
       validator: "getEnrollmentHistory",
       token: defaultApp.userInfo.token,
       enrollment_id: enrollmentId,
     });
 
-    // 3. Tratamento do Resultado
     if (result.status) {
       const dataArray = result.data || [];
 
@@ -700,7 +652,6 @@ const loadEnrollmentHistory = async (enrollmentId) => {
         dataArray.forEach((item) => {
           const act = actionMap[item.action_type] || { t: item.action_type, c: "secondary", i: "info" };
 
-          // Mantida a sua estrutura visual impecável de Timeline
           container.append(`
               <div class="position-relative ps-4 border-start border-2 border-secondary border-opacity-25 pb-3 ms-2">
                   <div class="position-absolute start-0 top-0 translate-middle-x bg-${act.c} rounded-circle border border-3 border-body shadow-sm" 
@@ -731,7 +682,6 @@ const loadEnrollmentHistory = async (enrollmentId) => {
           `);
         });
       } else {
-        // Estado Vazio (Sem histórico para este aluno, sem erro)
         container.html(`
           <div class="text-center py-5 opacity-50">
               <span class="material-symbols-outlined fs-1">history</span>
@@ -765,12 +715,10 @@ window.addHistoryItem = async () => {
   const action = $("#hist_action").val();
   const obs = $("#hist_obs").val();
 
-  // Validações de Front-end (Sem acionar suporte)
   if (!eid) return;
   if (!obs && action === "COMMENT") return window.alertDefault("Digite uma observação.", "warning");
 
   try {
-    // Chamada à API
     const result = await window.ajaxValidator({
       validator: "addEnrollmentHistory",
       token: defaultApp.userInfo.token,
@@ -779,11 +727,9 @@ window.addHistoryItem = async () => {
       observation: obs,
     });
 
-    // Tratamento do Resultado
     if (result.status) {
       window.alertDefault("Anotação adicionada ao histórico!", "success");
 
-      // Limpa o campo e atualiza as listagens
       $("#hist_obs").val("");
       loadEnrollmentHistory(eid);
       if ($("#class_id").val()) loadClassStudents($("#class_id").val());
@@ -815,10 +761,6 @@ window.deleteHistoryItem = (historyId, enrollmentId) => {
     }
   });
 };
-
-// =========================================================
-// 8. HELPERS E INICIALIZAÇÃO
-// =========================================================
 
 const initSelects = () => {
   const selects = [

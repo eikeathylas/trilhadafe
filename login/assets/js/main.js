@@ -14,7 +14,7 @@ const LoginApp = (() => {
   // --- 2. INICIALIZAÇÃO E TEMA ---
   const init = () => {
     applyTheme();
-    protectConsole();
+    // protectConsole();
     bindEvents();
     // Não limpamos o storage todo aqui para preservar o tema escolhido
   };

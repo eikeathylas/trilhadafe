@@ -4,10 +4,6 @@ const defaultUsers = {
   totalPages: 1,
 };
 
-// =========================================================
-// 1. LISTAGEM E FILTROS
-// =========================================================
-
 const loadUsuarios = async () => {
   const container = $(".list-table-usuarios");
   const mobileContainer = $("#mobile-users-cards");
@@ -17,11 +13,6 @@ const loadUsuarios = async () => {
     const search = $("#busca-texto").val();
     const profile = $("#filtro-perfil").val();
 
-    container.html(`
-        <div class="text-center py-5 opacity-25">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-            <p class="mt-3 fw-medium">Sincronizando acessos...</p>
-        </div>`);
     mobileContainer.empty();
 
     const result = await window.ajaxValidator({
@@ -62,10 +53,6 @@ const loadUsuarios = async () => {
   }
 };
 
-// =========================================================
-// HELPERS DE TRADUÇÃO E ESTILO (PADRÃO PESSOAS)
-// =========================================================
-
 const getTranslatedProfile = (profileName) => {
   if (!profileName || String(profileName).toLowerCase() === "undefined") return "Acesso Geral";
   const translations = {
@@ -82,18 +69,15 @@ const getTranslatedProfile = (profileName) => {
 
 const getProfileColor = (profileId) => {
   const colors = {
-    99: "danger", // DEV
-    50: "secondary", // PÁROCO
-    40: "secondary", // COORDENADOR
-    30: "warning", // CATEQUISTA
-    10: "primary", // FIEL / ALUNO
+    99: "danger",
+    50: "secondary",
+    40: "secondary",
+    30: "warning",
+    10: "primary",
   };
-  return colors[profileId] || "secondary"; // Fallback seguro
+  return colors[profileId] || "secondary";
 };
 
-// =========================================================
-// RENDERIZAÇÃO: VISÃO DESKTOP
-// =========================================================
 const renderTableUsers = (data) => {
   let desktopRows = data
     .map((item) => {
@@ -113,7 +97,6 @@ const renderTableUsers = (data) => {
       const textClass = color === "warning" ? "text-dark" : "text-white";
       const profileBadge = `<span class="badge bg-${color} ${textClass} px-2 py-1">${profileLabel}</span>`;
 
-      // [CORREÇÃO] Botões puros, sem fundo, 100% igual ao padrão de Pessoas
       return `
         <tr>
             <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
@@ -124,10 +107,10 @@ const renderTableUsers = (data) => {
             <td class="align-middle">${profileBadge}</td>
             <td class="align-middle"><small class="text-secondary">${item.anos_letivos || "Acesso Geral"}</small></td>
             <td class="text-end align-middle pe-3 text-nowrap">
-                <button class="btn-icon-action text-info" onclick="openHistoryModal(${item.id}, '${item.name.replace(/'/g, "\\'")}')" title="Ações da Usuária"><i class="fas fa-book-open-reader"></i></button>
-                <button class="btn-icon-action text-warning" onclick="openAudit('security.users', ${item.id})" title="Auditoria Técnica"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="openEditModal(${item.id})" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteUsuario(${item.id})" title="Deletar"><i class="fas fa-trash"></i></button>
+                <button class="btn-icon-action text-info" onclick="openHistoryModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', this)" title="Ações da Usuária"><i class="fas fa-book-open-reader"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('security.users', ${item.id}, this)" title="Auditoria Técnica"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="openEditModal(${item.id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteUsuario(${item.id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
@@ -149,9 +132,6 @@ const renderTableUsers = (data) => {
     </div>`);
 };
 
-// =========================================================
-// RENDERIZAÇÃO: VISÃO MOBILE
-// =========================================================
 const renderMobileUsers = (data) => {
   const mobileRows = data
     .map((item) => {
@@ -177,16 +157,16 @@ const renderMobileUsers = (data) => {
             </div>
             <div class="small text-secondary mb-3 mt-2"><i class="fas fa-calendar-alt me-1"></i> ${item.anos_letivos || "Acesso Geral"}</div>
             <div class="d-flex justify-content-end border-top border-secondary border-opacity-10 pt-3 gap-2">
-                <button class="btn-icon-action text-info bg-info bg-opacity-10 border-0 rounded-circle" style="width: 36px; height: 36px;" onclick="openHistoryModal(${item.id}, '${item.name}')" title="Ações da Usuária">
+                <button class="btn-icon-action text-info bg-info bg-opacity-10 border-0 rounded-circle" style="width: 36px; height: 36px;" onclick="openHistoryModal(${item.id}, '${item.name}', this)" title="Ações da Usuária">
                     <i class="fas fa-book-open-reader"></i>
                 </button>
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle" style="width: 36px; height: 36px;" onclick="openAudit('security.users', ${item.id})" title="Auditoria Técnica">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle" style="width: 36px; height: 36px;" onclick="openAudit('security.users', ${item.id}, this)" title="Log">
                     <i class="fas fa-bolt"></i>
                 </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle" style="width: 36px; height: 36px;" onclick="openEditModal(${item.id})" title="Editar">
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle" style="width: 36px; height: 36px;" onclick="openEditModal(${item.id}, this)" title="Editar">
                     <i class="fas fa-pen"></i>
                 </button>
-                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle" style="width: 36px; height: 36px;" onclick="deleteUsuario(${item.id})" title="Deletar">
+                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle" style="width: 36px; height: 36px;" onclick="deleteUsuario(${item.id})" title="Excluir">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -197,9 +177,6 @@ const renderMobileUsers = (data) => {
   $("#mobile-users-cards").html(mobileRows);
 };
 
-// =========================================================
-// TRADUTOR DE CAMPOS DO BANCO DE DADOS
-// =========================================================
 const translateLogKey = (key) => {
   const dict = {
     full_name: "Nome Completo",
@@ -224,21 +201,19 @@ const parseAuditDetails = (op, oldData, newData) => {
     newObj = {};
   try {
     oldObj = typeof oldData === "string" ? JSON.parse(oldData) : oldData || {};
-  } catch (e) {}
+  } catch (e) { }
   try {
     newObj = typeof newData === "string" ? JSON.parse(newData) : newData || {};
-  } catch (e) {}
+  } catch (e) { }
 
   let diffHtml = '<ul class="list-unstyled mb-0 small text-body">';
   let hasChanges = false;
 
-  // Lista de lixo técnico que NÃO deve aparecer para a Secretária
   let ignoreList = ["created_at", "updated_at", "id", "user_id", "person_id", "org_id", "class_id", "subject_id", "session_id", "attendance_id", "signed_by_user_id", "signed_at", "deleted"];
 
   let iterateObj = op === "DELETE" ? oldObj : newObj;
   if (Object.keys(iterateObj).length === 0 && op === "DELETE") iterateObj = newObj;
 
-  // REGRA DE NEGÓCIO: Se está presente, oculta justificativas e tipos de ausência
   const isPresent = String(iterateObj["is_present"]).toLowerCase();
   if (isPresent === "true" || isPresent === "sim" || isPresent === "present" || isPresent === "1") {
     ignoreList.push("absence_type", "justification", "student_observation");
@@ -247,21 +222,18 @@ const parseAuditDetails = (op, oldData, newData) => {
   const formatValue = (key, val) => {
     if (val === null || val === undefined || val === "") return '<span class="text-muted fst-italic">Não informado</span>';
 
-    // Tradução de Presença Visual
     if (key === "is_present") {
       const v = String(val).toLowerCase();
       if (v === "true" || v === "sim" || v === "present" || v === "1") return '<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2"><i class="fas fa-check me-1"></i> Presente</span>';
       if (v === "false" || v === "não" || v === "absent" || v === "0") return '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2"><i class="fas fa-times me-1"></i> Faltou</span>';
     }
 
-    // Tradução de Status e Conteúdo
     if (key === "status") {
       if (val === "PUBLISHED") return '<span class="badge bg-primary text-white">Publicado</span>';
       if (val === "DRAFT") return '<span class="badge bg-secondary text-white">Rascunho</span>';
     }
     if (key === "content_type" && val === "DOCTRINAL") return "Doutrinário / Catequético";
 
-    // Datas Bonitas
     if (key === "session_date" && typeof val === "string") return val.split("T")[0].split("-").reverse().join("/");
 
     if (typeof val === "boolean") return val ? "Sim" : "Não";
@@ -292,11 +264,6 @@ const parseAuditDetails = (op, oldData, newData) => {
   return hasChanges ? diffHtml : '<p class="mb-0 small text-secondary opacity-50">Detalhes não rastreados nesta operação.</p>';
 };
 
-// =========================================================
-// 2. AÇÕES CRUD E MODAIS
-// =========================================================
-
-// Busca anos letivos para o Selectize
 const fetchAnosLetivos = async () => {
   try {
     const res = await window.ajaxValidator({ validator: "getAnosLetivosDropdown", token: defaultApp.userInfo.token });
@@ -328,8 +295,11 @@ window.openCreateModal = () => {
   $("#modalUsuario").modal("show");
 };
 
-window.openEditModal = async (id) => {
+window.openEditModal = async (id, btn) => {
   try {
+    btn = $(btn);
+
+    window.setButton(true, btn, "");
     const res = await window.ajaxValidator({
       validator: "getUsuarioDetails",
       token: defaultApp.userInfo.token,
@@ -364,7 +334,7 @@ window.openEditModal = async (id) => {
   } catch (e) {
     window.alertErrorWithSupport("Buscar Usuário", e.message);
   } finally {
-    $("#div-loader").hide();
+    window.setButton(false, btn)
   }
 };
 
@@ -402,8 +372,8 @@ window.deleteUsuario = async (id) => {
   }
 };
 
-window.salvarUsuario = async () => {
-  const btn = $(".btn-save-user");
+window.salvarUsuario = async (btn) => {
+  btn = $(btn);
   const id_user = $("#edit_id_user").val();
   const person_id = $("#edit_person_id").val();
   const yearsMapping = ($("#edit_years").val() || []).map((yid) => ({ year_id: yid, profile_id: $("#edit_profile").val() }));
@@ -413,7 +383,7 @@ window.salvarUsuario = async () => {
     return;
   }
 
-  window.setButton(true, btn, "Gravando...");
+  window.setButton(true, btn, " Salvando...");
   try {
     const res = await window.ajaxValidator({
       validator: "saveUsuarioInfo",
@@ -434,25 +404,31 @@ window.salvarUsuario = async () => {
   } catch (e) {
     window.alertErrorWithSupport("Salvar Usuário", e.message);
   } finally {
-    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Gravar Usuário');
+    window.setButton(false, btn);
   }
 };
 
-window.resetPassword = async () => {
+window.resetPassword = async (btn) => {
   const id = $("#edit_id_user").val();
+  btn = $(btn);
   const confirm = await Swal.fire({ title: "Resetar Senha?", text: "A senha passará a ser mudar123", icon: "warning", showCancelButton: true });
 
   if (confirm.isConfirmed) {
+    window.setButton(true, btn, " Resetando...")
     const res = await window.ajaxValidator({ validator: "resetUsuarioPassword", token: defaultApp.userInfo.token, id_client: defaultApp.userInfo.id_client, id_user: id });
-    if (res.status) window.alertDefault("Senha resetada!", "success");
+    if (res.status) {
+      window.setButton(false, btn)
+      window.alertDefault("Senha resetada!", "success");
+    }
   }
 };
 
-window.openHistoryModal = async (id, name) => {
+window.openHistoryModal = async (id, name, btn) => {
   $("#modalHistoricoUsuario").modal("show");
   $("#lista-historico-timeline").html('<div class="text-center p-5 opacity-25"><div class="spinner-border text-primary"></div></div>');
 
   try {
+    window.setButton(true, btn, "");
     const res = await window.ajaxValidator({ validator: "getUsuarioHistorico", token: defaultApp.userInfo.token, id_client: defaultApp.userInfo.id_client, id_user: id });
 
     if (res.status && res.data && res.data.length > 0) {
@@ -507,12 +483,10 @@ window.openHistoryModal = async (id, name) => {
     }
   } catch (e) {
     $("#lista-historico-timeline").html(`<div class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>Falha ao carregar auditoria.</p></div>`);
+  } finally {
+    window.setButton(false, btn);
   }
 };
-
-// =========================================================
-// 4. PAGINAÇÃO, SELECTIZE E LISTENERS
-// =========================================================
 
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);

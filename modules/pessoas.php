@@ -404,7 +404,7 @@
                                         <input type="file" id="new_attachment_file" class="form-control bg-body border-0 shadow-none" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx" />
                                     </div>
                                     <div class="col-md-2">
-                                        <button class="btn btn-primary w-100 fw-bold shadow-sm rounded-3 py-2" id="btn-add-attachment" onclick="uploadAttachment()">
+                                        <button class="btn btn-primary w-100 fw-bold shadow-sm rounded-3 py-2" onclick="uploadAttachment(this)">
                                             <i class="fas fa-cloud-upload-alt me-2"></i> Enviar
                                         </button>
                                     </div>
@@ -424,7 +424,7 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save-person" onclick="salvarPessoa()">
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarPessoa(this)">
                         <i class="fas fa-user-check me-2"></i> Salvar Cadastro
                     </button>
                 </div>

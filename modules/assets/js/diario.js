@@ -1,25 +1,19 @@
-// =========================================================
-// GESTÃO DE DIÁRIO DE CLASSE (SMART LOGIC V7 - DATE ONLY)
-// =========================================================
-
 const defaultDiary = {
   currentPage: 1,
   rowsPerPage: 10,
   totalPages: 1,
 };
 
-// Estado Local
 const diarioState = {
   classId: null,
   subjectId: null,
-  schedules: [], // Regras de horário
+  schedules: [],
   sessionId: null,
   currentStudents: [],
 };
 
-let fpInstance = null; // Instância Global do Flatpickr
+let fpInstance = null;
 
-// Configuração Summernote
 const summernoteConfig = {
   height: 350,
   lang: "pt-BR",
@@ -32,12 +26,10 @@ const summernoteConfig = {
     ["view", ["fullscreen", "codeview"]],
   ],
   callbacks: {
-    // Ajustes se necessário
   },
 };
 
 $(document).ready(() => {
-  // Escuta mudança de ano no menu global para resetar filtros
   window.addEventListener("yearChanged", () => {
     resetInterface();
     const $selClass = $("#sel_filter_class");
@@ -48,9 +40,6 @@ $(document).ready(() => {
   });
 });
 
-// =========================================================
-// 1. FILTROS E SELETORES (CASCATA)
-// =========================================================
 
 const initFilters = () => {
   if ($("#sel_filter_class").length && !$("#sel_filter_class")[0].selectize) {
@@ -159,7 +148,6 @@ const getHistory = async () => {
   const page = Math.max(0, defaultDiary.currentPage - 1);
   const container = $(".list-table-diario");
 
-  // 1. Feedback Visual de Carregamento (Soft UI)
   container.html(`
     <div class="text-center py-5 opacity-50">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
@@ -168,7 +156,6 @@ const getHistory = async () => {
   `);
 
   try {
-    // 2. Chamada à API com prefixos padronizados
     const res = await window.ajaxValidator({
       validator: "getClassHistory",
       token: window.defaultApp.userInfo.token,
@@ -178,17 +165,14 @@ const getHistory = async () => {
       limit: defaultDiary.rowsPerPage,
     });
 
-    // 3. Tratamento do Resultado
     if (res.status) {
       const dataArray = res.data || [];
 
       if (dataArray.length > 0) {
-        // Sucesso: Renderiza tabela e paginação
         const total = dataArray[0]?.total_registros || 0;
         defaultDiary.totalPages = Math.max(1, Math.ceil(total / defaultDiary.rowsPerPage));
         renderTableHistory(dataArray);
       } else {
-        // Estado Vazio: Sem aulas para este filtro (Não é um erro)
         container.html(`
             <div class="text-center py-5 opacity-50">
                 <span class="material-symbols-outlined" style="font-size: 56px;">history_edu</span>
@@ -198,13 +182,11 @@ const getHistory = async () => {
         $(".pagination-diario").empty();
       }
     } else {
-      // REGRA APLICADA: Lança o erro para o Catch tratar
       throw new Error(res.alert || res.msg || "O servidor não conseguiu recuperar o histórico do diário.");
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar o diário.";
 
-    // 4. Feedback Visual de Erro Integrado
     container.html(`
         <div class="text-center py-5">
             <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
@@ -228,12 +210,8 @@ const renderTableHistory = (data) => {
     return;
   }
 
-  // =========================================================
-  // DESKTOP (Tabela Completa)
-  // =========================================================
   let desktopRows = data
     .map((item) => {
-      // (Lógica existente mantida para Desktop)
       let dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
       const rawIsoDate = item.session_date.split(" ")[0];
       const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
@@ -263,8 +241,8 @@ const renderTableHistory = (data) => {
             </div>
           </td>
           <td class="text-end align-middle pe-3">
-            <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log"><i class="fas fa-bolt"></i></button>
-            <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar"><i class="fas fa-pen"></i></button>
+            <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+            <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>
             <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
           </td>
         </tr>`;
@@ -278,22 +256,18 @@ const renderTableHistory = (data) => {
                         </table>
                        </div>`;
 
-  // =========================================================
-  // MOBILE (Cards Compactos)
-  // =========================================================
   let mobileRows = data
     .map((item) => {
-      // Formatação da data para DD/MM/AAAA
+      
       let dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
       const rawIsoDate = item.session_date.split(" ")[0];
 
-      // Cálculos matemáticos puros
       const total = parseInt(item.total_students) || 0;
       const present = parseInt(item.present_count) || 0;
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
 
-      // Define a cor da badge dinamicamente, blindada contra total = 0
-      let badgeStyle = "bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-25"; // Padrão/Sem alunos
+      let badgeStyle = "bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-25";
+
       if (total > 0) {
         badgeStyle = pct < 70 ? "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25" : pct < 90 ? "bg-warning bg-opacity-10 text-warning border-warning border-opacity-25" : "bg-success bg-opacity-10 text-success border-success border-opacity-25";
       }
@@ -320,10 +294,10 @@ const renderTableHistory = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.class_sessions', ${item.session_id})" title="Log">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log">
                     <i class="fas fa-bolt"></i>
                 </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}')" title="Editar">
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar">
                     <i class="fas fa-pen"></i>
                 </button>
                 <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSession(${item.session_id})" title="Excluir">
@@ -340,12 +314,12 @@ const renderTableHistory = (data) => {
   _generatePaginationButtons("pagination-diario", "currentPage", "totalPages", "changePage", defaultDiary);
 };
 
-// =========================================================
-// 3. MODAL E LÓGICA DE DATA (FIXED JS ERROR & DISABLED STATE)
-// =========================================================
 
-window.openSessionModal = async (sessionId = null, dateStr = null) => {
+window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
   diarioState.sessionId = sessionId;
+
+  btn = $(btn);
+  window.setButton(true, btn, "");
 
   const $dateInput = $("#diario_date");
   const $editor = $("#diario_content");
@@ -450,6 +424,8 @@ window.openSessionModal = async (sessionId = null, dateStr = null) => {
     $("#lista-alunos").html(`<div class='text-center py-5 text-danger'><i class='fas fa-exclamation-circle fs-2 mb-2'></i><p>${errorMessage}</p></div>`);
 
     window.alertErrorWithSupport(`Abrir Modal de Diário`, errorMessage);
+  } finally {
+    window.setButton(false, btn);
   }
 
   // Inicializa Summernote (Garantindo que o DOM está pronto e resiliência)
@@ -718,19 +694,16 @@ window.updateAbsenceType = (idx, val) => {
   diarioState.currentStudents[idx].absence_type = val;
 };
 
-// =========================================================
-// SALVAR E EXCLUIR
-// =========================================================
 
-window.salvarDiario = async () => {
+window.salvarDiario = async (btn) => {
   const date = $("#diario_date").val();
   const content = $("#diario_content").summernote("code");
-  const btn = $("#btn-save-diario");
+  btn = $(btn);
 
   if (!date) return window.alertDefault("Selecione a data da aula.", "warning");
   if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data bloqueada para registro.", "error");
 
-  window.setButton(true, btn, "Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   try {
     const res = await window.ajaxValidator({
@@ -739,7 +712,7 @@ window.salvarDiario = async () => {
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
       session_id: diarioState.sessionId,
-      date: date, // Envia String YYYY-MM-DD
+      date: date,
       content: content,
       attendance_json: JSON.stringify(diarioState.currentStudents),
     });
@@ -755,8 +728,7 @@ window.salvarDiario = async () => {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar o diário.";
     window.alertErrorWithSupport(`Salvar Diário`, errorMessage);
   } finally {
-    // 5. Sempre restaura o botão, mesmo em erro (para o usuário tentar novamente)
-    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Diário');
+    window.setButton(false, btn);
   }
 };
 
@@ -767,24 +739,21 @@ window.deleteSession = (sessionId) => {
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d", // Cinza padrão Soft UI
+    cancelButtonColor: "#6c757d",
     confirmButtonText: "Sim, excluir",
     cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        // 1. Chamada à API com prefixos padronizados
         const res = await window.ajaxValidator({
           validator: "deleteClassDiary",
           token: window.defaultApp.userInfo.token,
           session_id: sessionId,
         });
 
-        // 2. Tratamento do Resultado
         if (res.status) {
           window.alertDefault("Registro de aula removido.", "success");
 
-          // Atualiza a listagem de histórico
           if (typeof getHistory === "function") window.getHistory();
         } else {
           throw new Error(res.alert || res.msg || "O servidor não permitiu excluir este registro.");

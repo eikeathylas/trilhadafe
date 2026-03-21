@@ -52,7 +52,7 @@
             <p class="small mb-4">Selecione onde deseja trabalhar hoje</p>
 
             <div class="position-relative mb-3">
-                <i class="fa fa-search position-absolute" style="left: 15px; top: 16px; color: var(--text-muted);"></i>
+                <i class="fa fa-search position-absolute" style="left: 15px; top: 20px; color: var(--text-muted);"></i>
                 <input type="text" id="searchUnit" class="form-control" placeholder="Buscar unidade..." style="padding-left: 45px;">
                 <span id="clearSearch" class="position-absolute end-0 top-50 translate-middle-y me-3 fs-5" style="display:none; cursor:pointer; color: var(--text-muted);">&times;</span>
             </div>
@@ -60,7 +60,7 @@
             <div id="unitsContainer" class="units-grid">
             </div>
 
-            <button class="btn btn-outline-custom w-100 mt-4 btn-voltar">Sair da Conta</button>
+            <button class="btn btn-outline-custom w-100 mt-4 btn-voltar" style="padding-right: 5px; padding-left: 5px;">Sair da Conta</button>
         </div>
 
         <div id="section-reset" class="section-fade" style="display: none;">

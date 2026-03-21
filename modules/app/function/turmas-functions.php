@@ -139,8 +139,51 @@ function upsertClass($data)
             $msg = "Turma criada com sucesso!";
         }
 
-        // ... (Sync Grade Horária mantém igual) ...
-        // Copiar lógica original para processar schedules_json
+        $sqlGet = "SELECT schedule_id, day_of_week, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id FROM education.class_schedules WHERE class_id = :id";
+        $stmtGet = $conect->prepare($sqlGet);
+        $stmtGet->execute(['id' => $classId]);
+
+        $existingItems = [];
+        while ($row = $stmtGet->fetch(PDO::FETCH_ASSOC)) {
+            $key = $row['day_of_week'] . '-' . $row['start_time'] . '-' . $row['end_time'];
+            $existingItems[$key] = $row;
+        }
+
+        $incomingList = !empty($data['schedules_json']) ? json_decode($data['schedules_json'], true) : [];
+        $processedKeys = [];
+
+        foreach ($incomingList as $sch) {
+            $wd = (int)$sch['day_of_week'];
+            $st = substr($sch['start_time'], 0, 5);
+            $et = substr($sch['end_time'], 0, 5);
+            $lid = !empty($sch['location_id']) ? $sch['location_id'] : null;
+
+            $key = $wd . '-' . $st . '-' . $et;
+            $processedKeys[] = $key;
+
+            if (isset($existingItems[$key])) {
+                $current = $existingItems[$key];
+                if ($current['location_id'] != $lid) {
+                    $conect->prepare("UPDATE education.class_schedules SET location_id = :lid WHERE schedule_id = :sid")
+                        ->execute(['lid' => $lid, 'sid' => $current['schedule_id']]);
+                }
+            } else {
+                $sqlIns = "INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, location_id) VALUES (:cid, :wd, :st, :et, :lid)";
+                $conect->prepare($sqlIns)->execute([
+                    'cid' => $classId,
+                    'wd' => $wd,
+                    'st' => $st,
+                    'et' => $et,
+                    'lid' => $lid
+                ]);
+            }
+        }
+
+        foreach ($existingItems as $key => $item) {
+            if (!in_array($key, $processedKeys)) {
+                $conect->prepare("DELETE FROM education.class_schedules WHERE schedule_id = :id")->execute(['id' => $item['schedule_id']]);
+            }
+        }
 
         $conect->commit();
         return success($msg);

@@ -4,17 +4,11 @@ const defaultCourse = {
   totalPages: 1,
 };
 
-// Estado local da grade
 let currentCurriculumList = [];
 let editingCurriculumIndex = -1;
 
 window.toggleCourse = (id, element) => handleToggle("toggleCourse", id, element, "Status atualizado.", `.status-text-course-${id}`);
 
-// =========================================================
-// SUMMERNOTE & CONFIGS
-// =========================================================
-
-// [AUTO-SAVE] Salva Summernote antes de destruir ou perder foco
 window.saveActiveSummernote = () => {
   $(".summernote-dynamic").each(function () {
     const $textarea = $(this);
@@ -22,8 +16,8 @@ window.saveActiveSummernote = () => {
       const idx = $textarea.data("index");
       const content = $textarea.summernote("code");
 
-      if (editingCurriculumIndex > -1 && currentCurriculumList[editingCurriculumIndex]) {
-        const item = currentCurriculumList[editingCurriculumIndex];
+      if (editingCurriculumIndex > -1 && window.currentCurriculumList[editingCurriculumIndex]) {
+        const item = window.currentCurriculumList[editingCurriculumIndex];
         if (!Array.isArray(item.plans)) item.plans = [];
         if (!item.plans[idx]) item.plans[idx] = { title: `Encontro ${idx + 1}`, content: "" };
 
@@ -52,9 +46,6 @@ const summernoteConfig = {
   },
 };
 
-// =========================================================
-// 1. LISTAGEM
-// =========================================================
 
 window.getCursos = async () => {
   const container = $(".list-table-cursos");
@@ -63,7 +54,6 @@ window.getCursos = async () => {
     const page = Math.max(0, defaultCourse.currentPage - 1);
     const search = $("#busca-texto").val();
 
-    // 2. Chamada à API com prefixos padronizados
     const result = await window.ajaxValidator({
       validator: "getCourses",
       token: window.defaultApp.userInfo.token,
@@ -73,17 +63,14 @@ window.getCursos = async () => {
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
-    // 3. Tratamento do Resultado
     if (result.status) {
       const dataArray = result.data || [];
 
       if (dataArray.length > 0) {
-        // Sucesso: Atualiza paginação e renderiza tabela
         const total = dataArray[0]?.total_registros || 0;
         defaultCourse.totalPages = Math.max(1, Math.ceil(total / defaultCourse.rowsPerPage));
         renderTableCourses(dataArray);
       } else {
-        // Estado Vazio: Sem resultados (Não é um erro)
         container.html(`
             <div class="text-center py-5 opacity-50">
                 <span class="material-symbols-outlined" style="font-size: 64px;">school</span>
@@ -92,13 +79,11 @@ window.getCursos = async () => {
         `);
       }
     } else {
-      // REGRA APLICADA: Lança o erro para o Catch tratar
       throw new Error(result.alert || result.msg || "O servidor não conseguiu processar a lista de cursos.");
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor.";
 
-    // 4. Feedback Visual de Erro com botão de recuperação
     container.html(`
         <div class="text-center py-5">
             <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
@@ -111,7 +96,7 @@ window.getCursos = async () => {
         </div>
     `);
 
-    window.alertErrorWithSupport("Listar Cursos (getCourses)", errorMessage);
+    window.alertErrorWithSupport("Listar Cursos", errorMessage);
   }
 };
 
@@ -128,7 +113,6 @@ const renderTableCourses = (data) => {
     return;
   }
 
-  // Helper Toggle Desktop
   const getToggleHtml = (id, active) => {
     const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
 
@@ -141,7 +125,6 @@ const renderTableCourses = (data) => {
     </div>`;
   };
 
-  // Helper Toggle Mobile
   const getMobileToggleHtml = (id, active) => {
     const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
 
@@ -155,7 +138,6 @@ const renderTableCourses = (data) => {
     </div>`;
   };
 
-  // DESKTOP
   let desktopRows = data
     .map((item) => {
       let ageLabel = "Livre";
@@ -187,18 +169,16 @@ const renderTableCourses = (data) => {
                 ${getToggleHtml(item.course_id, item.is_active)}
             </td>
             <td class="text-end align-middle pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
                 <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
     .join("");
 
-  // MOBILE
   let mobileRows = data
     .map((item) => {
-      // Lógica da Faixa Etária
       let ageLabel = "Livre";
       if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
       else if (item.min_age) ageLabel = `+${item.min_age} anos`;
@@ -232,10 +212,10 @@ const renderTableCourses = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.courses', ${item.course_id})" title="Log">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log">
                     <i class="fas fa-bolt"></i>
                 </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalCurso(${item.course_id})" title="Editar">
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalCurso(${item.course_id}, this)" title="Editar">
                     <i class="fas fa-pen"></i>
                 </button>
                 <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteCourse(${item.course_id})" title="Excluir">
@@ -259,12 +239,11 @@ const renderTableCourses = (data) => {
   _generatePaginationButtons("pagination-cursos", "currentPage", "totalPages", "getCursos", defaultCourse);
 };
 
-// =========================================================
-// 2. CADASTRO DE CURSO E GRADE
-// =========================================================
 
-window.modalCurso = (id = null) => {
+
+window.modalCurso = (id = null, btn = false) => {
   const modal = $("#modalCurso");
+  if (btn) btn = $(btn);
 
   $("#course_id").val("");
   $("#course_name").val("");
@@ -273,7 +252,7 @@ window.modalCurso = (id = null) => {
   $("#max_age").val("");
   $("#total_workload").val("0");
 
-  currentCurriculumList = [];
+  window.currentCurriculumList = [];
   renderCurriculumTable();
 
   $("#curr_hours").val("20");
@@ -284,16 +263,16 @@ window.modalCurso = (id = null) => {
   $("#courseTab button:first").tab("show");
 
   if (id) {
-    loadCourseData(id);
+    loadCourseData(id, btn);
   } else {
     $("#modalLabel").text("Novo Curso");
     modal.modal("show");
   }
 };
 
-window.loadCourseData = async (id) => {
+window.loadCourseData = async (id, btn) => {
   try {
-    // 1. Chamada à API com prefixos padronizados
+    window.setButton(true, btn, "");
     const result = await window.ajaxValidator({
       validator: "getCourseById",
       token: window.defaultApp.userInfo.token,
@@ -303,7 +282,6 @@ window.loadCourseData = async (id) => {
     if (result.status) {
       const d = result.data;
 
-      // PREENCHIMENTO DOS CAMPOS BÁSICOS
       $("#course_id").val(d.course_id);
       $("#course_name").val(d.name);
       $("#course_description").val(d.description);
@@ -311,40 +289,32 @@ window.loadCourseData = async (id) => {
       $("#max_age").val(d.max_age);
       $("#total_workload").val(d.total_workload_hours);
 
-      // 2. Gestão de Matriz Curricular (Garantia de integridade)
-      // Se d.curriculum vier null ou undefined, inicializa como array vazio
       window.currentCurriculumList = Array.isArray(d.curriculum) ? d.curriculum : [];
 
       window.currentCurriculumList.forEach((item) => {
-        // Garante que a propriedade plans sempre exista como array para não quebrar o render
         if (!Array.isArray(item.plans)) item.plans = [];
       });
 
-      // 3. Inicialização da Interface do Modal
       if (typeof renderCurriculumTable === "function") renderCurriculumTable();
       if (typeof initSelectSubjects === "function") initSelectSubjects();
 
       $("#modalLabel").text("Editar Estrutura do Curso");
       $("#modalCurso").modal("show");
     } else {
-      // REGRA APLICADA: Lança o erro para o Catch tratar
       throw new Error(result.alert || "O servidor não retornou os dados deste curso.");
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar curso.";
 
     window.alertErrorWithSupport(`Abrir Edição de Curso`, errorMessage);
+  } finally {
+    window.setButton(false, btn);
   }
 };
-
-// =========================================================
-// 3. GRADE CURRICULAR (ADD/REMOVE)
-// =========================================================
 
 window.initSelectSubjects = () => {
   const $select = $("#curr_subject");
 
-  // 1. Destruição Segura da Instância Anterior
   if ($select[0] && $select[0].selectize) {
     try {
       $select[0].selectize.destroy();
@@ -353,7 +323,6 @@ window.initSelectSubjects = () => {
     }
   }
 
-  // 2. Inicialização com Carregamento Remoto
   $select.selectize({
     valueField: "id",
     labelField: "title",
@@ -371,7 +340,6 @@ window.initSelectSubjects = () => {
       },
     },
     load: async function (query, callback) {
-      // Evita chamadas vazias desnecessárias se não houver token
       if (!window.defaultApp?.userInfo?.token) return callback();
 
       try {
@@ -384,7 +352,6 @@ window.initSelectSubjects = () => {
         if (result.status) {
           callback(result.data || []);
         } else {
-          // REGRA APLICADA: Notifica o callback e lança erro interno
           callback();
           throw new Error(result.alert || "Erro ao buscar disciplinas.");
         }
@@ -408,11 +375,11 @@ window.addSubjectToGrid = () => {
   if (!subjectId) return window.alertDefault("Selecione uma disciplina.", "warning");
   if (!hours || hours <= 0) return window.alertDefault("Informe a carga horária.", "warning");
 
-  if (currentCurriculumList.some((i) => i.subject_id == subjectId)) {
+  if (window.currentCurriculumList.some((i) => i.subject_id == subjectId)) {
     return window.alertDefault("Esta disciplina já está na grade.", "warning");
   }
 
-  currentCurriculumList.push({
+  window.currentCurriculumList.push({
     subject_id: subjectId,
     subject_name: subjectText,
     workload_hours: parseInt(hours),
@@ -438,7 +405,7 @@ window.removeSubjectFromGrid = (index) => {
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
-      currentCurriculumList.splice(index, 1);
+      window.currentCurriculumList.splice(index, 1);
       renderCurriculumTable();
       updateTotalHours();
       window.alertDefault("Disciplina removida.", "success");
@@ -450,7 +417,7 @@ const renderCurriculumTable = () => {
   const container = $("#lista-grade");
   container.empty();
 
-  if (currentCurriculumList.length === 0) {
+  if (window.currentCurriculumList.length === 0) {
     container.html(`
         <div class="text-center py-5 opacity-50">
             <span class="material-symbols-outlined fs-1">menu_book</span>
@@ -460,13 +427,11 @@ const renderCurriculumTable = () => {
     return;
   }
 
-  currentCurriculumList.forEach((item, index) => {
-    // Badges Modernas com Transparência
+  window.currentCurriculumList.forEach((item, index) => {
     const mandatoryBadge = item.is_mandatory
       ? '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.65rem;">Obrigatória</span>'
       : '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.65rem;">Opcional</span>';
 
-    // Lógica Visual para Aulas Planejadas
     let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
     const planIconClass = plansCount > 0 ? "text-primary" : "text-muted opacity-50";
     const planBtnClass = plansCount > 0 ? "bg-primary" : "bg-secondary";
@@ -510,17 +475,14 @@ const renderCurriculumTable = () => {
 };
 
 const updateTotalHours = () => {
-  const total = currentCurriculumList.reduce((acc, curr) => acc + parseInt(curr.workload_hours || 0), 0);
+  const total = window.currentCurriculumList.reduce((acc, curr) => acc + parseInt(curr.workload_hours || 0), 0);
   $("#total_workload").val(total);
 };
 
-// =========================================================
-// 4. GESTÃO DE PLANOS (ACCORDION & SUMMERNOTE)
-// =========================================================
 
 window.configureTemplate = (index) => {
   editingCurriculumIndex = index;
-  const item = currentCurriculumList[index];
+  const item = window.currentCurriculumList[index];
   if (!Array.isArray(item.plans)) item.plans = [];
 
   renderAccordionList();
@@ -532,7 +494,7 @@ window.configureTemplate = (index) => {
 const renderAccordionList = () => {
   const container = $("#accordionPlans");
   container.empty();
-  const plans = currentCurriculumList[editingCurriculumIndex].plans;
+  const plans = window.currentCurriculumList[editingCurriculumIndex].plans;
 
   if (plans.length === 0) {
     container.html(`
@@ -557,7 +519,6 @@ const renderAccordionList = () => {
     const upBtn = `<button class="btn btn-sm btn-link text-body p-0 me-1" ${isFirst ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
     const downBtn = `<button class="btn btn-sm btn-link text-body p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
 
-    // Container do item com design Soft UI
     const html = `
         <div class="plan-item card border-0 rounded-4 bg-secondary bg-opacity-10 mb-3 shadow-sm overflow-hidden">
             <div class="accordion-header" id="${headingId}">
@@ -594,7 +555,6 @@ const renderAccordionList = () => {
     container.append(html);
   });
 
-  // Re-inicializa o Summernote com os ícones corretos
   const collapses = document.querySelectorAll(".accordion-collapse");
   collapses.forEach((el) => {
     el.addEventListener("shown.bs.collapse", function () {
@@ -614,14 +574,13 @@ const renderAccordionList = () => {
 };
 
 window.addPlan = () => {
-  currentCurriculumList[editingCurriculumIndex].plans.push({ title: `${currentCurriculumList[editingCurriculumIndex].plans.length + 1}º encontro`, content: "" });
+  window.currentCurriculumList[editingCurriculumIndex].plans.push({ title: `${window.currentCurriculumList[editingCurriculumIndex].plans.length + 1}º encontro`, content: "" });
   renderAccordionList();
   setTimeout(() => {
     $(`#accordionPlans .accordion-collapse:last`).collapse("show");
   }, 150);
 };
 
-// [NOVO] Modelo Padrão
 window.addDefaultModel = () => {
   const defaultHtml = `
         <p><strong>TEMA:</strong> ...</p>
@@ -653,8 +612,8 @@ window.addDefaultModel = () => {
         <p><strong>7️⃣ ORAÇÃO FINAL</strong></p>
         <p>...</p>
     `;
-  currentCurriculumList[editingCurriculumIndex].plans.push({
-    title: `${currentCurriculumList[editingCurriculumIndex].plans.length + 1}º encontro`,
+  window.currentCurriculumList[editingCurriculumIndex].plans.push({
+    title: `${window.currentCurriculumList[editingCurriculumIndex].plans.length + 1}º encontro`,
     content: defaultHtml,
   });
   renderAccordionList();
@@ -677,7 +636,7 @@ window.removePlan = (index) => {
     if (r.isConfirmed) {
       $(".accordion-collapse.show").collapse("hide");
       setTimeout(() => {
-        currentCurriculumList[editingCurriculumIndex].plans.splice(index, 1);
+        window.currentCurriculumList[editingCurriculumIndex].plans.splice(index, 1);
         renderAccordionList();
       }, 300);
     }
@@ -685,7 +644,7 @@ window.removePlan = (index) => {
 };
 
 window.movePlan = (index, direction) => {
-  const plans = currentCurriculumList[editingCurriculumIndex].plans;
+  const plans = window.currentCurriculumList[editingCurriculumIndex].plans;
   const newIndex = index + direction;
   if (newIndex < 0 || newIndex >= plans.length) return;
   $(".accordion-collapse.show").collapse("hide");
@@ -696,16 +655,11 @@ window.movePlan = (index, direction) => {
 };
 
 window.updatePlanTitle = (index, value) => {
-  currentCurriculumList[editingCurriculumIndex].plans[index].title = value;
+  window.currentCurriculumList[editingCurriculumIndex].plans[index].title = value;
 };
 
-// =========================================================
-// IMPORTAR / EXPORTAR (EXCELJS)
-// =========================================================
-
-// Exportar .xlsx
 window.exportPlansXlsx = async () => {
-  const item = currentCurriculumList[editingCurriculumIndex];
+  const item = window.currentCurriculumList[editingCurriculumIndex];
 
   if (!item.plans || item.plans.length === 0) {
     return window.alertDefault("Não há planos de aula para exportar.", "warning");
@@ -802,11 +756,11 @@ $("#importFileXlsx").on("change", async function (e) {
           cancelButtonText: "Cancelar",
         }).then((r) => {
           if (r.isConfirmed) {
-            currentCurriculumList[editingCurriculumIndex].plans = newPlans;
+            window.currentCurriculumList[editingCurriculumIndex].plans = newPlans;
             renderAccordionList();
             window.alertDefault("Planejamento substituído!", "success");
           } else if (r.isDenied) {
-            currentCurriculumList[editingCurriculumIndex].plans = currentCurriculumList[editingCurriculumIndex].plans.concat(newPlans);
+            window.currentCurriculumList[editingCurriculumIndex].plans = window.currentCurriculumList[editingCurriculumIndex].plans.concat(newPlans);
             renderAccordionList();
             window.alertDefault("Planos adicionados ao final!", "success");
           }
@@ -832,26 +786,21 @@ window.closeTemplateModal = () => {
   }, 200);
 };
 
-window.salvarCurso = async () => {
+window.salvarCurso = async (btn) => {
   const name = $("#course_name").val()?.trim();
   const id = $("#course_id").val();
+  btn = $(btn);
 
-  // 1. Validação de Front-end (Sem suporte)
+
   if (!name) return window.alertDefault("O nome do curso é obrigatório.", "warning");
 
-  // Sincroniza editores de texto (Summernote) antes de capturar o JSON
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
   if (typeof window.saveActiveSummernote === "function") {
     window.saveActiveSummernote();
   }
 
-  // Fecha accordions abertos para garantir que o DOM esteja estável
   $(".accordion-collapse.show").collapse("hide");
-
-  // Pequeno delay para garantir que os valores dos inputs/summernote foram processados
   setTimeout(async () => {
-    const btn = $(".btn-save");
-    window.setButton(true, btn, "Salvando...");
-
     const data = {
       course_id: id,
       name: name,
@@ -859,12 +808,10 @@ window.salvarCurso = async () => {
       min_age: $("#min_age").val(),
       max_age: $("#max_age").val(),
       total_workload_hours: $("#total_workload").val(),
-      // Garantimos o envio da matriz curricular global
       curriculum_json: JSON.stringify(window.currentCurriculumList || []),
     };
 
     try {
-      // 2. Chamada à API com prefixos padronizados
       const result = await window.ajaxValidator({
         validator: "saveCourse",
         token: window.defaultApp.userInfo.token,
@@ -878,7 +825,6 @@ window.salvarCurso = async () => {
 
         if (typeof getCursos === "function") window.getCursos();
       } else {
-        // REGRA APLICADA: Lança o erro para o Catch tratar
         throw new Error(result.alert || result.msg || "O servidor recusou o salvamento do curso.");
       }
     } catch (e) {
@@ -888,10 +834,9 @@ window.salvarCurso = async () => {
 
       window.alertErrorWithSupport(acaoContexto, errorMessage);
     } finally {
-      // 4. Sempre libera o botão
-      window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Curso');
+      window.setButton(false, btn);
     }
-  }, 350); // Delay técnico para sincronização de UI
+  }, 350);
 };
 
 window.deleteCourse = (id) => {
@@ -901,27 +846,23 @@ window.deleteCourse = (id) => {
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d", // Cinza padrão Soft UI
+    cancelButtonColor: "#6c757d",
     confirmButtonText: "Sim, excluir",
     cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        // 1. Chamada à API com prefixos padronizados
         const res = await window.ajaxValidator({
           validator: "deleteCourse",
           token: window.defaultApp.userInfo.token,
           id: id,
         });
 
-        // 2. Tratamento do Resultado
         if (res.status) {
           window.alertDefault("Curso movido para a lixeira com sucesso.", "success");
 
-          // Atualiza a listagem de cursos se a função existir
           if (typeof getCursos === "function") window.getCursos();
         } else {
-          // REGRA APLICADA: Lança o erro para o Catch tratar e reportar
           throw new Error(res.alert || res.msg || "O servidor não permitiu excluir este curso.");
         }
       } catch (e) {

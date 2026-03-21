@@ -170,7 +170,7 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save" onclick="salvarCurso()">
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save" onclick="salvarCurso(this)">
                         <i class="fas fa-save me-2"></i> Salvar Curso
                     </button>
                 </div>

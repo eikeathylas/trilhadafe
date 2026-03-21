@@ -1,14 +1,9 @@
-// =========================================================
-// GESTÃO DE EVENTOS (FRONTEND LOGIC) - V5 (Spinner & Labels)
-// =========================================================
-
 const defaultEvents = { currentPage: 1, rowsPerPage: 10, totalPages: 1 };
-let fpEventDate = null; // Instância Flatpickr
+let fpEventDate = null;
 
 $(document).ready(() => {
   loadEvents();
 
-  // Filtro com Debounce
   let timeout = null;
   $("#search_event").on("keyup", function () {
     clearTimeout(timeout);
@@ -18,7 +13,6 @@ $(document).ready(() => {
     }, 500);
   });
 
-  // Inicializa Flatpickr
   fpEventDate = flatpickr("#evt_date", {
     dateFormat: "Y-m-d",
     altInput: true,
@@ -28,13 +22,11 @@ $(document).ready(() => {
   });
 });
 
-// 1. LISTAGEM
 const loadEvents = async () => {
   const container = $(".list-table-events");
   try {
     const page = Math.max(0, defaultEvents.currentPage - 1);
 
-    // 2. Chamada à API com prefixos padronizados
     const res = await window.ajaxValidator({
       validator: "getAllEvents",
       token: window.defaultApp.userInfo.token,
@@ -45,17 +37,14 @@ const loadEvents = async () => {
       year: localStorage.getItem("sys_active_year"),
     });
 
-    // 3. Tratamento do Resultado
     if (res.status) {
       const dataArray = res.data || [];
 
       if (dataArray.length > 0) {
-        // Sucesso: Renderiza a tabela e atualiza paginação
         const total = dataArray[0]?.total_registros || 0;
         defaultEvents.totalPages = Math.max(1, Math.ceil(total / defaultEvents.rowsPerPage));
         renderTableEvents(dataArray);
       } else {
-        // Estado Vazio: Nenhum evento encontrado (Sem erro)
         container.html(`
           <div class="text-center py-5 opacity-50">
               <span class="material-symbols-outlined" style="font-size: 56px;">event_busy</span>
@@ -69,7 +58,6 @@ const loadEvents = async () => {
   } catch (e) {
     const errorMessage = e.message || "Falha de conexão ao carregar o calendário.";
 
-    // 4. Feedback Visual de Erro Integrado
     container.html(`
         <div class="text-center py-5">
             <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
@@ -99,20 +87,15 @@ const renderTableEvents = (data) => {
     return;
   }
 
-  // Helper de Label
   const getBlockerLabel = (is) =>
     is
-      ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>'
-      : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
+      ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado/Bloqueio <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>'
+      : '<span class="badge bg-success-subtle text-success border border-success">Agenda Aberta</span>';
 
-  // =========================================================
-  // 1. VISÃO DESKTOP
-  // =========================================================
   let desktopRows = data
     .map((item) => {
       const timeInfo = item.start_time ? `<small class="text-muted d-block"><i class="far fa-clock me-1"></i> ${item.start_time}</small>` : "";
 
-      // HTML do Toggle com Spinner
       const toggleHtml = `
         <div class="form-check form-switch d-flex justify-content-center align-items-center">
             <input class="form-check-input" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">
@@ -141,20 +124,16 @@ const renderTableEvents = (data) => {
                 ${toggleHtml}
             </td>
             <td class="align-middle text-end pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
                 <button class="btn-icon-action text-danger" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
     .join("");
 
-  // =========================================================
-  // 2. VISÃO MOBILE (Cards Híbridos)
-  // =========================================================
   let mobileRows = data
     .map((item) => {
-      // Toggle Mobile com Spinner perfeitamente alinhado
       const toggleHtml = `
         <div class="form-check form-switch mb-0 d-flex justify-content-end">
             <input class="form-check-input m-0" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">
@@ -162,8 +141,8 @@ const renderTableEvents = (data) => {
         </div>`;
 
       const statusText = item.is_academic_blocker
-        ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>'
-        : '<span class="badge bg-success-subtle text-success border border-success">Agenda</span>';
+        ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado/Bloqueio <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>'
+        : '<span class="badge bg-success-subtle text-success border border-success">Agenda Aberta</span>';
 
       return `
         <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
@@ -189,10 +168,10 @@ const renderTableEvents = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('organization.events', ${item.event_id})" title="Log">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log">
                     <i class="fas fa-bolt"></i>
                 </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="editEvent(${item.event_id})" title="Editar">
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="editEvent(${item.event_id}, this)" title="Editar">
                     <i class="fas fa-pen"></i>
                 </button>
                 <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteEvent(${item.event_id})" title="Excluir">
@@ -223,30 +202,24 @@ const renderTableEvents = (data) => {
   _generatePaginationButtons("pagination-events", "currentPage", "totalPages", "changePage", defaultEvents);
 };
 
-// [ATUALIZADO] Função do Toggle com Spinner e Legenda
 window.toggleBlocker = async (id, element) => {
   const $chk = $(element);
   const $loader = $chk.siblings(".toggle-loader");
   const status = $chk.is(":checked");
 
-  // Labels (Desktop e Mobile) - Seleção unificada para performance
   const $labels = $(`#lbl_${id}, #lbl_mob_${id}`);
 
-  // Função interna para atualizar o badge visual (UI Otimista ou Reversão)
   const setVisualState = (isBlocker) => {
-    const badge = isBlocker ? '<span class="badge bg-danger-subtle text-danger border border-danger">Feriado/Bloqueio</span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda Aberta</span>';
+    const badge = isBlocker ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado/Bloqueio <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda Aberta</span>';
     $labels.html(badge);
   };
 
   try {
-    // 1. Bloqueia interação e mostra loader
     $chk.prop("disabled", true);
     $loader.removeClass("d-none");
 
-    // 2. Feedback Visual Imediato (Otimista)
     setVisualState(status);
 
-    // 3. Chamada à API
     const res = await window.ajaxValidator({
       validator: "toggleEventBlocker",
       token: window.defaultApp.userInfo.token,
@@ -266,13 +239,11 @@ window.toggleBlocker = async (id, element) => {
     const errorMessage = e.message || "Falha de conexão ao tentar atualizar o bloqueio.";
     window.alertErrorWithSupport(`Alternar Bloqueio de Agenda`, errorMessage);
   } finally {
-    // 6. Libera o componente
     $chk.prop("disabled", false);
     $loader.addClass("d-none");
   }
 };
 
-// 2. CADASTRO / EDIÇÃO
 window.openEventModal = () => {
   $("#formEvent")[0].reset();
   $("#event_id").val("");
@@ -281,9 +252,10 @@ window.openEventModal = () => {
   $("#modalEvent").modal("show");
 };
 
-window.editEvent = async (id) => {
+window.editEvent = async (id, btn) => {
+  btn = $(btn);
   try {
-    // 1. Chamada à API com prefixos padronizados
+    window.setButton(true, btn, "");
     const res = await window.ajaxValidator({
       validator: "getEventData",
       token: window.defaultApp.userInfo.token,
@@ -293,12 +265,10 @@ window.editEvent = async (id) => {
     if (res.status) {
       const d = res.data;
 
-      // PREENCHIMENTO DOS CAMPOS
       $("#event_id").val(d.event_id);
       $("#evt_title").val(d.title);
       $("#evt_desc").val(d.description);
 
-      // Atualiza o Flatpickr (Supondo que fpEventDate seja a instância global)
       if (typeof fpEventDate !== "undefined") {
         fpEventDate.setDate(d.event_date);
       }
@@ -306,10 +276,8 @@ window.editEvent = async (id) => {
       $("#evt_start").val(d.start_time);
       $("#evt_end").val(d.end_time);
 
-      // Tratamento booleano rigoroso para o checkbox
       $("#evt_blocker").prop("checked", d.is_academic_blocker === true || d.is_academic_blocker === "t" || d.is_academic_blocker === 1);
 
-      // INTERFACE
       $("#modalEventTitle").text("Editar Evento");
       $("#modalEvent").modal("show");
     } else {
@@ -319,26 +287,25 @@ window.editEvent = async (id) => {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar o evento.";
 
     window.alertErrorWithSupport(`Abrir Edição de Evento`, errorMessage);
+  } finally {
+    window.setButton(false, btn);
   }
 };
 
-window.saveEvent = async () => {
+window.saveEvent = async (btn) => {
+  btn = $(btn);
   const id = $("#event_id").val();
   const title = $("#evt_title").val()?.trim();
   const date = $("#evt_date").val();
 
-  // 1. Validação de Front-end (Rápida)
   if (!title || !date) {
     window.alertDefault("Título e data são obrigatórios.", "warning");
     return;
   }
 
-  // Referência do botão para feedback visual
-  const btn = $(".btn-save-event");
-  window.setButton(true, btn, "Salvando...");
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
 
   try {
-    // 2. Chamada à API
     const res = await window.ajaxValidator({
       validator: "upsertEvent",
       token: window.defaultApp.userInfo.token,
@@ -353,14 +320,12 @@ window.saveEvent = async () => {
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
-    // 3. Tratamento do Resultado
     if (res.status) {
       window.alertDefault(res.msg || "Evento salvo com sucesso!", "success");
       $("#modalEvent").modal("hide");
 
       if (typeof loadEvents === "function") loadEvents();
     } else {
-      // REGRA APLICADA: Lança o erro para o Catch tratar
       throw new Error(res.msg || res.alert || "O servidor recusou o salvamento deste evento.");
     }
   } catch (e) {
@@ -370,8 +335,7 @@ window.saveEvent = async () => {
 
     window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
-    // 5. Restaura o estado do botão
-    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
+    window.setButton(false, btn);
   }
 };
 
@@ -382,13 +346,12 @@ window.deleteEvent = (id) => {
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d", // Cinza padrão Soft UI
+    cancelButtonColor: "#6c757d",
     confirmButtonText: "Sim, excluir",
     cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        // Chamada à API com prefixos padronizados
         const res = await window.ajaxValidator({
           validator: "removeEvent",
           token: window.defaultApp.userInfo.token,
@@ -396,13 +359,11 @@ window.deleteEvent = (id) => {
           user_id: window.defaultApp.userInfo.id,
         });
 
-        // Tratamento do Resultado
         if (res.status) {
           window.alertDefault("Evento removido com sucesso.", "success");
 
           if (typeof loadEvents === "function") loadEvents();
         } else {
-          // REGRA APLICADA: Lança o erro para o Catch interceptar
           throw new Error(res.msg || res.alert || "O servidor não permitiu excluir este evento.");
         }
       } catch (e) {
@@ -413,11 +374,11 @@ window.deleteEvent = (id) => {
   });
 };
 
-// Paginação
 window.changePage = (p) => {
   defaultEvents.currentPage = p;
   loadEvents();
 };
+
 const _generatePaginationButtons = (c, k, t, f, o) => {
   let container = $(`.${c}`);
   container.empty();

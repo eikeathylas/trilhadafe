@@ -155,7 +155,8 @@ function getDiarioMetadataF($data)
                        FROM organization.events 
                        WHERE org_id = :oid 
                          AND event_date BETWEEN :start AND :end 
-                         AND deleted IS FALSE";
+                         AND deleted IS FALSE
+                         AND is_academic_blocker IS TRUE";
             $stmtHol = $conect->prepare($sqlHol);
             $stmtHol->execute(['oid' => $orgId, 'start' => $minDate, 'end' => $maxDate]);
             while ($row = $stmtHol->fetch(PDO::FETCH_ASSOC)) {

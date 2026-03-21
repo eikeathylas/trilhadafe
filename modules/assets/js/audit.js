@@ -1,8 +1,5 @@
-// =========================================================
-// MÓDULO DE AUDITORIA (LOGIC) - FINAL V33 (Fix Data/Hora + Cedilha)
-// =========================================================
-
-window.openAudit = async (table, id) => {
+window.openAudit = async (table, id, btn) => {
+  btn = $(btn);
   const container = $("#audit-timeline-container");
   const modal = $("#modalAudit");
   modal.modal("show");
@@ -14,6 +11,8 @@ window.openAudit = async (table, id) => {
             <small>Buscando histórico de alterações e acessos.</small>
         </div>
     `);
+
+  window.setButton(true, btn, "");
 
   try {
     const result = await ajaxValidator({
@@ -35,7 +34,10 @@ window.openAudit = async (table, id) => {
   } catch (e) {
     console.error(e);
     container.html('<div class="alert alert-danger m-3">Erro técnico ao carregar auditoria.</div>');
+  } finally {
+    window.setButton(false, btn);
   }
+
 };
 
 const isEffectivelyEmpty = (val) => {
@@ -128,7 +130,6 @@ const renderTimeline = (logs, container) => {
     let diffHtml = "";
     let hasVisibleChanges = false;
 
-    // Prioriza o nome vindo do PHP (ex: nome do aluno)
     let headerText = log.target_name || "Atualização";
 
     if (!log.target_name) {
@@ -172,8 +173,6 @@ const renderTimeline = (logs, container) => {
       icon = "add";
       colorClass = "INSERT";
       if (log.table_name === "attendance") {
-        // const statusBadge = isTrue(newVal.is_present) ? '<span class="badge bg-success ms-1">Presente</span>' : '<span class="badge bg-danger ms-1">Ausente</span>';
-        console.log(newVal);
         const statusBadge = newVal["Presença"];
         diffHtml = `<div class="text-success small fw-bold"><i class="fas fa-check-circle me-2"></i> Registro criado: ${statusBadge}</div>`;
       } else if (log.table_name === "person_attachments") {
@@ -316,7 +315,7 @@ const formatKey = (key) => {
     content_type: "Tipo de Conteúdo",
     signed_at: "Assinado em",
     is_present: "Frequência",
-    presença: "Frequência", // [CORREÇÃO] Força a tradução da chave com cedilha
+    presença: "Frequência",
     presenca: "Frequência",
     Presença: "Frequência",
     justification: "Justificativa",
@@ -412,14 +411,12 @@ const formatKey = (key) => {
     active: "Ativo",
   };
 
-  // Se não estiver no mapa, aplica a formatação automática
   return map[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 const formatValue = (val, key = "") => {
   const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory"];
 
-  // [CORREÇÃO] Verifica todas as variações da chave de presença para exibir o Badge
   if (key === "is_present" || key === "presença" || key === "presenca" || key === "Presença") {
     if (val === true || val === "t" || val === "true" || val === "Presente") return '<span class="badge bg-success">Presente</span>';
     if (val === false || val === "f" || val === "false" || val === "Ausente") return '<span class="badge bg-danger">Ausente</span>';
@@ -454,16 +451,13 @@ const formatValue = (val, key = "") => {
   };
   if (statusMap[val]) return statusMap[val];
 
-  // [CORREÇÃO] Lógica aprimorada para Datas e Datas com Hora
   if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}/.test(val)) {
-    // Verifica se tem horário (T ou espaço)
     if (val.includes("T") || val.includes(" ")) {
-      let parts = val.split(/[T ]/); // Divide por T ou espaço
+      let parts = val.split(/[T ]/);
       let datePart = parts[0].split("-").reverse().join("/");
-      let timePart = parts[1] ? parts[1].substring(0, 5) : ""; // Pega HH:MM
+      let timePart = parts[1] ? parts[1].substring(0, 5) : "";
       return `${datePart} ${timePart}`.trim();
     } else {
-      // Apenas Data
       const p = val.split("-");
       return `${p[2]}/${p[1]}/${p[0]}`;
     }
@@ -512,7 +506,7 @@ const formatValue = (val, key = "") => {
         const p = v.split("-");
         displayVal = `${p[2]}/${p[1]}/${p[0]}`;
       }
-      str += `<div class="d-inline-block me-2 border rounded px-2 mb-1 small bg-white text-dark shadow-sm"><strong>${label}:</strong> ${displayVal}</div>`;
+      str += `<div class="d-inline-block me-2 border rounded px-2 mb-1 small text-dark shadow-sm"><strong>${label}:</strong> ${displayVal}</div>`;
     }
     return hasContent ? str : '<em class="text-muted opacity-75">vazio</em>';
   }

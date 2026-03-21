@@ -6,16 +6,12 @@ const defaultSubject = {
 
 window.toggleSubject = (id, element) => handleToggle("toggleSubject", id, element, "Status atualizado.", `.status-text-sub-${id}`);
 
-// =========================================================
-// 1. LISTAGEM
-// =========================================================
 
 const getDisciplinas = async () => {
   try {
     const page = Math.max(0, defaultSubject.currentPage - 1);
     const search = $("#busca-texto").val();
 
-    // 2. Chamada à API com prefixo window. padronizado
     const result = await window.ajaxValidator({
       validator: "getSubjects",
       token: window.defaultApp.userInfo.token,
@@ -25,17 +21,14 @@ const getDisciplinas = async () => {
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
-    // 3. Tratamento do Resultado
     if (result.status) {
       const dataArray = result.data || [];
 
       if (dataArray.length > 0) {
-        // Sucesso com dados: Renderiza a tabela e atualiza paginação
         const total = dataArray[0]?.total_registros || 0;
         defaultSubject.totalPages = Math.max(1, Math.ceil(total / defaultSubject.rowsPerPage));
         renderTableSubjects(dataArray);
       } else {
-        // Estado Vazio: Busca não retornou resultados (Não é um erro)
         $(".list-table-disciplinas").html(`
             <div class="text-center py-5 opacity-50">
                 <span class="material-symbols-outlined" style="font-size: 56px;">menu_book</span>
@@ -49,7 +42,6 @@ const getDisciplinas = async () => {
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar disciplinas.";
 
-    // 4. Feedback Visual de Erro Integrado à Interface
     $(".list-table-disciplinas").html(`
         <div class="text-center py-5">
             <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
@@ -74,7 +66,6 @@ const renderTableSubjects = (data) => {
     return;
   }
 
-  // Helper Toggle Desktop
   const getToggleHtml = (id, active) => {
     const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
 
@@ -87,7 +78,6 @@ const renderTableSubjects = (data) => {
     </div>`;
   };
 
-  // Helper Toggle Mobile
   const getMobileToggleHtml = (id, active) => {
     const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
 
@@ -101,7 +91,6 @@ const renderTableSubjects = (data) => {
     </div>`;
   };
 
-  // DESKTOP
   let desktopRows = data
     .map((item) => {
       const summary = item.syllabus_summary ? (item.syllabus_summary.length > 50 ? item.syllabus_summary.substring(0, 50) + "..." : item.syllabus_summary) : '<span class="text-muted small">Sem ementa</span>';
@@ -116,15 +105,14 @@ const renderTableSubjects = (data) => {
                 ${getToggleHtml(item.subject_id, item.is_active)}
             </td>
             <td class="text-end align-middle pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
                 <button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     })
     .join("");
 
-  // MOBILE
   let mobileRows = data
     .map((item) => {
       return `
@@ -146,10 +134,10 @@ const renderTableSubjects = (data) => {
             </div>
             
             <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.subjects', ${item.subject_id})" title="Log">
+                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log">
                     <i class="fas fa-bolt"></i>
                 </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalDisciplina(${item.subject_id})" title="Editar">
+                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar">
                     <i class="fas fa-pen"></i>
                 </button>
                 <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSubject(${item.subject_id})" title="Excluir">
@@ -180,27 +168,26 @@ const renderTableSubjects = (data) => {
   _generatePaginationButtons("pagination-disciplinas", "currentPage", "totalPages", "getDisciplinas", defaultSubject);
 };
 
-// =========================================================
-// 2. CADASTRO E EDIÇÃO
-// =========================================================
 
-window.modalDisciplina = (id = null) => {
+window.modalDisciplina = (id = null, btn = false) => {
   const modal = $("#modalDisciplina");
   $("#subject_id").val("");
   $("#subject_name").val("");
   $("#subject_summary").val("");
 
+  if (btn) btn = $(btn);
+
   if (id) {
-    loadSubjectData(id);
+    loadSubjectData(id, btn);
   } else {
     $("#modalLabel").text("Nova Disciplina");
     modal.modal("show");
   }
 };
 
-const loadSubjectData = async (id) => {
+const loadSubjectData = async (id, btn) => {
   try {
-    // 1. Chamada à API com prefixos padronizados
+    window.setButton(true, btn, "")
     const result = await window.ajaxValidator({
       validator: "getSubjectById",
       token: window.defaultApp.userInfo.token,
@@ -210,12 +197,10 @@ const loadSubjectData = async (id) => {
     if (result.status) {
       const d = result.data;
 
-      // PREENCHIMENTO DOS CAMPOS
       $("#subject_id").val(d.subject_id);
       $("#subject_name").val(d.name);
       $("#subject_summary").val(d.syllabus_summary);
 
-      // INTERFACE
       $("#modalLabel").text("Editar Disciplina/Etapa");
       $("#modalDisciplina").modal("show");
     } else {
@@ -224,18 +209,20 @@ const loadSubjectData = async (id) => {
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar dados.";
     window.alertErrorWithSupport(`Abrir Edição de Disciplina`, errorMessage);
+  } finally {
+    window.setButton(false, btn);
   }
 };
 
-window.salvarDisciplina = async () => {
+window.salvarDisciplina = async (btn) => {
   const name = $("#subject_name").val()?.trim();
   const id = $("#subject_id").val();
+  btn = $(btn);
 
-  // 1. Validação de Front-end (Sem suporte)
   if (!name) return window.alertDefault("Nome da disciplina é obrigatório.", "warning");
 
-  const btn = $(".btn-save");
-  window.setButton(true, btn, "Salvando...");
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
+
 
   const data = {
     subject_id: id,
@@ -244,7 +231,6 @@ window.salvarDisciplina = async () => {
   };
 
   try {
-    // 2. Chamada à API com prefixos padronizados
     const result = await window.ajaxValidator({
       validator: "saveSubject",
       token: window.defaultApp.userInfo.token,
@@ -265,14 +251,9 @@ window.salvarDisciplina = async () => {
     const acaoContexto = id ? `Editar Disciplina` : "Criar Nova Disciplina";
     window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
-    // 4. Sempre libera o botão
-    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar');
+    window.setButton(false, btn);
   }
 };
-
-// =========================================================
-// 3. AÇÕES
-// =========================================================
 
 window.deleteSubject = (id) => {
   Swal.fire({
@@ -281,20 +262,18 @@ window.deleteSubject = (id) => {
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d", // Cinza padrão EaCode
+    cancelButtonColor: "#6c757d",
     confirmButtonText: "Sim, excluir",
     cancelButtonText: "Cancelar",
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        // Chamada à API com prefixos padronizados
         const res = await window.ajaxValidator({
           validator: "deleteSubject",
           token: window.defaultApp.userInfo.token,
           id: id,
         });
 
-        // Tratamento do Resultado
         if (res.status) {
           window.alertDefault("Disciplina movida para a lixeira.", "success");
 
@@ -311,10 +290,6 @@ window.deleteSubject = (id) => {
   });
 };
 
-// =========================================================
-// UTILITÁRIOS E PAGINAÇÃO
-// =========================================================
-
 $("#busca-texto").on("change keyup", function () {
   clearTimeout(window.searchTimeout);
   window.searchTimeout = setTimeout(() => {
@@ -323,16 +298,13 @@ $("#busca-texto").on("change keyup", function () {
   }, 500);
 });
 
-// Expõe função para o HTML
 window.getDisciplinas = getDisciplinas;
 
-// Função interna de mudar página
 window.changePage = (page) => {
   defaultSubject.currentPage = page;
   getDisciplinas();
 };
 
-// Função Geradora de Botões de Paginação
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);
   container.empty();
@@ -340,7 +312,6 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
 
-  // Como as funções estão no window, passamos o nome como string para o onclick
   let html = `<button onclick="changePage(1)" class="btn btn-sm btn-secondary">Primeira</button>`;
 
   for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {

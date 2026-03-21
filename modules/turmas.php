@@ -183,7 +183,7 @@
                                 <div class="flex-grow-1">
                                     <select id="sel_new_student" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none" placeholder="Busque o catequizando..."></select>
                                 </div>
-                                <button class="btn btn-primary fw-bold px-3 shadow-sm rounded-3" onclick="matricularAluno()">
+                                <button class="btn btn-primary fw-bold px-3 shadow-sm rounded-3" onclick="matricularAluno(this)">
                                     <i class="fas fa-plus me-2"></i> Matricular
                                 </button>
                             </div>
@@ -197,7 +197,7 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarTurma()">
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarTurma(this)">
                         <i class="fas fa-save me-2"></i> Salvar Turma
                     </button>
                 </div>
@@ -240,7 +240,7 @@
                                     <input type="text" id="hist_obs" class="form-control bg-body border-0 shadow-none" placeholder="Motivo ou detalhe...">
                                 </div>
                                 <div class="col-12 col-md-2">
-                                    <button class="btn btn-primary fw-bold w-100 shadow-sm" onclick="addHistoryItem()">
+                                    <button class="btn btn-primary fw-bold w-100 shadow-sm" onclick="addHistoryItem(this)">
                                         <i class="fas fa-check"></i>
                                     </button>
                                 </div>

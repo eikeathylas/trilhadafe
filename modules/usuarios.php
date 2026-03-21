@@ -70,26 +70,10 @@
                 <div class="card-body px-0 pt-4">
 
                     <div class="table-responsive list-table-usuarios d-none d-md-block" style="max-height: 600px;">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4">Usuário</th>
-                                    <th>Perfil</th>
-                                    <th>Anos Letivos</th>
-                                    <th class="text-end pe-4">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbody-usuarios">
-                                <tr>
-                                    <td colspan="4">
-                                        <div class="text-center py-5 opacity-50">
-                                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-                                            <p class="mt-3 fw-medium">A carregar acessos...</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="text-center py-5 opacity-25">
+                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                            <p class="mt-3 fw-medium">Sincronizando acessos...</p>
+                        </div>
                     </div>
 
                     <div id="mobile-users-cards" class="d-md-none px-3">
@@ -169,7 +153,7 @@
                                 <h6 class="fw-bold text-danger mb-1"><i class="fas fa-key me-2"></i> Segurança da Conta</h6>
                                 <small class="text-danger opacity-75">A senha será redefinida para o padrão temporário: <strong>mudar123</strong></small>
                             </div>
-                            <button type="button" class="btn btn-danger fw-bold shadow-sm" onclick="resetPassword()">
+                            <button type="button" class="btn btn-danger fw-bold shadow-sm" onclick="resetPassword(this)">
                                 <i class="fas fa-unlock-alt me-2"></i> Resetar Senha
                             </button>
                         </div>
@@ -178,8 +162,8 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save-user" onclick="salvarUsuario()">
-                        <i class="fas fa-save me-2"></i> Gravar Usuário
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarUsuario(this)">
+                        <i class="fas fa-save me-2"></i> Salvar Usuário
                     </button>
                 </div>
 

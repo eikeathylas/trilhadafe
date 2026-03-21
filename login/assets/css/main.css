@@ -58,7 +58,7 @@ body {
   box-shadow: var(--shadow-strong);
   padding: 3rem 2.5rem;
   width: 100%;
-  max-width: 440px;
+  max-width: 500px;
   z-index: 2;
   position: relative;
   transition: background-color 0.4s ease;
@@ -169,6 +169,7 @@ body.dark-mode .form-control::placeholder {
   max-height: 40vh;
   overflow-y: auto;
   padding-right: 5px;
+  padding-left: 5px;
 }
 
 .units-grid::-webkit-scrollbar {

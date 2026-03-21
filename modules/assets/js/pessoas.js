@@ -9,9 +9,6 @@ let currentAttachmentsList = [];
 
 window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Status atualizado.", `.status-text-person-${id}`);
 
-// =========================================================
-// 1. LISTAGEM E FILTROS
-// =========================================================
 
 const getPessoas = async () => {
   try {
@@ -19,7 +16,6 @@ const getPessoas = async () => {
     const search = $("#busca-texto").val();
     const role = $("#filtro-role").val();
 
-    // 2. Chamada à API
     const result = await window.ajaxValidator({
       validator: "getPeople",
       token: defaultApp.userInfo.token,
@@ -30,17 +26,14 @@ const getPessoas = async () => {
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
-    // 3. Tratamento do Resultado
     if (result.status) {
       const dataArray = result.data || [];
 
       if (dataArray.length > 0) {
-        // Sucesso com dados: Renderiza a tabela
         const total = dataArray[0]?.total_registros || 0;
         defaultPeople.totalPages = Math.max(1, Math.ceil(total / defaultPeople.rowsPerPage));
         renderTablePeople(dataArray);
       } else {
-        // Estado Vazio: Busca não retornou resultados (Não é um erro)
         $(".list-table-pessoas").html(`
             <div class="text-center py-5 opacity-50">
                 <span class="material-symbols-outlined" style="font-size: 56px;">group_off</span>
@@ -82,7 +75,6 @@ const renderTablePeople = (data) => {
     return;
   }
 
-  // Helper Toggle Desktop (Lado a Lado)
   const getToggleHtml = (id, active) => {
     const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
 
@@ -95,7 +87,6 @@ const renderTablePeople = (data) => {
     </div>`;
   };
 
-  // Helper Toggle Mobile (Toggle Top / Badge Bottom)
   const getMobileToggleHtml = (id, active) => {
     const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
 
@@ -109,12 +100,8 @@ const renderTablePeople = (data) => {
     </div>`;
   };
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (TABELA)
-  // =========================================================
   let desktopRows = data
     .map((item) => {
-      // Avatar
       let avatarHtml = "";
       if (item.profile_photo_url) {
         avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
@@ -129,7 +116,6 @@ const renderTablePeople = (data) => {
         avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px;">${initials}</div>`;
       }
 
-      // Badges de Funções
       let rolesHtml = "";
       const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
       const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
@@ -140,7 +126,6 @@ const renderTablePeople = (data) => {
         });
       }
 
-      // Contatos
       let contactHtml = "";
       if (item.phone_mobile) {
         const whatsLink = `https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}`;
@@ -161,8 +146,8 @@ const renderTablePeople = (data) => {
                 ${getToggleHtml(item.person_id, item.is_active)}
             </td>
             <td class="text-end align-middle pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('people.persons', ${item.person_id})" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalPessoa(${item.person_id})" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-warning" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
                 <button class="btn-icon-action text-danger" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
@@ -184,12 +169,8 @@ const renderTablePeople = (data) => {
                         </table>
                      </div>`;
 
-  // =========================================================
-  // 2. VISÃO MOBILE (CARDS)
-  // =========================================================
   const mobileRows = data
     .map((item) => {
-      // Avatar Mobile: Adicionado fallback com fundo translúcido para Modo Escuro
       let avatarHtml = "";
       if (item.profile_photo_url) {
         avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
@@ -216,7 +197,6 @@ const renderTablePeople = (data) => {
         });
       }
 
-      // WhatsApp Button: Formato "Pill" moderno e clicável
       const wppHtml = item.phone_mobile
         ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="d-flex align-items-center text-success fw-bold text-decoration-none bg-success bg-opacity-10 border border-success border-opacity-25 px-3 py-2 rounded-pill transition-all" style="font-size: 0.85rem;"><i class="fab fa-whatsapp fs-5 me-2"></i> WhatsApp</a>`
         : ``;
@@ -245,10 +225,10 @@ const renderTablePeople = (data) => {
                      ${wppHtml}
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('people.persons', ${item.person_id})" title="Log">
+                    <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log">
                         <i class="fas fa-bolt"></i>
                     </button>
-                    <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalPessoa(${item.person_id})" title="Editar">
+                    <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalPessoa(${item.person_id}, this)" title="Editar">
                         <i class="fas fa-pen"></i>
                     </button>
                     <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deletePerson(${item.person_id})" title="Excluir">
@@ -262,18 +242,16 @@ const renderTablePeople = (data) => {
 
   const mobileHtml = `<div class="d-md-none">${mobileRows}</div>`;
 
-  // Renderiza ambos
   container.html(tableHtml + mobileHtml);
 
   _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "changePage", defaultPeople);
 };
 
-// =========================================================
-// 2. CADASTRO E EDIÇÃO (MODAL)
-// =========================================================
 
-window.modalPessoa = (id = null) => {
+window.modalPessoa = (id = null, btn = null) => {
   const modal = $("#modalPessoa");
+
+  if (btn) btn = $(btn);
 
   $("#person_id").val("");
   modal.find("input[type=text], input[type=email], input[type=date], select, textarea").val("");
@@ -284,11 +262,9 @@ window.modalPessoa = (id = null) => {
   $("#btn-remove-foto").addClass("d-none");
   $("#person_photo").val("");
 
-  // Limpa campos de anexo
   $("#new_attachment_desc").val("");
   $("#new_attachment_file").val("");
 
-  // Limpa Listas
   currentFamilyList = [];
   currentAttachmentsList = [];
   renderFamilyTable();
@@ -296,7 +272,6 @@ window.modalPessoa = (id = null) => {
 
   if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
 
-  // Esconde áreas condicionais
   $("#pcd_details").addClass("d-none");
   $("#baptism_details").addClass("d-none");
   $("#eucharist_details").addClass("d-none");
@@ -304,7 +279,7 @@ window.modalPessoa = (id = null) => {
   $("#pessoaTab button:first").tab("show");
 
   if (id) {
-    loadPersonData(id);
+    loadPersonData(id, btn);
     $("#tab-anexos").removeClass("disabled");
   } else {
     $("#modalPessoaLabel").text("Nova Pessoa");
@@ -315,8 +290,9 @@ window.modalPessoa = (id = null) => {
   }
 };
 
-const loadPersonData = async (id) => {
+const loadPersonData = async (id, btn) => {
   try {
+    window.setButton(true, btn, "");
     const result = await window.ajaxValidator({
       validator: "getPerson",
       token: defaultApp.userInfo.token,
@@ -326,7 +302,6 @@ const loadPersonData = async (id) => {
     if (result.status) {
       const d = result.data;
 
-      // PREENCHIMENTO DE DADOS BÁSICOS
       $("#person_id").val(d.person_id);
       $("#full_name").val(d.full_name);
       $("#religious_name").val(d.religious_name);
@@ -348,14 +323,12 @@ const loadPersonData = async (id) => {
       $("#is_pcd").prop("checked", d.is_pcd);
       if (d.is_pcd) $("#pcd_details").removeClass("d-none").val(d.pcd_details);
 
-      // FOTO DE PERFIL
       if (d.profile_photo_url) {
         $("#img-preview").attr("src", d.profile_photo_url).show();
         $("#placeholder-foto").hide();
         $("#btn-remove-foto").removeClass("d-none");
       }
 
-      // PERFIS (ROLES)
       if (d.roles) {
         if (d.roles.includes("STUDENT")) $("#role_student").prop("checked", true);
         if (d.roles.includes("CATECHIST")) $("#role_catechist").prop("checked", true);
@@ -363,28 +336,23 @@ const loadPersonData = async (id) => {
         if (d.roles.includes("PARENT")) $("#role_parent").prop("checked", true);
       }
 
-      // SACRAMENTOS
       const sac = d.sacraments_info || {};
 
-      // Batismo
       $("#has_baptism")
         .prop("checked", sac.baptism === true || sac.baptism === "true")
         .trigger("change");
       $("#baptism_date").val(sac.baptism_date);
       $("#baptism_place").val(sac.baptism_place);
 
-      // Eucaristia
       $("#has_eucharist")
         .prop("checked", sac.eucharist === true || sac.eucharist === "true")
         .trigger("change");
       $("#eucharist_date").val(sac.eucharist_date);
       $("#eucharist_place").val(sac.eucharist_place);
 
-      // Outros
       $("#has_confirmation").prop("checked", sac.confirmation === true || sac.confirmation === "true");
       $("#has_marriage").prop("checked", sac.marriage === true || sac.marriage === "true");
 
-      // LISTAS DINÂMICAS
       currentFamilyList = d.family || [];
       renderFamilyTable();
 
@@ -393,10 +361,8 @@ const loadPersonData = async (id) => {
 
       initSelectRelatives();
 
-      // RENDERIZAÇÃO FINAL
       $("#modalPessoaLabel").text("Editar Pessoa");
 
-      // Força a formatação visual imediata
       $("#tax_id, #phone_mobile, #phone_landline, #zip_code").trigger("input");
 
       $("#modalPessoa").modal("show");
@@ -406,10 +372,11 @@ const loadPersonData = async (id) => {
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao tentar carregar o cadastro.";
     window.alertErrorWithSupport(`Abrir Cadastro de Pessoa`, errorMessage);
+  } finally {
+    window.setButton(false, btn);
   }
 };
 
-// --- GESTÃO DE FOTO ---
 $("#image-upload-container")
   .off("click")
   .on("click", function (e) {
@@ -565,9 +532,6 @@ const renderFamilyTable = () => {
   });
 };
 
-// =========================================================
-// RENDERIZAÇÃO DE ANEXOS
-// =========================================================
 
 const renderAttachmentsTable = (data) => {
   const container = $("#lista-anexos");
@@ -645,7 +609,7 @@ const renderAttachmentsTable = (data) => {
     `);
 };
 
-window.uploadAttachment = async () => {
+window.uploadAttachment = async (btn) => {
   const personId = $("#person_id").val();
   const fileInput = $("#new_attachment_file")[0];
   const desc = $("#new_attachment_desc").val().trim();
@@ -654,7 +618,7 @@ window.uploadAttachment = async () => {
   if (!fileInput.files || fileInput.files.length === 0) return window.alertDefault("Selecione um arquivo.", "warning");
   if (!desc) return window.alertDefault("Informe uma descrição para o documento.", "warning");
 
-  const btn = $("#btn-add-attachment");
+  btn = $(btn);
   window.setButton(true, btn, "Enviando...");
 
   const formData = new FormData();
@@ -669,13 +633,13 @@ window.uploadAttachment = async () => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-          url: defaultApp.validator,
-          data: formData,
-          type: "POST",
-          processData: false,
-          contentType: false,
-          dataType: "json",
-        }));
+        url: defaultApp.validator,
+        data: formData,
+        type: "POST",
+        processData: false,
+        contentType: false,
+        dataType: "json",
+      }));
 
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
@@ -689,7 +653,7 @@ window.uploadAttachment = async () => {
   } catch (e) {
     window.alertDefault("Erro no upload.", "error");
   } finally {
-    window.setButton(false, btn, '<i class="fas fa-plus"></i> Adicionar');
+    window.setButton(false, btn);
   }
 };
 
@@ -706,7 +670,6 @@ window.removeAttachment = (id) => {
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        // Chamada à API
         const res = await window.ajaxValidator({
           validator: "removeAttachment",
           token: defaultApp.userInfo.token,
@@ -729,13 +692,11 @@ window.removeAttachment = (id) => {
   });
 };
 
-// --- SALVAR TUDO ---
-window.salvarPessoa = async () => {
+window.salvarPessoa = async (btn) => {
   const name = $("#full_name").val();
   if (!name) return window.alertDefault("Nome Completo é obrigatório.", "warning");
 
-  const btn = $(".btn-save-person");
-  window.setButton(true, btn, "Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   const formData = new FormData();
   formData.append("validator", "savePerson");
@@ -773,13 +734,13 @@ window.salvarPessoa = async () => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-          url: defaultApp.validator,
-          data: formData,
-          type: "POST",
-          processData: false,
-          contentType: false,
-          dataType: "json",
-        }));
+        url: defaultApp.validator,
+        data: formData,
+        type: "POST",
+        processData: false,
+        contentType: false,
+        dataType: "json",
+      }));
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");
@@ -791,7 +752,7 @@ window.salvarPessoa = async () => {
   } catch (e) {
     window.alertDefault("Erro ao salvar.", "error");
   } finally {
-    window.setButton(false, btn, '<i class="fas fa-save me-2"></i> Salvar Cadastro');
+    window.setButton(false, btn);
   }
 };
 
@@ -826,7 +787,6 @@ window.deletePerson = (id) => {
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        // Chamada à API
         const res = await window.ajaxValidator({
           validator: "deletePerson",
           token: defaultApp.userInfo.token,
@@ -847,7 +807,6 @@ window.deletePerson = (id) => {
   });
 };
 
-// --- LISTENERS DE INTERFACE ---
 
 $("#is_pcd").change(function () {
   if ($(this).is(":checked")) $("#pcd_details").removeClass("d-none").focus();
@@ -872,7 +831,6 @@ $("#filtro-role, #busca-texto").on("change keyup", function () {
   }, 500);
 });
 
-// GLOBALIZAÇÃO E CONTROLE DE PAGINAÇÃO
 window.changePage = (page) => {
   defaultPeople.currentPage = page;
   getPessoas();
