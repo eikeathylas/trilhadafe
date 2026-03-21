@@ -137,11 +137,11 @@ const renderTablePeople = (data) => {
         <tr>
             <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
             <td class="align-middle">
-                <div class="fw-bold text-dark">${item.full_name}</div>
-                <small class="text-muted">${item.religious_name || ""}</small>
+                <div class="fw-bold text-body">${item.full_name}</div>
+                <small class="text-body">${item.religious_name || ""}</small>
             </td>
             <td class="align-middle">${rolesHtml}</td>
-            <td class="align-middle">${contactHtml}</td>
+            <td class="align-middle text-body">${contactHtml}</td>
             <td class="text-center align-middle">
                 ${getToggleHtml(item.person_id, item.is_active)}
             </td>

@@ -113,11 +113,11 @@ const renderTableEvents = (data) => {
                 </div>
             </td>
             <td class="align-middle">
-                <div class="fw-bold text-dark">${item.title}</div>
+                <div class="fw-bold text-body">${item.title}</div>
                 <div class="small text-muted text-truncate" style="max-width: 300px;">${item.description || "Sem descrição"}</div>
             </td>
             <td class="align-middle">
-                <div class="fw-bold text-dark">${item.date_fmt}</div>
+                <div class="fw-bold text-body">${item.date_fmt}</div>
                 ${timeInfo}
             </td>
             <td class="align-middle text-center" width="200">

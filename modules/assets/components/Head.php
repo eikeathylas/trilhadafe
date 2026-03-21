@@ -5,4 +5,8 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
 <link href="assets/css/selectize.bootstrap4.css" rel="stylesheet">
 <link href="assets/css/main.css?v=<?php echo time(); ?>" rel="stylesheet">
-<link href="assets/css/card.css?v=<?php echo time(); ?>" rel="stylesheet">
+<link href="assets/css/layout.css?v=<?php echo time(); ?>" rel="stylesheet">
+<link href="assets/css/components.css?v=<?php echo time(); ?>" rel="stylesheet">
+<link href="assets/css/mobile.css?v=<?php echo time(); ?>" rel="stylesheet">
+<link href="assets/css/desktop.css?v=<?php echo time(); ?>" rel="stylesheet">
+<link href="assets/css/responsive.css?v=<?php echo time(); ?>" rel="stylesheet">

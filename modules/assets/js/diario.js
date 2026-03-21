@@ -229,8 +229,8 @@ const renderTableHistory = (data) => {
             </div>
           </td>
           <td class="align-middle">
-            <div class="fw-bold">${dateFmt}</div>
-            <div class="small text-muted">${summary || "Sem descrição"}</div>
+            <div class="fw-bold text-body">${dateFmt}</div>
+            <div class="small text-body">${summary || "Sem descrição"}</div>
           </td>
           <td class="align-middle text-center" width="180">
             <div class="d-flex flex-column align-items-center">

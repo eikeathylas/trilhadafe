@@ -81,6 +81,7 @@ function validateClientAccess($data)
                 cc.pendency, cc.value, cc.collect, cc.deadline, cc.config_code, cc.discount, cc.last_payment, cc.created_at,
                 cc.host, cc.port, cc.database, cc.user, cc.password,
                 s.name, s.city
+            ORDER BY c.name
         SQL;
 
         $info = executeSQL([

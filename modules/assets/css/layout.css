@@ -1,0 +1,126 @@
+/* ============================================================
+   1. ESTRUTURA GLOBAL E CONTAINERS PRINCIPAIS
+   ============================================================ */
+/* -- Estilos base */
+.container {
+    margin-left: 0 !important;
+    max-width: 100% !important;
+    margin-top: 20px;
+}
+
+.main-only {
+    margin-left: 300px;
+    /* Espaço reservado para a Sidebar Desktop */
+    padding: 20px 30px 20px 20px;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease, padding 0.3s ease;
+    z-index: 1;
+    /* Nível base do conteúdo */
+}
+
+.main-only.active-only {
+    margin-left: 110px;
+    /* Estado quando a sidebar desktop é colapsada */
+}
+
+/* -- Modo escuro */
+/* (O container principal não requer alterações de cor direta, 
+   pois herda do body definido no main.css) */
+
+/* -- Responsividade */
+@media (max-width: 991px) {
+    .main-only {
+        margin-left: 0 !important;
+        /* Padding generoso no topo para o Header Mobile e no fundo para a Bottom Nav (Safe Area) */
+        padding: 76px 16px calc(130px + env(safe-area-inset-bottom)) 16px !important;
+    }
+
+    .main-only .row {
+        margin-left: 0%;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-only {
+        /* Ajuste fino lateral para telas muito pequenas */
+        padding: 76px 12px calc(120px + env(safe-area-inset-bottom)) 12px !important;
+    }
+
+    .main-only .row {
+        margin-left: 5px;
+    }
+}
+
+
+/* ============================================================
+   2. CONTAINERS ESPECÍFICOS DE PÁGINA (GRIDS E LISTAS)
+   ============================================================ */
+/* -- Estilos base */
+.list-commanded {
+    position: relative;
+    background-color: var(--fundo);
+    padding: 20px;
+    border-radius: 10px;
+    height: 100%;
+    border: 1px solid var(--borda);
+}
+
+/* Grid de visualização em formato de Cards (Dashboard/Relatórios) */
+.list-commanded.cards-view {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 16px;
+    padding-bottom: 40px;
+}
+
+.list-commanded.cards-view .card-ea {
+    width: 100%;
+    max-width: 300px;
+    min-width: 240px;
+    flex: 1 1 250px;
+    margin: 0 auto;
+}
+
+/* -- Modo escuro */
+[data-theme="escuro"] .list-commanded {
+    background-color: var(--fundo);
+    border-color: var(--borda);
+}
+
+/* -- Responsividade */
+@media (max-width: 768px) {
+    .list-commanded.cards-view {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .list-commanded.cards-view .card-ea {
+        width: 240px;
+        height: 340px;
+    }
+}
+
+
+/* ============================================================
+   3. HIERARQUIA DE Z-INDEX (MAPA DO SISTEMA)
+   ============================================================ */
+/*
+  ⚠️ ATENÇÃO: Este é o mapa oficial de Z-Index do sistema.
+  Nenhum componente deve usar z-index arbitrário. Siga esta ordem 
+  para evitar conflitos de sobreposição entre Mobile e Desktop:
+  
+  1       : Main Content (Conteúdo principal, Tabelas, Cards base)
+  1030    : Top Header Mobile (.mobile-top-header)
+  1040    : Sidebar Desktop (.sidebar-only)
+  1050    : Bottom Nav Mobile (.bottom-nav) e Dropdowns do Selectize
+  1060    : Offcanvas Backdrop (.offcanvas-backdrop)
+  1070    : Offcanvas Content (Notificações) e Fullscreen Editors (Summernote)
+  1080    : Modal Backdrop (.modal-backdrop)
+  1090    : Modais (.modal)
+  9999    : SweetAlert2 (.swal2-container), Toasts e Tooltips nativos
+  10000+  : Loaders de Tela Cheia (.div-loader)
+*/

@@ -1,132 +1,115 @@
 // =========================================================
-// CONFIGURAÇÕES DO DASHBOARD - V4.2
+// CONFIGURAÇÕES DO DASHBOARD - V5.1 (MODO NOTURNO + UX)
 // =========================================================
 const dashboardConfig = {
-  refreshInterval: 60000, // Atualização automática (60s)
-  animationDuration: 1000, // Duração da animação dos números (ms)
+  refreshInterval: 60000,
+  animationDuration: 1200,
 };
 
-// =========================================================
-// 1. INICIALIZAÇÃO E EVENTOS
-// =========================================================
 $(document).ready(() => {
-  // 1. Aplica regras de visualização (Permissões)
   checkDashboardPermissions();
-
-  // 2. Busca os dados dos cards e widgets
-  // Nota: O ID da paróquia ativa é injetado automaticamente pelo main.js ($.ajaxPrefilter)
-  getDashboardStats();
-  getUpcomingEvents();
-
-  // 3. (Opcional) Auto-refresh
-  // setInterval(() => {
-  //     getDashboardStats();
-  //     getUpcomingEvents();
-  // }, dashboardConfig.refreshInterval);
+  initDashboardLoad();
 });
 
+async function initDashboardLoad() {
+  await Promise.all([
+    getDashboardStats(),
+    getUpcomingEvents()
+  ]);
+}
+
 // =========================================================
-// 2. CONTROLE DE PERMISSÕES VISUAIS
+// 2. CONTROLE DE PERMISSÕES E PERFIL
 // =========================================================
 function checkDashboardPermissions() {
   let permissions = [];
-
   try {
     const rawAccess = localStorage.getItem("tf_access");
     permissions = rawAccess ? JSON.parse(rawAccess) : [];
-    if (!Array.isArray(permissions)) {
-      permissions = typeof permissions === "object" ? Object.values(permissions) : [];
-    }
+    if (!Array.isArray(permissions)) permissions = Object.values(permissions);
   } catch (e) {
     console.warn("Erro ao ler permissões.");
   }
 
-  // Cria lista simples de slugs
   const allowedSlugs = permissions.map((p) => p.slug);
 
-  // A. Card Financeiro
+  // Perfil Professor: Esconde cards de gestão
+  const userRole = window.defaultApp?.userInfo?.role_id;
+  if (userRole == 3) {
+    $(".permission-admin").remove();
+  }
+
   const canViewFinance = allowedSlugs.includes("financeiro") || allowedSlugs.includes("dashboard.view_finance_stats");
   if (canViewFinance) {
     $(".permission-finance").removeClass("d-none").fadeIn();
   } else {
     $(".permission-finance").addClass("d-none");
   }
-
-  // B. Botões de Acesso Rápido (Se houver)
-  $(".btn-shortcut").each(function () {
-    const requiredPermission = $(this).data("permission");
-    if (requiredPermission && !allowedSlugs.includes(requiredPermission)) {
-      $(this).parent().hide();
-      $(this).hide();
-    }
-  });
 }
 
 // =========================================================
 // 3. BUSCA DE DADOS (AJAX)
 // =========================================================
 
-// Estatísticas Gerais (Cards e Avisos)
 async function getDashboardStats() {
-  try {
-    // Skeleton / Loading States
-    $("#dash-total-pessoas").text("...");
-    $("#dash-turmas-ativas").text("...");
-    $("#dash-proximas-missas").text("...");
+  const activeParish = localStorage.getItem("tf_active_parish");
+  const activeYear = localStorage.getItem("sys_active_year");
 
-    const result = await ajaxValidator({
+  $(".dash-num").text("...");
+
+  try {
+    const result = await window.ajaxValidator({
       validator: "getDashboardStats",
-      token: defaultApp.userInfo.token,
-      org_id: localStorage.getItem("tf_active_parish"),
-      year_id: localStorage.getItem("sys_active_year"),
+      token: window.defaultApp.userInfo.token,
+      org_id: activeParish,
+      year_id: activeYear,
     });
 
     if (result.status) {
-      const data = result.data;
+      const d = result.data;
+      const duration = dashboardConfig.animationDuration;
 
-      // Animação dos contadores
-      animateValue("dash-total-pessoas", 0, data.total_pessoas || 0, dashboardConfig.animationDuration);
-      animateValue("dash-turmas-ativas", 0, data.total_turmas || 0, dashboardConfig.animationDuration);
+      animateValue("dash-total-usuarios", 0, d.total_usuarios || 0, duration);
+      animateValue("dash-total-catequizandos", 0, d.total_catequizandos || 0, duration);
+      animateValue("dash-total-professores", 0, d.total_professores || 0, duration);
+      animateValue("dash-total-pessoas", 0, d.total_pessoas || 0, duration);
+      animateValue("dash-turmas-ativas", 0, d.total_turmas || 0, duration);
 
-      // Texto simples
-      $("#dash-proximas-missas").text(data.proxima_missa || "Nenhuma");
+      renderAvisos(d.avisos || []);
+      renderAniversariantes(d.aniversariantes || []);
 
-      // Financeiro (Só renderiza se o container estiver visível)
-      if (data.financeiro_mes && !$(".permission-finance").hasClass("d-none")) {
-        $("#dash-financeiro").text(data.financeiro_mes);
+      if (d.financeiro_mes && !$(".permission-finance").hasClass("d-none")) {
+        $("#dash-financeiro").text(d.financeiro_mes);
       }
-
-      // Widgets
-      renderAvisos(data.avisos);
-      renderAniversariantes(data.aniversariantes);
     }
   } catch (e) {
     console.error("Erro dashboard stats:", e);
+    if (window.alertErrorWithSupport) {
+      window.alertErrorWithSupport(`Dashboard Stats (ID: ${activeParish})`, e.message);
+    }
   }
 }
 
-// Agenda de Eventos
 async function getUpcomingEvents() {
   try {
-    const resEvents = await ajaxValidator({
+    const resEvents = await window.ajaxValidator({
       validator: "getUpcomingEvents",
-      token: defaultApp.userInfo.token,
+      token: window.defaultApp.userInfo.token,
       org_id: localStorage.getItem("tf_active_parish"),
     });
 
     if (resEvents.status) {
       renderEvents(resEvents.data);
     } else {
-      $("#lista-eventos").html('<div class="text-center py-4 text-muted small">Não foi possível carregar a agenda.</div>');
+      throw new Error(resEvents.alert || "Falha na agenda.");
     }
   } catch (e) {
-    console.error("Erro eventos:", e);
-    $("#lista-eventos").html('<div class="text-center py-4 text-muted small">Erro de conexão.</div>');
+    $("#lista-eventos").html('<div class="text-center py-4 text-danger small">Erro ao carregar agenda.</div>');
   }
 }
 
 // =========================================================
-// 4. RENDERIZAÇÃO (HTML GENERATORS)
+// 4. RENDERIZAÇÃO (LAYOUT SOFT UI + MODO NOTURNO)
 // =========================================================
 
 function renderAvisos(avisos) {
@@ -134,25 +117,22 @@ function renderAvisos(avisos) {
   container.empty();
 
   if (!avisos || avisos.length === 0) {
-    container.html(`
-            <li class="list-group-item text-center text-muted py-5 border-0">
-                <i class="far fa-bell-slash mb-2 opacity-50" style="font-size: 1.5rem;"></i><br>
-                Nenhum aviso recente.
-            </li>
-        `);
+    container.html('<div class="text-center py-5 text-muted opacity-50"><i class="far fa-bell-slash fa-2x mb-2"></i><br>Sem avisos.</div>');
     return;
   }
 
   avisos.forEach((aviso) => {
+    // Uso de bg-body garante compatibilidade com Dark Mode
     const html = `
-            <li class="list-group-item border-start-0 border-end-0 px-4 py-3">
-                <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                    <h6 class="mb-0 txt-theme fw-bold text-truncate" style="max-width: 75%;">${aviso.title}</h6>
-                    <span class="badge bg-light text-secondary border rounded-pill px-3">${aviso.date}</span>
+            <div class="d-flex align-items-center p-3 mb-3 bg-body rounded-3 border-start border-4 border-info shadow-xs transition-hover">
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h6 class="fw-bold mb-0 text-truncate text-body">${aviso.title}</h6>
+                        <span class="badge bg-info-subtle text-info rounded-pill px-2 small">${aviso.date}</span>
+                    </div>
+                    <p class="text-body-secondary small mb-0 text-truncate">${aviso.summary}</p>
                 </div>
-                <p class="mb-0 text-secondary small text-truncate" style="opacity: 0.8;">${aviso.summary}</p>
-            </li>
-        `;
+            </div>`;
     container.append(html);
   });
 }
@@ -162,126 +142,106 @@ function renderEvents(events) {
   container.empty();
 
   if (!events || events.length === 0) {
-    container.html(`
-            <div class="text-center py-5 text-muted opacity-50">
-                <i class="far fa-calendar-check fa-2x mb-2"></i><br>
-                Nenhum evento agendado.
-            </div>
-        `);
+    container.html('<div class="text-center py-5 text-muted opacity-50"><i class="far fa-calendar-check fa-2x mb-2"></i><br>Agenda livre.</div>');
     return;
   }
 
+  // Identifica se a data do evento é hoje
+  const hojeStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
   events.forEach((ev) => {
-    // Lógica de Destaque (Feriado/Sem Aula)
-    let iconHtml = '<i class="fas fa-calendar-day"></i>';
-    let containerClass = "bg-transparent";
-    let dateColorClass = "text-dark";
-    let titleColorClass = "";
+    const isHoje = (ev.date_fmt === hojeStr);
+    const isBlocker = ev.is_academic_blocker;
 
-    if (ev.is_academic_blocker) {
-      iconHtml = '<i class="fas fa-ban text-danger" title="Não haverá aula (Feriado/Evento)"></i>';
-      containerClass = "event-blocked"; // Classe CSS definida no dashboard.php
-      dateColorClass = "text-danger";
-      titleColorClass = "text-danger";
-    }
+    // Cores adaptáveis ao tema
+    const borderClass = isBlocker ? "border-danger" : "border-primary";
+    const bgClass = isBlocker ? "bg-danger-subtle" : "bg-body";
+    const titleColor = isBlocker ? "text-danger" : "text-body";
+    const dateColor = isBlocker ? "text-danger" : "text-body-secondary";
 
-    // Formatação da hora
-    const timeHtml = ev.start_time ? `<span class="badge bg-light text-secondary border ms-0 mt-1"><i class="far fa-clock me-1"></i> ${ev.start_time.substr(0, 5)}</span>` : "";
+    // Tooltip restaurado e melhorado
+    const tooltipText = isBlocker ? 'Feriado ou Bloqueio Acadêmico' : 'Evento padrão';
+
+    // Badge "Hoje" se for a data atual
+    const badgeHoje = isHoje ? `<span class="badge bg-primary text-white ms-2" style="font-size: 0.65rem;">HOJE</span>` : '';
 
     const html = `
-            <div class="list-group-item d-flex align-items-center border-0 border-bottom py-3 px-4 ${containerClass}">
-                <div class="event-date-box me-3">
-                    <div class="event-day">${ev.day_week}</div>
-                    <div class="event-num">${ev.date_fmt.substr(0, 2)}/${ev.date_fmt.substr(3, 2)}</div>
+            <div class="d-flex align-items-center p-3 mb-3 ${bgClass} rounded-3 border-start border-4 ${borderClass} shadow-xs" title="${tooltipText}">
+                <div class="text-center me-3 border-end border-secondary border-opacity-25 pe-3" style="min-width: 60px;">
+                    <h5 class="fw-bold mb-0 text-body">${ev.date_fmt.substr(0, 2)}</h5>
+                    <small class="text-uppercase fw-bold ${dateColor}">${ev.day_week}</small>
                 </div>
-
                 <div class="flex-grow-1 overflow-hidden">
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                        <h6 class="mb-0 text-truncate fw-bold ${titleColorClass}" style="font-size: 0.95rem;">${ev.title}</h6>
-                        <span class="ms-2">${iconHtml}</span>
+                    <h6 class="fw-bold mb-0 text-truncate ${titleColor}">
+                        ${ev.title} ${badgeHoje}
+                    </h6>
+                    <div class="d-flex align-items-center mt-1">
+                        <small class="text-body-secondary text-truncate me-2">${ev.description || "Sem descrição"}</small>
+                        ${ev.start_time ? `<span class="badge bg-secondary-subtle text-body-secondary border border-secondary border-opacity-25 small"><i class="far fa-clock me-1"></i> ${ev.start_time.substr(0, 5)}</span>` : ""}
                     </div>
-                    <small class="text-muted text-truncate d-block" style="font-size: 0.8rem;">
-                        ${ev.description || "Sem descrição"}
-                    </small>
-                    ${timeHtml}
                 </div>
-            </div>
-        `;
+            </div>`;
     container.append(html);
   });
 }
 
 function renderAniversariantes(aniversariantes) {
-  const container = $("#lista-avisos");
+  const container = $("#lista-aniversariantes");
   container.empty();
 
   if (!aniversariantes || aniversariantes.length === 0) {
-    container.html('<li class="list-group-item text-center text-muted py-4">Nenhum aniversariante neste mês.</li>');
+    container.html('<div class="text-center py-4 text-muted small">Ninguém soprando velinhas hoje.</div>');
     return;
   }
 
-  aniversariantes.forEach((pessoa) => {
-    let avatarHtml = "";
-    if (pessoa.photo_url) {
-      avatarHtml = `<img src="${pessoa.photo_url}?v=${new Date().getTime()}" 
-                         class="rounded-circle border shadow-sm" 
-                         style="width:40px; height:40px; margin: 0 10px 0 0; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
-                         onclick="zoomAvatar('${pessoa.photo_url}', '${pessoa.name.replace(/'/g, "\\'")}')"
-                         onmouseover="this.style.transform='scale(1.1)'" 
-                         onmouseout="this.style.transform='scale(1)'">`;
-    } else {
-      const nameParts = pessoa.name.trim().split(" ");
-      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-      avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px; margin: 0 10px 0 0;">${initials}</div>`;
-    }
+  aniversariantes.forEach((p) => {
+    const photo = p.photo_url || 'assets/img/default-avatar.png';
+    const safeName = p.name.replace(/'/g, "\\'");
+
+    // bg-body substitui o bg-white. Zoom e hover restaurados.
     const html = `
-            <li class="list-group-item d-flex align-items-center px-3 py-2">
-                ${avatarHtml}
-                <div>
-                    <h6 class="mb-0 txt-theme font-weight-bold" style="font-size: 0.9rem;">${pessoa.name}</h6>
-                    <small class="text-muted" style="font-size: 0.8rem;"><i class="fas fa-birthday-cake text-danger me-1"></i> ${pessoa.birth_date}</small>
+            <div class="d-flex align-items-center p-2 mb-2 bg-body rounded-3 shadow-xs border border-secondary border-opacity-10">
+                <img src="${photo}" class="rounded-circle border border-secondary border-opacity-25 me-3" 
+                     style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                     onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${photo}', '${safeName}')"
+                     onmouseover="this.style.transform='scale(1.15)'" 
+                     onmouseout="this.style.transform='scale(1)'"
+                     title="Ver foto">
+                <div class="flex-grow-1">
+                    <h6 class="fw-bold mb-0 small text-body">${p.name}</h6>
+                    <small class="text-body-secondary"><i class="fas fa-birthday-cake text-danger me-1 small"></i> ${p.birth_date}</small>
                 </div>
-            </li>
-        `;
+                <div class="ms-2">
+                    <span class="badge bg-danger-subtle text-danger rounded-pill px-2" title="Aniversariante">🎉</span>
+                </div>
+            </div>`;
     container.append(html);
   });
 }
 
 // =========================================================
-// 5. FUNÇÕES UTILITÁRIAS
+// 5. UTILITÁRIOS
 // =========================================================
 
 function animateValue(id, start, end, duration) {
   const obj = document.getElementById(id);
-  if (!obj) return;
-
-  // Se não for número (ex: Moeda), apenas exibe
-  if (isNaN(end)) {
-    obj.innerText = end;
-    return;
-  }
+  if (!obj || isNaN(end)) return;
 
   if (start === end) {
     obj.innerText = end;
     return;
   }
 
-  const range = end - start;
-  let current = start;
-  const increment = end > start ? 1 : -1;
-  const stepTime = Math.abs(Math.floor(duration / range));
-
-  // Se for muito rápido, exibe direto
-  if (stepTime < 10 || !isFinite(stepTime)) {
-    obj.innerText = end;
-    return;
-  }
-
-  const timer = setInterval(function () {
-    current += increment;
-    obj.innerText = current;
-    if (current == end) {
-      clearInterval(timer);
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    obj.innerText = Math.floor(progress * (end - start) + start);
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+      obj.innerText = end;
     }
-  }, stepTime);
+  };
+  window.requestAnimationFrame(step);
 }

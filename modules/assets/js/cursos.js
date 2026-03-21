@@ -152,8 +152,8 @@ const renderTableCourses = (data) => {
                 </div>
             </td>
             <td class="align-middle">
-                <div class="fw-bold">${item.name}</div>
-                <div class="small opacity-75">${ageLabel}</div>
+                <div class="fw-bold text-body">${item.name}</div>
+                <div class="small opacity-75 text-body">${ageLabel}</div>
             </td>
             <td class="text-center align-middle">
                 <span class="badge border text-body bg-transparent">
@@ -334,7 +334,7 @@ window.initSelectSubjects = () => {
       option: function (item, escape) {
         return `
           <div class="py-1 px-2 border-bottom border-light">
-            <div class="fw-bold text-dark">${escape(item.title)}</div>
+            <div class="fw-bold text-body">${escape(item.title)}</div>
             ${item.summary ? `<small class="text-muted d-block opacity-75">${escape(item.summary)}</small>` : ""}
           </div>`;
       },

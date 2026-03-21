@@ -85,7 +85,7 @@ const renderTableClasses = (data) => {
   }
 
   const getProgressHtml = (enrolled, cap) => {
-    if (!cap || parseInt(cap) === 0) return '<span class="badge bg-light text-dark border">Ilimitado</span>';
+    if (!cap || parseInt(cap) === 0) return '<span class="badge bg-light text-body border">Ilimitado</span>';
 
     const e = parseInt(enrolled || 0);
     const c = parseInt(cap);
@@ -147,19 +147,19 @@ const renderTableClasses = (data) => {
       return `
         <tr>
             <td class="align-middle">
-                <div class="fw-bold text-dark">${item.name}</div>
+                <div class="fw-bold text-body">${item.name}</div>
                 <div class="small text-primary"><i class="fas fa-calendar-alt me-1"></i> ${item.year_name || "-"} | <i class="fas fa-graduation-cap me-1"></i> ${item.course_name}</div>
             </td>
             <td class="align-middle">
                 <div class="d-flex align-items-center gap-2">
                     ${avatarHtml}
-                    <span class="small text-dark">${item.coordinator_name || "Sem coordenador"}</span>
+                    <span class="small text-body">${item.coordinator_name || "Sem coordenador"}</span>
                 </div>
             </td>
             <td class="align-middle">
                 <div class="d-flex flex-column gap-1">
-                    <span class="badge bg-light text-dark border w-auto text-start"><i class="fas fa-clock me-2 text-muted"></i> ${item.schedule_summary || "Sem horário"}</span>
-                    <span class="badge bg-light text-dark border w-auto text-start"><i class="fas fa-map-marker-alt me-2 text-muted"></i> ${item.location_name || "Sem local"}</span>
+                    <span class="badge bg-light text-body border w-auto text-start"><i class="fas fa-clock me-2 text-muted"></i> ${item.schedule_summary || "Sem horário"}</span>
+                    <span class="badge bg-light text-body border w-auto text-start"><i class="fas fa-map-marker-alt me-2 text-muted"></i> ${item.location_name || "Sem local"}</span>
                 </div>
             </td>
             <td class="text-center align-middle d-flex justify-content-center">${getProgressHtml(item.enrolled_count, item.max_capacity)}</td>

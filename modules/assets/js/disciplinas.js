@@ -99,7 +99,7 @@ const renderTableSubjects = (data) => {
             <td class="text-center align-middle" style="width: 60px;">
                 <div class="icon-circle bg-light text-primary"><span class="material-symbols-outlined">menu_book</span></div>
             </td>
-            <td class="align-middle"><div class="fw-bold text-dark">${item.name}</div></td>
+            <td class="align-middle"><div class="fw-bold text-body">${item.name}</div></td>
             <td class="align-middle"><div class="text-secondary small">${summary}</div></td>
             <td class="text-center align-middle">
                 ${getToggleHtml(item.subject_id, item.is_active)}

@@ -1,0 +1,315 @@
+/* ============================================================
+   INTERFACE DESKTOP E SIDEBAR
+   ============================================================ */
+/* -- Estilos base globais para Desktop */
+
+/* Ocultar elementos exclusivos do Mobile por padrão no Desktop */
+.bottom-nav,
+.modern-bottom-nav,
+.mobile-top-header {
+    display: none !important;
+}
+
+
+/* ============================================================
+   1. SIDEBAR (MENU LATERAL FIXO)
+   ============================================================ */
+/* -- Estilos base */
+.sidebar-only {
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    bottom: 10px;
+    max-width: 280px;
+    height: calc(100vh - 20px);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--padrao1);
+    border-radius: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1040;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    overflow: visible !important;
+}
+
+.sidebar-only.active-only {
+    width: 95px;
+}
+
+/* Scroll Interno Invisível */
+.sidebar-scroll-wrapper {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: visible;
+    padding: 24px 16px;
+    border-radius: 24px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.sidebar-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+    width: 0px;
+    background: transparent;
+}
+
+/* Cabeçalho do Usuário */
+.sidebar-only .head-only {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 30px;
+    margin-bottom: 10px;
+}
+
+.user-avatar-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--padrao2);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info-text h6 {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.user-info-text span {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+/* Itens do Menu */
+.sidebar-only .menu-only .title-only {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--padrao2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+.sidebar-only .menu-only ul li {
+    position: relative;
+    list-style: none;
+    margin-bottom: 5px;
+}
+
+.sidebar-only .menu-only ul li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-only .menu-only ul li>a:hover,
+.sidebar-only .menu-only ul li.active-only>a,
+.sidebar-only .menu-only ul li a.active {
+    background-color: var(--padrao);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-only .menu-only ul li .icon-only {
+    font-size: 1.4rem;
+    transition: all 0.2s;
+}
+
+.sidebar-only .menu-only ul li .text-only {
+    flex: 1;
+}
+
+.sidebar-only .menu-only ul li .arrow-only {
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.sidebar-only .menu-only ul li.active-only .arrow-only {
+    transform: rotate(180deg);
+}
+
+/* Submenus */
+.sidebar-only .menu-only .sub-menu-only {
+    display: none;
+    margin-top: 5px;
+    margin-left: 10px;
+    padding: 5px 0 5px 15px !important;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-only .menu-only .sub-menu-only li a {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.sidebar-only .menu-only .sub-menu-only li a:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Botão Toggle Sidebar (Esconder / Expandir) */
+.menu-btn-only {
+    position: absolute;
+    top: 30px;
+    right: -15px;
+    width: 32px;
+    height: 32px;
+    background-color: var(--padrao1);
+    color: var(--padrao2);
+    border: 2px solid var(--padrao2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1050;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s;
+}
+
+/* ============================================================
+   2. ESTADO COLAPSADO (.active-only)
+   ============================================================ */
+.sidebar-only.active-only .user-info-text,
+.sidebar-only.active-only .text-only,
+.sidebar-only.active-only .title-only,
+.sidebar-only.active-only .arrow-only,
+.sidebar-only.active-only .sidebar-selectize {
+    display: none;
+}
+
+.sidebar-only.active-only .menu-btn-only {
+    transform: rotate(180deg);
+}
+
+.sidebar-only.active-only .menu-only ul li a {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+/* Tooltip no Hover (Quando a Sidebar está Colapsada) */
+.sidebar-only.active-only .menu-only>ul>li>a .text-only {
+    display: block;
+    position: fixed;
+    left: 80px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background-color: #2c3e50;
+    color: #ffffff;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    white-space: nowrap;
+    z-index: 9999;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.sidebar-only.active-only .menu-only>ul>li>a .text-only::after {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 12px;
+    height: 12px;
+    background-color: #2c3e50;
+    z-index: -1;
+}
+
+.sidebar-only.active-only .menu-only>ul>li>a:hover .text-only {
+    opacity: 1;
+    visibility: visible;
+    left: 95px;
+}
+
+/* -- Modo escuro (Tooltips da Sidebar Colapsada) */
+[data-theme="escuro"] .sidebar-only.active-only .menu-only>ul>li>a .text-only {
+    background-color: var(--fundo);
+    border: 1px solid var(--borda);
+    color: #ffffff;
+}
+
+[data-theme="escuro"] .sidebar-only.active-only .menu-only>ul>li>a .text-only::after {
+    background-color: var(--fundo);
+    border-left: 1px solid var(--borda);
+    border-bottom: 1px solid var(--borda);
+}
+
+/* ============================================================
+   3. GRIDS ADMINISTRATIVOS E LAYOUTS DESKTOP
+   ============================================================ */
+/* -- Responsividade Específica para Telas Grandes */
+@media (min-width: 992px) {
+
+    /* Transforma o container num Flex para empurrar o rodapé */
+    .main-only {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Filtros proporcionais no Desktop (Aproveitamento inteligente de tela) */
+    .filter-row {
+        display: grid;
+        grid-template-columns: minmax(200px, 1fr) minmax(300px, 3fr) auto;
+        gap: 20px;
+        align-items: end;
+    }
+}
+
+
+/* ============================================================
+   4. RODAPÉ ORIGINAL (FOOTER DESKTOP)
+   ============================================================ */
+/* Empurra o footer sempre para o final da tela (Graças ao flex do main-only) */
+.sticky-footer {
+    margin-top: auto !important;
+    width: 100%;
+    background: transparent;
+}
+
+/* -- MODO ESCURO (Sobrescrevendo as utilitárias do Bootstrap) -- */
+[data-theme="escuro"] .sticky-footer .text-muted {
+    color: #94a3b8 !important;
+    /* Cinza claro suave */
+}
+
+[data-theme="escuro"] .sticky-footer .text-primary {
+    color: var(--padrao) !important;
+    /* Mantém o azul do tema */
+}
+
+[data-theme="escuro"] .sticky-footer .text-secondary {
+    color: #e2e8f0 !important;
+    /* Quase branco para o link da EaCode */
+}
+
+[data-theme="escuro"] .sticky-footer .badge.bg-secondary {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}

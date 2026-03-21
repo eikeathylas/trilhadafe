@@ -1,0 +1,924 @@
+/* ============================================================
+   1. BOTÕES E AÇÕES
+   ============================================================ */
+/* -- Estilos base */
+.btn {
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-theme,
+.btn-primary {
+    background: linear-gradient(135deg, var(--padrao), var(--padrao1));
+    color: #fff !important;
+    border: none;
+    box-shadow: 0 4px 12px rgba(92, 142, 241, 0.3);
+}
+
+.btn-theme:hover,
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--padrao1), var(--padrao));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(92, 142, 241, 0.4);
+}
+
+/* Feedback Tátil (Toque/Clique App Feel) */
+.btn:active {
+    transform: scale(0.98) !important;
+    box-shadow: 0 2px 8px rgba(92, 142, 241, 0.2) !important;
+}
+
+.btn-imprimir {
+    background-color: var(--white);
+    border: 1px solid var(--borda);
+    color: var(--black);
+    padding: 10px 15px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-imprimir:hover {
+    background-color: var(--padrao);
+    color: var(--white);
+    border-color: var(--padrao);
+}
+
+/* Ghost Actions (Botões em Tabelas e Cards) */
+.btn-icon-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: var(--descricao);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-icon-action:hover {
+    background-color: var(--padrao-suave) !important;
+    color: var(--padrao) !important;
+    transform: translateY(-2px);
+}
+
+.btn-icon-action:active {
+    transform: scale(0.92) !important;
+}
+
+.btn-icon-action.delete:hover {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    color: var(--danger) !important;
+}
+
+.btn-icon-action.edit:hover {
+    background-color: rgba(245, 158, 11, 0.1) !important;
+    color: var(--warning) !important;
+}
+
+.paginationButtons {
+    margin: 7px 0px;
+}
+
+.paginationButtons button {
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: all 0.3s;
+    background-color: #6c757d;
+}
+
+.paginationButtons button.btn-primary {
+    background-color: var(--padrao);
+}
+
+/* -- Modo escuro */
+[data-theme="escuro"] .btn-theme,
+[data-theme="escuro"] .btn-primary {
+    box-shadow: 0 4px 12px rgba(92, 142, 241, 0.2);
+}
+
+[data-theme="escuro"] .btn-icon-action {
+    color: var(--descricao);
+}
+
+[data-theme="escuro"] .btn-icon-action:hover {
+    background-color: rgba(92, 142, 241, 0.2) !important;
+    color: var(--padrao) !important;
+}
+
+[data-theme="escuro"] .btn-icon-action.delete:hover {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: var(--danger) !important;
+}
+
+[data-theme="escuro"] .paginationButtons button {
+    background-color: var(--fundo);
+    border: 1px solid var(--borda);
+}
+
+[data-theme="escuro"] .paginationButtons button:hover {
+    background-color: var(--padrao1);
+}
+
+[data-theme="escuro"] .paginationButtons button.btn-primary {
+    background-color: var(--padrao);
+    color: var(--white);
+}
+
+/* -- Responsividade */
+@media (max-width: 480px) {
+    .btn {
+        height: 44px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}
+
+
+/* ============================================================
+   2. FORMULÁRIOS E INPUTS (APPLE FEEL - FILLED INPUTS)
+   ============================================================ */
+/* -- Estilos base */
+.form-control,
+.form-select {
+    background-color: var(--input-bg);
+    color: var(--black);
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 16px !important;
+    /* Mobile First: Evita zoom automático no iOS */
+    font-weight: 500;
+    height: 48px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none !important;
+}
+
+/* Seta Customizada Elegante para Selects */
+.form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23858796' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 14px 10px;
+    appearance: none;
+    padding-right: 40px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--fundo);
+    /* Quando foca, "salta" pra frente */
+    border-color: var(--padrao);
+    box-shadow: 0 0 0 3px rgba(92, 142, 241, 0.15) !important;
+}
+
+.form-label,
+label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--descricao);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* -- Modo escuro */
+[data-theme="escuro"] .form-control,
+[data-theme="escuro"] .form-select {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: #f8fafc;
+}
+
+[data-theme="escuro"] .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+[data-theme="escuro"] .form-control:focus,
+[data-theme="escuro"] .form-select:focus {
+    background-color: var(--fundo);
+    border-color: var(--padrao);
+    box-shadow: 0 0 0 3px rgba(92, 142, 241, 0.2) !important;
+}
+
+[data-theme="escuro"] .form-control::placeholder {
+    color: #64748b;
+}
+
+/* -- Responsividade */
+@media (max-width: 480px) {
+
+    .form-control,
+    .form-select {
+        height: 44px;
+    }
+}
+
+
+/* ============================================================
+   3. CARDS, BADGES E WIDGETS (SISTEMA DE SOMBRAS DIFUSAS E ELEVAÇÃO)
+   ============================================================ */
+/* -- Estilos base */
+.card,
+.filter-card {
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 16px;
+    background-color: var(--fundo);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    /* Sombra difusa natural */
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+}
+
+.filter-card {
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--borda);
+    padding: 16px 20px;
+}
+
+.badge-soft {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    background-color: var(--padrao-suave);
+    color: var(--padrao);
+}
+
+.icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    background-color: var(--padrao-suave);
+    color: var(--padrao);
+    flex-shrink: 0;
+}
+
+/* Agenda Widget */
+.event-date-box {
+    background-color: var(--body);
+    border-radius: 8px;
+    padding: 5px 10px;
+    text-align: center;
+    min-width: 60px;
+    border: 1px solid transparent;
+    transition: background-color 0.3s ease;
+}
+
+.event-day {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--descricao);
+    line-height: 1;
+}
+
+.event-num {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--black);
+    line-height: 1.1;
+}
+
+.event-blocked .event-date-box {
+    background-color: rgba(231, 74, 59, 0.1);
+    color: var(--danger);
+    border-color: rgba(231, 74, 59, 0.2);
+}
+
+.event-blocked .event-num,
+.event-blocked .event-day {
+    color: var(--danger) !important;
+}
+
+/* -- Modo escuro (SISTEMA DE ELEVAÇÃO) */
+[data-theme="escuro"] .card,
+[data-theme="escuro"] .filter-card {
+    background-color: var(--fundo);
+    border: 1px solid var(--borda);
+    /* Destaque iluminado no topo para gerar volume 3D em vez de sombra */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="escuro"] .card-header {
+    border-color: var(--borda);
+}
+
+[data-theme="escuro"] .icon-circle {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="escuro"] .event-date-box {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="escuro"] .event-num {
+    color: var(--white);
+}
+
+/* -- Responsividade */
+@media (max-width: 768px) {
+    .filter-card {
+        padding: 14px;
+        border-radius: 14px;
+        margin-bottom: 16px;
+    }
+}
+
+
+/* ============================================================
+   4. TABELAS (DESKTOP)
+   ============================================================ */
+/* -- Estilos base */
+.table-custom {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    width: 100%;
+}
+
+.table-custom thead th {
+    border: none;
+    color: var(--descricao);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 15px 10px;
+}
+
+.table-custom tbody tr {
+    background-color: var(--fundo);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    /* Sombra mais refinada */
+    border-radius: 12px;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+
+.table-custom tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
+    z-index: 1;
+    position: relative;
+    border-color: var(--borda);
+}
+
+.table-custom tbody tr:active {
+    transform: scale(0.995);
+    /* Feedback sutil na linha inteira */
+}
+
+.table-custom td {
+    border: none;
+    padding: 16px;
+    vertical-align: middle;
+    color: var(--black);
+}
+
+.table-custom td:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.table-custom td:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* -- Modo escuro */
+[data-theme="escuro"] .table-custom tbody tr {
+    background-color: var(--fundo);
+    color: var(--white);
+    border: 1px solid var(--borda);
+    /* Bordas discretas em vez de sombra nítida */
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="escuro"] .table-custom tbody tr:hover {
+    background-color: #273549 !important;
+    border-color: #475569;
+}
+
+[data-theme="escuro"] .table-custom td {
+    color: var(--white);
+}
+
+[data-theme="escuro"] .table-custom thead th {
+    color: var(--descricao);
+}
+
+
+/* ============================================================
+   5. MODAIS E OFFCANVAS
+   ============================================================ */
+/* -- Estilos base */
+.modal-content {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    background-color: var(--fundo);
+    color: var(--black);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--borda);
+    background: var(--fundo);
+    padding: 18px 24px;
+    color: var(--black);
+}
+
+.modal-body {
+    background-color: var(--fundo);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--borda);
+    background: var(--body);
+    padding: 16px 24px;
+}
+
+.modal-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+#offcanvasNotifications {
+    width: 380px;
+    border-left: none;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
+}
+
+.offcanvas-header,
+.offcanvas-footer {
+    background-color: var(--fundo);
+    border-color: var(--borda) !important;
+}
+
+.offcanvas-body {
+    background-color: var(--body);
+}
+
+/* -- Modo escuro */
+[data-theme="escuro"] .modal-content,
+[data-theme="escuro"] .offcanvas {
+    background-color: var(--fundo);
+    color: var(--white);
+    border-color: var(--borda);
+}
+
+[data-theme="escuro"] .modal-header,
+[data-theme="escuro"] .offcanvas-header {
+    background-color: var(--fundo);
+    border-color: var(--borda);
+    color: var(--white);
+}
+
+[data-theme="escuro"] .modal-body,
+[data-theme="escuro"] .offcanvas-body {
+    background-color: var(--body);
+    color: var(--white);
+}
+
+[data-theme="escuro"] .modal-footer,
+[data-theme="escuro"] .offcanvas-footer {
+    background-color: var(--fundo);
+    border-color: var(--borda);
+}
+
+[data-theme="escuro"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* -- Responsividade */
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 12px;
+        max-width: calc(100% - 24px) !important;
+    }
+
+    .modal-content {
+        border-radius: 24px;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 16px;
+    }
+}
+
+
+/* ============================================================
+   6. NOTIFICAÇÕES E TOASTS
+   ============================================================ */
+/* -- Estilos base */
+#notifications-list .list-group-item {
+    background-color: var(--fundo);
+    border: none;
+    border-bottom: 1px solid var(--borda);
+    padding: 16px 20px !important;
+    margin-bottom: 0;
+    transition: background-color 0.2s;
+    color: var(--black);
+}
+
+#notifications-list .list-group-item:hover {
+    background-color: var(--padrao-suave);
+}
+
+#notifications-list .list-group-item.unread {
+    border-left: 4px solid var(--padrao);
+    background-color: rgba(92, 142, 241, 0.03);
+}
+
+.toast-container-stack {
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast-pedido-2 {
+    pointer-events: all;
+    background-color: var(--fundo);
+    color: var(--black);
+    border-left: 4px solid var(--padrao);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 12px;
+    width: 300px;
+    transition: transform 0.3s ease;
+}
+
+/* -- Modo escuro */
+[data-theme="escuro"] #notifications-list .list-group-item {
+    background-color: var(--fundo);
+    border-bottom-color: var(--borda);
+    color: var(--white);
+}
+
+[data-theme="escuro"] #notifications-list .list-group-item:hover {
+    background-color: #273549;
+}
+
+[data-theme="escuro"] .toast-pedido-2 {
+    background-color: #1f1f1f;
+    color: #f0f0f0;
+}
+
+
+/* ============================================================
+   7. PLUGINS CUSTOMIZADOS (Selectize, Summernote, Flatpickr, SweetAlert2)
+   ============================================================ */
+/* -- Selectize App Style */
+.selectize-input {
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    min-height: 48px !important;
+    font-size: 16px !important;
+    box-shadow: none !important;
+    border: 1px solid var(--input-border) !important;
+    background: var(--input-bg) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selectize-input.focus {
+    border-color: var(--padrao) !important;
+    background: var(--fundo) !important;
+    box-shadow: 0 0 0 3px rgba(92, 142, 241, 0.15) !important;
+}
+
+.selectize-dropdown {
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid var(--borda) !important;
+    padding: 8px 0 !important;
+    margin-top: 6px !important;
+    z-index: 9999 !important;
+}
+
+.selectize-dropdown .option {
+    padding: 10px 16px !important;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.selectize-dropdown .option:hover,
+.selectize-dropdown .active {
+    background-color: var(--padrao-suave) !important;
+    color: var(--padrao) !important;
+    font-weight: 600;
+}
+
+/* -- Flatpickr */
+.flatpickr-input[readonly] {
+    background-color: var(--input-bg) !important;
+    cursor: pointer;
+}
+
+/* -- Summernote */
+.note-editor.note-frame {
+    border: 1px solid var(--borda);
+    background-color: var(--fundo);
+    color: var(--black);
+    box-shadow: none;
+}
+
+/* -- Modo escuro (Plugins) */
+[data-theme="escuro"] .selectize-input {
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="escuro"] .selectize-input.focus {
+    background: var(--fundo) !important;
+}
+
+[data-theme="escuro"] .selectize-dropdown {
+    background: #1e293b !important;
+    border-color: #374151 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="escuro"] .selectize-dropdown .option {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="escuro"] .selectize-dropdown .option:hover,
+[data-theme="escuro"] .selectize-dropdown .active {
+    background-color: rgba(92, 142, 241, 0.15) !important;
+    color: var(--padrao) !important;
+}
+
+[data-bs-theme="dark"] .flatpickr-calendar {
+    background: #1e293b !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #374151 !important;
+}
+
+[data-bs-theme="dark"] .flatpickr-calendar .flatpickr-header {
+    background: #1e293b !important;
+    color: #fff !important;
+}
+
+[data-bs-theme="dark"] .flatpickr-day {
+    color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .flatpickr-day:hover {
+    background: #374151 !important;
+    border-color: #495057 !important;
+}
+
+[data-bs-theme="dark"] .flatpickr-day.selected {
+    background: var(--padrao) !important;
+    border-color: var(--padrao) !important;
+    color: #fff !important;
+}
+
+[data-theme="escuro"] .note-editor.note-frame {
+    border-color: #4e5d6c;
+    background-color: #2b3e50;
+    color: #fff;
+}
+
+[data-theme="escuro"] .note-editor .note-toolbar {
+    background-color: #4e5d6c;
+    border-bottom: 1px solid #20374c;
+    color: #fff;
+}
+
+[data-theme="escuro"] .note-editor .note-editing-area,
+[data-theme="escuro"] .note-editable {
+    background-color: #2b3e50 !important;
+    color: #fff !important;
+}
+
+/* -- SweetAlert 2 */
+[data-theme="escuro"] .swal2-popup {
+    background-color: var(--fundo) !important;
+    border: 1px solid var(--borda) !important;
+    color: var(--white) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="escuro"] .swal2-title,
+[data-theme="escuro"] .swal2-html-container {
+    color: var(--white) !important;
+}
+
+[data-theme="escuro"] .swal2-icon.swal2-warning {
+    border-color: var(--warning) !important;
+    color: var(--warning) !important;
+}
+
+[data-theme="escuro"] .swal2-icon.swal2-success {
+    border-color: var(--success) !important;
+    color: var(--success) !important;
+}
+
+[data-theme="escuro"] .swal2-icon.swal2-error {
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+}
+
+
+/* ============================================================
+   8. WIDGETS ISOLADOS (AUDITORIA E TABS)
+   ============================================================ */
+/* -- Tabs Modernas (Estilo Pílulas) */
+.modern-tabs-wrapper {
+    background-color: var(--body);
+    border-radius: 14px;
+    padding: 6px;
+    display: inline-flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 100%;
+}
+
+.modern-tabs-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.modern-tabs-wrapper .nav-link {
+    border: none !important;
+    border-radius: 10px !important;
+    color: var(--descricao);
+    font-weight: 600;
+    padding: 8px 16px;
+    margin: 0 4px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.modern-tabs-wrapper .nav-link.active {
+    background-color: var(--white) !important;
+    color: var(--padrao) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* -- Auditoria (Timeline) */
+.timeline-audit {
+    position: relative;
+    padding-left: 24px;
+    padding-top: 10px;
+}
+
+.timeline-audit::before {
+    content: "";
+    position: absolute;
+    left: 11px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--borda);
+}
+
+.audit-item {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.audit-marker {
+    position: absolute;
+    left: -29px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--fundo);
+    border: 3px solid var(--padrao);
+    z-index: 2;
+    box-shadow: 0 0 0 4px var(--body);
+}
+
+.audit-marker.UPDATE {
+    border-color: var(--warning);
+}
+
+.audit-marker.INSERT {
+    border-color: var(--success);
+}
+
+.audit-marker.DELETE {
+    border-color: var(--danger);
+}
+
+.audit-content {
+    background: transparent;
+    padding: 0;
+}
+
+.audit-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px;
+}
+
+.audit-user {
+    font-weight: 700;
+    color: var(--black);
+    font-size: 0.95rem;
+}
+
+.audit-date {
+    font-size: 0.75rem;
+    color: var(--descricao);
+}
+
+.audit-diff-table {
+    width: 100%;
+    font-size: 0.85rem;
+    background: var(--fundo);
+    border-radius: 12px;
+    border: 1px solid var(--borda);
+    overflow: hidden;
+}
+
+.audit-diff-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--borda);
+}
+
+.diff-field {
+    font-weight: 600;
+    width: 30%;
+    color: var(--descricao);
+    background: var(--body);
+}
+
+/* -- Modo escuro (Widgets) */
+[data-theme="escuro"] .modern-tabs-wrapper {
+    background-color: #0f172a;
+}
+
+[data-theme="escuro"] .modern-tabs-wrapper .nav-link {
+    color: #94a3b8;
+}
+
+[data-theme="escuro"] .modern-tabs-wrapper .nav-link.active {
+    background-color: #1f2937 !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="escuro"] .timeline-audit::before {
+    background: var(--borda);
+}
+
+[data-theme="escuro"] .audit-marker {
+    background: var(--fundo);
+    box-shadow: 0 0 0 4px var(--body);
+}
+
+[data-theme="escuro"] .audit-diff-table {
+    background: var(--fundo);
+    border-color: var(--borda);
+}
+
+[data-theme="escuro"] .diff-field {
+    background: var(--body);
+    color: var(--descricao);
+}
