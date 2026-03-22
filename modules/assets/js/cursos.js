@@ -7,7 +7,8 @@ const defaultCourse = {
 let currentCurriculumList = [];
 let editingCurriculumIndex = -1;
 
-window.toggleCourse = (id, element) => handleToggle("toggleCourse", id, element, "Status atualizado.", `.status-text-course-${id}`);
+// Função global de Ligar/Desligar alinhada ao padrão Dual Status
+window.toggleCourse = (id, element) => handleToggle("toggleCourse", id, element, "Status atualizado.", `.status-text-course-${id}`, getCursos);
 
 window.saveActiveSummernote = () => {
   $(".summernote-dynamic").each(function () {
@@ -46,7 +47,6 @@ const summernoteConfig = {
   },
 };
 
-
 window.getCursos = async () => {
   const container = $(".list-table-cursos");
 
@@ -73,10 +73,11 @@ window.getCursos = async () => {
       } else {
         container.html(`
             <div class="text-center py-5 opacity-50">
-                <span class="material-symbols-outlined" style="font-size: 64px;">school</span>
+                <span class="material-symbols-outlined fs-1 text-secondary">school</span>
                 <p class="mt-3 fw-medium text-body">Nenhum curso encontrado no sistema.</p>
             </div>
         `);
+        $(".pagination-cursos").empty();
       }
     } else {
       throw new Error(result.alert || result.msg || "O servidor não conseguiu processar a lista de cursos.");
@@ -86,11 +87,11 @@ window.getCursos = async () => {
 
     container.html(`
         <div class="text-center py-5">
-            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
-                <i class="fas fa-book-reader fs-3"></i>
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 64px; height: 64px;">
+                <i class="fas fa-exclamation-triangle fs-3"></i>
             </div>
             <h6 class="fw-bold text-danger">Erro ao carregar cursos</h6>
-            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="getCursos()">
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm mt-2" onclick="getCursos()">
                 <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
             </button>
         </div>
@@ -105,141 +106,153 @@ const renderTableCourses = (data) => {
 
   if (data.length === 0) {
     container.html(`
-            <div class="text-center py-5 opacity-50">
-                <span class="material-symbols-outlined" style="font-size: 64px;">school</span>
-                <p class="mt-2">Nenhum curso cadastrado.</p>
-            </div>
-        `);
+        <div class="text-center py-5 opacity-50">
+            <span class="material-symbols-outlined fs-1 text-secondary">school</span>
+            <p class="mt-2 fw-medium text-body">Nenhum curso cadastrado.</p>
+        </div>
+    `);
+    $(".pagination-cursos").empty();
     return;
   }
 
-  const getToggleHtml = (id, active) => {
-    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
+  // =========================================================
+  const desktopRows = data.map((item) => {
+    let ageLabel = "Livre";
+    if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
+    else if (item.min_age) ageLabel = `A partir de ${item.min_age} anos`;
+
+    const isActive = item.is_active === true || item.is_active === "t";
+    const statusIconHtml = isActive
+      ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help; margin: 0 auto;"><i class="fas fa-check-circle"></i></span>`
+      : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help; margin: 0 auto;"><i class="fas fa-times-circle"></i></span>`;
 
     return `
-    <div class="d-flex align-items-center justify-content-center">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleCourse(${id}, this)" style="cursor: pointer;">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
-        </div>
-    </div>`;
-  };
+      <tr>
+          <td class="text-center align-middle ps-3" style="width: 60px;">
+              <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
+                  <span class="material-symbols-outlined" style="font-size: 20px;">school</span>
+              </div>
+          </td>
+          <td class="align-middle">
+              <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.name}</div>
+              <div class="small opacity-75 text-body mt-1 d-flex align-items-center">
+                  <i class="fas fa-user-graduate me-1 opacity-50"></i> Faixa Etária: ${ageLabel}
+              </div>
+          </td>
+          <td class="text-center align-middle" style="width: 150px;">
+              <span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-25 rounded-pill px-3 py-1 fw-medium" style="font-size: 0.75rem;">
+                  <i class="far fa-clock me-1 text-primary opacity-75"></i> ${item.total_workload_hours || 0}h
+              </span>
+          </td>
+          <td class="text-center align-middle" style="width: 150px;">
+              <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
+                  <i class="fas fa-book me-1"></i> ${item.subjects_count || 0} Matérias
+              </span>
+          </td>
+          <td class="text-center align-middle" style="width: 130px;">
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
+                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
+                      <span class="toggle-loader spinner-border spinner-border-sm text-primary position-absolute d-none" role="status" style="right: -25px;"></span>
+                  </div>
+                  <div class="status-text-course-${item.course_id} d-flex align-items-center">
+                      ${statusIconHtml}
+                  </div>
+              </div>
+          </td>
+          <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
+              <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+              <button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+              <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+          </td>
+      </tr>`;
+  }).join("");
 
-  const getMobileToggleHtml = (id, active) => {
-    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
-
-    return `
-    <div class="d-flex flex-column align-items-end">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleCourse(${id}, this)" style="cursor: pointer;">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
-        </div>
-        <div class="status-text-course-${id} mt-1">${statusBadge}</div>
-    </div>`;
-  };
-
-  let desktopRows = data
-    .map((item) => {
-      let ageLabel = "Livre";
-      if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
-      else if (item.min_age) ageLabel = `A partir de ${item.min_age} anos`;
-
-      return `
-        <tr>
-            <td class="text-center align-middle ps-3" style="width: 60px;">
-                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
-                    <span class="material-symbols-outlined">school</span>
-                </div>
-            </td>
-            <td class="align-middle">
-                <div class="fw-bold text-body">${item.name}</div>
-                <div class="small opacity-75 text-body">${ageLabel}</div>
-            </td>
-            <td class="text-center align-middle">
-                <span class="badge border text-body bg-transparent">
-                    <i class="fas fa-clock me-1"></i> ${item.total_workload_hours || 0}h
-                </span>
-            </td>
-            <td class="text-center align-middle">
-                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">
-                    ${item.subjects_count || 0} Matérias
-                </span>
-            </td>
-            <td class="text-center align-middle">
-                ${getToggleHtml(item.course_id, item.is_active)}
-            </td>
-            <td class="text-end align-middle pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>`;
-    })
-    .join("");
-
-  let mobileRows = data
-    .map((item) => {
-      let ageLabel = "Livre";
-      if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
-      else if (item.min_age) ageLabel = `+${item.min_age} anos`;
-
-      return `
-        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
-            
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1 pe-3">
-                    
-                    <h6 class="fw-bold mb-1 fs-5">${item.name}</h6>
-                    
-                    <div class="small text-muted mb-3 d-flex align-items-center lh-1 mt-1">
-                        <i class="fas fa-user-graduate me-2 opacity-50"></i> Faixa Etária: ${ageLabel}
-                    </div>
-                    
-                    <div class="d-flex flex-wrap gap-2 mt-1">
-                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-medium px-2 py-1">
-                            <i class="far fa-clock me-1 opacity-75"></i> ${item.total_workload_hours || 0}h
-                        </span>
-                        
-                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 fw-medium px-2 py-1">
-                            <i class="fas fa-book me-1 opacity-75"></i> ${item.subjects_count || 0} Matérias
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="text-end mt-1">
-                    ${getMobileToggleHtml(item.course_id, item.is_active)}
-                </div>
-            </div>
-            
-            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log">
-                    <i class="fas fa-bolt"></i>
-                </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalCurso(${item.course_id}, this)" title="Editar">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteCourse(${item.course_id})" title="Excluir">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>`;
-    })
-    .join("");
-
-  container.html(`
-    <div class="d-none d-md-block table-responsive">
+  const desktopHtml = `
+    <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
         <table class="table-custom">
-            <thead><tr><th colspan="2" class="ps-3">Curso</th><th class="text-center">Carga Horária</th><th class="text-center">Grade</th><th class="text-center">Ativo</th><th class="text-end pe-4">Ações</th></tr></thead>
+            <thead>
+                <tr>
+                    <th colspan="2" class="ps-3 text-uppercase" style="font-size: 0.75rem;">Curso / Faixa Etária</th>
+                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Carga Horária</th>
+                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Grade</th>
+                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Estado</th>
+                    <th class="text-end pe-4 text-uppercase" style="font-size: 0.75rem;">Ações</th>
+                </tr>
+            </thead>
             <tbody>${desktopRows}</tbody>
         </table>
-    </div>
-    <div class="d-md-none">${mobileRows}</div>
-  `);
+    </div>`;
 
-  _generatePaginationButtons("pagination-cursos", "currentPage", "totalPages", "getCursos", defaultCourse);
+  // =========================================================
+  // 2. VISÃO MOBILE (IOS-LIST-ITEM APPLE HIG)
+  // =========================================================
+  const mobileRows = data.map((item) => {
+    let ageLabel = "Livre";
+    if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
+    else if (item.min_age) ageLabel = `+${item.min_age} anos`;
+
+    const isActive = item.is_active === true || item.is_active === "t";
+    const statusIconHtml = isActive
+      ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
+      : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+
+    return `
+      <div class="ios-list-item flex-column align-items-stretch">
+          
+          <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1 pe-3" style="min-width: 0;">
+                  <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 1.05rem; letter-spacing: -0.5px;">${item.name}</h6>
+              </div>
+              <div class="text-end">
+                  <div class="d-flex align-items-center justify-content-end gap-2">
+                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
+                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
+                          <span class="toggle-loader spinner-border spinner-border-sm text-primary position-absolute d-none" role="status" style="left: -25px;"></span>
+                      </div>
+                      <div class="status-text-course-${item.course_id} d-flex align-items-center">
+                          ${statusIconHtml}
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <div class="d-flex flex-column gap-2 mt-3 p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner">
+              <div class="d-flex align-items-center text-body small">
+                  <div class="bg-body shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
+                      <i class="fas fa-user-graduate" style="font-size: 0.7rem;"></i>
+                  </div>
+                  <span class="text-truncate ms-2 fw-medium">Idade: ${ageLabel}</span>
+              </div>    
+              <div class="d-flex align-items-center text-body mt-1 small">
+                  <div class="bg-body shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
+                      <i class="far fa-clock" style="font-size: 0.7rem;"></i>
+                  </div>
+                  <span class="text-truncate ms-2 fw-medium">Carga: ${item.total_workload_hours || 0} horas</span>
+              </div>
+              <div class="d-flex align-items-center text-body mt-1 small">
+                  <div class="bg-body shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info" style="width: 26px; height: 26px; flex-shrink: 0;">
+                      <i class="fas fa-book" style="font-size: 0.7rem;"></i>
+                  </div>
+                  <span class="text-truncate ms-2 fw-medium">Grade: ${item.subjects_count || 0} matérias</span>
+              </div>
+          </div>
+          
+          <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+          </div>
+      </div>`;
+  }).join("");
+
+  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
+
+  container.html(desktopHtml + mobileHtml);
+  _generatePaginationButtons("pagination-cursos", "currentPage", "totalPages", "changePage", defaultCourse);
 };
-
-
 
 window.modalCurso = (id = null, btn = false) => {
   const modal = $("#modalCurso");
@@ -260,7 +273,11 @@ window.modalCurso = (id = null, btn = false) => {
 
   initSelectSubjects();
 
-  $("#courseTab button:first").tab("show");
+  const firstTabEl = document.querySelector('#courseTab button:first-child');
+  if (firstTabEl) {
+    const tab = new bootstrap.Tab(firstTabEl);
+    tab.show();
+  }
 
   if (id) {
     loadCourseData(id, btn);
@@ -305,7 +322,6 @@ window.loadCourseData = async (id, btn) => {
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar curso.";
-
     window.alertErrorWithSupport(`Abrir Edição de Curso`, errorMessage);
   } finally {
     window.setButton(false, btn);
@@ -415,70 +431,66 @@ window.removeSubjectFromGrid = (index) => {
 
 const renderCurriculumTable = () => {
   const container = $("#lista-grade");
-  container.empty();
 
   if (window.currentCurriculumList.length === 0) {
     container.html(`
         <div class="text-center py-5 opacity-50">
-            <span class="material-symbols-outlined fs-1">menu_book</span>
-            <p class="mt-2 small mb-0">Nenhuma disciplina adicionada à grade.</p>
+            <span class="material-symbols-outlined fs-1 text-secondary">menu_book</span>
+            <p class="mt-2 fw-medium text-body mb-0">Nenhuma disciplina adicionada à grade.</p>
         </div>
     `);
     return;
   }
 
-  window.currentCurriculumList.forEach((item, index) => {
+  const html = window.currentCurriculumList.map((item, index) => {
     const mandatoryBadge = item.is_mandatory
-      ? '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.65rem;">Obrigatória</span>'
-      : '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.65rem;">Opcional</span>';
+      ? '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill fw-bold px-2 py-1" style="font-size: 0.65rem;">Obrigatória</span>'
+      : '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill fw-bold px-2 py-1" style="font-size: 0.65rem;">Opcional</span>';
 
     let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
     const planIconClass = plansCount > 0 ? "text-primary" : "text-muted opacity-50";
     const planBtnClass = plansCount > 0 ? "bg-primary" : "bg-secondary";
-    const planTextHtml = plansCount > 0 ? `<span class="small text-success fw-bold ms-2" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas</span>` : `<span class="small text-muted fst-italic ms-2 opacity-75" style="font-size: 0.75rem;">Sem plano</span>`;
+    const planTextHtml = plansCount > 0
+      ? `<span class="small text-success fw-bold ms-2" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas</span>`
+      : `<span class="small text-muted fst-italic ms-2 opacity-75" style="font-size: 0.75rem;">Sem plano</span>`;
 
-    container.append(`
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-sm transition-all">
-            
-            <div class="d-flex align-items-center gap-3">
-                <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center shadow-inner" style="width: 42px; height: 42px;">
-                    <i class="fas fa-book-open"></i>
-                </div>
-                
-                <div>
-                    <div class="fw-bold text-body fs-6 mb-1">${item.subject_name}</div>
-                    <div class="d-flex align-items-center flex-wrap gap-1">
-                        <span class="badge bg-body text-body border fw-medium px-2 py-1 shadow-sm" style="font-size: 0.7rem;">
-                            <i class="far fa-clock me-1 opacity-75"></i> ${item.workload_hours}h
-                        </span>
-                        ${mandatoryBadge}
-                        ${planTextHtml}
-                    </div>
-                </div>
-            </div>
+    return `
+      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-sm shadow-inner transition-all">
+          <div class="d-flex align-items-center gap-3">
+              <div class="bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px;">
+                  <i class="fas fa-book-open"></i>
+              </div>
+              
+              <div>
+                  <div class="fw-bold text-body fs-6 mb-1">${item.subject_name}</div>
+                  <div class="d-flex align-items-center flex-wrap gap-2">
+                      <span class="badge bg-body text-body border rounded-pill fw-medium px-2 py-1 shadow-sm" style="font-size: 0.7rem;">
+                          <i class="far fa-clock me-1 text-primary opacity-75"></i> ${item.workload_hours}h
+                      </span>
+                      ${mandatoryBadge}
+                      ${planTextHtml}
+                  </div>
+              </div>
+          </div>
 
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn-icon-action ${planBtnClass} bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" 
-                        style="width: 36px; height: 36px;" onclick="configureTemplate(${index})" title="Planejar Aulas">
-                    <i class="fas fa-book-reader ${planIconClass} fs-6"></i>
-                </button>
+          <div class="d-flex align-items-center gap-2 ms-3">
+              <button class="ios-action-pill text-primary ${planBtnClass} bg-opacity-10" onclick="configureTemplate(${index})" title="Planejar Aulas">
+                  <i class="fas fa-book-reader ${planIconClass}"></i>
+              </button>
+              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="removeSubjectFromGrid(${index})" title="Remover">
+                  <i class="fas fa-trash-can"></i>
+              </button>
+          </div>
+      </div>`;
+  }).join("");
 
-                <button class="btn-icon-action btn-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" 
-                        style="width: 36px; height: 36px;" onclick="removeSubjectFromGrid(${index})" title="Remover">
-                    <i class="fas fa-trash-can text-danger fs-6"></i>
-                </button>
-            </div>
-            
-        </div>
-    `);
-  });
+  container.html(html);
 };
 
 const updateTotalHours = () => {
   const total = window.currentCurriculumList.reduce((acc, curr) => acc + parseInt(curr.workload_hours || 0), 0);
   $("#total_workload").val(total);
 };
-
 
 window.configureTemplate = (index) => {
   editingCurriculumIndex = index;
@@ -493,24 +505,23 @@ window.configureTemplate = (index) => {
 
 const renderAccordionList = () => {
   const container = $("#accordionPlans");
-  container.empty();
   const plans = window.currentCurriculumList[editingCurriculumIndex].plans;
 
   if (plans.length === 0) {
     container.html(`
         <div class="text-center py-5 opacity-50">
-            <span class="material-symbols-outlined" style="font-size: 56px;">calendar_month</span>
+            <span class="material-symbols-outlined text-secondary" style="font-size: 56px;">calendar_month</span>
             <p class="mt-3 fw-medium text-body">Nenhum encontro planejado.</p>
             <div class="d-flex justify-content-center gap-2 mt-3">
-                <button class="btn btn-primary btn-sm px-3 shadow-sm rounded-pill" onclick="addPlan()"><i class="fas fa-plus me-1"></i> Criar 1º Encontro</button>
-                <button class="btn btn-outline-primary btn-sm px-3 shadow-sm rounded-pill" onclick="addDefaultModel()"><i class="fas fa-magic me-1"></i> Modelo</button>
+                <button class="btn btn-primary btn-sm px-3 shadow-sm rounded-pill fw-bold" onclick="addPlan()"><i class="fas fa-plus me-1"></i> Criar 1º Encontro</button>
+                <button class="btn btn-outline-primary btn-sm px-3 shadow-sm rounded-pill fw-bold" onclick="addDefaultModel()"><i class="fas fa-magic me-1"></i> Modelo Padrão</button>
             </div>
         </div>
     `);
     return;
   }
 
-  plans.forEach((plan, i) => {
+  const html = plans.map((plan, i) => {
     const collapseId = `collapsePlan${i}`;
     const headingId = `headingPlan${i}`;
     const isFirst = i === 0;
@@ -519,41 +530,41 @@ const renderAccordionList = () => {
     const upBtn = `<button class="btn btn-sm btn-link text-body p-0 me-1" ${isFirst ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
     const downBtn = `<button class="btn btn-sm btn-link text-body p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
 
-    const html = `
-        <div class="plan-item card border-0 rounded-4 bg-secondary bg-opacity-10 mb-3 shadow-sm overflow-hidden">
-            <div class="accordion-header" id="${headingId}">
-                <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                    
-                    <div class="me-3 d-flex align-items-center opacity-75" style="min-width: 40px;">${upBtn}${downBtn}</div>
-                    
-                    <div class="me-3">
-                        <span class="badge rounded-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 d-flex align-items-center justify-content-center shadow-inner" style="width: 32px; height: 32px; font-size: 0.85rem;">
-                            ${i + 1}
-                        </span>
-                    </div>
-                    
-                    <div class="flex-grow-1 me-3">
-                        <input type="text" class="form-control bg-transparent border-0 shadow-none fw-bold text-body fs-6 px-0" value="${plan.title || "Encontro " + (i + 1)}" onclick="event.stopPropagation()" onchange="updatePlanTitle(${i}, this.value)" placeholder="Título do Encontro...">
-                    </div>
-                    
-                    <div class="ms-auto d-flex align-items-center">
-                        <i class="fas fa-chevron-down text-muted me-3 transition-icon"></i>
-                        <button class="btn-icon-action btn-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 32px; height: 32px;" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
-                            <i class="fas fa-trash-can text-danger"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionPlans">
-                <div class="p-3 pt-0 border-top border-secondary border-opacity-10 bg-body">
-                    <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
-                </div>
-            </div>
-        </div>
-    `;
-    container.append(html);
-  });
+    return `
+      <div class="plan-item card border-0 rounded-4 bg-secondary bg-opacity-10 mb-3 shadow-sm shadow-inner overflow-hidden">
+          <div class="accordion-header" id="${headingId}">
+              <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                  
+                  <div class="me-3 d-flex align-items-center opacity-75" style="min-width: 40px;">${upBtn}${downBtn}</div>
+                  
+                  <div class="me-3">
+                      <span class="badge rounded-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                          ${i + 1}
+                      </span>
+                  </div>
+                  
+                  <div class="flex-grow-1 me-3">
+                      <input type="text" class="form-control bg-transparent border-0 shadow-none fw-bold text-body fs-6 px-0" value="${plan.title || "Encontro " + (i + 1)}" onclick="event.stopPropagation()" onchange="updatePlanTitle(${i}, this.value)" placeholder="Título do Encontro...">
+                  </div>
+                  
+                  <div class="ms-auto d-flex align-items-center">
+                      <i class="fas fa-chevron-down text-muted me-3 transition-icon"></i>
+                      <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
+                          <i class="fas fa-trash-can"></i>
+                      </button>
+                  </div>
+              </div>
+          </div>
+          
+          <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionPlans">
+              <div class="p-3 pt-0 border-top border-secondary border-opacity-10 bg-body">
+                  <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
+              </div>
+          </div>
+      </div>`;
+  }).join("");
+
+  container.html(html);
 
   const collapses = document.querySelectorAll(".accordion-collapse");
   collapses.forEach((el) => {
@@ -791,7 +802,6 @@ window.salvarCurso = async (btn) => {
   const id = $("#course_id").val();
   btn = $(btn);
 
-
   if (!name) return window.alertDefault("O nome do curso é obrigatório.", "warning");
 
   window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
@@ -829,9 +839,7 @@ window.salvarCurso = async (btn) => {
       }
     } catch (e) {
       const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar.";
-
       const acaoContexto = id ? `Editar Curso` : "Criar Novo Curso";
-
       window.alertErrorWithSupport(acaoContexto, errorMessage);
     } finally {
       window.setButton(false, btn);
@@ -860,14 +868,12 @@ window.deleteCourse = (id) => {
 
         if (res.status) {
           window.alertDefault("Curso movido para a lixeira com sucesso.", "success");
-
           if (typeof getCursos === "function") window.getCursos();
         } else {
           throw new Error(res.alert || res.msg || "O servidor não permitiu excluir este curso.");
         }
       } catch (e) {
         const errorMessage = e.message || "Falha de conexão ao tentar remover o curso.";
-
         window.alertErrorWithSupport(`Excluir Curso`, errorMessage);
       }
     }
@@ -886,6 +892,7 @@ window.changePage = (page) => {
   defaultCourse.currentPage = page;
   getCursos();
 };
+
 window.getCursos = getCursos;
 
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
@@ -893,11 +900,11 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
   container.empty();
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
-  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary">Primeira</button>`;
+  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
   for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
-    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"}">${p}</button>`;
+    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
   }
-  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary">Última</button>`;
+  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
   container.html(html);
 };
 

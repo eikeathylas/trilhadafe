@@ -1,4 +1,4 @@
-<div class="d-md-none position-fixed top-0 start-0 w-100 mobile-top-header border-bottom glass-header-mobile d-flex align-items-center justify-content-between px-3" style="z-index: 1040; height: 65px;">
+<div class="d-md-none position-fixed top-0 start-0 w-100 mobile-top-header border-bottom glass-header-mobile d-flex align-items-center justify-content-between px-3" style="z-index: 1040; height: 65px; border-radius: 0 0 20px 20px !important;">
 
     <div class="d-flex align-items-center gap-2">
         <img src="../login/assets/img/favicon.png" alt="Logo" style="height: 32px;">

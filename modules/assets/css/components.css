@@ -253,7 +253,7 @@ label {
     border: 1px solid rgba(0, 0, 0, 0.04);
     border-radius: 20px;
     background-color: var(--fundo);
-    box-shadow: 0 .125rem .25rem rgba(0,0,0,.2) !important;
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .2) !important;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
 }
 
@@ -341,7 +341,7 @@ label {
     background-color: var(--fundo);
     border: 1px solid var(--borda);
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 .125rem .25rem rgba(0,0,0,.55) !important;
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .55) !important;
 }
 
 [data-theme="escuro"] .card-header {
@@ -1089,4 +1089,109 @@ label {
 [data-theme="escuro"] .diff-field {
     background: var(--fundo);
     color: #94a3b8;
+}
+
+/* ============================================================
+   9. FLATPICKR CUSTOM EVENTS (CALENDÁRIO INTELIGENTE E DARK MODE)
+   ============================================================ */
+
+/* Prepara a célula do dia para receber a bolinha absoluta */
+.flatpickr-day {
+    position: relative !important;
+}
+
+/* Base geométrica para TODAS as bolinhas */
+.flatpickr-day .event,
+.flatpickr-day .event.existing,
+.flatpickr-day .event.busy {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: block;
+    z-index: 5;
+}
+
+/* Bolinha Azul: Dia COM aula disponível (Planejado) */
+.flatpickr-day .event:not(.existing):not(.busy) {
+    background-color: var(--padrao);
+    box-shadow: 0 0 4px rgba(92, 142, 241, 0.6);
+}
+
+/* Bolinha Verde: Diário JÁ preenchido */
+.flatpickr-day .event.existing {
+    background-color: var(--success);
+    box-shadow: 0 0 4px rgba(25, 135, 84, 0.6);
+}
+
+/* Bolinha Vermelha: Feriado / Dia Bloqueado */
+.flatpickr-day .event.busy {
+    background-color: var(--danger);
+    box-shadow: 0 0 4px rgba(220, 53, 69, 0.6);
+}
+
+/* Dias Desabilitados (Força a opacidade menor) */
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+    opacity: 0.4 !important;
+    color: var(--descricao) !important;
+    cursor: not-allowed !important;
+}
+
+/* ============================================================
+   10. FLATPICKR - BLINDAGEM MODO ESCURO (CONTRASTE PREMIUM)
+   ============================================================ */
+
+[data-theme="escuro"] .flatpickr-calendar {
+    background: #1e293b !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid #374151 !important;
+}
+
+/* Força Contraste no Cabeçalho (Mês, Ano e Setas) */
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-month,
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-current-month,
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months,
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-current-month input.cur-year {
+    color: #f8fafc !important;
+    fill: #f8fafc !important;
+}
+
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-prev-month svg,
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-next-month svg {
+    fill: #f8fafc !important;
+}
+
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-prev-month:hover svg,
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-next-month:hover svg {
+    fill: var(--padrao) !important;
+}
+
+/* Força Contraste nos Dias da Semana (Seg, Ter, Qua...) */
+[data-theme="escuro"] .flatpickr-calendar .flatpickr-weekday {
+    color: #cbd5e1 !important;
+    font-weight: 700 !important;
+}
+
+/* -- Brilho Elegante das Bolinhas no Modo Escuro -- */
+[data-theme="escuro"] .flatpickr-day .event:not(.existing):not(.busy) {
+    background-color: var(--padrao);
+    box-shadow: 0 0 6px var(--padrao);
+}
+
+[data-theme="escuro"] .flatpickr-day .event.existing {
+    background-color: var(--success);
+    box-shadow: 0 0 6px var(--success);
+}
+
+[data-theme="escuro"] .flatpickr-day .event.busy {
+    background-color: var(--danger);
+    box-shadow: 0 0 6px var(--danger);
+}
+
+[data-theme="escuro"] .flatpickr-day.flatpickr-disabled {
+    opacity: 0.3 !important;
 }

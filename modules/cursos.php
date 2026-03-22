@@ -12,61 +12,63 @@
 </head>
 
 <body>
-
-    <div id="div-loader" class="div-loader d-none"><span class="loader"></span></div>
-
     <div id="sidebar-only" class="sidebar-only">
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
-    <div class="container">
-        <div class="main-only">
+    <div class="main-only">
 
-            <div class="d-flex align-items-center mb-4">
-                <nav aria-label="breadcrumb" class="w-100">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.2rem;">
-                            Gestão de Cursos
-                        </li>
-                    </ol>
-                </nav>
-            </div>
-
-            <div class="card border-0 shadow-sm mb-4 rounded-4 bg-transparent-card">
-                <div class="card-body p-3 p-md-4">
-                    <div class="d-flex flex-column flex-md-row gap-3 align-items-md-end">
-
-                        <div class="flex-grow-1">
-                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="busca-texto" style="letter-spacing: 0.5px;">
-                                <i class="fas fa-search me-1 opacity-50"></i> Buscar Curso
-                            </label>
-                            <input type="text" id="busca-texto" class="form-control" placeholder="Ex: Primeira Eucaristia, Crisma...">
-                        </div>
-
-                        <div class="d-grid d-md-block mt-2 mt-md-0">
-                            <button class="btn btn-primary fw-bold shadow-sm px-4" style="height: 42px;" onclick="modalCurso()">
-                                <i class="fas fa-plus me-2"></i> Novo Curso
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <div class="card list-commanded mb-4 border-0 shadow-sm">
-                <div class="card-body px-0 pt-4">
-                    <div class="table-responsive list-table-cursos" style="max-height: 600px;">
-                        <div class="text-center py-5 opacity-50">
-                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-                            <p class="mt-3 fw-medium">Carregando cursos...</p>
-                        </div>
-                    </div>
-                    <div class="pagination paginationButtons pagination-cursos mt-3 text-center justify-content-center"></div>
-                </div>
-            </div>
-
-            <?php include "./assets/components/Footer.php"; ?>
+        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+            <nav aria-label="breadcrumb" class="w-100">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
+                        style="font-size: 1.5rem; letter-spacing: -0.8px;">
+                        Gestão de Cursos
+                    </li>
+                </ol>
+            </nav>
         </div>
+
+        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+            <div class="card-body p-3 p-md-4">
+
+                <div class="col-12 d-md-none mb-3">
+                    <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Buscar Curso</h4>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-9">
+                        <label class="form-label d-none d-md-flex" for="busca-texto">
+                            <i class="fas fa-search opacity-50"></i> Buscar Curso
+                        </label>
+                        <input type="text" id="busca-texto" class="form-control shadow-sm" placeholder="Ex: Primeira Eucaristia, Crisma...">
+                    </div>
+
+                    <div class="col-12 col-md-3 mt-3 mt-md-0">
+                        <button class="btn btn-primary fw-bold shadow-sm w-100" style="height: 50px;" onclick="modalCurso()">
+                            <i class="fas fa-plus me-2"></i>
+                            <span class="d-none d-md-inline">Nova Curso</span>
+                            <span class="d-inline d-md-none">Adicionar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
+            <div class="card-body px-0 pt-4">
+                <div class="table-responsive list-table-cursos" style="max-height: 600px;">
+                    <div class="text-center py-5 opacity-50">
+                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <p class="mt-3 fw-medium">Carregando cursos...</p>
+                    </div>
+                </div>
+                <div class="pagination paginationButtons pagination-cursos mt-3 text-center justify-content-center"></div>
+            </div>
+        </div>
+
+        <?php include "./assets/components/Footer.php"; ?>
     </div>
 
     <div class="modal fade" id="modalCurso" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">

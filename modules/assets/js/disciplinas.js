@@ -4,10 +4,12 @@ const defaultSubject = {
   totalPages: 1,
 };
 
-window.toggleSubject = (id, element) => handleToggle("toggleSubject", id, element, "Status atualizado.", `.status-text-sub-${id}`);
-
+// Declaração Global do Toggle com Dual Status (Padrão de Excelência)
+window.toggleSubject = (id, element) => handleToggle("toggleSubject", id, element, "Estado atualizado.", `.status-text-sub-${id}`, getDisciplinas);
 
 const getDisciplinas = async () => {
+  const container = $(".list-table-disciplinas");
+
   try {
     const page = Math.max(0, defaultSubject.currentPage - 1);
     const search = $("#busca-texto").val();
@@ -29,12 +31,13 @@ const getDisciplinas = async () => {
         defaultSubject.totalPages = Math.max(1, Math.ceil(total / defaultSubject.rowsPerPage));
         renderTableSubjects(dataArray);
       } else {
-        $(".list-table-disciplinas").html(`
+        container.html(`
             <div class="text-center py-5 opacity-50">
-                <span class="material-symbols-outlined" style="font-size: 56px;">menu_book</span>
+                <span class="material-symbols-outlined fs-1 text-secondary">menu_book</span>
                 <p class="mt-3 fw-medium text-body">Nenhuma disciplina ou etapa encontrada.</p>
             </div>
         `);
+        $(".pagination-disciplinas").empty();
       }
     } else {
       throw new Error(result.alert || "O servidor não conseguiu processar a lista de disciplinas.");
@@ -42,13 +45,13 @@ const getDisciplinas = async () => {
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar disciplinas.";
 
-    $(".list-table-disciplinas").html(`
+    container.html(`
         <div class="text-center py-5">
-            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
-                <i class="fas fa-exclamation-circle fs-3"></i>
+            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 64px; height: 64px;">
+                <i class="fas fa-exclamation-triangle fs-3"></i>
             </div>
             <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
-            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm" onclick="getDisciplinas()">
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm mt-2" onclick="getDisciplinas()">
                 <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
             </button>
         </div>
@@ -62,112 +65,125 @@ const renderTableSubjects = (data) => {
   const container = $(".list-table-disciplinas");
 
   if (data.length === 0) {
-    container.html(`<div class="text-center py-5"><i class="fas fa-book fa-3x text-muted mb-3 opacity-25"></i><p class="text-muted">Nenhum registro encontrado.</p></div>`);
+    container.html(`
+        <div class="text-center py-5 opacity-50">
+            <span class="material-symbols-outlined fs-1 text-secondary">menu_book</span>
+            <p class="mt-2 fw-medium text-body">Nenhum registo encontrado.</p>
+        </div>
+    `);
+    $(".pagination-disciplinas").empty();
     return;
   }
 
-  const getToggleHtml = (id, active) => {
-    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
+  // =========================================================
+  const desktopRows = data.map((item) => {
+    const summary = item.syllabus_summary
+      ? (item.syllabus_summary.length > 70 ? item.syllabus_summary.substring(0, 70) + "..." : item.syllabus_summary)
+      : '<span class="text-muted small fst-italic">Sem ementa registada</span>';
+
+    const isActive = item.is_active === true || item.is_active === "t";
 
     return `
-    <div class="d-flex align-items-center justify-content-center">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleSubject(${id}, this)" style="cursor: pointer;">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
-        </div>
-    </div>`;
-  };
+      <tr>
+          <td class="text-center align-middle ps-3" style="width: 60px;">
+              <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
+                  <span class="material-symbols-outlined" style="font-size: 20px;">menu_book</span>
+              </div>
+          </td>
+          <td class="align-middle" style="width: 30%;">
+              <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.name}</div>
+          </td>
+          <td class="align-middle">
+              <div class="text-secondary small fw-medium lh-sm">${summary}</div>
+          </td>
+          <td class="text-center align-middle" style="width: 130px;">
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
+                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleSubject(${item.subject_id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
+                  </div>
+              </div>
+          </td>
+          <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
+              <button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+              <button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+              <button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+          </td>
+      </tr>`;
+  }).join("");
 
-  const getMobileToggleHtml = (id, active) => {
-    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
-
-    return `
-    <div class="d-flex flex-column align-items-end">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="toggleSubject(${id}, this)" style="cursor: pointer;">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
-        </div>
-        <div class="status-text-sub-${id} mt-1">${statusBadge}</div>
-    </div>`;
-  };
-
-  let desktopRows = data
-    .map((item) => {
-      const summary = item.syllabus_summary ? (item.syllabus_summary.length > 50 ? item.syllabus_summary.substring(0, 50) + "..." : item.syllabus_summary) : '<span class="text-muted small">Sem ementa</span>';
-
-      return `<tr>
-            <td class="text-center align-middle" style="width: 60px;">
-                <div class="icon-circle bg-light text-primary"><span class="material-symbols-outlined">menu_book</span></div>
-            </td>
-            <td class="align-middle"><div class="fw-bold text-body">${item.name}</div></td>
-            <td class="align-middle"><div class="text-secondary small">${summary}</div></td>
-            <td class="text-center align-middle">
-                ${getToggleHtml(item.subject_id, item.is_active)}
-            </td>
-            <td class="text-end align-middle pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>`;
-    })
-    .join("");
-
-  let mobileRows = data
-    .map((item) => {
-      return `
-        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
-            
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1 pe-3">
-                    <h6 class="fw-bold mb-1 fs-5 d-flex align-items-center">
-                        <i class="fas fa-book me-2 text-primary opacity-75"></i> ${item.name}
-                    </h6>
-                    <div class="small text-muted mt-1 lh-1">
-                        Disciplina
-                    </div>
-                </div>
-                
-                <div class="text-end mt-1">
-                    ${getMobileToggleHtml(item.subject_id, item.is_active)}
-                </div>
-            </div>
-            
-            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log">
-                    <i class="fas fa-bolt"></i>
-                </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSubject(${item.subject_id})" title="Excluir">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>`;
-    })
-    .join("");
-
-  container.html(`
-    <div class="d-none d-md-block table-responsive">
+  const desktopHtml = `
+    <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th colspan="2">Disciplina</th>
-                    <th>Ementa</th>
-                    <th class="text-center">Ativo</th>
-                    <th class="text-end pe-4">Ações</th>
+                    <th colspan="2" class="ps-3 text-uppercase" style="font-size: 0.75rem;">Disciplina</th>
+                    <th class="text-uppercase" style="font-size: 0.75rem;">Ementa / Resumo</th>
+                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Estado</th>
+                    <th class="text-end pe-4 text-uppercase" style="font-size: 0.75rem;">Ações</th>
                 </tr>
             </thead>
             <tbody>${desktopRows}</tbody>
         </table>
-    </div>
-    <div class="d-md-none">${mobileRows}</div>
-  `);
+    </div>`;
 
-  _generatePaginationButtons("pagination-disciplinas", "currentPage", "totalPages", "getDisciplinas", defaultSubject);
+  // =========================================================
+  // 2. VISÃO MOBILE (IOS-LIST-ITEM APPLE HIG)
+  // =========================================================
+  const mobileRows = data.map((item) => {
+    const isActive = item.is_active === true || item.is_active === "t";
+    const summary = item.syllabus_summary ? item.syllabus_summary : '<span class="fst-italic opacity-50">Sem ementa registada.</span>';
+
+    // Ícone estático de estado para Mobile
+    const statusIconHtml = isActive
+      ? `<span title="Ativa" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
+      : `<span title="Inativa" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+
+    return `
+      <div class="ios-list-item flex-column align-items-stretch">
+          
+          <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1 pe-3" style="min-width: 0;">
+                  <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 1.05rem; letter-spacing: -0.5px;">${item.name}</h6>
+                  <div class="mt-2">
+                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                          <i class="fas fa-book me-1"></i> DISCIPLINA
+                      </span>
+                  </div>
+              </div>
+              <div class="text-end">
+                  <div class="d-flex align-items-center justify-content-end gap-2">
+                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
+                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleSubject(${item.subject_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
+                      </div>
+                      <div class="status-text-sub-${item.subject_id} d-flex align-items-center">
+                          ${statusIconHtml}
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <div class="mt-3 p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner">
+              <label class="form-label small fw-bold text-uppercase text-muted mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Ementa / Resumo</label>
+              <div class="text-body small fw-medium lh-sm" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                  ${summary}
+              </div>
+          </div>
+          
+          <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
+              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+          </div>
+      </div>`;
+  }).join("");
+
+  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
+
+  container.html(desktopHtml + mobileHtml);
+  _generatePaginationButtons("pagination-disciplinas", "currentPage", "totalPages", "changePage", defaultSubject);
 };
-
 
 window.modalDisciplina = (id = null, btn = false) => {
   const modal = $("#modalDisciplina");
@@ -187,7 +203,7 @@ window.modalDisciplina = (id = null, btn = false) => {
 
 const loadSubjectData = async (id, btn) => {
   try {
-    window.setButton(true, btn, "")
+    window.setButton(true, btn, "");
     const result = await window.ajaxValidator({
       validator: "getSubjectById",
       token: window.defaultApp.userInfo.token,
@@ -219,10 +235,9 @@ window.salvarDisciplina = async (btn) => {
   const id = $("#subject_id").val();
   btn = $(btn);
 
-  if (!name) return window.alertDefault("Nome da disciplina é obrigatório.", "warning");
+  if (!name) return window.alertDefault("O nome da disciplina é obrigatório.", "warning");
 
-  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
-
+  window.setButton(true, btn, id ? " A guardar..." : " A registar...");
 
   const data = {
     subject_id: id,
@@ -239,7 +254,7 @@ window.salvarDisciplina = async (btn) => {
     });
 
     if (result.status) {
-      window.alertDefault("Disciplina salva com sucesso!", "success");
+      window.alertDefault("Disciplina guardada com sucesso!", "success");
       $("#modalDisciplina").modal("hide");
 
       if (typeof getDisciplinas === "function") getDisciplinas();
@@ -247,7 +262,7 @@ window.salvarDisciplina = async (btn) => {
       throw new Error(result.alert || "O servidor recusou o salvamento desta disciplina.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar.";
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao guardar.";
     const acaoContexto = id ? `Editar Disciplina` : "Criar Nova Disciplina";
     window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
@@ -258,7 +273,7 @@ window.salvarDisciplina = async (btn) => {
 window.deleteSubject = (id) => {
   Swal.fire({
     title: "Excluir Disciplina?",
-    text: "O registro será movido para a lixeira do sistema.",
+    text: "O registo será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
@@ -282,8 +297,7 @@ window.deleteSubject = (id) => {
           throw new Error(res.alert || "O banco de dados não permitiu a exclusão desta disciplina.");
         }
       } catch (e) {
-        const errorMessage = e.message || "Falha de conexão ao tentar excluir a disciplina.";
-
+        const errorMessage = e.message || "Falha de ligação ao tentar excluir a disciplina.";
         window.alertErrorWithSupport(`Excluir Disciplina`, errorMessage);
       }
     }
@@ -312,14 +326,14 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
 
-  let html = `<button onclick="changePage(1)" class="btn btn-sm btn-secondary">Primeira</button>`;
+  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
 
   for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
     let btnClass = p === current ? "btn-primary" : "btn-secondary";
-    html += `<button onclick="changePage(${p})" class="btn btn-sm ${btnClass}">${p}</button>`;
+    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${btnClass} me-1 shadow-sm">${p}</button>`;
   }
 
-  html += `<button onclick="changePage(${total})" class="btn btn-sm btn-secondary">Última</button>`;
+  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
 
   container.html(html);
 };

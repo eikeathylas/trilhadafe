@@ -50,6 +50,7 @@ CREATE TABLE organization.organizations (
     legal_name VARCHAR(255) NOT NULL,
     display_name VARCHAR(255) NOT NULL,
     tax_id VARCHAR(20), -- CNPJ
+    logo_url VARCHAR(255), 
     
     -- Dados Eclesiásticos
     diocese_name VARCHAR(200),

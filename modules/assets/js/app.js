@@ -482,7 +482,7 @@ const handleToggle = async (validator, id, element, successMsg, labelSelector, f
     $chk.prop("disabled", true);
     $loader.removeClass("d-none");
 
-    setVisualState(status);
+    // setVisualState(status);
 
     const result = await window.ajaxValidator({
       validator: validator,

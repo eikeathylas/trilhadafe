@@ -7,7 +7,7 @@ const defaultPeople = {
 let currentFamilyList = [];
 let currentAttachmentsList = [];
 
-window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Status atualizado.", `.status-text-person-${id}`, getPessoas);
+window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Estado atualizado.", `.status-text-person-${id}`, getPessoas);
 
 const getPessoas = async () => {
   try {
@@ -98,7 +98,6 @@ const renderTablePeople = (data) => {
     <div class="d-flex align-items-center justify-content-center">
         <div class="form-check form-switch mb-0">
             <input class="form-check-input shadow-sm" type="checkbox" ${active ? "checked" : ""} onchange="togglePerson(${id}, this)" style="cursor: pointer;">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
         </div>
     </div>`;
   };

@@ -18,76 +18,80 @@
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
-    <div class="container">
 
-        <div class="main-only">
+    <div class="main-only">
 
-            <div class="d-flex align-items-center mb-4">
-                <nav aria-label="breadcrumb" class="w-100">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.2rem;">
-                            Gestão de Usuários
-                        </li>
-                    </ol>
-                </nav>
-            </div>
-
-            <div class="card list-commanded border-0 shadow-sm mb-4 rounded-4 bg-transparent-card">
-                <div class="card-body p-3 p-md-4">
-                    <div class="row g-3 align-items-end">
-
-                        <div class="col-12 col-md-3">
-                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="filtro-perfil" style="letter-spacing: 0.5px;">
-                                <i class="fas fa-filter me-1 opacity-50"></i> Filtrar por Perfil
-                            </label>
-                            <select id="filtro-perfil" class="form-control">
-                                <option value="">Todos os Perfis</option>
-                                <option value="50">Pároco / Administrador</option>
-                                <option value="40">Coordenador / Secretaria</option>
-                                <option value="30">Catequista / Professor</option>
-                                <option value="10">Fiel / Aluno</option>
-                            </select>
-                        </div>
-
-                        <div class="col-12 col-md-5">
-                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="busca-texto" style="letter-spacing: 0.5px;">
-                                <i class="fas fa-search me-1 opacity-50"></i> Buscar Usuário
-                            </label>
-                            <input type="text" id="busca-texto" class="form-control" placeholder="Procurar por nome ou e-mail...">
-                        </div>
-
-                        <div class="col-12 col-md-4 d-flex gap-2 mt-3 mt-md-0">
-                            <button class="btn btn-primary fw-bold shadow-sm flex-fill" style="height: 42px;" onclick="loadUsuarios()">
-                                <i class="fas fa-sync-alt me-2"></i> Atualizar
-                            </button>
-                            <button class="btn btn-success fw-bold shadow-sm flex-fill" style="height: 42px;" onclick="openCreateModal()">
-                                <i class="fas fa-plus me-2"></i> Novo Usuário
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <div class="card list-commanded mb-4 border-0 shadow-sm">
-                <div class="card-body px-0 pt-4">
-
-                    <div class="table-responsive list-table-usuarios d-none d-md-block" style="max-height: 600px;">
-                        <div class="text-center py-5 opacity-25">
-                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-                            <p class="mt-3 fw-medium">Sincronizando acessos...</p>
-                        </div>
-                    </div>
-
-                    <div id="mobile-users-cards" class="d-md-none px-3">
-                    </div>
-
-                    <div class="pagination paginationButtons pagination-usuarios mt-3 text-center justify-content-center"></div>
-                </div>
-            </div>
-
-            <?php include "./assets/components/Footer.php"; ?>
+        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+            <nav aria-label="breadcrumb" class="w-100">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
+                        style="font-size: 1.5rem; letter-spacing: -0.8px;">
+                        Gestão de Usuários
+                    </li>
+                </ol>
+            </nav>
         </div>
+
+        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+            <div class="card-body p-3 p-md-4">
+
+                <div class="col-12 d-md-none mb-3">
+                    <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Buscar Usuários</h4>
+                </div>
+
+                <div class="filter-row-excellence align-items-end">
+
+                    <div class="command-group">
+                        <label class="form-label d-none d-md-flex" for="busca-texto">
+                            <i class="fas fa-search opacity-50"></i> Buscar Usuário
+                        </label>
+                        <input type="text" id="busca-texto" class="form-control shadow-sm" placeholder="Procurar por nome ou e-mail...">
+                    </div>
+
+                    <div class="command-group">
+                        <label class="form-label d-none d-md-flex" for="filtro-perfil">
+                            <i class="fas fa-filter opacity-50"></i> Filtrar por Perfil
+                        </label>
+                        <select id="filtro-perfil" class="form-select shadow-sm">
+                            <option value="">Todos os Perfis</option>
+                            <option value="50">Pároco / Administrador</option>
+                            <option value="40">Coordenador / Secretaria</option>
+                            <option value="30">Catequista / Professor</option>
+                            <option value="10">Fiel / Aluno</option>
+                        </select>
+                    </div>
+
+                    <div class="command-group d-flex gap-2">
+                        <button class="btn btn-outline-secondary fw-bold shadow-sm flex-fill" style="height: 50px;" onclick="loadUsuarios()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn btn-primary fw-bold shadow-sm flex-fill" style="height: 50px;" onclick="openCreateModal()">
+                            <i class="fas fa-plus me-2"></i> Novo
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
+            <div class="card-body px-0 pt-4">
+
+                <div class="table-responsive list-table-usuarios d-none d-md-block" style="max-height: 600px;">
+                    <div class="text-center py-5 opacity-25">
+                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <p class="mt-3 fw-medium">Sincronizando acessos...</p>
+                    </div>
+                </div>
+
+                <div id="mobile-users-cards" class="d-md-none px-3">
+                </div>
+
+                <div class="pagination paginationButtons pagination-usuarios mt-3 text-center justify-content-center"></div>
+            </div>
+        </div>
+
+        <?php include "./assets/components/Footer.php"; ?>
     </div>
 
     <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">

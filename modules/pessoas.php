@@ -13,25 +13,23 @@
 </head>
 
 <body>
-
-    <div id="div-loader" class="div-loader" style="display: none;"><span class="loader"></span></div>
-
     <div id="sidebar-only" class="sidebar-only">
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
     <div class="main-only px-0 px-md-3">
-        <div class="d-none d-md-flex align-items-center mb-4 mt-3">
+        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.2rem;">
+                    <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
+                        style="font-size: 1.5rem; letter-spacing: -0.8px;">
                         Gestão de Pessoas
                     </li>
                 </ol>
             </nav>
         </div>
 
-        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
                 <div class="row g-2 g-md-3 align-items-end">
 
@@ -69,7 +67,7 @@
             </div>
         </div>
 
-        <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-0 rounded-md-4">
+        <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
             <div class="card-body p-0 pt-md-4 px-md-0">
                 <div class="table-responsive list-table-pessoas" style="max-height: 70vh;">
                     <div class="text-center py-5 opacity-50">

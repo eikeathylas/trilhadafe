@@ -1,7 +1,7 @@
 <?php
 
 // =========================================================
-// INSTITUIÇÕES
+// INSTITUIÇÕES (DIOCESES E PARÓQUIAS)
 // =========================================================
 
 function getAllDiocese($data)
@@ -14,11 +14,13 @@ function getAllDiocese($data)
                 org_id,
                 display_name,
                 org_type,
+                logo_url, -- Adicionado para o Zoom/Avatar
                 address_city || ' - ' || address_state as city_state,
                 phone_main,
                 is_active
             FROM organization.organizations
             WHERE deleted IS FALSE AND org_type = 'DIOCESE'
+            ORDER BY display_name ASC
         SQL;
 
         $stmt = $conect->prepare($sql);
@@ -26,7 +28,6 @@ function getAllDiocese($data)
 
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Ajuste de tipos
         foreach ($result as &$row) {
             $row['is_active'] = (bool)$row['is_active'];
         }
@@ -49,6 +50,7 @@ function getAllOrganizations($data)
                 org_id,
                 display_name,
                 org_type,
+                logo_url, -- Adicionado para o Zoom/Avatar
                 address_city || ' - ' || address_state as city_state,
                 phone_main,
                 is_active
@@ -65,7 +67,6 @@ function getAllOrganizations($data)
 
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Ajuste de tipos
         foreach ($result as &$row) {
             $row['is_active'] = (bool)$row['is_active'];
         }
@@ -108,36 +109,46 @@ function upsertOrganization($data)
 {
     try {
         $conect = $GLOBALS["local"];
+
+        // Decodifica os dados se vierem via FormData (JSON string) ou POST direto
+        $fields = is_string($data['data']) ? json_decode($data['data'], true) : $data;
+
         $conect->beginTransaction();
 
-        // AUDITORIA: Identifica o usuário para o Trigger do Banco
-        if (!empty($data['user_id'])) {
+        if (!empty($fields['user_id'])) {
             $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
-            $stmtAudit->execute(['uid' => (string)$data['user_id']]);
+            $stmtAudit->execute(['uid' => (string)$fields['user_id']]);
+        }
+
+        // Lógica de Processamento de Arquivo (Placeholder para sua função de upload)
+        $logoUrl = $fields['logo_url'] ?? null;
+        if (!empty($_FILES['logo_file'])) {
+            // Exemplo: $logoUrl = uploadFileHelper($_FILES['logo_file'], 'logos/');
         }
 
         $params = [
-            'legal_name' => $data['legal_name'],
-            'display_name' => $data['display_name'],
-            'org_type' => $data['org_type'],
-            'tax_id' => $data['tax_id'],
-            'phone_main' => $data['phone_main'],
-            'phone_secondary' => $data['phone_secondary'] ?? null,
-            'email_contact' => $data['email_contact'] ?? null,
-            'website_url' => $data['website_url'] ?? null,
-            'patron_saint' => $data['patron_saint'] ?? null,
-            'decree_number' => $data['decree_number'] ?? null,
-            'diocese_name' => $data['diocese_name'] ?? null,
-            'foundation_date' => !empty($data['foundation_date']) ? $data['foundation_date'] : null,
-            'address_street' => $data['address_street'],
-            'address_number' => $data['address_number'],
-            'address_district' => $data['address_district'],
-            'address_city' => $data['address_city'],
-            'address_state' => $data['address_state'],
-            'zip_code' => $data['zip_code']
+            'legal_name' => $fields['legal_name'],
+            'display_name' => $fields['display_name'],
+            'org_type' => $fields['org_type'],
+            'tax_id' => $fields['tax_id'],
+            'phone_main' => $fields['phone_main'],
+            'phone_secondary' => $fields['phone_secondary'] ?? null,
+            'email_contact' => $fields['email_contact'] ?? null,
+            'website_url' => $fields['website_url'] ?? null,
+            'patron_saint' => $fields['patron_saint'] ?? null,
+            'decree_number' => $fields['decree_number'] ?? null,
+            'diocese_name' => $fields['diocese_name'] ?? null,
+            'foundation_date' => !empty($fields['foundation_date']) ? $fields['foundation_date'] : null,
+            'address_street' => $fields['address_street'],
+            'address_number' => $fields['address_number'],
+            'address_district' => $fields['address_district'],
+            'address_city' => $fields['address_city'],
+            'address_state' => $fields['address_state'],
+            'zip_code' => $fields['zip_code'],
+            'logo_url' => $logoUrl
         ];
 
-        if (!empty($data['org_id'])) {
+        if (!empty($fields['org_id'])) {
             $sql = <<<'SQL'
                 UPDATE organization.organizations
                 SET
@@ -159,17 +170,18 @@ function upsertOrganization($data)
                     address_city = :address_city,
                     address_state = :address_state,
                     zip_code = :zip_code,
+                    logo_url = COALESCE(:logo_url, logo_url),
                     updated_at = CURRENT_TIMESTAMP
                 WHERE org_id = :org_id
             SQL;
-            $params['org_id'] = $data['org_id'];
+            $params['org_id'] = $fields['org_id'];
             $msg = "Instituição atualizada!";
         } else {
             $sql = <<<'SQL'
                 INSERT INTO organization.organizations 
-                (legal_name, display_name, org_type, tax_id, phone_main, phone_secondary, email_contact, website_url, patron_saint, decree_number, diocese_name, foundation_date, address_street, address_number, address_district, address_city, address_state, zip_code)
+                (legal_name, display_name, org_type, tax_id, phone_main, phone_secondary, email_contact, website_url, patron_saint, decree_number, diocese_name, foundation_date, address_street, address_number, address_district, address_city, address_state, zip_code, logo_url)
                 VALUES 
-                (:legal_name, :display_name, :org_type, :tax_id, :phone_main, :phone_secondary, :email_contact, :website_url, :patron_saint, :decree_number, :diocese_name, :foundation_date, :address_street, :address_number, :address_district, :address_city, :address_state, :zip_code)
+                (:legal_name, :display_name, :org_type, :tax_id, :phone_main, :phone_secondary, :email_contact, :website_url, :patron_saint, :decree_number, :diocese_name, :foundation_date, :address_street, :address_number, :address_district, :address_city, :address_state, :zip_code, :logo_url)
             SQL;
             $msg = "Instituição criada!";
         }
@@ -180,9 +192,9 @@ function upsertOrganization($data)
         $conect->commit();
         return success($msg);
     } catch (Exception $e) {
-        $conect->rollBack();
+        if ($conect->inTransaction()) $conect->rollBack();
         logSystemError("painel", "organization", "upsertOrganization", "sql", $e->getMessage(), $data);
-        return failure("Erro ao salvar.", null, false, 500);
+        return failure("Erro ao salvar instituição.", null, false, 500);
     }
 }
 

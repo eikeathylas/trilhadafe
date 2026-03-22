@@ -17,7 +17,7 @@ let fpInstance = null;
 const summernoteConfig = {
   height: 350,
   lang: "pt-BR",
-  placeholder: "Descreva o conteúdo do encontro...",
+  placeholder: "Descreva o roteiro, atividades ou observações do encontro...",
   dialogsInBody: true,
   toolbar: [
     ["style", ["style", "bold", "italic", "underline", "clear"]],
@@ -25,8 +25,7 @@ const summernoteConfig = {
     ["insert", ["link", "picture"]],
     ["view", ["fullscreen", "codeview"]],
   ],
-  callbacks: {
-  },
+  callbacks: {},
 };
 
 $(document).ready(() => {
@@ -38,8 +37,9 @@ $(document).ready(() => {
     }
     initFilters();
   });
-});
 
+  initFilters();
+});
 
 const initFilters = () => {
   if ($("#sel_filter_class").length && !$("#sel_filter_class")[0].selectize) {
@@ -51,7 +51,7 @@ const initFilters = () => {
       preload: true,
       render: {
         option: function (item, escape) {
-          return `<div class="py-1 px-2"><div class="fw-bold">${escape(item.class_name)}</div><div class="small text-muted">${escape(item.course_name)}</div></div>`;
+          return `<div class="py-1 px-2"><div class="fw-bold text-body">${escape(item.class_name)}</div><div class="small text-muted">${escape(item.course_name)}</div></div>`;
         },
       },
       load: function (query, callback) {
@@ -89,6 +89,7 @@ const initFilters = () => {
       },
     });
   }
+
   if ($("#sel_filter_subject").length && !$("#sel_filter_subject")[0].selectize) {
     $("#sel_filter_subject").selectize({
       valueField: "subject_id",
@@ -124,11 +125,10 @@ const loadSubjects = async (classId) => {
       res.data.forEach((item) => selSub.addOption(item));
       if (res.data.length === 1) selSub.setValue(res.data[0].subject_id);
     } else {
-      throw new Error(result.alert || "Erro ao obter disciplinas.");
+      throw new Error(res.alert || "Erro ao obter disciplinas.");
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar disciplinas da turma.";
-
     window.alertErrorWithSupport(`Carregar Disciplinas da Turma`, errorMessage);
   }
 };
@@ -140,7 +140,13 @@ const resetInterface = () => {
     selSub.disable();
   }
   $("#btn_new_session").prop("disabled", true);
-  $(".list-table-diario").html('<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-arrow-up mb-2 d-block" style="font-size: 2rem;"></i>Selecione Turma e Disciplina acima.</div>');
+  $(".list-table-diario").html(`
+    <div class="text-center py-5 text-muted opacity-50">
+        <i class="fas fa-arrow-up mb-3 d-block" style="font-size: 2.5rem;"></i>
+        <h5 class="fw-bold text-body">Selecione Turma e Disciplina</h5>
+        <p class="small text-secondary">Utilize os filtros acima para visualizar ou lançar o diário.</p>
+    </div>
+  `);
   $(".pagination-diario").empty();
 };
 
@@ -151,7 +157,7 @@ const getHistory = async () => {
   container.html(`
     <div class="text-center py-5 opacity-50">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 fw-medium">Carregando histórico de aulas...</p>
+        <p class="mt-3 fw-medium text-body">Sincronizando histórico de aulas...</p>
     </div>
   `);
 
@@ -186,7 +192,6 @@ const getHistory = async () => {
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar o diário.";
-
     container.html(`
         <div class="text-center py-5">
             <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
@@ -198,122 +203,123 @@ const getHistory = async () => {
             </button>
         </div>
     `);
-
     window.alertErrorWithSupport(`Listar Histórico do Diário`, errorMessage);
   }
 };
 
 const renderTableHistory = (data) => {
   const container = $(".list-table-diario");
-  if (data.length === 0) {
-    container.html(`<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-book-open fa-3x mb-3"></i><p>Nenhuma aula registrada.</p></div>`);
-    return;
-  }
 
-  let desktopRows = data
-    .map((item) => {
-      let dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
-      const rawIsoDate = item.session_date.split(" ")[0];
-      const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
-      const summary = cleanDesc.length > 30 ? cleanDesc.substring(0, 30) + "..." : cleanDesc;
-      const total = parseInt(item.total_students);
-      const present = parseInt(item.present_count);
-      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
-      let progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA DE EXCELÊNCIA)
+  // =========================================================
+  const desktopRows = data.map((item) => {
+    const dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
+    const rawIsoDate = item.session_date.split(" ")[0];
+    const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
+    const summary = cleanDesc.length > 35 ? cleanDesc.substring(0, 35) + "..." : cleanDesc;
 
-      return `
-        <tr>
-          <td class="align-middle ps-3" width="60">
-            <div class="icon-circle bg-primary bg-opacity-10 text-primary">
-              <span class="material-symbols-outlined">event_note</span>
+    const total = parseInt(item.total_students) || 0;
+    const present = parseInt(item.present_count) || 0;
+    const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+    const progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
+
+    return `
+      <tr>
+        <td class="align-middle ps-3" style="width: 60px;">
+          <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
+            <span class="material-symbols-outlined" style="font-size: 20px;">event_note</span>
+          </div>
+        </td>
+        <td class="align-middle">
+          <div class="fw-bold text-body" style="font-size: 0.95rem;">${dateFmt}</div>
+          <div class="small text-secondary">${summary || "Sem conteúdo preenchido"}</div>
+        </td>
+        <td class="align-middle text-center" style="width: 220px;">
+          <div class="d-flex flex-column align-items-center w-100 px-3">
+            <small class="fw-bold text-muted mb-2 d-flex justify-content-between w-100">
+                <span>${present}/${total}</span>
+                <span>${pct}%</span>
+            </small>
+            <div class="progress w-100 bg-secondary bg-opacity-10 shadow-inner" style="height: 8px;">
+              <div class="progress-bar ${progColor} rounded-pill" role="progressbar" style="width: ${pct}%"></div>
             </div>
-          </td>
-          <td class="align-middle">
-            <div class="fw-bold text-body">${dateFmt}</div>
-            <div class="small text-body">${summary || "Sem descrição"}</div>
-          </td>
-          <td class="align-middle text-center" width="180">
-            <div class="d-flex flex-column align-items-center">
-              <small class="fw-bold text-muted mb-1">${present}/${total} Presentes (${pct}%)</small>
-              <div class="progress w-100" style="height: 6px; background-color: rgba(0,0,0,0.1);">
-                <div class="progress-bar ${progColor}" role="progressbar" style="width: ${pct}%"></div>
+          </div>
+        </td>
+        <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
+          <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+          <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>
+          <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
+  }).join("");
+
+  const desktopHtml = `
+    <div class="d-none d-md-block table-responsive">
+      <table class="table-custom">
+          <thead>
+              <tr>
+                  <th colspan="2" class="ps-3">Encontro / Conteúdo</th>
+                  <th class="text-center">Quadro de Frequência</th>
+                  <th class="text-end pe-4">Ações</th>
+              </tr>
+          </thead>
+          <tbody>${desktopRows}</tbody>
+      </table>
+    </div>`;
+
+  // =========================================================
+  // 2. VISÃO MOBILE (INSET LIST - APPLE HIG)
+  // =========================================================
+  const mobileRows = data.map((item) => {
+    const dateParts = item.session_date.split(" ")[0].split("-");
+    const day = dateParts[2];
+    const rawIsoDate = item.session_date.split(" ")[0];
+
+    const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
+    const summary = cleanDesc.length > 40 ? cleanDesc.substring(0, 40) + "..." : cleanDesc;
+
+    const total = parseInt(item.total_students) || 0;
+    const present = parseInt(item.present_count) || 0;
+    const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+    const badgeStyle = pct < 70 ? "bg-danger text-white" : pct < 90 ? "bg-warning text-dark" : "bg-success text-white";
+
+    return `
+      <div class="ios-list-item align-items-center">
+          <div class="me-3">
+              <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 bg-body shadow-sm overflow-hidden" style="width: 52px; height: 56px; border-radius: 10px;">
+                  <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.6rem; height: 18px; letter-spacing: 0.5px;">
+                      DIA
+                  </div>
+                  <div class="d-flex align-items-center justify-content-center flex-grow-1 bg-body">
+                      <span class="fs-5 fw-bold text-body lh-1">${day}</span>
+                  </div>
               </div>
-            </div>
-          </td>
-          <td class="text-end align-middle pe-3">
-            <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-            <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>
-            <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-          </td>
-        </tr>`;
-    })
-    .join("");
+          </div>
+          
+          <div class="flex-grow-1" style="min-width: 0;">
+              <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem;">${summary || "Sem descrição..."}</h6>
+              <div class="small text-secondary mt-1 d-flex align-items-center">
+                  <i class="fas fa-user-check opacity-50 me-1"></i> ${present} de ${total} presentes
+              </div>
+          </div>
 
-  const desktopHtml = `<div class="d-none d-md-block table-responsive">
-                        <table class="table-custom">
-                            <thead><tr><th colspan="2" class="ps-3">Data / Conteúdo</th><th class="text-center">Frequência</th><th class="text-end pe-4">Ações</th></tr></thead>
-                            <tbody>${desktopRows}</tbody>
-                        </table>
-                       </div>`;
+          <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-2">
+              <span class="badge ${badgeStyle} rounded-pill shadow-sm" style="font-size: 0.75rem;">${pct}%</span>
+              <div class="d-flex gap-2 mt-1">
+                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+                  <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>
+                  <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              </div>
+          </div>
+      </div>`;
+  }).join("");
 
-  let mobileRows = data
-    .map((item) => {
-      
-      let dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
-      const rawIsoDate = item.session_date.split(" ")[0];
-
-      const total = parseInt(item.total_students) || 0;
-      const present = parseInt(item.present_count) || 0;
-      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
-
-      let badgeStyle = "bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-25";
-
-      if (total > 0) {
-        badgeStyle = pct < 70 ? "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25" : pct < 90 ? "bg-warning bg-opacity-10 text-warning border-warning border-opacity-25" : "bg-success bg-opacity-10 text-success border-success border-opacity-25";
-      }
-
-      return `
-        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
-            <div class="d-flex justify-content-between align-items-start">
-                
-                <div class="flex-grow-1 pe-3">
-                    <h6 class="fw-bold mb-1 fs-5 d-flex align-items-center">
-                        <i class="far fa-calendar-alt me-2 text-primary opacity-75"></i> ${dateFmt}
-                    </h6>
-                    
-                    <div class="small text-muted mb-2 d-flex align-items-center lh-1 mt-2">
-                        <i class="fas fa-user-check me-2 opacity-50"></i> ${present} de ${total} presentes
-                    </div>
-                </div>
-                
-                <div class="text-end mt-1">
-                    <span class="badge ${badgeStyle} border px-2 py-1 fs-6 fw-bold">
-                        ${pct}%
-                    </span>
-                </div>
-            </div>
-            
-            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log">
-                    <i class="fas fa-bolt"></i>
-                </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSession(${item.session_id})" title="Excluir">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>`;
-    })
-    .join("");
-
-  const mobileHtml = `<div class="d-md-none">${mobileRows}</div>`;
+  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
 
   container.html(desktopHtml + mobileHtml);
   _generatePaginationButtons("pagination-diario", "currentPage", "totalPages", "changePage", defaultDiary);
 };
-
 
 window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
   diarioState.sessionId = sessionId;
@@ -324,32 +330,25 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
   const $dateInput = $("#diario_date");
   const $editor = $("#diario_content");
 
-  // 1. Reset UI e Limpeza Segura (Soft UI)
   $dateInput.val("").prop("disabled", true);
   $("#date-status-icon").empty();
   $("#date-msg").text("");
-  $("#lista-alunos").html('<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Carregando chamada...</p></div>');
+  $("#lista-alunos").html('<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium text-body">Carregando lista de chamada...</p></div>');
 
-  // Destroy Flatpickr (Seguro)
   if (typeof fpInstance !== "undefined" && fpInstance) {
     fpInstance.destroy();
     fpInstance = null;
   }
 
-  // Destroy Summernote (BLINDADO)
   if ($editor.next(".note-editor").length > 0) {
     try {
       $editor.summernote("destroy");
-    } catch (e) {
-      console.warn("Summernote cleanup:", e);
-    }
+    } catch (e) { }
   }
   $editor.val("").hide();
 
-  // Abre o Modal
   $("#modalSession").modal("show");
 
-  // 2. Carrega Metadados do Backend
   try {
     const resMeta = await window.ajaxValidator({
       validator: "getDiarioMetadata",
@@ -371,10 +370,8 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
         if (!enableDates.includes(currentDate)) enableDates.push(currentDate);
       }
 
-      // Habilita o input ANTES de criar o Flatpickr
       $dateInput.prop("disabled", false).removeAttr("disabled");
 
-      // Inicializa Flatpickr
       fpInstance = flatpickr("#diario_date", {
         enableTime: false,
         dateFormat: "Y-m-d",
@@ -400,7 +397,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
             dayElem.innerHTML += "<span class='event'></span>";
           }
         },
-        onChange: function (selectedDates, dateStr, instance) {
+        onChange: function (selectedDates, dateStr) {
           if (typeof checkDateLogic === "function") checkDateLogic(dateStr);
         },
         onReady: function (selectedDates, dateStr, instance) {
@@ -411,7 +408,6 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
         },
       });
 
-      // Define a data se estiver editando
       if (dateStr) {
         const cleanDate = dateStr.includes(" ") ? dateStr.split(" ")[0] : dateStr;
         fpInstance.setDate(cleanDate, true);
@@ -422,13 +418,11 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
   } catch (e) {
     const errorMessage = e.message || "Falha de conexão ao carregar metadados do diário.";
     $("#lista-alunos").html(`<div class='text-center py-5 text-danger'><i class='fas fa-exclamation-circle fs-2 mb-2'></i><p>${errorMessage}</p></div>`);
-
     window.alertErrorWithSupport(`Abrir Modal de Diário`, errorMessage);
   } finally {
     window.setButton(false, btn);
   }
 
-  // Inicializa Summernote (Garantindo que o DOM está pronto e resiliência)
   if ($editor.length && typeof $.fn.summernote !== "undefined") {
     $editor.summernote(window.summernoteConfig || {});
   }
@@ -439,28 +433,27 @@ window.checkDateLogic = async (dateStr) => {
 
   const $statusIcon = $("#date-status-icon");
   const $msgContainer = $("#date-msg");
-  // 1. UI Reset & Loading Localizado
+
   $statusIcon.html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div>');
-  $msgContainer.text("Validando data...").removeClass("text-warning text-danger text-success text-primary");
+  $msgContainer.text("Validando plano de aula...").removeClass("text-warning text-danger text-success text-primary");
+
   const dateObj = new Date(dateStr + "T00:00:00");
   const dayOfWeek = dateObj.getDay();
 
   if (diarioState.schedules.length > 0) {
     const isScheduledDay = diarioState.schedules.some((s) => parseInt(s.day_of_week) === dayOfWeek);
     if (!isScheduledDay) {
-      // Aviso discreto, pois pode ser reposição
-      $msgContainer.text("Atenção: Dia fora da grade padrão.").addClass("text-warning");
+      $msgContainer.text("Atenção: Aula extra (Fora do dia padrão).").addClass("text-warning");
     }
   }
 
-  // 2. Validação de Conteúdo (Backend)
   try {
     const res = await window.ajaxValidator({
       validator: "checkDateContent",
       token: defaultApp.userInfo.token,
       class_id: diarioState.classId,
       subject_id: diarioState.subjectId,
-      date: dateStr, // YYYY-MM-DD
+      date: dateStr,
     });
 
     if (res.status) {
@@ -470,11 +463,11 @@ window.checkDateLogic = async (dateStr) => {
         $statusIcon.html('<i class="fas fa-ban text-danger"></i>');
         $msgContainer.text(`Bloqueado: ${info.reason}`).removeClass("text-warning").addClass("text-danger");
         $("#diario_content").summernote("disable");
-        $("#lista-alunos").html('<p class="text-center text-muted p-4">Data bloqueada.</p>');
+        $("#lista-alunos").html('<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">block</span><p class="mt-2 text-body fw-bold">Data bloqueada para chamadas.</p></div>');
       } else if (info.status === "EXISTING") {
         diarioState.sessionId = info.session_id;
         $statusIcon.html('<i class="fas fa-edit text-primary"></i>');
-        $msgContainer.text("Editando aula já registrada.").removeClass("text-warning").addClass("text-primary");
+        $msgContainer.text("Editando diário existente.").removeClass("text-warning").addClass("text-primary");
 
         $("#diario_content").summernote("enable");
         $("#diario_content").summernote("code", info.content);
@@ -482,12 +475,12 @@ window.checkDateLogic = async (dateStr) => {
       } else if (info.status === "NEW") {
         diarioState.sessionId = null;
         $statusIcon.html('<i class="fas fa-check-circle text-success"></i>');
-        $msgContainer.text(`Nova Aula (Encontro #${info.sequence})`).removeClass("text-warning").addClass("text-success");
+        $msgContainer.text(`Novo Diário (Aula #${info.sequence})`).removeClass("text-warning").addClass("text-success");
 
         $("#diario_content").summernote("enable");
         if (info.template) {
           $("#diario_content").summernote("code", info.template);
-          window.alertDefault("Plano de aula sugerido carregado!", "info");
+          window.alertDefault("Plano de aula carregado com sucesso!", "info");
         } else {
           $("#diario_content").summernote("code", "");
         }
@@ -498,18 +491,18 @@ window.checkDateLogic = async (dateStr) => {
     }
   } catch (e) {
     $statusIcon.html('<i class="fas fa-exclamation-triangle text-warning fs-5"></i>');
-    $msgContainer.text("Erro ao validar data.").addClass("text-warning");
-
+    $msgContainer.text("Erro de comunicação.").addClass("text-warning");
     const errorMessage = e.message || "Falha na comunicação com o servidor.";
-    window.alertErrorWithSupport(`Validar Data do Diário (Data: ${dateStr})`, errorMessage);
+    window.alertErrorWithSupport(`Validar Data do Diário`, errorMessage);
   }
 };
 
 // =========================================================
-// LISTA DE ALUNOS (LAYOUT OTIMIZADO)
+// LISTA DE ALUNOS (EXCELÊNCIA DESKTOP & MOBILE)
 // =========================================================
 
 const loadStudentsList = async (existingAttendance = null) => {
+  const container = $("#lista-alunos");
   try {
     const res = await window.ajaxValidator({
       validator: "getStudentsForDiary",
@@ -528,14 +521,10 @@ const loadStudentsList = async (existingAttendance = null) => {
           if (match) {
             isPresent = match.is_present;
             justification = match.justification || "";
+            absenceType = match.absence_type || "UNJUSTIFIED";
           }
         }
-        return {
-          ...std,
-          is_present: isPresent,
-          justification: justification,
-          absence_type: absenceType,
-        };
+        return { ...std, is_present: isPresent, justification: justification, absence_type: absenceType };
       });
 
       renderStudents();
@@ -544,18 +533,15 @@ const loadStudentsList = async (existingAttendance = null) => {
     }
   } catch (e) {
     const errorMessage = e.message || "Falha ao carregar lista de presença.";
-
-    // 4. Feedback Visual de Erro dentro do container da lista
     container.html(`
         <div class="text-center py-5">
-            <i class="fas fa-users-slash fs-1 text-muted mb-3"></i>
-            <h6 class="text-secondary fw-bold">Falha ao carregar alunos</h6>
-            <button class="btn btn-sm btn-outline-primary rounded-pill px-4" onclick="loadStudentsList(${existingAttendance ? JSON.stringify(existingAttendance) : "null"})">
+            <i class="fas fa-users-slash fs-1 text-danger opacity-50 mb-3"></i>
+            <h6 class="text-body fw-bold">Falha de conexão</h6>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2" onclick="loadStudentsList(${existingAttendance ? JSON.stringify(existingAttendance) : "null"})">
                 <i class="fas fa-sync-alt me-2"></i> Tentar novamente
             </button>
         </div>
     `);
-
     window.alertErrorWithSupport(`Carregar Lista de Chamada`, errorMessage);
   }
 };
@@ -565,124 +551,136 @@ const renderStudents = () => {
   const students = diarioState.currentStudents;
 
   if (students.length === 0) {
-    container.html('<p class="text-center text-muted p-4">Nenhum catequizando matriculado.</p>');
+    container.html(`
+        <div class="text-center py-5 opacity-50">
+            <span class="material-symbols-outlined fs-1">group_off</span>
+            <p class="mt-2 fw-medium text-body">Nenhum aluno matriculado na turma.</p>
+        </div>`);
     return;
   }
 
-  let html = "";
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
+  // =========================================================
+  const desktopRows = students.map((std, idx) => {
+    const nameParts = std.full_name.trim().split(" ");
+    const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (TABELA)
-  // =========================================================
-  html += `
-    <div class="d-none d-md-block table-responsive">
-        <table class="table table-hover align-middle table-custom">
+    const avatarHtml = std.profile_photo_url
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border border-secondary border-opacity-25 object-fit-cover shadow-sm" style="width:40px; height:40px; cursor:pointer;" onclick="window.zoomAvatar('${std.profile_photo_url}')">`
+      : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-6" style="width:40px; height:40px;">${initials}</div>`;
+
+    const isP = std.is_present;
+    const statusBadge = isP
+      ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
+      : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
+
+    return `
+      <tr>
+          <td class="align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
+          <td class="align-middle fw-bold text-body" style="font-size: 0.95rem;">${std.full_name}</td>
+          <td class="align-middle text-center" style="width: 200px;">
+              <div class="d-flex align-items-center justify-content-center gap-3">
+                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="width: 44px; height: 24px; cursor: pointer;">
+                  </div>
+                  <div class="status-container-${idx}" style="min-width: 70px;">${statusBadge}</div>
+              </div>
+          </td>
+          <td class="align-middle pe-3" style="width: 380px;">
+              <div id="just-area-${idx}" class="d-flex gap-2 ${isP ? "d-none" : ""}">
+                  <select class="form-select shadow-none border-secondary border-opacity-25 text-body" style="width: 140px; height: 42px;" onchange="updateAbsenceType(${idx}, this.value)">
+                      <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Sem Justificativa</option>
+                      <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
+                      <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
+                  </select>
+                  <input type="text" class="form-control shadow-none border-secondary border-opacity-25 flex-grow-1 text-body" style="height: 42px;" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes (opcional)...">
+              </div>
+              <span id="just-empty-${idx}" class="text-secondary small opacity-50 fw-medium ${isP ? "" : "d-none"}"><i class="fas fa-check-circle me-1 text-success"></i> Aluno em sala</span>
+          </td>
+      </tr>`;
+  }).join("");
+
+  const desktopHtml = `
+    <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
+        <table class="table-custom">
             <thead>
                 <tr>
-                    <th width="50" class="ps-3">Foto</th>
-                    <th>Nome</th>
-                    <th class="text-center" width="200">Presença / Status</th>
-                    <th>Motivo / Justificativa</th>
+                    <th colspan="2" class="ps-3 text-secondary text-uppercase" style="font-size: 0.75rem;">Catequizando</th>
+                    <th class="text-center text-secondary text-uppercase" style="font-size: 0.75rem;">Status / Chamada</th>
+                    <th class="text-secondary text-uppercase" style="font-size: 0.75rem;">Motivo da Ausência</th>
                 </tr>
             </thead>
-            <tbody>`;
-
-  students.forEach((std, idx) => {
-    const nameParts = std.full_name.trim().split(" ");
-    const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-    let avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover; cursor:pointer;" onclick="zoomAvatar('${std.profile_photo_url}')">`
-      : `<div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold" style="width:35px; height:35px; font-size:12px;">${initials}</div>`;
-
-    const isP = std.is_present;
-    const statusBadge = isP ? `<span class="badge bg-success-subtle text-success border border-success status-label-${idx}">Presente</span>` : `<span class="badge bg-danger-subtle text-danger border border-danger status-label-${idx}">Faltou</span>`;
-
-    html += `
-            <tr>
-                <td class="ps-3">${avatarHtml}</td>
-                <td class="fw-bold small">${std.full_name}</td>
-                <td class="text-center">
-                    <div class="d-flex align-items-center justify-content-center gap-2">
-                        <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
-                        </div>
-                        <div class="status-container-${idx}">${statusBadge}</div>
-                    </div>
-                </td>
-                <td>
-                    <div id="just-area-${idx}" class="d-flex gap-2 ${isP ? "d-none" : ""}">
-                        <select class="form-select form-select-sm" style="width: 120px;" onchange="updateAbsenceType(${idx}, this.value)">
-                            <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justif.</option>
-                            <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
-                            <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
-                        </select>
-                        <input type="text" class="form-control form-control-sm flex-grow-1" style="width: 120px;" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes...">
-                    </div>
-                </td>
-            </tr>`;
-  });
-  html += `</tbody></table></div>`;
+            <tbody>${desktopRows}</tbody>
+        </table>
+    </div>`;
 
   // =========================================================
-  // 2. VISÃO MOBILE (CARDS COM TOGGLE NO TOPO E LEGENDA ABAIXO)
+  // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG)
   // =========================================================
-  html += `<div class="d-md-none d-flex flex-column gap-2">`;
-
-  students.forEach((std, idx) => {
+  const mobileRows = students.map((std, idx) => {
     const nameParts = std.full_name.trim().split(" ");
     const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-    let avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border" style="width:35px; height:35px; object-fit:cover; cursor:pointer;" onclick="zoomAvatar('${std.profile_photo_url}')">`
-      : `<div class="rounded-circle bg-opacity-10 d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:45px; height:45px;">${initials}</div>`;
+
+    const avatarHtml = std.profile_photo_url
+      ? `<img src="${std.profile_photo_url}" class="rounded-circle border border-secondary border-opacity-25 object-fit-cover shadow-sm" style="width:46px; height:46px; cursor:pointer;" onclick="window.zoomAvatar('${std.profile_photo_url}')">`
+      : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:46px; height:46px;">${initials}</div>`;
 
     const isP = std.is_present;
-    const statusBadge = isP ? `<span class="badge bg-success-subtle text-success border border-success status-label-${idx}">Presente</span>` : `<span class="badge bg-danger-subtle text-danger border border-danger status-label-${idx}">Faltou</span>`;
+    const statusBadge = isP
+      ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
+      : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
 
-    html += `
-            <div class="mobile-card p-3">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">${avatarHtml}</div>
-                        <div class="fw-bold small">${std.full_name}</div>
-                    </div>
-                    
-                    <div class="d-flex flex-column align-items-end">
-                        <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)">
-                        </div>
-                        <div class="status-container-${idx} mt-1">${statusBadge}</div>
-                    </div>
-                </div>
-                
-                <div id="just-box-mob-${idx}" class="mt-2 p-2 rounded ${isP ? "d-none" : ""}">
-                    <select class="form-select form-select-sm mb-2 w-100" onchange="updateAbsenceType(${idx}, this.value)">
-                        <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
-                        <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Justificada</option>
-                        <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Recorrente</option>
-                    </select>
-                    <input type="text" class="form-control form-control-sm" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo...">
-                </div>
-            </div>`;
-  });
-  html += `</div>`;
+    return `
+      <div class="ios-list-item flex-column align-items-stretch">
+          <div class="d-flex w-100 align-items-center">
+              <div class="me-3">${avatarHtml}</div>
+              <div class="flex-grow-1" style="min-width: 0;">
+                  <div class="fw-bold text-body text-truncate" style="font-size: 1rem;">${std.full_name}</div>
+                  <div class="status-container-${idx} mt-1">${statusBadge}</div>
+              </div>
+              <div class="ms-2">
+                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="width: 50px; height: 28px; cursor: pointer;">
+                  </div>
+              </div>
+          </div>
+          
+          <div id="just-box-mob-${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
+              <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-danger border-opacity-10 shadow-inner">
+                  <label class="form-label small fw-bold text-danger text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Justificativa da Falta</label>
+                  <select class="form-select shadow-none border-0 mb-2 text-body bg-body" onchange="updateAbsenceType(${idx}, this.value)" style="height: 44px;">
+                      <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
+                      <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
+                      <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
+                  </select>
+                  <input type="text" class="form-control shadow-none border-0 text-body bg-body" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo..." style="height: 44px;">
+              </div>
+          </div>
+      </div>`;
+  }).join("");
 
-  container.html(html);
+  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
+
+  container.html(desktopHtml + mobileHtml);
 };
 
-// Função de atualização aprimorada para sincronizar as badges
 window.updateAttendance = (idx, isPresent) => {
   diarioState.currentStudents[idx].is_present = isPresent;
 
-  // Atualiza as Badges em ambos (Desktop e Mobile)
-  const newBadge = isPresent ? `<span class="badge bg-success-subtle text-success border border-success status-label-${idx}">Presente</span>` : `<span class="badge bg-danger-subtle text-danger border border-danger status-label-${idx}">Faltou</span>`;
+  const newBadge = isPresent
+    ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
+    : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
 
+  // Atualiza simultaneamente em caso de resize (Desktop e Mobile)
   $(`.status-container-${idx}`).html(newBadge);
 
-  // Toggle das áreas de justificativa
   if (isPresent) {
     $(`#just-area-${idx}, #just-box-mob-${idx}`).addClass("d-none");
+    $(`#just-empty-${idx}`).removeClass("d-none");
   } else {
     $(`#just-area-${idx}, #just-box-mob-${idx}`).removeClass("d-none");
+    $(`#just-empty-${idx}`).addClass("d-none");
   }
 };
 
@@ -694,7 +692,6 @@ window.updateAbsenceType = (idx, val) => {
   diarioState.currentStudents[idx].absence_type = val;
 };
 
-
 window.salvarDiario = async (btn) => {
   const date = $("#diario_date").val();
   const content = $("#diario_content").summernote("code");
@@ -703,7 +700,7 @@ window.salvarDiario = async (btn) => {
   if (!date) return window.alertDefault("Selecione a data da aula.", "warning");
   if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data bloqueada para registro.", "error");
 
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Gravando...");
 
   try {
     const res = await window.ajaxValidator({
@@ -734,8 +731,8 @@ window.salvarDiario = async (btn) => {
 
 window.deleteSession = (sessionId) => {
   Swal.fire({
-    title: "Excluir Registro de Aula?",
-    text: "O registro será movido para a lixeira do sistema.",
+    title: "Excluir Diário?",
+    text: "O registro de conteúdo e frequência será apagado.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
@@ -753,7 +750,6 @@ window.deleteSession = (sessionId) => {
 
         if (res.status) {
           window.alertDefault("Registro de aula removido.", "success");
-
           if (typeof getHistory === "function") window.getHistory();
         } else {
           throw new Error(res.alert || res.msg || "O servidor não permitiu excluir este registro.");
@@ -766,7 +762,6 @@ window.deleteSession = (sessionId) => {
   });
 };
 
-// Paginação e Utilitários
 window.changePage = (p) => {
   defaultDiary.currentPage = p;
   getHistory();
@@ -777,10 +772,10 @@ const _generatePaginationButtons = (c, k, t, f, o) => {
   container.empty();
   let total = o[t];
   let current = o[k];
-  let html = `<button onclick="${f}(1)" class="btn btn-sm btn-secondary me-1" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
+  let html = `<button onclick="${f}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
   for (let p = Math.max(1, current - 2); p <= Math.min(total, current + 2); p++) {
-    html += `<button onclick="${f}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1">${p}</button>`;
+    html += `<button onclick="${f}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
   }
-  html += `<button onclick="${f}(${total})" class="btn btn-sm btn-secondary" ${current === total ? "disabled" : ""}>Última</button>`;
+  html += `<button onclick="${f}(${total})" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
   container.html(html);
 };
