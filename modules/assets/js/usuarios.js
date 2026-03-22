@@ -94,7 +94,7 @@ const renderTableUsers = (data) => {
 
       const profileLabel = getTranslatedProfile(item.main_profile_name);
       const color = getProfileColor(item.main_profile_id);
-      const textClass = color === "warning" ? "text-dark" : "text-white";
+      const textClass = color === "warning" ? "text-body" : "text-white";
       const profileBadge = `<span class="badge bg-${color} ${textClass} px-2 py-1">${profileLabel}</span>`;
 
       return `
@@ -141,7 +141,7 @@ const renderMobileUsers = (data) => {
 
       const profileLabel = getTranslatedProfile(item.main_profile_name);
       const color = getProfileColor(item.main_profile_id);
-      const textClass = color === "warning" ? "text-dark" : "text-white";
+      const textClass = color === "warning" ? "text-body" : "text-white";
 
       return `
         <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">

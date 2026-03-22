@@ -47,6 +47,8 @@ function getAllPeople($data)
                 COUNT(*) OVER() as total_registros,
                 p.person_id,
                 p.full_name,
+                p.tax_id,
+                p.birth_date,
                 p.religious_name,
                 p.profile_photo_url,
                 p.email,
@@ -70,7 +72,7 @@ function getAllPeople($data)
                 ) as roles_codes
             FROM people.persons p
             $where
-            ORDER BY p.full_name ASC
+            ORDER BY p.full_name ASC, p.birth_date DESC
             LIMIT :limit OFFSET :page
         SQL;
 

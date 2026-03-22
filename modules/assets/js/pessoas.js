@@ -7,8 +7,7 @@ const defaultPeople = {
 let currentFamilyList = [];
 let currentAttachmentsList = [];
 
-window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Status atualizado.", `.status-text-person-${id}`);
-
+window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Status atualizado.", `.status-text-person-${id}`, getPessoas);
 
 const getPessoas = async () => {
   try {
@@ -75,73 +74,80 @@ const renderTablePeople = (data) => {
     return;
   }
 
-  const getToggleHtml = (id, active) => {
-    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+  // ==========================================
+  // HELPERS COMUNS (Formatação e Badges)
+  // ==========================================
+  const formatCPF = (cpf) => {
+    if (!cpf) return "Não informado";
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  };
 
+  const formatDateBR = (dateStr) => {
+    if (!dateStr || dateStr === "0000-00-00") return "Não informada";
+    return dateStr.split('-').reverse().join('/');
+  };
+
+  const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
+  const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
+
+  // ==========================================
+  // TOGGLES DE STATUS DESKTOP
+  // ==========================================
+  const getToggleHtml = (id, active) => {
     return `
     <div class="d-flex align-items-center justify-content-center">
         <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="togglePerson(${id}, this)" style="cursor: pointer;">
+            <input class="form-check-input shadow-sm" type="checkbox" ${active ? "checked" : ""} onchange="togglePerson(${id}, this)" style="cursor: pointer;">
             <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
         </div>
     </div>`;
   };
 
-  const getMobileToggleHtml = (id, active) => {
-    const statusBadge = active ? '<span class="badge bg-success-subtle text-success border border-success">Ativa</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativa</span>';
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA CLEAN)
+  // =========================================================
+  let desktopRows = data.map((item) => {
+
+    let avatarHtml = "";
+    if (item.profile_photo_url) {
+      avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}"
+                           class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
+                           style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                           onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')"
+                           onmouseover="this.style.transform='scale(1.15)'" 
+                           onmouseout="this.style.transform='scale(1)'"
+                           title="Ver foto">`;
+    } else {
+      const nameParts = item.full_name.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+      avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold shadow-sm" style="width:42px; height:42px; background-color: var(--fundo);">${initials}</div>`;
+    }
+
+    let rolesHtml = "";
+    if (item.roles_array) {
+      item.roles_array.forEach((r) => {
+        if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-secondary border"} me-1">${roleNames[r] || r}</span>`;
+      });
+    }
+
+    let contactHtml = "";
+    if (item.phone_mobile) {
+      const whatsLink = `https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}`;
+      contactHtml += `<a href="${whatsLink}" target="_blank" class="text-success me-2 text-decoration-none" title="WhatsApp"><i class="fab fa-whatsapp fs-5"></i></a>`;
+    }
+    contactHtml += item.email ? `<span class="text-body small">${item.email}</span>` : '<span class="text-muted small">-</span>';
 
     return `
-    <div class="d-flex flex-column align-items-end">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" ${active ? "checked" : ""} onchange="togglePerson(${id}, this)" style="cursor: pointer;">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
-        </div>
-        <div class="status-text-person-${id} mt-1">${statusBadge}</div>
-    </div>`;
-  };
-
-  let desktopRows = data
-    .map((item) => {
-      let avatarHtml = "";
-      if (item.profile_photo_url) {
-        avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
-                           class="rounded-circle border shadow-sm" 
-                           style="width:40px; height:40px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
-                           onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')"
-                           onmouseover="this.style.transform='scale(1.1)'" 
-                           onmouseout="this.style.transform='scale(1)'">`;
-      } else {
-        const nameParts = item.full_name.trim().split(" ");
-        const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold" style="width:40px; height:40px;">${initials}</div>`;
-      }
-
-      let rolesHtml = "";
-      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
-      const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
-
-      if (item.roles_array) {
-        item.roles_array.forEach((r) => {
-          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-secondary border"} me-1">${roleNames[r] || r}</span>`;
-        });
-      }
-
-      let contactHtml = "";
-      if (item.phone_mobile) {
-        const whatsLink = `https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}`;
-        contactHtml += `<a href="${whatsLink}" target="_blank" class="text-success me-2" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>`;
-      }
-      contactHtml += item.email || '<span class="text-muted small">-</span>';
-
-      return `
         <tr>
             <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
             <td class="align-middle">
-                <div class="fw-bold text-body">${item.full_name}</div>
-                <small class="text-body">${item.religious_name || ""}</small>
+                <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.full_name}</div>
+                <div class="text-muted small mt-1">
+                    CPF: ${formatCPF(item.tax_id)} &nbsp;|&nbsp; Nasc.: ${formatDateBR(item.birth_date)}
+                </div>
             </td>
             <td class="align-middle">${rolesHtml}</td>
-            <td class="align-middle text-body">${contactHtml}</td>
+            <td class="align-middle">${contactHtml}</td>
             <td class="text-center align-middle">
                 ${getToggleHtml(item.person_id, item.is_active)}
             </td>
@@ -151,8 +157,7 @@ const renderTablePeople = (data) => {
                 <button class="btn-icon-action text-danger" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
-    })
-    .join("");
+  }).join("");
 
   const tableHtml = `<div class="d-none d-md-block table-responsive">
                         <table class="table-custom">
@@ -169,81 +174,75 @@ const renderTablePeople = (data) => {
                         </table>
                      </div>`;
 
-  const mobileRows = data
-    .map((item) => {
-      let avatarHtml = "";
-      if (item.profile_photo_url) {
-        avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
-                           class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-                           style="width:50px; height:50px; object-fit:cover; cursor: pointer;"
+  // =========================================================
+  // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG)
+  // =========================================================
+  const mobileRows = data.map((item) => {
+
+    // Avatar
+    let avatarHtml = "";
+    if (item.profile_photo_url) {
+      avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
+                           class="rounded-circle border border-secondary border-opacity-25" 
+                           style="width:48px; height:48px; object-fit:cover; cursor: pointer;"
                            onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`;
-      } else {
-        const nameParts = item.full_name.trim().split(" ");
-        const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5 shadow-sm" style="width:50px; height:50px;">${initials}</div>`;
+    } else {
+      const nameParts = item.full_name.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+      avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
+    }
+
+    // Função (Apenas a primeira, colada no nome)
+    let rolesHtml = "";
+    if (item.roles_array && item.roles_array.length > 0) {
+      const r = item.roles_array[0];
+      if (r) {
+        const color = roleColors[r] || "secondary";
+        const label = roleNames[r] || r;
+        rolesHtml = `<span class="badge bg-${color} bg-opacity-10 text-${color} fw-bold px-2 py-1" style="font-size: 0.65rem; border-radius: 6px;">${label}</span>`;
       }
+    }
 
-      let rolesHtml = "";
-      const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
-      const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
+    // Ícone de Status Explícito e Alinhado
+    const statusIconHtml = item.is_active
+      ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
+      : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
 
-      if (item.roles_array && item.roles_array.length > 0) {
-        item.roles_array.forEach((r) => {
-          if (r) {
-            const color = roleColors[r] || "secondary";
-            const label = roleNames[r] || r;
-            rolesHtml += `<span class="badge bg-${color} bg-opacity-10 text-${color} border border-${color} border-opacity-25 me-1 mb-1 fw-medium px-2 py-1">${label}</span>`;
-          }
-        });
-      }
+    return `
+      <div class="ios-list-item">
+          <div class="me-3">
+              ${avatarHtml}
+          </div>
+          
+          <div class="flex-grow-1 d-flex flex-column justify-content-center py-1" style="min-width: 0;">
+              <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                  <h6 class="fw-bold text-body m-0" style="font-size: 1rem;">${item.full_name}</h6>
+                  ${rolesHtml}
+              </div>
+              <div class="d-flex align-items-center gap-3 mt-1">
+                  <span class="text-muted" style="font-size: 0.8rem;">CPF: ${formatCPF(item.tax_id)}</span>
+              </div>
+          </div>
 
-      const wppHtml = item.phone_mobile
-        ? `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="d-flex align-items-center text-success fw-bold text-decoration-none bg-success bg-opacity-10 border border-success border-opacity-25 px-3 py-2 rounded-pill transition-all" style="font-size: 0.85rem;"><i class="fab fa-whatsapp fs-5 me-2"></i> WhatsApp</a>`
-        : ``;
-
-      return `
-        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
-                
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="d-flex align-items-start flex-grow-1 pe-2">
-                    <div class="me-3 mt-1">${avatarHtml}</div>
-                        <div>
-                        <h6 class="fw-bold mb-1 fs-5 lh-sm">${item.full_name}</h6>
-                        ${item.religious_name ? `<div class="small text-muted mb-2 lh-1">${item.religious_name}</div>` : ""}
-                        
-                        <div class="mt-2 d-flex flex-wrap">${rolesHtml}</div>
-                        </div>
-                    </div>
-
-                <div class="ms-2 text-end mt-1">
-                    ${getMobileToggleHtml(item.person_id, item.is_active)}
-                        </div>
-                    </div>
-            
-            <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-3 mt-3">
-                <div>
-                     ${wppHtml}
+          <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-3" style="min-width: 90px;">
+              <div class="d-flex align-items-center justify-content-end gap-2 w-100">
+                <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                  <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_active ? "checked" : ""} onchange="togglePerson(${item.person_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
                 </div>
-                <div class="d-flex gap-2">
-                    <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log">
-                        <i class="fas fa-bolt"></i>
-                    </button>
-                    <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="modalPessoa(${item.person_id}, this)" title="Editar">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deletePerson(${item.person_id})" title="Excluir">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>`;
-    })
-    .join("");
+                ${statusIconHtml}
+              </div>
+              <div class="d-flex gap-2">
+                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+                  <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+                  <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              </div>
+          </div>
+      </div>`;
+  }).join("");
 
-  const mobileHtml = `<div class="d-md-none">${mobileRows}</div>`;
+  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
 
   container.html(tableHtml + mobileHtml);
-
   _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "changePage", defaultPeople);
 };
 
@@ -532,7 +531,6 @@ const renderFamilyTable = () => {
   });
 };
 
-
 const renderAttachmentsTable = (data) => {
   const container = $("#lista-anexos");
 
@@ -806,7 +804,6 @@ window.deletePerson = (id) => {
     }
   });
 };
-
 
 $("#is_pcd").change(function () {
   if ($(this).is(":checked")) $("#pcd_details").removeClass("d-none").focus();

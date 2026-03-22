@@ -54,7 +54,7 @@ function getAllOrganizations($data)
                 is_active
             FROM organization.organizations
             WHERE deleted IS FALSE AND org_type != 'DIOCESE'
-            ORDER BY org_id ASC
+            ORDER BY display_name ASC
             LIMIT :limit OFFSET :page
         SQL;
 

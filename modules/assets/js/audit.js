@@ -506,7 +506,7 @@ const formatValue = (val, key = "") => {
         const p = v.split("-");
         displayVal = `${p[2]}/${p[1]}/${p[0]}`;
       }
-      str += `<div class="d-inline-block me-2 border rounded px-2 mb-1 small text-dark shadow-sm"><strong>${label}:</strong> ${displayVal}</div>`;
+      str += `<div class="d-inline-block me-2 border rounded px-2 mb-1 small text-body shadow-sm"><strong>${label}:</strong> ${displayVal}</div>`;
     }
     return hasContent ? str : '<em class="text-muted opacity-75">vazio</em>';
   }

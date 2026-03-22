@@ -20,7 +20,7 @@ function getTeacherClassesF($userId, $roleLevel, $yearId, $orgId)
             $yearFilter = "AND ay.is_active IS TRUE";
         }
 
-        $superUsers = ['ADMIN', 'MANAGER', 'SECRETARY', 'DEV', 'STAFF', 'ROOT', 'PAROCO', 'COORD'];
+        $superUsers = [/*'ADMIN', 'MANAGER', 'SECRETARY', */ 'DEV' /*, 'STAFF', 'ROOT', 'PAROCO', 'COORD' */];
 
         if (in_array(strtoupper($roleLevel), $superUsers)) {
             // ADMIN: Vê todas as turmas da Org e Ano

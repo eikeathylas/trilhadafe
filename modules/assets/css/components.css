@@ -2,19 +2,6 @@
    1. BOTÕES E AÇÕES
    ============================================================ */
 /* -- Estilos base */
-.btn {
-    border-radius: 12px;
-    font-weight: 600;
-    padding: 10px 20px;
-    font-size: 0.95rem;
-    height: 48px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 .btn-theme,
 .btn-primary {
     background: linear-gradient(135deg, var(--padrao), var(--padrao1));
@@ -30,11 +17,6 @@
     box-shadow: 0 6px 16px rgba(92, 142, 241, 0.4);
 }
 
-/* Feedback Tátil (Toque/Clique App Feel) */
-.btn:active {
-    transform: scale(0.98) !important;
-    box-shadow: 0 2px 8px rgba(92, 142, 241, 0.2) !important;
-}
 
 .btn-imprimir {
     background-color: var(--white);
@@ -72,8 +54,9 @@
 }
 
 .btn-icon-action:hover {
-    background-color: var(--padrao-suave) !important;
-    color: var(--padrao) !important;
+    background-color: var(--white) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    /* color: var(--padrao) !important; */
     transform: translateY(-2px);
 }
 
@@ -118,11 +101,6 @@
 
 [data-theme="escuro"] .btn-icon-action {
     color: var(--descricao);
-}
-
-[data-theme="escuro"] .btn-icon-action:hover {
-    background-color: rgba(92, 142, 241, 0.2) !important;
-    color: var(--padrao) !important;
 }
 
 [data-theme="escuro"] .btn-icon-action.delete:hover {
@@ -204,6 +182,35 @@ label {
     gap: 6px;
 }
 
+/* -- Toggle Switch Nativo iOS (Use a classe .form-switch padrão do Bootstrap no container) -- */
+.form-switch .form-check-input {
+    width: 50px;
+    height: 28px;
+    border-radius: 30px;
+    background-color: var(--borda);
+    border: none;
+    transition: background-color 0.2s ease-in-out;
+}
+
+
+
+/* Estado Ativo: Cor de Sucesso */
+.form-switch .form-check-input:checked {
+    background-color: var(--success) !important;
+    border-color: var(--success) !important;
+}
+
+/* Removemos o 'margin-top' que quebrava o layout ao ativar o toggle checked */
+.form-switch .form-check-input:checked::before {
+    display: none !important;
+    /* CORREÇÃO: Removemos a regra que causava o pulo vertical */
+}
+
+.form-switch .form-check-input:checked::after {
+    transform: translateX(22px);
+    background-color: white;
+}
+
 /* -- Modo escuro */
 [data-theme="escuro"] .form-control,
 [data-theme="escuro"] .form-select {
@@ -238,17 +245,34 @@ label {
 
 
 /* ============================================================
-   3. CARDS, BADGES E WIDGETS (SISTEMA DE SOMBRAS DIFUSAS E ELEVAÇÃO)
+   3. CARDS E WIDGETS (SISTEMA DE SOMBRAS DIFUSAS E ELEVAÇÃO)
    ============================================================ */
 /* -- Estilos base */
 .card,
 .filter-card {
     border: 1px solid rgba(0, 0, 0, 0.04);
-    border-radius: 16px;
+    border-radius: 20px;
     background-color: var(--fundo);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-    /* Sombra difusa natural */
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.2) !important;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+}
+
+/* Efeito Clickable para Cards de Dashboard */
+.card.clickable,
+.mobile-card.clickable {
+    cursor: pointer;
+}
+
+.card.clickable:hover,
+.mobile-card.clickable:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.card.clickable:active,
+.mobile-card.clickable:active {
+    transform: scale(0.97);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .filter-card {
@@ -259,7 +283,7 @@ label {
 .card-header {
     background: transparent;
     border-bottom: 1px solid var(--borda);
-    padding: 16px 20px;
+    padding: 18px 20px;
 }
 
 .badge-soft {
@@ -311,25 +335,13 @@ label {
     line-height: 1.1;
 }
 
-.event-blocked .event-date-box {
-    background-color: rgba(231, 74, 59, 0.1);
-    color: var(--danger);
-    border-color: rgba(231, 74, 59, 0.2);
-}
-
-.event-blocked .event-num,
-.event-blocked .event-day {
-    color: var(--danger) !important;
-}
-
 /* -- Modo escuro (SISTEMA DE ELEVAÇÃO) */
 [data-theme="escuro"] .card,
 [data-theme="escuro"] .filter-card {
     background-color: var(--fundo);
     border: 1px solid var(--borda);
-    /* Destaque iluminado no topo para gerar volume 3D em vez de sombra */
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.55) !important;
 }
 
 [data-theme="escuro"] .card-header {
@@ -352,7 +364,7 @@ label {
 @media (max-width: 768px) {
     .filter-card {
         padding: 14px;
-        border-radius: 14px;
+        border-radius: 16px;
         margin-bottom: 16px;
     }
 }
@@ -381,40 +393,38 @@ label {
 .table-custom tbody tr {
     background-color: var(--fundo);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    /* Sombra mais refinada */
-    border-radius: 12px;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 16px;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
     border: 1px solid transparent;
 }
 
 .table-custom tbody tr:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
     z-index: 1;
     position: relative;
-    border-color: var(--borda);
+    border-color: rgba(0, 0, 0, 0.05);
 }
 
 .table-custom tbody tr:active {
     transform: scale(0.995);
-    /* Feedback sutil na linha inteira */
 }
 
 .table-custom td {
     border: none;
-    padding: 16px;
+    padding: 18px 16px;
     vertical-align: middle;
     color: var(--black);
 }
 
 .table-custom td:first-child {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
 }
 
 .table-custom td:last-child {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
 }
 
 /* -- Modo escuro */
@@ -422,7 +432,6 @@ label {
     background-color: var(--fundo);
     color: var(--white);
     border: 1px solid var(--borda);
-    /* Bordas discretas em vez de sombra nítida */
     border-top: 1px solid rgba(255, 255, 255, 0.03);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -440,15 +449,31 @@ label {
     color: var(--descricao);
 }
 
-
 /* ============================================================
-   5. MODAIS E OFFCANVAS
+   5. MODAIS E OFFCANVAS (APPLE FEEL / BOTTOM SHEET)
    ============================================================ */
+/* -- Hierarquia de Camadas (Garante que cubram a Bottom Nav) */
+.offcanvas-backdrop {
+    z-index: 1060 !important;
+}
+
+.offcanvas {
+    z-index: 1070 !important;
+}
+
+.modal-backdrop {
+    z-index: 1080 !important;
+}
+
+.modal {
+    z-index: 1090 !important;
+}
+
 /* -- Estilos base */
 .modal-content {
     border: none;
-    border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
     overflow: hidden;
     background-color: var(--fundo);
     color: var(--black);
@@ -457,12 +482,13 @@ label {
 .modal-header {
     border-bottom: 1px solid var(--borda);
     background: var(--fundo);
-    padding: 18px 24px;
+    padding: 20px 24px;
     color: var(--black);
 }
 
 .modal-body {
     background-color: var(--fundo);
+    padding: 24px;
 }
 
 .modal-footer {
@@ -473,13 +499,14 @@ label {
 
 .modal-title {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
 }
 
+/* -- Offcanvas Config (Painel Lateral) -- */
 #offcanvasNotifications {
-    width: 380px;
+    width: 400px;
     border-left: none;
-    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.1);
 }
 
 .offcanvas-header,
@@ -490,89 +517,168 @@ label {
 
 .offcanvas-body {
     background-color: var(--body);
+    padding: 0;
 }
 
-/* -- Modo escuro */
+/* DOCK DE AÇÕES (Rodapé Efeito Vidro iOS) */
+.offcanvas-footer.dock-glass {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Efeito Ghost no Hover do Botão Destrutivo (Limpar Gaveta) */
+.offcanvas-footer .btn-link.text-danger {
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.offcanvas-footer .btn-link.text-danger:active {
+    opacity: 0.6;
+    transform: scale(0.96);
+}
+
+/* -- MODO ESCURO (Blindagem contra Bootstrap) */
 [data-theme="escuro"] .modal-content,
 [data-theme="escuro"] .offcanvas {
-    background-color: var(--fundo);
-    color: var(--white);
-    border-color: var(--borda);
+    background-color: var(--fundo) !important;
+    color: var(--white) !important;
+    border-color: var(--borda) !important;
 }
 
 [data-theme="escuro"] .modal-header,
 [data-theme="escuro"] .offcanvas-header {
-    background-color: var(--fundo);
-    border-color: var(--borda);
-    color: var(--white);
+    background-color: var(--fundo) !important;
+    border-color: var(--borda) !important;
+}
+
+/* MATADOR DE BOOTSTRAP: Força qualquer texto a ficar branco no cabeçalho */
+[data-theme="escuro"] .modal-header *,
+[data-theme="escuro"] .offcanvas-header * {
+    color: var(--white) !important;
 }
 
 [data-theme="escuro"] .modal-body,
 [data-theme="escuro"] .offcanvas-body {
-    background-color: var(--body);
-    color: var(--white);
+    background-color: var(--body) !important;
+    color: var(--white) !important;
 }
 
 [data-theme="escuro"] .modal-footer,
 [data-theme="escuro"] .offcanvas-footer {
-    background-color: var(--fundo);
-    border-color: var(--borda);
+    background-color: var(--fundo) !important;
+    border-color: var(--borda) !important;
 }
 
+/* Dock Glass no Modo Escuro */
+[data-theme="escuro"] .offcanvas-footer.dock-glass {
+    background: rgba(31, 41, 55, 0.85) !important;
+    /* Cor do fundo com transparência */
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Garante a inversão do X nativo do Bootstrap para branco */
 [data-theme="escuro"] .btn-close {
-    filter: invert(1) grayscale(100%) brightness(200%);
+    filter: invert(1) grayscale(100%) brightness(200%) !important;
+    opacity: 1 !important;
 }
 
-/* -- Responsividade */
+/* -- Responsividade (Bottom Sheet Nativo) */
 @media (max-width: 768px) {
     .modal-dialog {
-        margin: 12px;
-        max-width: calc(100% - 24px) !important;
+        margin: 0 !important;
+        display: flex;
+        align-items: flex-end;
+        min-height: 100%;
     }
 
     .modal-content {
-        border-radius: 24px;
+        border-radius: 24px 24px 0 0 !important;
+        width: 100%;
+        max-height: 90vh;
+        padding-bottom: 0;
     }
 
     .modal-header,
-    .modal-body,
+    .modal-body {
+        padding: 16px 20px;
+    }
+
     .modal-footer {
-        padding: 16px;
+        padding: 16px 20px calc(16px + env(safe-area-inset-bottom)) 20px !important;
+    }
+
+    /* Offcanvas ocupa 100% da largura em mobile */
+    .offcanvas {
+        width: 100% !important;
     }
 }
 
 
 /* ============================================================
-   6. NOTIFICAÇÕES E TOASTS
+   6. NOTIFICAÇÕES E TOASTS (FEED STYLE)
    ============================================================ */
 /* -- Estilos base */
+#notifications-list {
+    padding: 0;
+    margin: 0;
+}
+
 #notifications-list .list-group-item {
+    position: relative;
     background-color: var(--fundo);
     border: none;
     border-bottom: 1px solid var(--borda);
-    padding: 16px 20px !important;
+    padding: 20px 24px !important;
+    padding-right: 45px !important;
     margin-bottom: 0;
     transition: background-color 0.2s;
     color: var(--black);
+    border-left: 4px solid transparent;
 }
 
 #notifications-list .list-group-item:hover {
     background-color: var(--padrao-suave);
+    cursor: pointer;
 }
 
 #notifications-list .list-group-item.unread {
     border-left: 4px solid var(--padrao);
-    background-color: rgba(92, 142, 241, 0.03);
+    background-color: rgba(92, 142, 241, 0.04);
 }
 
+/* O Botão de Excluir (X) */
+#notifications-list .btn-delete-notification {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+    border: none;
+    background: transparent;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--descricao);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#notifications-list .btn-delete-notification:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger) !important;
+    transform: scale(1.1);
+}
+
+/* Toasts Flutuantes */
 .toast-container-stack {
     position: fixed;
-    top: 10px;
+    top: 20px;
     right: 20px;
     z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     pointer-events: none;
 }
 
@@ -581,32 +687,74 @@ label {
     background-color: var(--fundo);
     color: var(--black);
     border-left: 4px solid var(--padrao);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    border-radius: 8px;
-    padding: 12px;
-    width: 300px;
-    transition: transform 0.3s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    padding: 16px;
+    width: 320px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* -- Modo escuro */
+/* -- Edge to Edge Notificações no Mobile */
+@media (max-width: 768px) {
+    #notifications-list .list-group-item {
+        border-radius: 0;
+        padding: 16px 20px !important;
+        padding-right: 40px !important;
+    }
+
+    /* Adiciona a margem de segurança do polegar (Safe Area) para o Rodapé de Vidro no Celular */
+    #offcanvasNotifications .offcanvas-footer.dock-glass {
+        padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+    }
+}
+
+/* -- MODO ESCURO (Blindagem contra Bootstrap) */
 [data-theme="escuro"] #notifications-list .list-group-item {
-    background-color: var(--fundo);
-    border-bottom-color: var(--borda);
-    color: var(--white);
+    background-color: var(--fundo) !important;
+    border-bottom-color: var(--borda) !important;
+    color: var(--white) !important;
+}
+
+/* Força títulos de itens no feed a ficarem brancos */
+[data-theme="escuro"] #notifications-list .list-group-item h6,
+[data-theme="escuro"] #notifications-list .list-group-item .text-dark {
+    color: var(--white) !important;
+}
+
+/* Correção visual da mensagem de gaveta vazia */
+[data-theme="escuro"] #notifications-list .opacity-50 {
+    opacity: 0.8 !important;
+}
+
+[data-theme="escuro"] #notifications-list .text-muted {
+    color: #cbd5e1 !important;
 }
 
 [data-theme="escuro"] #notifications-list .list-group-item:hover {
-    background-color: #273549;
+    background-color: #273549 !important;
+}
+
+[data-theme="escuro"] #notifications-list .list-group-item.unread {
+    background-color: rgba(92, 142, 241, 0.08) !important;
+}
+
+[data-theme="escuro"] #notifications-list .btn-delete-notification {
+    color: var(--descricao) !important;
+}
+
+[data-theme="escuro"] #notifications-list .btn-delete-notification:hover {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: var(--danger) !important;
 }
 
 [data-theme="escuro"] .toast-pedido-2 {
-    background-color: #1f1f1f;
-    color: #f0f0f0;
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #374151 !important;
 }
 
-
 /* ============================================================
-   7. PLUGINS CUSTOMIZADOS (Selectize, Summernote, Flatpickr, SweetAlert2)
+   7. PLUGINS CUSTOMIZADOS (Selectize, Summernote, Flatpickr)
    ============================================================ */
 /* -- Selectize App Style */
 .selectize-input {
@@ -623,7 +771,7 @@ label {
 .selectize-input.focus {
     border-color: var(--padrao) !important;
     background: var(--fundo) !important;
-    box-shadow: 0 0 0 3px rgba(92, 142, 241, 0.15) !important;
+    box-shadow: 0 0 0 4px rgba(92, 142, 241, 0.15) !important;
 }
 
 .selectize-dropdown {
@@ -660,6 +808,8 @@ label {
     background-color: var(--fundo);
     color: var(--black);
     box-shadow: none;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 /* -- Modo escuro (Plugins) */
@@ -716,20 +866,20 @@ label {
 }
 
 [data-theme="escuro"] .note-editor.note-frame {
-    border-color: #4e5d6c;
-    background-color: #2b3e50;
+    border-color: #374151;
+    background-color: #1e293b;
     color: #fff;
 }
 
 [data-theme="escuro"] .note-editor .note-toolbar {
-    background-color: #4e5d6c;
-    border-bottom: 1px solid #20374c;
+    background-color: #0f172a;
+    border-bottom: 1px solid #374151;
     color: #fff;
 }
 
 [data-theme="escuro"] .note-editor .note-editing-area,
 [data-theme="escuro"] .note-editable {
-    background-color: #2b3e50 !important;
+    background-color: #1e293b !important;
     color: #fff !important;
 }
 
@@ -738,7 +888,7 @@ label {
     background-color: var(--fundo) !important;
     border: 1px solid var(--borda) !important;
     color: var(--white) !important;
-    border-radius: 20px !important;
+    border-radius: 24px !important;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5) !important;
 }
 
@@ -764,7 +914,7 @@ label {
 
 
 /* ============================================================
-   8. WIDGETS ISOLADOS (AUDITORIA E TABS)
+   8. WIDGETS ISOLADOS (AUDITORIA E TIMELINE)
    ============================================================ */
 /* -- Tabs Modernas (Estilo Pílulas) */
 .modern-tabs-wrapper {
@@ -799,39 +949,42 @@ label {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* -- Auditoria (Timeline) */
+/* -- Auditoria (Timeline Moderna) */
 .timeline-audit {
     position: relative;
-    padding-left: 24px;
+    padding-left: 32px;
     padding-top: 10px;
+    margin-bottom: 20px;
 }
 
 .timeline-audit::before {
     content: "";
     position: absolute;
-    left: 11px;
+    left: 15px;
     top: 0;
     bottom: 0;
     width: 2px;
     background: var(--borda);
+    border-radius: 2px;
 }
 
 .audit-item {
     position: relative;
-    margin-bottom: 24px;
+    margin-bottom: 30px;
 }
 
+/* Marcador da Timeline com Efeito Pulse */
 .audit-marker {
     position: absolute;
-    left: -29px;
+    left: -37px;
     top: 2px;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    background: var(--fundo);
-    border: 3px solid var(--padrao);
+    background: var(--white);
+    border: 4px solid var(--padrao);
     z-index: 2;
-    box-shadow: 0 0 0 4px var(--body);
+    box-shadow: 0 0 0 4px var(--fundo);
 }
 
 .audit-marker.UPDATE {
@@ -854,39 +1007,49 @@ label {
 .audit-header {
     display: flex;
     flex-direction: column;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .audit-user {
     font-weight: 700;
     color: var(--black);
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
 .audit-date {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--descricao);
+    font-weight: 500;
 }
 
+/* Tabela de Diff Arredondada */
 .audit-diff-table {
     width: 100%;
     font-size: 0.85rem;
-    background: var(--fundo);
-    border-radius: 12px;
+    background: var(--body);
+    border-radius: 14px;
     border: 1px solid var(--borda);
     overflow: hidden;
 }
 
 .audit-diff-table td {
-    padding: 8px 12px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--borda);
+    color: var(--black);
+}
+
+.audit-diff-table tr:last-child td {
+    border-bottom: none;
 }
 
 .diff-field {
-    font-weight: 600;
-    width: 30%;
+    font-weight: 700;
+    width: 35%;
     color: var(--descricao);
-    background: var(--body);
+    background: var(--fundo);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
 }
 
 /* -- Modo escuro (Widgets) */
@@ -910,15 +1073,20 @@ label {
 
 [data-theme="escuro"] .audit-marker {
     background: var(--fundo);
-    box-shadow: 0 0 0 4px var(--body);
+    box-shadow: 0 0 0 4px var(--fundo);
 }
 
 [data-theme="escuro"] .audit-diff-table {
-    background: var(--fundo);
+    background: #0f172a;
     border-color: var(--borda);
 }
 
+[data-theme="escuro"] .audit-diff-table td {
+    border-color: var(--borda);
+    color: var(--white);
+}
+
 [data-theme="escuro"] .diff-field {
-    background: var(--body);
-    color: var(--descricao);
+    background: var(--fundo);
+    color: #94a3b8;
 }

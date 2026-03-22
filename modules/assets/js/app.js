@@ -463,7 +463,7 @@ window.alertErrorWithSupport = (acao, mensagemErro) => {
   });
 };
 
-const handleToggle = async (validator, id, element, successMsg, labelSelector) => {
+const handleToggle = async (validator, id, element, successMsg, labelSelector, functionToCall = null) => {
   const $chk = $(element);
   const $wrapper = $chk.closest(".form-check");
   const $loader = $wrapper.find(".toggle-loader");
@@ -492,6 +492,7 @@ const handleToggle = async (validator, id, element, successMsg, labelSelector) =
     });
 
     if (result.status) {
+      functionToCall?.();
       window.alertDefault(successMsg, "success");
     } else {
       throw new Error(result.alert || "Erro ao atualizar");

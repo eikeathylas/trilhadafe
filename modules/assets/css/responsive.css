@@ -45,7 +45,7 @@
     .main-only {
         margin-left: 0 !important;
         /* Padding generoso no topo para o Header Mobile e cálculo de Safe Area para a Bottom Nav */
-        padding: 76px 16px calc(130px + env(safe-area-inset-bottom)) 16px !important;
+        padding: 60px 0px calc(30px + env(safe-area-inset-bottom)) 0px !important;
     }
 
     .main-only .row {

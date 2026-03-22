@@ -124,39 +124,48 @@ window.renderNotifications = (data) => {
     let unreadCount = 0;
 
     if (!data || data.length === 0) {
-        list.html(`<div class="text-center p-5 opacity-50"><span class="material-symbols-outlined" style="font-size: 40px;">notifications_paused</span><p class="mt-2 text-muted small">Tudo limpo por aqui.</p></div>`);
+        list.html(`<div class="text-center p-5 mt-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background-color: rgba(133, 135, 150, 0.1);">
+                            <span class="material-symbols-outlined text-muted" style="font-size: 36px;">notifications_paused</span>
+                        </div>
+                        <h6 class="fw-bold text-body">Tudo limpo por aqui.</h6>
+                        <p class="text-muted small">Você não tem novos alertas.</p>
+                    </div>`);
         footer.addClass('d-none');
     } else {
         footer.removeClass('d-none');
         data.forEach(notif => {
             if (!notif.read_at) unreadCount++;
 
-            const isUnreadClass = !notif.read_at ? 'unread bg-primary bg-opacity-10' : '';
+            const isUnreadClass = !notif.read_at ? 'unread' : '';
             const iconColor = notif.type === 'SUCCESS' ? 'text-success' : (notif.type === 'DANGER' ? 'text-danger' : 'text-primary');
             const icon = notif.type === 'SUCCESS' ? 'check_circle' : (notif.type === 'DANGER' ? 'error' : 'info');
 
             list.append(`
-                <div class="list-group-item ${isUnreadClass}" id="notif-item-${notif.notification_id}">
-                    <button class="btn-delete-notification" onclick="window.deleteNotification(${notif.notification_id}, event)">
-                        <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
-                    </button>
-
-                    <div class="pe-2">
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                            <h6 class="mb-0 fw-bold d-flex align-items-center" style="font-size: 0.85rem;">
-                                <span class="material-symbols-outlined me-2 ${iconColor}" style="font-size: 18px;">${icon}</span>
-                                ${notif.title}
-                            </h6>
+                <div class="list-group-item ${isUnreadClass} border-bottom p-3" id="notif-item-${notif.notification_id}" style="border-left: none; border-right: none; border-radius: 0;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        
+                        <div class="d-flex gap-2 w-100">
+                            <span class="material-symbols-outlined ${iconColor}" style="font-size: 22px; margin-top: 1px;">${icon}</span>
+                            <div class="flex-grow-1 pe-2">
+                                <h6 class="mb-1 fw-bold text-body" style="font-size: 0.9rem;">${notif.title}</h6>
+                                <p class="mb-3 text-muted" style="font-size: 0.85rem; line-height: 1.4;">${notif.message}</p>
+                                
+                                <div class="d-flex align-items-center justify-content-between">
+                                    ${notif.action_url && notif.action_url !== '#' ? `
+                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" onclick="window.notifAction('${notif.action_url}', ${notif.notification_id})" style="font-size: 0.75rem;">
+                                        Ver detalhes
+                                    </button>
+                                    ` : '<div></div>'}
+                                    <span class="text-body fw-medium" style="font-size: 0.75rem;">${notif.time_ago || 'Hoje'}</span>
+                                </div>
+                            </div>
                         </div>
-                        <p class="mb-2 small ms-4" style="line-height: 1.3;">
-                            ${notif.message}
-                        </p>
-                        <div class="d-flex align-items-center justify-content-between ms-4">
-                            <button class="btn btn-sm btn-outline-primary btn-notif-action px-3" onclick="window.notifAction('${notif.action_url}', ${notif.notification_id})" style="font-size: 0.7rem; border-radius: 20px;">
-                                Ver detalhes
-                            </button>
-                            <small class=" style="font-size: 0.65rem;">${notif.time_ago}</small>
-                        </div>
+                        
+                        <button class="btn btn-sm btn-link text-muted p-0" onclick="window.deleteNotification(${notif.notification_id}, event)" title="Excluir" style="height: 24px; width: 24px; flex-shrink: 0; transition: color 0.2s;">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">close</span>
+                        </button>
+                        
                     </div>
                 </div>
             `);

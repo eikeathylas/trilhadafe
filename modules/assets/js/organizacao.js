@@ -215,9 +215,9 @@ const renderTableDiocese = (data) => {
       return `
         <tr>
             <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">${info.i}</span></div></td>
-            <td><div class="fw-bold text-dark">${item.display_name}</div><small class="text-sub">${item.phone_main || "-"}</small></td>
+            <td><div class="fw-bold text-body">${item.display_name}</div><small class="text-sub">${item.phone_main || "-"}</small></td>
             <td class="text-center"><span class="badge" style="background-color: var(--padrao); color: var(--white);">${info.l}</span></td>
-            <td><div class="text-dark font-weight-500">${item.city_state || "-"}</div></td>
+            <td><div class="text-body font-weight-500">${item.city_state || "-"}</div></td>
             <td class="text-center align-middle">${getToggleHtml(item.org_id, item.is_active)}</td>
             <td class="text-end pe-3">
                 <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
@@ -365,9 +365,9 @@ const renderTableOrgs = (data) => {
       return `
         <tr>
             <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">${info.i}</span></div></td>
-            <td><div class="fw-bold text-dark">${item.display_name}</div><small class="text-sub">${item.phone_main || "-"}</small></td>
+            <td><div class="fw-bold text-body">${item.display_name}</div><small class="text-sub">${item.phone_main || "-"}</small></td>
             <td class="text-center"><span class="badge" style="background-color: var(--padrao); color: var(--white);">${info.l}</span></td>
-            <td><div class="text-dark font-weight-500">${item.city_state || "-"}</div></td>
+            <td><div class="text-body font-weight-500">${item.city_state || "-"}</div></td>
             <td class="text-center align-middle">${getToggleHtml(item.org_id, item.is_active)}</td>
             <td class="text-end pe-3">
                 <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
@@ -539,8 +539,8 @@ const renderTableLocais = (data) => {
 
       return `<tr>
             <td style="width: 60px;"><div class="icon-circle"><span class="material-symbols-outlined">meeting_room</span></div></td>
-            <td><div class="fw-bold text-dark">${item.name}</div><small class="text-sub">${item.org_name || ""}</small></td>
-            <td class="text-center"><span class="fw-bold text-dark">${item.capacity || 0}</span></td>
+            <td><div class="fw-bold text-body">${item.name}</div><small class="text-sub">${item.org_name || ""}</small></td>
+            <td class="text-center"><span class="fw-bold text-body">${item.capacity || 0}</span></td>
             <td class="text-center fs-6"><div class="d-flex justify-content-center flex-wrap gap-1">${icons || "-"}</div></td>
             <td class="text-center align-middle">${getToggleHtml(item.location_id, item.is_active)}</td>
             <td class="text-end pe-3">

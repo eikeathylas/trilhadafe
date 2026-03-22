@@ -42,8 +42,12 @@
 
 @media (max-width: 480px) {
     .main-only {
-        /* Ajuste fino lateral para telas muito pequenas */
-        padding: 76px 12px calc(120px + env(safe-area-inset-bottom)) 12px !important;
+        padding-top: 85px !important;
+        /* 65px do header + 20px de respiro */
+        padding-bottom: 120px !important;
+        /* Espaço total para a Bottom Nav + margem de segurança */
+        background-color: var(--body) !important;
+        min-height: 100vh;
     }
 
     .main-only .row {
@@ -59,7 +63,7 @@
 .list-commanded {
     position: relative;
     background-color: var(--fundo);
-    padding: 20px;
+    padding: 10px;
     border-radius: 10px;
     height: 100%;
     border: 1px solid var(--borda);

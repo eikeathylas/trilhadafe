@@ -1,14 +1,22 @@
 @import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900);
 
 /* ============================================================
-   1. RESET E VARIÁVEIS GLOBAIS (TRUE DARK PALETTE)
+   1. RESET E VARIÁVEIS GLOBAIS (TRUE DARK E APPLE FEEL)
    ============================================================ */
-/* -- Estilos base */
+/* -- Estilos base e Resets Nativos */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Inter", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  /* Remove o piscar cinza nativo do Android ao tocar */
+}
+
+/* -- Seleção de Texto Customizada -- */
+::selection {
+  background-color: rgba(92, 142, 241, 0.2);
+  color: var(--padrao1);
 }
 
 :root,
@@ -40,6 +48,9 @@ body {
   color: var(--black);
   transition: background-color 0.3s, color 0.3s;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
+  /* Evita o "pulo" elástico do navegador parecendo um site comum */
+
   /* Evita o zoom automático do iOS em inputs */
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
@@ -67,7 +78,7 @@ body {
   /* Borda super sutil */
 
   /* Textos */
-  --white: #0f172a;
+  --white: #ffffff;
   /* Inversão do branco para fundos */
   --black: #f8fafc;
   /* Textos principais (Branco Gelo) */
@@ -77,6 +88,12 @@ body {
   --danger: #ef4444;
   --success: #10b981;
   --warning: #f59e0b;
+}
+
+/* Seleção de Texto no Modo Escuro */
+[data-theme="escuro"] ::selection {
+  background-color: rgba(92, 142, 241, 0.3);
+  color: #ffffff;
 }
 
 /* Força herança de cor de texto para headers e globais no Dark */
@@ -111,7 +128,38 @@ body {
 }
 
 /* ============================================================
-   2. UTILITÁRIOS GLOBAIS
+   2. CUSTOMIZAÇÃO SCROLLBAR (macOS STYLE)
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Scrollbar no Modo Escuro */
+[data-theme="escuro"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="escuro"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+
+/* ============================================================
+   3. UTILITÁRIOS GLOBAIS
    ============================================================ */
 /* -- Estilos base */
 .txt-theme {
@@ -168,7 +216,7 @@ body {
 }
 
 /* ============================================================
-   3. ANIMAÇÕES E LOADERS GLOBAIS
+   4. ANIMAÇÕES E LOADERS GLOBAIS
    ============================================================ */
 /* -- Estilos base */
 .div-loader {
@@ -183,6 +231,7 @@ body {
   background: rgba(255, 255, 255, 0.85);
   z-index: 10000;
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .loader {
@@ -235,3 +284,49 @@ body {
 [data-theme="escuro"] .div-loader {
   background: rgba(15, 23, 42, 0.9);
 }
+
+
+
+
+
+/* ==========================================================
+   CORREÇÃO DEFINITIVA: BADGE DE NOTIFICAÇÃO (SINO)
+   ========================================================== */
+.badge-app-feel {
+    position: absolute !important;
+    top: -2px !important;      /* Cola no topo do ícone pai */
+    right: -2px !important;   /* Desliza levemente para fora da borda direita */
+    
+    /* Zera margens, transforms e limites do Bootstrap */
+    margin: 0 !important;
+    transform: none !important;
+    
+    /* Dimensionamento Inteligente (Pílula Perfeita) */
+    min-width: 20px !important; 
+    height: 22px !important;
+    padding: 0 6px !important; 
+    
+    /* Centralização do Texto */
+    display: flex;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* Tipografia e Estilo Base */
+    font-size: 0.70rem !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    border-radius: 100px !important; /* Arredondamento extremo */
+    background-color: var(--danger) !important;
+    color: #ffffff !important;
+    z-index: 10 !important;
+}
+
+/* Efeito de Recorte (Cutout) para separar visualmente o badge do ícone */
+#mob-notif-badge { border: 2px solid #ffffff !important; }
+#desk-notif-badge { border: 2px solid var(--fundo) !important; }
+
+/* ==========================================================
+   EFEITO DE RECORTE (CUTOUT) NO MODO ESCURO
+   ========================================================== */
+[data-theme="escuro"] #mob-notif-badge { border-color: var(--padrao1) !important; }
+[data-theme="escuro"] #desk-notif-badge { border-color: var(--fundo) !important; }

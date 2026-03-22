@@ -22,12 +22,15 @@
 
         <div class="main-only">
 
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="dashboard.php">Painel</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Gestão de Usuários</li>
-                </ol>
-            </nav>
+            <div class="d-flex align-items-center mb-4">
+                <nav aria-label="breadcrumb" class="w-100">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.2rem;">
+                            Gestão de Usuários
+                        </li>
+                    </ol>
+                </nav>
+            </div>
 
             <div class="card list-commanded border-0 shadow-sm mb-4 rounded-4 bg-transparent-card">
                 <div class="card-body p-3 p-md-4">

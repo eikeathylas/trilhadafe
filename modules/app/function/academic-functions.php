@@ -56,6 +56,7 @@ function getSubjectData($id)
             WHERE
                 subject_id = :id
                 AND deleted IS FALSE
+            ORDER BY name ASC
             LIMIT 1
         SQL;
 

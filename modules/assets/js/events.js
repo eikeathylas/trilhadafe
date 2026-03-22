@@ -79,51 +79,62 @@ const renderTableEvents = (data) => {
 
   if (data.length === 0) {
     container.html(`
-            <div class="text-center py-5 text-muted opacity-50">
-                <span class="material-symbols-outlined fs-1">event_busy</span>
-                <p class="mt-2">Nenhum evento encontrado.</p>
-            </div>
-        `);
+        <div class="text-center py-5 text-muted opacity-50">
+            <span class="material-symbols-outlined fs-1">event_busy</span>
+            <p class="mt-2">Nenhum evento encontrado.</p>
+        </div>
+    `);
     return;
   }
 
+  // Helper para Status no Desktop (Badge)
   const getBlockerLabel = (is) =>
     is
-      ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado/Bloqueio <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>'
-      : '<span class="badge bg-success-subtle text-success border border-success">Agenda Aberta</span>';
+      ? '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1" style="cursor: help;" title="Feriado/Sem Aula">Bloqueado <i class="fas fa-lock ms-1 opacity-75"></i></span>'
+      : '<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1">Liberado <i class="fas fa-lock-open ms-1 opacity-75"></i></span>';
 
+  // Helper para Status no Mobile (Ícone Limpo)
+  const getStatusIconHtml = (is) =>
+    is
+      ? `<span title="Bloqueado (Feriado)" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px;"><i class="fas fa-lock"></i></span>`
+      : `<span title="Liberado (Dia Letivo)" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px;"><i class="fas fa-lock-open"></i></span>`;
+
+  // =========================================================
+  // 1. VISÃO DESKTOP (TABELA CLEAN)
+  // =========================================================
   let desktopRows = data
     .map((item) => {
-      const timeInfo = item.start_time ? `<small class="text-muted d-block"><i class="far fa-clock me-1"></i> ${item.start_time}</small>` : "";
+      const timeInfo = item.start_time ? `<small class="text-secondary d-block"><i class="far fa-clock me-1 opacity-50"></i> ${item.start_time}</small>` : `<small class="text-secondary d-block"><i class="far fa-clock me-1 opacity-50"></i> Dia todo</small>`;
 
       const toggleHtml = `
-        <div class="form-check form-switch d-flex justify-content-center align-items-center">
-            <input class="form-check-input" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
-            <label class="form-check-label ms-2" id="lbl_${item.event_id}">
+        <div class="d-flex align-items-center justify-content-center">
+            <div class="form-check form-switch mb-0 d-flex align-items-center">
+                <input class="form-check-input shadow-sm m-0" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer;">
+            </div>
+            <div id="lbl_desk_${item.event_id}" class="ms-2">
                 ${getBlockerLabel(item.is_academic_blocker)}
-            </label>
+            </div>
         </div>`;
 
       return `
         <tr>
-            <td class="align-middle ps-3" width="60">
-                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
-                    <span class="material-symbols-outlined">event</span>
+            <td class="align-middle ps-3" style="width: 60px;">
+                <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">event</span>
                 </div>
             </td>
             <td class="align-middle">
-                <div class="fw-bold text-body">${item.title}</div>
-                <div class="small text-muted text-truncate" style="max-width: 300px;">${item.description || "Sem descrição"}</div>
+                <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.title}</div>
+                <div class="small text-secondary text-truncate" style="max-width: 300px;">${item.description || "Sem anotações"}</div>
             </td>
             <td class="align-middle">
                 <div class="fw-bold text-body">${item.date_fmt}</div>
                 ${timeInfo}
             </td>
-            <td class="align-middle text-center" width="200">
+            <td class="align-middle text-center" style="width: 220px;">
                 ${toggleHtml}
             </td>
-            <td class="align-middle text-end pe-3">
+            <td class="align-middle text-end pe-3 text-nowrap">
                 <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
                 <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
                 <button class="btn-icon-action text-danger" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
@@ -132,51 +143,48 @@ const renderTableEvents = (data) => {
     })
     .join("");
 
+  // =========================================================
+  // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG)
+  // =========================================================
   let mobileRows = data
     .map((item) => {
-      const toggleHtml = `
-        <div class="form-check form-switch mb-0 d-flex justify-content-end">
-            <input class="form-check-input m-0" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
-        </div>`;
-
-      const statusText = item.is_academic_blocker
-        ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado/Bloqueio <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>'
-        : '<span class="badge bg-success-subtle text-success border border-success">Agenda Aberta</span>';
-
       return `
-        <div class="mobile-card p-3 mb-3 border rounded-4 shadow-sm position-relative">
-            <div class="d-flex align-items-center">
-                
-                <div class="event-date-box me-3 text-center border border-secondary border-opacity-10 bg-secondary bg-opacity-10 p-2 rounded-3" style="min-width: 65px;">
-                    <div class="text-uppercase fw-bold text-secondary mb-1 lh-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">${item.day_week || "DIA"}</div>
-                    <div class="h5 fw-bold mb-0 lh-1 text-body">${item.date_fmt.split("/")[0]}/${item.date_fmt.split("/")[1]}</div>
-                </div>
-                
-                <div class="flex-grow-1 pe-2">
-                    <h6 class="fw-bold mb-1 fs-5">${item.title}</h6>
-                    <div class="small text-muted fw-medium d-flex align-items-center">
-                        <i class="far fa-clock me-2 opacity-50"></i> ${item.start_time ? item.start_time : "Dia todo"}
+        <div class="ios-list-item">
+            <div class="me-3">
+                <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 bg-body shadow-sm overflow-hidden" style="width: 54px; height: 58px; border-radius: 10px;">
+                    <div class="text-uppercase fw-bold bg-danger text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.6rem; height: 18px; letter-spacing: 0.5px;">
+                        ${item.day_week || "DIA"}
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center flex-grow-1 bg-body">
+                        <span class="fs-4 fw-bold text-body lh-1">${item.date_fmt.split("/")[0]}</span>
                     </div>
                 </div>
-                
-                <div class="d-flex flex-column align-items-end justify-content-center">
-                    ${toggleHtml}
-                    <div id="lbl_mob_${item.event_id}" class="mt-2">${statusText}</div>
-                </div>
-                
             </div>
             
-            <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-                <button class="btn-icon-action text-warning bg-warning bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log">
-                    <i class="fas fa-bolt"></i>
-                </button>
-                <button class="btn-icon-action text-primary bg-primary bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="editEvent(${item.event_id}, this)" title="Editar">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button class="btn-icon-action text-danger bg-danger bg-opacity-10 border-0 rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteEvent(${item.event_id})" title="Excluir">
-                    <i class="fas fa-trash"></i>
-                </button>
+            <div class="flex-grow-1 d-flex flex-column justify-content-center py-1" style="min-width: 0;">
+                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                    <h6 class="fw-bold text-body m-0" style="font-size: 1rem;">${item.title}</h6>
+                </div>
+                <div class="d-flex align-items-center gap-3 mt-1">
+                    <span class="text-secondary" style="font-size: 0.8rem;"><i class="far fa-clock me-1 opacity-50"></i> ${item.start_time ? item.start_time : "Dia todo"}</span>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-3" style="min-width: 90px;">
+                <div class="d-flex align-items-center justify-content-end gap-1 w-100">
+                    <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                        <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
+                        <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
+                    </div>
+                    <div id="lbl_mob_${item.event_id}">
+                        ${getStatusIconHtml(item.is_academic_blocker)}
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+                    <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+                    <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                </div>
             </div>
         </div>`;
     })
@@ -187,16 +195,16 @@ const renderTableEvents = (data) => {
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th colspan="2" class="ps-3">Evento</th>
-                    <th>Data/Hora</th>
-                    <th class="text-center">Tipo (Bloqueio)</th>
-                    <th class="text-end pe-4">Ações</th>
+                    <th colspan="2" class="ps-3 text-secondary text-uppercase" style="font-size: 0.75rem;">Evento</th>
+                    <th class="text-secondary text-uppercase" style="font-size: 0.75rem;">Data/Hora</th>
+                    <th class="text-center text-secondary text-uppercase" style="font-size: 0.75rem;">Status (Feriado)</th>
+                    <th class="text-end pe-4 text-secondary text-uppercase" style="font-size: 0.75rem;">Ações</th>
                 </tr>
             </thead>
             <tbody>${desktopRows}</tbody>
         </table>
     </div>
-    <div class="d-md-none">${mobileRows}</div>
+    <div class="d-md-none ios-list-container">${mobileRows}</div>
   `);
 
   _generatePaginationButtons("pagination-events", "currentPage", "totalPages", "changePage", defaultEvents);
@@ -207,11 +215,17 @@ window.toggleBlocker = async (id, element) => {
   const $loader = $chk.siblings(".toggle-loader");
   const status = $chk.is(":checked");
 
-  const $labels = $(`#lbl_${id}, #lbl_mob_${id}`);
+  const $labelDesk = $(`#lbl_desk_${id}`);
+  const $labelMob = $(`#lbl_mob_${id}`);
 
   const setVisualState = (isBlocker) => {
-    const badge = isBlocker ? '<span class="badge bg-danger-subtle text-danger border border-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)">Feriado/Bloqueio <i class="fas fa-circle-info text-danger" style="cursor: help;" title="Quando ativo, não haverá aula (Feriado acadêmico)"></i></span>' : '<span class="badge bg-success-subtle text-success border border-success">Agenda Aberta</span>';
-    $labels.html(badge);
+    // Atualiza Desktop
+    const badgeDesk = isBlocker ? '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1" style="cursor: help;" title="Feriado/Sem Aula">Bloqueado <i class="fas fa-lock ms-1 opacity-75"></i></span>' : '<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1">Liberado <i class="fas fa-lock-open ms-1 opacity-75"></i></span>';
+    $labelDesk.html(badgeDesk);
+
+    // Atualiza Mobile (Ícone Redondo Sólido)
+    const iconMob = isBlocker ? `<div title="Bloqueado (Feriado)" class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 16px; height: 16px; font-size: 0.6rem;"><i class="fas fa-times"></i></div>` : `<div title="Liberado (Dia Letivo)" class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 16px; height: 16px; font-size: 0.6rem;"><i class="fas fa-check"></i></div>`;
+    $labelMob.html(iconMob);
   };
 
   try {
@@ -228,7 +242,7 @@ window.toggleBlocker = async (id, element) => {
     });
 
     if (res.status) {
-      window.alertDefault("Status do calendário atualizado.", "success");
+      // Opcional: Toast de sucesso silencioso
     } else {
       throw new Error(res.msg || res.alert || "O servidor não permitiu alterar o bloqueio deste evento.");
     }
@@ -236,7 +250,7 @@ window.toggleBlocker = async (id, element) => {
     $chk.prop("checked", !status);
     setVisualState(!status);
 
-    const errorMessage = e.message || "Falha de conexão ao tentar atualizar o bloqueio.";
+    const errorMessage = e.message || "Falha de conexão ao tentar atualizar o status.";
     window.alertErrorWithSupport(`Alternar Bloqueio de Agenda`, errorMessage);
   } finally {
     $chk.prop("disabled", false);
@@ -248,7 +262,7 @@ window.openEventModal = () => {
   $("#formEvent")[0].reset();
   $("#event_id").val("");
   $("#modalEventTitle").text("Novo Evento");
-  fpEventDate.clear();
+  if (fpEventDate) fpEventDate.clear();
   $("#modalEvent").modal("show");
 };
 
@@ -269,23 +283,20 @@ window.editEvent = async (id, btn) => {
       $("#evt_title").val(d.title);
       $("#evt_desc").val(d.description);
 
-      if (typeof fpEventDate !== "undefined") {
-        fpEventDate.setDate(d.event_date);
-      }
+      if (fpEventDate) fpEventDate.setDate(d.event_date);
 
       $("#evt_start").val(d.start_time);
       $("#evt_end").val(d.end_time);
 
       $("#evt_blocker").prop("checked", d.is_academic_blocker === true || d.is_academic_blocker === "t" || d.is_academic_blocker === 1);
 
-      $("#modalEventTitle").text("Editar Evento");
+      $("#modalEventTitle").html('<i class="fas fa-pen me-2 opacity-75"></i> Editar Evento');
       $("#modalEvent").modal("show");
     } else {
       throw new Error(res.alert || res.msg || "O servidor não retornou os dados deste evento.");
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar o evento.";
-
     window.alertErrorWithSupport(`Abrir Edição de Evento`, errorMessage);
   } finally {
     window.setButton(false, btn);
@@ -330,9 +341,7 @@ window.saveEvent = async (btn) => {
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar o evento.";
-
     const acaoContexto = id ? `Editar Evento` : "Criar Novo Evento";
-
     window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
     window.setButton(false, btn);

@@ -270,6 +270,8 @@
     .main-only {
         display: flex;
         flex-direction: column;
+        min-height: 100vh;
+        /* Garante altura total para empurrar o footer para baixo */
     }
 
     /* Filtros proporcionais no Desktop (Aproveitamento inteligente de tela) */
@@ -287,9 +289,12 @@
    ============================================================ */
 /* Empurra o footer sempre para o final da tela (Graças ao flex do main-only) */
 .sticky-footer {
+    display: block;
     margin-top: auto !important;
     width: 100%;
     background: transparent;
+    padding-top: 30px;
+    /* Dá um respiro entre o conteúdo e o rodapé */
 }
 
 /* -- MODO ESCURO (Sobrescrevendo as utilitárias do Bootstrap) -- */

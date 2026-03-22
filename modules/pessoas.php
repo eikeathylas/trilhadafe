@@ -20,65 +20,68 @@
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
-    <div class="container">
-
-        <div class="main-only">
-
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="dashboard.php">Painel</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Diretório de Pessoas</li>
+    <div class="main-only px-0 px-md-3">
+        <div class="d-none d-md-flex align-items-center mb-4 mt-3">
+            <nav aria-label="breadcrumb" class="w-100">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.2rem;">
+                        Gestão de Pessoas
+                    </li>
                 </ol>
             </nav>
-
-            <div class="card list-commanded border-0 shadow-sm mb-4 rounded-4 bg-transparent-card">
-                <div class="card-body p-3 p-md-4">
-                    <div class="row g-3 align-items-end">
-
-                        <div class="col-12 col-md-3">
-                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="filtro-role" style="letter-spacing: 0.5px;">
-                                <i class="fas fa-filter me-1 opacity-50"></i> Filtrar por Função
-                            </label>
-                            <select id="filtro-role" class="form-control" placeholder="Todos...">
-                                <option value="">Todos</option>
-                                <option value="STUDENT">Catequizandos</option>
-                                <option value="CATECHIST">Catequistas</option>
-                                <option value="PRIEST">Clero</option>
-                                <option value="PARENT">Responsáveis</option>
-                            </select>
-                        </div>
-
-                        <div class="col-12 col-md-5">
-                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="busca-texto" style="letter-spacing: 0.5px;">
-                                <i class="fas fa-search me-1 opacity-50"></i> Buscar
-                            </label>
-                            <input type="text" id="busca-texto" class="form-control" placeholder="Nome, CPF ou Email...">
-                        </div>
-
-                        <div class="col-12 col-md-4 d-grid d-md-block mt-3 mt-md-0">
-                            <button class="btn btn-primary fw-bold shadow-sm w-100" style="height: 42px;" onclick="modalPessoa()">
-                                <i class="fas fa-user-plus me-2"></i> Nova Pessoa
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <div class="card list-commanded mb-4 border-0 shadow-sm">
-                <div class="card-body px-0 pt-4">
-                    <div class="table-responsive list-table-pessoas" style="max-height: 600px;">
-                        <div class="text-center py-5 opacity-50">
-                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-                            <p class="mt-3 fw-medium">Carregando diretório de pessoas...</p>
-                        </div>
-                    </div>
-                    <div class="pagination paginationButtons pagination-pessoas mt-3 text-center justify-content-center"></div>
-                </div>
-            </div>
-
-            <?php include "./assets/components/Footer.php"; ?>
         </div>
+
+        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-0 rounded-md-4 bg-transparent-card">
+            <div class="card-body p-3 p-md-4">
+                <div class="row g-2 g-md-3 align-items-end">
+
+                    <div class="col-12 d-md-none mb-2">
+                        <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Gestão de Pessoas</h4>
+                    </div>
+
+                    <div class="col-8 col-md-5">
+                        <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="busca-texto" style="letter-spacing: 0.5px;">
+                            <i class="fas fa-search me-1 opacity-50"></i> Buscar
+                        </label>
+                        <input type="text" id="busca-texto" class="form-control shadow-sm" placeholder="Buscar...">
+                    </div>
+
+                    <div class="col-4 col-md-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="filtro-role" style="letter-spacing: 0.5px;">
+                            <i class="fas fa-filter me-1 opacity-50"></i> Função
+                        </label>
+                        <select id="filtro-role" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="STUDENT">Catequizandos</option>
+                            <option value="CATECHIST">Catequistas</option>
+                            <option value="PRIEST">Clero</option>
+                            <option value="PARENT">Responsáveis</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4 d-grid d-md-block mt-2 mt-md-0">
+                        <button class="btn btn-primary fw-bold shadow-sm w-100" style="height: 42px; border-radius: 12px;" onclick="modalPessoa()">
+                            <i class="fas fa-user-plus me-2"></i> <span class="d-none d-md-inline">Nova Pessoa</span><span class="d-inline d-md-none">Adicionar</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-0 rounded-md-4">
+            <div class="card-body p-0 pt-md-4 px-md-0">
+                <div class="table-responsive list-table-pessoas" style="max-height: 70vh;">
+                    <div class="text-center py-5 opacity-50">
+                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <p class="mt-3 fw-medium">Carregando diretório...</p>
+                    </div>
+                </div>
+                <div class="pagination paginationButtons pagination-pessoas mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
+            </div>
+        </div>
+
+        <?php include "./assets/components/Footer.php"; ?>
     </div>
 
     <div class="modal fade" id="modalPessoa" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
@@ -310,7 +313,7 @@
                                                 <input class="form-check-input fs-4 shadow-none m-0" type="checkbox" id="role_priest" onclick="event.stopPropagation()" />
                                             </div>
                                             <div>
-                                                <h6 class="mb-1 fw-bold text-dark">Clero (Padre / Diácono)</h6>
+                                                <h6 class="mb-1 fw-bold text-secondary">Clero (Padre / Diácono)</h6>
                                                 <small class="text-muted lh-sm d-block opacity-75">Permite celebrar sacramentos, missas e assinar documentos oficiais.</small>
                                             </div>
                                         </div>

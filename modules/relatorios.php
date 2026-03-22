@@ -18,11 +18,14 @@
     <div class="container">
         <div class="main-only">
 
-            <div class="d-flex justify-content-between align-items-center mb-4 no-print mt-5">
-                <div>
-                    <h4 class="fw-bold mb-1 title fs-3">Central de Relatórios</h4>
-                    <p class="text-muted small mb-0 opacity-75">Gestão modular e centralizada de documentos.</p>
-                </div>
+            <div class="d-flex align-items-center mb-4">
+                <nav aria-label="breadcrumb" class="w-100">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.2rem;">
+                            Central de Relatórios
+                        </li>
+                    </ol>
+                </nav>
             </div>
 
             <div class="card border-0 shadow-sm mb-4 rounded-4 bg-transparent-card no-print">

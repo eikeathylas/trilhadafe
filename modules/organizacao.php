@@ -19,12 +19,15 @@
     <div class="container">
         <div class="main-only">
 
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="dashboard.php">Painel</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Organização</li>
-                </ol>
-            </nav>
+            <div class="d-flex align-items-center mb-4">
+                <nav aria-label="breadcrumb" class="w-100">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.2rem;">
+                            Gestão das Organizações
+                        </li>
+                    </ol>
+                </nav>
+            </div>
 
             <div class="card list-commanded border-0 shadow-sm mb-4">
                 <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0 px-0">

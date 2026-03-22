@@ -40,7 +40,7 @@ function getAllEventsF($data)
                 is_academic_blocker
             FROM organization.events
             $where
-            ORDER BY event_date ASC
+            ORDER BY event_date ASC, title ASC
             LIMIT :limit OFFSET :offset
         SQL;
 

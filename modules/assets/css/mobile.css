@@ -15,22 +15,17 @@
    ============================================================ */
 .bottom-nav,
 .modern-bottom-nav {
-    /* A exibição (display: flex) será ativada no responsive.css */
     position: fixed;
-    /* Proteção nativa para iPhones: Evita conflito com a barra de navegação do iOS */
-    bottom: calc(20px + env(safe-area-inset-bottom));
-    left: 20px;
-    right: 20px;
-    height: 70px;
-
-    /* Efeito Glassmorphism (Vidro Desfocado) */
+    bottom: calc(15px + env(safe-area-inset-bottom));
+    left: 15px;
+    right: 15px;
+    height: 72px;
     background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 24px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.03);
     z-index: 1050;
     justify-content: space-around;
     align-items: center;
@@ -45,24 +40,30 @@
     justify-content: center;
     color: var(--descricao) !important;
     text-decoration: none !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     flex: 1;
     height: 100%;
-    gap: 2px;
+}
+
+.bottom-nav-item:active,
+.modern-bottom-nav-item:active {
+    transform: scale(0.92) !important;
+    opacity: 0.7;
+    transition: transform 0.1s ease !important;
 }
 
 .bottom-nav-item .material-symbols-outlined {
     font-size: 24px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 6px 16px;
-    border-radius: 16px;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    padding: 4px 20px;
+    border-radius: 100px;
     background: transparent;
 }
 
 .bottom-nav-item span:last-child {
     font-size: 0.65rem;
-    font-weight: 600;
-    opacity: 0.7;
+    font-weight: 500;
+    opacity: 0.6;
     transition: all 0.3s ease;
 }
 
@@ -71,24 +72,24 @@
     color: var(--padrao) !important;
 }
 
-/* Estado Ativo (Pílula Flutuante com Micro-interação) */
-.bottom-nav-item.active {
+.bottom-nav-item.active,
+.modern-bottom-nav-item.active {
+    transform: scale(1.05) !important;
     color: var(--padrao) !important;
 }
 
-.bottom-nav-item.active .material-symbols-outlined {
-    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
-    background: rgba(92, 142, 241, 0.15) !important;
+.bottom-nav-item.active .material-symbols-outlined,
+.modern-bottom-nav-item.active .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24 !important;
     color: var(--padrao) !important;
-    transform: translateY(-4px);
-    /* Pulo suave do ícone */
-}
-
-.bottom-nav-item.active span:last-child {
-    opacity: 1;
-    font-weight: 800;
     transform: translateY(-2px);
-    /* Pulo suave do texto */
+}
+
+.bottom-nav-item.active span:last-child,
+.modern-bottom-nav-item.active span:last-child {
+    font-weight: 800 !important;
+    opacity: 1 !important;
+    transform: translateY(-1px);
 }
 
 /* ============================================================
@@ -99,11 +100,11 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 60px;
+    height: 65px;
     z-index: 1030;
     background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     padding: 0 16px;
     align-items: center;
@@ -115,13 +116,23 @@
    ============================================================ */
 .mobile-card {
     border: 1px solid var(--borda);
-    border-radius: 14px;
+    border-radius: 16px;
     background-color: var(--fundo);
-    margin-bottom: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    margin-bottom: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
     padding: 16px;
     color: var(--black);
-    transition: all 0.3s ease;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+}
+
+.mobile-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.mobile-card.clickable.active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .mobile-row {
@@ -136,33 +147,40 @@
     color: var(--descricao);
     font-size: 0.75rem;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .mobile-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    padding-top: 10px;
-    margin-top: 10px;
+    padding-top: 12px;
+    margin-top: 12px;
     border-top: 1px solid var(--borda);
 }
 
 .btn-mobile-action {
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
     font-size: 0.9rem;
+    font-weight: 600;
     background-color: rgba(0, 0, 0, 0.03);
     border: 1px solid transparent;
     color: var(--black);
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-mobile-action.active {
+    transform: scale(0.94);
+    background-color: rgba(0, 0, 0, 0.08);
 }
 
 /* ============================================================
-   4. FILTROS MOBILE (iOS SEARCH BAR STYLE)
+   4. FILTROS MOBILE
    ============================================================ */
-/* Remove a "caixa" de background e as bordas, deixando os inputs soltos e fluidos */
 .filter-card {
     background: transparent !important;
     border: none !important;
@@ -172,9 +190,8 @@
 }
 
 /* ============================================================
-   5. RODAPÉ (OCULTAÇÃO PARA EXPERIÊNCIA NATIVA)
+   5. RODAPÉ 
    ============================================================ */
-/* Oculta o rodapé de copyright no Mobile para garantir visual 100% App Nativo */
 .sticky-footer,
 .content-footer {
     display: none !important;
@@ -183,7 +200,6 @@
 /* ============================================================
    6. MODO ESCURO (MOBILE INTERFACE)
    ============================================================ */
-/* -- Modo escuro */
 [data-theme="escuro"] .bottom-nav,
 [data-theme="escuro"] .modern-bottom-nav {
     background: rgba(30, 41, 59, 0.85) !important;
@@ -196,7 +212,6 @@
     border-bottom-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Garante o texto claro no Top Header Escuro */
 [data-theme="escuro"] .mobile-top-header span {
     color: var(--white);
 }
@@ -205,9 +220,153 @@
     background-color: var(--fundo);
     border-color: var(--borda);
     color: var(--white);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="escuro"] .btn-mobile-action {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--white);
+}
+
+[data-theme="escuro"] .btn-mobile-action.active {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="escuro"] .bottom-nav-item.active .material-symbols-outlined {
+    background: rgba(92, 142, 241, 0.25) !important;
+}
+
+/* ============================================================
+   7. ESTILOS NATIVOS iOS (INSET GROUPED LIST & SEARCH)
+   ============================================================ */
+@media (max-width: 768px) {
+    body {
+        background-color: var(--body);
+    }
+
+    .ios-search-container {
+        background-color: transparent !important;
+        padding-top: 10px;
+    }
+/* 
+    .ios-search-bar {
+        background-color: var(--borda);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        height: 40px;
+        padding: 0 12px;
+    }
+
+    .ios-search-bar i {
+        color: var(--descricao);
+        font-size: 14px;
+        margin-right: 8px;
+    }
+
+    .ios-search-bar input {
+        height: 100%;
+        width: 100%;
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        color: var(--black) !important;
+        font-size: 16px !important;
+        padding: 0 !important;
+    } */
+
+    .ios-select {
+        height: 40px !important;
+        background-color: var(--borda) !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 0 10px !important;
+        font-size: 0.85rem !important;
+        color: var(--black);
+    }
+
+    /* Lista Inset Grouped (Apple Settings/Contacts Style) */
+    .ios-list-container {
+        background-color: var(--fundo);
+        margin: 16px 14px;
+        /* Descola das bordas da tela */
+        border-radius: 16px;
+        /* Arredondamento suave */
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        /* Sombra elegante */
+    }
+
+    .ios-list-item {
+        padding: 20px 16px;
+        /* Aumentado para dar mais respiro na altura */
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        transition: background-color 0.2s;
+        position: relative;
+        min-height: 90px;
+        /* Garante altura mínima confortável para o toque */
+    }
+
+    /* Separador (Hairline) Nativo que não corta a imagem de perfil */
+    .ios-list-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 80px;
+        /* Começa exatamente na linha do texto */
+        right: 0;
+        height: 1px;
+        background-color: rgba(0, 0, 0, 0.08);
+        /* Linha sutil */
+    }
+
+    .ios-list-item:active {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    /* Botões de Ação Embutidos - Tamanho Mínimo Acessível (40px) */
+    .ios-action-pill {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        font-size: 0.95rem;
+        /* Ícones mais visíveis */
+        transition: transform 0.1s;
+    }
+
+    .ios-action-pill:active {
+        transform: scale(0.9);
+    }
+}
+
+/* Modo Escuro - Ajustes iOS Inset Grouped */
+[data-theme="escuro"] .ios-search-bar,
+[data-theme="escuro"] .ios-select {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="escuro"] .ios-list-container {
+    border-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="escuro"] .ios-list-item:not(:last-child)::after {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="escuro"] .ios-list-item:active {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="escuro"] .ios-action-pill {
     background-color: rgba(255, 255, 255, 0.05);
     color: var(--white);
 }
