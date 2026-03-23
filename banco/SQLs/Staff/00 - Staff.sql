@@ -216,9 +216,9 @@ CREATE TABLE IF NOT EXISTS public.users_token (
 INSERT INTO public.settings (name, email, contact, city) VALUES ('Trilha da Fé', 'contato@trilhadafe.com', '000', 'Sede Tecnologia');
 
 -- 3.2 Usuário Admin (DEV)
-INSERT INTO public.users (name, email, password, img, staff) VALUES
-('Eike Benízio', 'eike@dev', 'eikebenizio', 'avatar.jpg', TRUE),
-('Teste Dev', 'teste@dev', 'teste@dev', 'avatar.jpg', TRUE);
+INSERT INTO public.users (name, email, password, staff) VALUES
+('Eike Benízio', 'eike@dev', 'eikebenizio', TRUE),
+('Teste Dev', 'teste@dev', 'teste@dev', TRUE);
 
 -- 3.3 Cliente Inicial
 INSERT INTO public.clients (name, description) VALUES ('Caruaru - PE', 'Diocese de Caruaru - PE');

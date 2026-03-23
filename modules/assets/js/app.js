@@ -54,8 +54,8 @@ window.initMasks = () => {
     $(".mask-money").mask("000.000.000,00", { reverse: true });
 
     var phoneMaskBehavior = function (val) {
-      return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
-    },
+        return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
+      },
       phoneOptions = {
         onKeyPress: function (val, e, field, options) {
           field.mask(phoneMaskBehavior.apply({}, arguments), options);
@@ -78,10 +78,7 @@ window.setButton = (loading, btn, temporaryText = " Processando...") => {
     const currentWidth = $btn.outerWidth();
     $btn.css("min-width", `${currentWidth}px`);
 
-    $btn.prop("disabled", true)
-      .addClass("disabled")
-      .html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>${temporaryText}`);
-
+    $btn.prop("disabled", true).addClass("disabled").html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>${temporaryText}`);
   } else {
     // Restaura o estado original
     const originalHtml = $btn.data("original-html");
@@ -89,9 +86,7 @@ window.setButton = (loading, btn, temporaryText = " Processando...") => {
       $btn.html(originalHtml);
     }
 
-    $btn.prop("disabled", false)
-      .removeClass("disabled")
-      .css("min-width", ""); // Remove a trava de largura
+    $btn.prop("disabled", false).removeClass("disabled").css("min-width", ""); // Remove a trava de largura
   }
 };
 
@@ -142,6 +137,12 @@ window.zoomAvatar = (url, altText = "Foto") => {
     backdrop: `rgba(0,0,0,0.85)`,
     scrollbarPadding: false,
     animation: true,
+    didOpen: () => {
+      const swalContainer = document.querySelector(".swal2-container");
+      if (swalContainer) {
+        swalContainer.style.zIndex = "99999";
+      }
+    },
   });
 };
 

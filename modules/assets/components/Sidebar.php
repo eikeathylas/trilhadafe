@@ -1,18 +1,24 @@
-<div class="d-md-none position-fixed top-0 start-0 w-100 mobile-top-header border-bottom glass-header-mobile d-flex align-items-center justify-content-between px-3" style="z-index: 1040; height: 65px; border-radius: 0 0 20px 20px !important;">
-
-    <div class="d-flex align-items-center gap-2">
-        <img src="../login/assets/img/favicon.png" alt="Logo" style="height: 32px;">
-        <span class="fw-bold text-body" style="font-size: 1.15rem; letter-spacing: -0.5px;">Trilha da Fé</span>
-    </div>
+<div class="d-md-none position-fixed top-0 start-0 w-100 mobile-top-header d-flex align-items-center justify-content-between px-3"
+    style="z-index: 1040; height: 75px; background-color: var(--fundo); box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding-top: env(safe-area-inset-top); border-radius: 0 0 16px 16px;">
 
     <div class="d-flex align-items-center gap-3">
-        <div class="position-relative d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded-circle" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNotifications" style="cursor: pointer; width: 36px; height: 36px;">
-            <span class="material-symbols-outlined text-body" style="font-size: 22px;">notifications</span>
-            <span class="badge-app-feel d-none" id="mob-notif-badge"></span>
+        <div class="user-avatar-container shadow-sm border border-secondary border-opacity-25 rounded-circle overflow-hidden position-relative flex-shrink-0"
+            style="width: 48px; height: 48px; cursor: pointer; padding: 2px; background: var(--body);"
+            onclick="window.zoomAvatar(window.defaultApp.userInfo.img_user, 'Minha Foto')">
+            <img src="./assets/img/trilhadafe.png" alt="User" class="user-avatar-img rounded-circle" id="sidebar-user-photo" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
+        <div class="d-flex flex-column justify-content-center">
+            <span id="user-greeting" class="text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px; margin-bottom: -2px;">Olá,</span>
+            <span id="user-name-display" class="fw-bold text-body text-truncate" style="font-size: 1.15rem; letter-spacing: -0.5px; max-width: 160px;">Bem-vindo</span>
+        </div>
+    </div>
 
-        <div class="user-avatar-container shadow-sm border border-secondary border-opacity-25" style="width: 40px; height: 40px; cursor: pointer;" onclick="window.zoomAvatar(window.defaultApp.userInfo.img_user, 'Minha Foto')">
-            <img src="./assets/img/trilhadafe.png" alt="User" class="user-avatar-img" id="sidebar-user-photo" style="width: 100%; height: 100%; object-fit: cover;">
+    <div class="d-flex align-items-center gap-2">
+        <div class="position-relative d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded-circle transition-all"
+            data-bs-toggle="offcanvas" data-bs-target="#offcanvasNotifications"
+            style="cursor: pointer; width: 44px; height: 44px;">
+            <span class="material-symbols-outlined text-body" style="font-size: 24px;">notifications</span>
+            <span class="badge-app-feel d-none" id="mob-notif-badge"></span>
         </div>
     </div>
 </div>
@@ -170,20 +176,17 @@
 </div>
 
 <div class="d-none d-md-flex position-fixed align-items-center gap-3" style="top: 20px; right: 30px; z-index: 1050;">
-
     <button class="btn shadow-sm rounded-circle position-relative d-flex align-items-center justify-content-center hover-scale"
         type="button"
         data-bs-toggle="offcanvas"
         data-bs-target="#offcanvasNotifications"
-        style="width: 45px; height: 45px; background-color: var(--fundo); border: 1px solid var(--borda); padding: 0;">
-
+        style="width: 48px; height: 48px; background-color: var(--fundo); border: 1px solid var(--borda); padding: 0;">
         <span class="material-symbols-outlined text-body" style="font-size: 24px;">notifications</span>
-
         <span class="badge-app-feel d-none" id="desk-notif-badge"></span>
     </button>
 </div>
 
-<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="offcanvasNotifications" aria-labelledby="offcanvasNotificationsLabel" style="width: 400px; border-left: none;">
+<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="offcanvasNotifications" aria-labelledby="offcanvasNotificationsLabel" style="width: 400px; border-left: none; border-radius: 20px 0 0 20px;">
 
     <div class="d-md-none d-flex justify-content-center pt-2 pb-1 w-100 position-absolute top-0 start-0" style="z-index: 10;">
         <div style="width: 40px; height: 5px; background-color: var(--borda); border-radius: 10px;"></div>
@@ -193,35 +196,33 @@
         <h5 class="offcanvas-title fw-bold d-flex align-items-center text-body" id="offcanvasNotificationsLabel">
             <span class="material-symbols-outlined me-2 text-primary" style="font-size: 26px;">notifications</span> Notificações
         </h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
 
-    <div class="offcanvas-body p-0 d-flex flex-column">
+    <div class="offcanvas-body p-0 d-flex flex-column bg-body">
 
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-transparent">
+        <div class="p-3 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center bg-transparent">
             <div>
                 <h6 class="mb-1 fw-bold text-primary" style="font-size: 0.95rem;">Alertas Nativos</h6>
                 <small class="text-primary opacity-75" style="font-size: 0.8rem;" id="push-status-text">Ative para receber alertas.</small>
             </div>
             <div class="form-check form-switch mb-0">
-                <input class="form-check-input" type="checkbox" id="togglePushNotifications">
+                <input class="form-check-input shadow-none" type="checkbox" id="togglePushNotifications" style="cursor: pointer;">
             </div>
         </div>
 
-        <div id="notifications-list" class="list-group list-group-flush flex-grow-1" style="overflow-y: auto; overflow-x: hidden;">
-
+        <div id="notifications-list" class="list-group list-group-flush flex-grow-1 bg-transparent" style="overflow-y: auto; overflow-x: hidden;">
             <div class="text-center p-5 mt-4">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background-color: rgba(92, 142, 241, 0.1);">
-                    <span class="material-symbols-outlined spin text-primary" style="font-size: 36px;">sync</span>
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow-inner" style="width: 80px; height: 80px; background-color: var(--fundo);">
+                    <span class="material-symbols-outlined spin text-primary opacity-75" style="font-size: 36px;">sync</span>
                 </div>
                 <h6 class="fw-bold text-body">Buscando alertas...</h6>
                 <p class="text-muted small">Sincronizando com a sua conta.</p>
             </div>
-
         </div>
     </div>
 
-    <div class="offcanvas-footer p-4 d-grid gap-2 border-top-0 dock-glass">
+    <div class="offcanvas-footer p-4 d-grid gap-2 border-top border-secondary border-opacity-10 dock-glass bg-body">
         <button class="btn btn-primary fw-bold py-3 shadow-sm rounded-pill" onclick="window.markAllAsRead()" style="font-size: 1rem;">
             Marcar todas como lidas
         </button>

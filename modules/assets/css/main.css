@@ -1,19 +1,16 @@
 @import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900);
 
 /* ============================================================
-   1. RESET E VARIÁVEIS GLOBAIS (TRUE DARK E APPLE FEEL)
+   1. RESET E VARIÁVEIS GLOBAIS
    ============================================================ */
-/* -- Estilos base e Resets Nativos */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Inter", sans-serif;
   -webkit-tap-highlight-color: transparent;
-  /* Remove o piscar cinza nativo do Android ao tocar */
 }
 
-/* -- Seleção de Texto Customizada -- */
 ::selection {
   background-color: rgba(92, 142, 241, 0.2);
   color: var(--padrao1);
@@ -32,7 +29,6 @@
   --fundo: #ffffff;
   --body: #f8f9fc;
 
-  /* Variáveis de Inputs Nativos (App Feel) */
   --input-bg: #f1f5f9;
   --input-border: transparent;
 
@@ -46,57 +42,51 @@
 body {
   background: var(--body);
   color: var(--black);
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
   overflow-x: hidden;
   overscroll-behavior-y: none;
-  /* Evita o "pulo" elástico do navegador parecendo um site comum */
-
-  /* Evita o zoom automático do iOS em inputs */
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
-/* -- Modo escuro (True Dark Absoluto) */
+/* ============================================================
+   🌙 MODO ESCURO (SOFT DARK / SLATE FEEL PREMIUM)
+   ============================================================ */
 [data-theme="escuro"] {
-  --padrao: #5c8ef1;
-  --padrao1: #3b6cc9;
-  --padrao2: #ffd966;
-  --padrao-suave: rgba(92, 142, 241, 0.15);
+  /* Tons em tons pastel (evita o brilho neon, mais confortável para a visão) */
+  --padrao: #60a5fa;
+  --padrao1: #3b82f6;
+  --padrao2: #fbbf24;
+  --padrao-suave: rgba(96, 165, 250, 0.15);
 
-  /* Níveis de Profundidade */
-  --body: #0f172a;
-  /* Fundo mais distante */
-  --fundo: #1e293b;
-  /* Superfícies (Cards, Modais) */
-  --borda: #374151;
-  /* Divisões */
+  /* Níveis de Profundidade - Slate (Azulado Acinzentado) */
+  --body: #0f172a; /* Fundo base suave (Slate 900) */
+  --fundo: #1e293b; /* Superfícies dos cartões (Slate 800) */
+  --borda: rgba(255, 255, 255, 0.08); /* Bordas translúcidas subtis */
 
-  /* Variáveis de Inputs Nativos (App Feel) */
-  --input-bg: #0f172a;
-  /* Fundo escavado para dar profundidade */
-  --input-border: #374151;
-  /* Borda super sutil */
+  /* Variáveis de Inputs Nativos */
+  --input-bg: #0f172a; /* Fundo escavado para contraste suave */
+  --input-border: rgba(255, 255, 255, 0.1);
 
-  /* Textos */
+  /* Textos Suaves (Evita a fadiga ocular do branco puro) */
   --white: #ffffff;
-  /* Inversão do branco para fundos */
-  --black: #f8fafc;
-  /* Textos principais (Branco Gelo) */
-  --descricao: #94a3b8;
-  /* Textos secundários */
+  --black: #f1f5f9; /* Texto principal (Branco sujo / Slate 100) */
+  --descricao: #94a3b8; /* Texto secundário (Cinza azulado / Slate 400) */
 
-  --danger: #ef4444;
-  --success: #10b981;
-  --warning: #f59e0b;
+  /* Cores de Sistema (Tons pastel) */
+  --danger: #f87171; /* Vermelho suave */
+  --success: #34d399; /* Verde esmeralda */
+  --warning: #fbbf24; /* Âmbar */
 }
 
-/* Seleção de Texto no Modo Escuro */
 [data-theme="escuro"] ::selection {
-  background-color: rgba(92, 142, 241, 0.3);
+  background-color: rgba(96, 165, 250, 0.3);
   color: #ffffff;
 }
 
-/* Força herança de cor de texto para headers e globais no Dark */
+/* Força herança de cor com a nova paleta soft */
 [data-theme="escuro"] h1,
 [data-theme="escuro"] h2,
 [data-theme="escuro"] h3,
@@ -107,7 +97,7 @@ body {
 }
 
 [data-theme="escuro"] .text-gray-800 {
-  color: #f8fafc !important;
+  color: #f1f5f9 !important;
 }
 
 [data-theme="escuro"] .text-muted {
@@ -124,101 +114,90 @@ body {
 }
 
 [data-theme="escuro"] .bg-light {
-  background-color: var(--body) !important;
+  background-color: rgba(15, 23, 42, 0.6) !important; /* Fundo translúcido para barras/headers */
 }
 
 /* ============================================================
-   2. CUSTOMIZAÇÃO SCROLLBAR (macOS STYLE)
+   2. CUSTOMIZAÇÃO SCROLLBAR
    ============================================================ */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.15);
   border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.25);
 }
 
-/* Scrollbar no Modo Escuro */
 [data-theme="escuro"] ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
 }
-
 [data-theme="escuro"] ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 
-
 /* ============================================================
    3. UTILITÁRIOS GLOBAIS
    ============================================================ */
-/* -- Estilos base */
 .txt-theme {
   color: var(--padrao);
 }
-
 .title {
   margin-bottom: 15px;
   color: var(--black);
   font-weight: 500;
 }
-
 .copyright {
   color: var(--descricao);
   font-weight: 600;
 }
-
 .hr {
   margin-top: 0 !important;
   width: 99%;
   border-top: 1px solid var(--borda);
 }
-
 .tolltip {
   cursor: help;
   color: var(--padrao);
 }
-
 .cursor-pointer {
   cursor: pointer;
 }
 
 .hover-scale {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s;
 }
-
 .hover-scale:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
+[data-theme="escuro"] .hover-scale:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
 
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
   transition: all 0.3s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-/* -- Modo escuro (Utilitários) */
-[data-theme="escuro"] .title,
-[data-theme="escuro"] .copyright {
-  color: var(--black);
-}
-
 /* ============================================================
    4. ANIMAÇÕES E LOADERS GLOBAIS
    ============================================================ */
-/* -- Estilos base */
 .div-loader {
   width: 100%;
   height: 100vh;
@@ -233,7 +212,6 @@ body {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
-
 .loader {
   width: 44px;
   height: 44px;
@@ -242,7 +220,6 @@ body {
   border-radius: 50%;
   animation: rotation 1s linear infinite;
 }
-
 .loader-sm {
   width: 16px;
   height: 16px;
@@ -257,76 +234,106 @@ body {
   0% {
     transform: rotate(0deg);
   }
-
   100% {
     transform: rotate(360deg);
   }
 }
 
-@keyframes pulse-danger {
-  0% {
-    transform: scale(0.95) translate(-50%, -50%);
-    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
-  }
-
-  70% {
-    transform: scale(1) translate(-50%, -50%);
-    box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
-  }
-
-  100% {
-    transform: scale(0.95) translate(-50%, -50%);
-    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
-  }
-}
-
-/* -- Modo escuro (Loaders) */
 [data-theme="escuro"] .div-loader {
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(15, 23, 42, 0.85);
 }
-
-
-
-
 
 /* ==========================================================
-   CORREÇÃO DEFINITIVA: BADGE DE NOTIFICAÇÃO (SINO)
+   5. BADGE DE NOTIFICAÇÃO (SINO)
    ========================================================== */
 .badge-app-feel {
-    position: absolute !important;
-    top: -2px !important;      /* Cola no topo do ícone pai */
-    right: -2px !important;   /* Desliza levemente para fora da borda direita */
-    
-    /* Zera margens, transforms e limites do Bootstrap */
-    margin: 0 !important;
-    transform: none !important;
-    
-    /* Dimensionamento Inteligente (Pílula Perfeita) */
-    min-width: 20px !important; 
-    height: 22px !important;
-    padding: 0 6px !important; 
-    
-    /* Centralização do Texto */
-    display: flex;
-    align-items: center !important;
-    justify-content: center !important;
-    
-    /* Tipografia e Estilo Base */
-    font-size: 0.70rem !important;
-    font-weight: 800 !important;
-    line-height: 1 !important;
-    border-radius: 100px !important; /* Arredondamento extremo */
-    background-color: var(--danger) !important;
-    color: #ffffff !important;
-    z-index: 10 !important;
+  position: absolute !important;
+  top: -2px !important;
+  right: -2px !important;
+  margin: 0 !important;
+  transform: none !important;
+  min-width: 20px !important;
+  height: 22px !important;
+  padding: 0 6px !important;
+  display: flex;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.7rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  border-radius: 100px !important;
+  background-color: var(--danger) !important;
+  color: #ffffff !important;
+  z-index: 10 !important;
 }
 
-/* Efeito de Recorte (Cutout) para separar visualmente o badge do ícone */
-#mob-notif-badge { border: 2px solid #ffffff !important; }
-#desk-notif-badge { border: 2px solid var(--fundo) !important; }
+#mob-notif-badge {
+  border: 2px solid #ffffff !important;
+}
+#desk-notif-badge {
+  border: 2px solid var(--fundo) !important;
+}
+[data-theme="escuro"] #mob-notif-badge {
+  border-color: var(--padrao1) !important;
+}
+[data-theme="escuro"] #desk-notif-badge {
+  border-color: var(--fundo) !important;
+}
 
 /* ==========================================================
-   EFEITO DE RECORTE (CUTOUT) NO MODO ESCURO
+   🚨 6. CORREÇÃO CRÍTICA: OVERRIDES DE SIDEBAR (MODO ESCURO)
    ========================================================== */
-[data-theme="escuro"] #mob-notif-badge { border-color: var(--padrao1) !important; }
-[data-theme="escuro"] #desk-notif-badge { border-color: var(--fundo) !important; }
+
+/* Remove o fundo azul estourado e aplica o fundo neutro escuro (Slate 800) */
+[data-theme="escuro"] .sidebar-only,
+[data-theme="escuro"] .modern-bottom-nav {
+  background-color: var(--fundo) !important;
+  background: var(--fundo) !important;
+  border-right: 1px solid var(--borda) !important;
+}
+
+[data-theme="escuro"] .modern-bottom-nav {
+  border-top: 1px solid var(--borda) !important;
+}
+
+/* Neutraliza as cores dos textos não selecionados na Sidebar */
+[data-theme="escuro"] .sidebar-only .text-only,
+[data-theme="escuro"] .sidebar-only .icon-only,
+[data-theme="escuro"] .modern-bottom-nav-item span,
+[data-theme="escuro"] .modern-bottom-nav-item .material-symbols-outlined {
+  color: var(--descricao) !important;
+  transition: all 0.2s ease;
+}
+
+/* Neutraliza os cabeçalhos das categorias ("Visão Geral", "Escola da Fé") */
+[data-theme="escuro"] .sidebar-only .title-only {
+  color: var(--descricao) !important;
+  opacity: 0.6;
+  font-weight: 700;
+}
+
+/* Aplica o Azul de forma elegante APENAS nos itens com Hover ou Ativos */
+[data-theme="escuro"] .sidebar-only .menu-only > ul > li > a:hover,
+[data-theme="escuro"] .sidebar-only .menu-only > ul > li > a.active,
+[data-theme="escuro"] .sidebar-only .menu-only > ul > li.active-only > a,
+[data-theme="escuro"] .modern-bottom-nav-item.active {
+  background-color: var(--padrao-suave) !important;
+  color: var(--padrao) !important;
+  border-radius: 8px; /* Adiciona um recorte suave */
+}
+
+/* Garante que o ícone do menu ativo também fica azul */
+[data-theme="escuro"] .sidebar-only .menu-only > ul > li > a.active .icon-only,
+[data-theme="escuro"] .sidebar-only .menu-only > ul > li > a.active .text-only,
+[data-theme="escuro"] .modern-bottom-nav-item.active span,
+[data-theme="escuro"] .modern-bottom-nav-item.active .material-symbols-outlined {
+  color: var(--padrao) !important;
+}
+
+/* Ajusta as caixas de Select (Unidade e Ano Letivo) na Sidebar */
+[data-theme="escuro"] .sidebar-only select,
+[data-theme="escuro"] .sidebar-only .selectize-input {
+  background-color: var(--body) !important;
+  border: 1px solid var(--borda) !important;
+  color: var(--black) !important;
+}

@@ -214,7 +214,6 @@ label {
 /* -- Modo escuro */
 [data-theme="escuro"] .form-control,
 [data-theme="escuro"] .form-select {
-    background-color: var(--input-bg);
     border-color: var(--input-border);
     color: #f8fafc;
 }

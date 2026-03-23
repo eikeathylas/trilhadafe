@@ -37,8 +37,6 @@ $(document).ready(() => {
     }
     initFilters();
   });
-
-  initFilters();
 });
 
 const initFilters = () => {
@@ -213,18 +211,19 @@ const renderTableHistory = (data) => {
   // =========================================================
   // 1. VISÃO DESKTOP (TABELA DE EXCELÊNCIA)
   // =========================================================
-  const desktopRows = data.map((item) => {
-    const dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
-    const rawIsoDate = item.session_date.split(" ")[0];
-    const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
-    const summary = cleanDesc.length > 35 ? cleanDesc.substring(0, 35) + "..." : cleanDesc;
+  const desktopRows = data
+    .map((item) => {
+      const dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
+      const rawIsoDate = item.session_date.split(" ")[0];
+      const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
+      const summary = cleanDesc.length > 35 ? cleanDesc.substring(0, 35) + "..." : cleanDesc;
 
-    const total = parseInt(item.total_students) || 0;
-    const present = parseInt(item.present_count) || 0;
-    const pct = total > 0 ? Math.round((present / total) * 100) : 0;
-    const progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
+      const total = parseInt(item.total_students) || 0;
+      const present = parseInt(item.present_count) || 0;
+      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+      const progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
 
-    return `
+      return `
       <tr>
         <td class="align-middle ps-3" style="width: 60px;">
           <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
@@ -252,7 +251,8 @@ const renderTableHistory = (data) => {
           <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
         </td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 
   const desktopHtml = `
     <div class="d-none d-md-block table-responsive">
@@ -271,20 +271,21 @@ const renderTableHistory = (data) => {
   // =========================================================
   // 2. VISÃO MOBILE (INSET LIST - APPLE HIG)
   // =========================================================
-  const mobileRows = data.map((item) => {
-    const dateParts = item.session_date.split(" ")[0].split("-");
-    const day = dateParts[2];
-    const rawIsoDate = item.session_date.split(" ")[0];
+  const mobileRows = data
+    .map((item) => {
+      const dateParts = item.session_date.split(" ")[0].split("-");
+      const day = dateParts[2];
+      const rawIsoDate = item.session_date.split(" ")[0];
 
-    const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
-    const summary = cleanDesc.length > 40 ? cleanDesc.substring(0, 40) + "..." : cleanDesc;
+      const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
+      const summary = cleanDesc.length > 40 ? cleanDesc.substring(0, 40) + "..." : cleanDesc;
 
-    const total = parseInt(item.total_students) || 0;
-    const present = parseInt(item.present_count) || 0;
-    const pct = total > 0 ? Math.round((present / total) * 100) : 0;
-    const badgeStyle = pct < 70 ? "bg-danger text-white" : pct < 90 ? "bg-warning text-dark" : "bg-success text-white";
+      const total = parseInt(item.total_students) || 0;
+      const present = parseInt(item.present_count) || 0;
+      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+      const badgeStyle = pct < 70 ? "bg-danger text-white" : pct < 90 ? "bg-warning text-dark" : "bg-success text-white";
 
-    return `
+      return `
       <div class="ios-list-item align-items-center">
           <div class="me-3">
               <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 bg-body shadow-sm overflow-hidden" style="width: 52px; height: 56px; border-radius: 10px;">
@@ -313,7 +314,8 @@ const renderTableHistory = (data) => {
               </div>
           </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
   const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
 
@@ -343,7 +345,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
   if ($editor.next(".note-editor").length > 0) {
     try {
       $editor.summernote("destroy");
-    } catch (e) { }
+    } catch (e) {}
   }
   $editor.val("").hide();
 
@@ -562,22 +564,30 @@ const renderStudents = () => {
   // =========================================================
   // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
   // =========================================================
-  const desktopRows = students.map((std, idx) => {
-    const nameParts = std.full_name.trim().split(" ");
-    const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+  const desktopRows = students
+    .map((std, idx) => {
+      const nameParts = std.full_name.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
-    const avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border border-secondary border-opacity-25 object-fit-cover shadow-sm" style="width:40px; height:40px; cursor:pointer;" onclick="window.zoomAvatar('${std.profile_photo_url}')">`
-      : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-6" style="width:40px; height:40px;">${initials}</div>`;
+      // Implementação da Foto com Animação Hover + Evasão de Cache + Zoom Fix
+      const avatarHtml = std.profile_photo_url
+        ? `<img src="${std.profile_photo_url}?v=${new Date().getTime()}"
+                class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
+                style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${std.profile_photo_url}', '${nameParts[0].replace(/'/g, "\\'")}')"
+                onmouseover="this.style.transform='scale(1.15)'" 
+                onmouseout="this.style.transform='scale(1)'"
+                title="Ver foto">`
+        : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-6" style="width:42px; height:42px;">${initials}</div>`;
 
-    const isP = std.is_present;
-    const statusBadge = isP
-      ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
-      : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
+      const isP = std.is_present;
+      const statusBadge = isP
+        ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
+        : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
 
-    return `
+      return `
       <tr>
-          <td class="align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
+          <td class="align-middle ps-3 text-center" style="width: 65px;">${avatarHtml}</td>
           <td class="align-middle fw-bold text-body" style="font-size: 0.95rem;">${std.full_name}</td>
           <td class="align-middle text-center" style="width: 200px;">
               <div class="d-flex align-items-center justify-content-center gap-3">
@@ -589,7 +599,7 @@ const renderStudents = () => {
           </td>
           <td class="align-middle pe-3" style="width: 380px;">
               <div id="just-area-${idx}" class="d-flex gap-2 ${isP ? "d-none" : ""}">
-                  <select class="form-select shadow-none border-secondary border-opacity-25 text-body" style="width: 140px; height: 42px;" onchange="updateAbsenceType(${idx}, this.value)">
+                  <select class="form-control shadow-none border-secondary border-opacity-25 text-body" style="width: 140px; height: 42px;" onchange="updateAbsenceType(${idx}, this.value)">
                       <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Sem Justificativa</option>
                       <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
                       <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
@@ -599,16 +609,17 @@ const renderStudents = () => {
               <span id="just-empty-${idx}" class="text-secondary small opacity-50 fw-medium ${isP ? "" : "d-none"}"><i class="fas fa-check-circle me-1 text-success"></i> Aluno em sala</span>
           </td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 
   const desktopHtml = `
     <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th colspan="2" class="ps-3 text-secondary text-uppercase" style="font-size: 0.75rem;">Catequizando</th>
-                    <th class="text-center text-secondary text-uppercase" style="font-size: 0.75rem;">Status / Chamada</th>
-                    <th class="text-secondary text-uppercase" style="font-size: 0.75rem;">Motivo da Ausência</th>
+                    <th colspan="2" class="ps-4 text-secondary text-uppercase small opacity-75">Catequizando</th>
+                    <th class="text-center text-secondary text-uppercase small opacity-75">Status / Chamada</th>
+                    <th class="text-secondary text-uppercase small opacity-75">Motivo da Ausência</th>
                 </tr>
             </thead>
             <tbody>${desktopRows}</tbody>
@@ -618,20 +629,28 @@ const renderStudents = () => {
   // =========================================================
   // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG)
   // =========================================================
-  const mobileRows = students.map((std, idx) => {
-    const nameParts = std.full_name.trim().split(" ");
-    const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+  const mobileRows = students
+    .map((std, idx) => {
+      const nameParts = std.full_name.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
-    const avatarHtml = std.profile_photo_url
-      ? `<img src="${std.profile_photo_url}" class="rounded-circle border border-secondary border-opacity-25 object-fit-cover shadow-sm" style="width:46px; height:46px; cursor:pointer;" onclick="window.zoomAvatar('${std.profile_photo_url}')">`
-      : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:46px; height:46px;">${initials}</div>`;
+      // Implementação da Foto com Animação Hover + Evasão de Cache + Zoom Fix
+      const avatarHtml = std.profile_photo_url
+        ? `<img src="${std.profile_photo_url}?v=${new Date().getTime()}"
+                class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
+                style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${std.profile_photo_url}', '${nameParts[0].replace(/'/g, "\\'")}')"
+                onmouseover="this.style.transform='scale(1.15)'" 
+                onmouseout="this.style.transform='scale(1)'"
+                title="Ver foto">`
+        : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
 
-    const isP = std.is_present;
-    const statusBadge = isP
-      ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
-      : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
+      const isP = std.is_present;
+      const statusBadge = isP
+        ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
+        : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
 
-    return `
+      return `
       <div class="ios-list-item flex-column align-items-stretch">
           <div class="d-flex w-100 align-items-center">
               <div class="me-3">${avatarHtml}</div>
@@ -649,7 +668,7 @@ const renderStudents = () => {
           <div id="just-box-mob-${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
               <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-danger border-opacity-10 shadow-inner">
                   <label class="form-label small fw-bold text-danger text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Justificativa da Falta</label>
-                  <select class="form-select shadow-none border-0 mb-2 text-body bg-body" onchange="updateAbsenceType(${idx}, this.value)" style="height: 44px;">
+                  <select class="form-control shadow-none border-0 mb-2 text-body bg-body" onchange="updateAbsenceType(${idx}, this.value)" style="height: 44px;">
                       <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
                       <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
                       <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
@@ -658,7 +677,8 @@ const renderStudents = () => {
               </div>
           </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
   const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
 
@@ -700,7 +720,7 @@ window.salvarDiario = async (btn) => {
   if (!date) return window.alertDefault("Selecione a data da aula.", "warning");
   if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data bloqueada para registro.", "error");
 
-  window.setButton(true, btn, " Gravando...");
+  window.setButton(true, btn, " Gravando...");
 
   try {
     const res = await window.ajaxValidator({
@@ -772,6 +792,7 @@ const _generatePaginationButtons = (c, k, t, f, o) => {
   container.empty();
   let total = o[t];
   let current = o[k];
+  if (total <= 1) return;
   let html = `<button onclick="${f}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
   for (let p = Math.max(1, current - 2); p <= Math.min(total, current + 2); p++) {
     html += `<button onclick="${f}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
