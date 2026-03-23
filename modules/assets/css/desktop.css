@@ -176,9 +176,9 @@
     right: -15px;
     width: 32px;
     height: 32px;
-    background-color: var(--padrao1);
+    background-color: var(--sidebar-bg);
     color: var(--padrao2);
-    border: 2px solid var(--padrao2);
+    border: 1px solid var(--padrao2);
     border-radius: 50%;
     display: flex;
     align-items: center;
