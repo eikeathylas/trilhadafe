@@ -18,35 +18,34 @@
 
 :root,
 [data-theme="claro"] {
-  /* Cores de Ação */
-  --padrao: #5c8ef1;
-  --padrao1: #3b6cc9;
+  /* Cores de Ação (Azul mais vibrante para garantir contraste) */
+  --padrao: #4a7de8;
+  --padrao1: #2c59b5;
   --padrao2: #ffd966;
-  --padrao-suave: #eef4ff;
+  --padrao-suave: rgba(74, 125, 232, 0.12);
 
-  /* Superfícies e Contrastes */
+  /* Superfícies e Contrastes (Fim da Fadiga Ocular / Efeito Pálido) */
   --white: #ffffff;
-  --borda: #e3e6f0;
-  --black: #2c3e50;
-  --fundo: #ffffff;
-  --body: #f8f9fc;
+  --black: #1e293b; /* Texto mais denso (Slate 800) para leitura nítida */
+  --fundo: #ffffff; /* Mantém os cartões num branco puro e limpo... */
+  --body: #eaeff5; /* ...mas o fundo do sistema fica num cinza-azulado elegante para destacar os cartões! */
+  --borda: #d1d9e2; /* Bordas com mais presença para definir limites */
 
   /* Inputs e Textos */
-  --input-bg: #f1f5f9;
-  --input-border: transparent;
-  --descricao: #858796;
+  --input-bg: #f1f5f9; /* Slate 100 - Fundo mais limpo e claro */
+  --input-border: #e2e8f0; /* Slate 200 - Borda ultra-suave para delimitar o campo */
+  --descricao: #64748b;
 
-  /* Feedback */
-  --danger: #e74a3b;
-  --success: #1cc88a;
-  --warning: #f6c23e;
+  --danger: #f87171;
+  --success: #34d399;
+  --warning: #fbbf24;
 
   /* Variáveis Dinâmicas da Sidebar (Modo Claro) */
   --sidebar-bg: #ffffff;
-  --sidebar-border: #e3e6f0;
-  --sidebar-text: #64748b;
-  --sidebar-text-active: #3b6cc9;
-  --sidebar-bg-active: rgba(92, 142, 241, 0.1);
+  --sidebar-border: #d1d9e2;
+  --sidebar-text: #475569;
+  --sidebar-text-active: #2c59b5;
+  --sidebar-bg-active: rgba(74, 125, 232, 0.12);
 
   /* HIERARQUIA DE Z-INDEX (MAPA OFICIAL DO SISTEMA) */
   --z-main: 1;

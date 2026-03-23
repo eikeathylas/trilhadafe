@@ -117,7 +117,6 @@ window.renderToggle = (id, isChecked, onChangeFunction) => {
         <div class="form-check form-switch d-flex justify-content-center align-items-center mb-0">
             <input class="form-check-input" type="checkbox" 
                    onchange="${onChangeFunction}(${id}, this)" ${checkedAttr} style="cursor: pointer;">
-            <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
         </div>
     `;
 };

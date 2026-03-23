@@ -4,192 +4,187 @@
 
 /* --- 1. DESKTOP E TELAS LARGAS (Mínimo 992px) --- */
 @media (min-width: 992px) {
-
-    /* Filtros em linha no Desktop (Aproveitamento de tela) */
-    .filter-row {
-        display: grid;
-        grid-template-columns: 2fr 3fr auto;
-        /* Select | Busca | Botão Nova Pessoa */
-        gap: 16px;
-        align-items: end;
-    }
+  /* Filtros em linha no Desktop (Aproveitamento de tela) */
+  .filter-row {
+    display: grid;
+    grid-template-columns: 2fr 3fr auto;
+    /* Select | Busca | Botão Nova Pessoa */
+    gap: 16px;
+    align-items: end;
+  }
 }
-
 
 /* --- 2. TABLETS E TELAS MÉDIAS (Máximo 991px) --- */
 @media (max-width: 991px) {
+  /* Redução global de tipografia para ganho de espaço */
+  body {
+    font-size: 0.9rem;
+  }
 
-    /* Redução global de tipografia para ganho de espaço */
-    body {
-        font-size: 0.9rem;
-    }
+  /* Filtros empilham verticalmente e botão expande 100% */
+  .filter-row {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
 
-    /* Filtros empilham verticalmente e botão expande 100% */
-    .filter-row {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-    }
+  .filter-group {
+    width: 100%;
+  }
 
-    .filter-group {
-        width: 100%;
-    }
+  .filter-card .btn {
+    width: 100%;
+    height: 48px;
+    font-size: 1rem;
+  }
 
-    .filter-card .btn {
-        width: 100%;
-        height: 48px;
-        font-size: 1rem;
-    }
+  /* Ajuste do conteúdo principal para caber o menu flutuante e o header mobile */
+  .main-only {
+    margin-left: 0 !important;
+    /* Padding generoso no topo para o Header Mobile e cálculo de Safe Area para a Bottom Nav */
+    padding: 60px 0px calc(30px + env(safe-area-inset-bottom)) 0px !important;
+  }
 
-    /* Ajuste do conteúdo principal para caber o menu flutuante e o header mobile */
-    .main-only {
-        margin-left: 0 !important;
-        /* Padding generoso no topo para o Header Mobile e cálculo de Safe Area para a Bottom Nav */
-        padding: 60px 0px calc(30px + env(safe-area-inset-bottom)) 0px !important;
-    }
+  .main-only .row {
+    margin-left: 0%;
+  }
 
-    .main-only .row {
-        margin-left: 0%;
-    }
+  /* Esconde Sidebar Desktop jogando para fora da tela (Offcanvas behavior) */
+  .sidebar-only {
+    left: -320px;
+    width: 280px;
+    height: 95vh;
+    border-radius: 0 24px 24px 0;
+    top: 0;
+    bottom: 0;
+  }
 
-    /* Esconde Sidebar Desktop jogando para fora da tela (Offcanvas behavior) */
-    .sidebar-only {
-        left: -320px;
-        width: 280px;
-        height: 95vh;
-        border-radius: 0 24px 24px 0;
-        top: 0;
-        bottom: 0;
-    }
+  /* Esconde o botão de colapsar sidebar do desktop */
+  .menu-btn-only {
+    display: none !important;
+  }
 
-    /* Esconde o botão de colapsar sidebar do desktop */
-    .menu-btn-only {
-        display: none !important;
-    }
+  /* Classe adicionada via JS para abrir o menu mobile lateral (se necessário) */
+  body.menu-open .sidebar-only {
+    left: 0;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.7);
+  }
 
-    /* Classe adicionada via JS para abrir o menu mobile lateral (se necessário) */
-    body.menu-open .sidebar-only {
-        left: 0;
-        box-shadow: 0 0 100px rgba(0, 0, 0, 0.7);
-    }
+  /* Ativa a Interface Mobile (Header e Bottom Nav) */
+  .mobile-top-header {
+    display: flex !important;
+  }
 
-    /* Ativa a Interface Mobile (Header e Bottom Nav) */
-    .mobile-top-header {
-        display: flex !important;
-    }
+  .bottom-nav,
+  .modern-bottom-nav {
+    display: flex !important;
+  }
 
-    .bottom-nav,
-    .modern-bottom-nav {
-        display: flex !important;
-    }
+  /* Ajuste dos cards de filtro para formato de App */
+  .filter-card {
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
 
-    /* Ajuste dos cards de filtro para formato de App */
-    .filter-card {
-        padding: 14px;
-        border-radius: 14px;
-        margin-bottom: 16px;
-    }
+  /* TRANSFORMACÃO DE TABELAS EM MOBILE CARDS */
+  .table-custom thead {
+    display: none;
+    /* Esconde cabeçalho da tabela */
+  }
 
-    /* TRANSFORMACÃO DE TABELAS EM MOBILE CARDS */
-    .table-custom thead {
-        display: none;
-        /* Esconde cabeçalho da tabela */
-    }
+  .table-custom td {
+    display: block;
+    width: 100%;
+    padding: 8px 16px !important;
+    text-align: left;
+  }
 
-    .table-custom td {
-        display: block;
-        width: 100%;
-        padding: 8px 16px !important;
-        text-align: left;
-    }
+  .table-custom tbody tr {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+    margin-bottom: 12px;
+    border: 1px solid var(--borda);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    border-radius: 12px;
+  }
 
-    .table-custom tbody tr {
-        display: flex;
-        flex-direction: column;
-        padding: 12px 0;
-        margin-bottom: 12px;
-        border: 1px solid var(--borda);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-        border-radius: 12px;
-    }
+  /* O último TD (Ações Ghost) é isolado no rodapé do card mobile */
+  .table-custom td:last-child {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px !important;
+    margin-top: 8px;
+    border-top: 1px solid var(--borda);
+    border-radius: 0 0 12px 12px;
+  }
 
-    /* O último TD (Ações Ghost) é isolado no rodapé do card mobile */
-    .table-custom td:last-child {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        padding-top: 12px !important;
-        margin-top: 8px;
-        border-top: 1px solid var(--borda);
-        border-radius: 0 0 12px 12px;
-    }
+  /* Ajustes da Tabela Mobile no Modo Escuro */
+  [data-theme="escuro"] .table-custom tbody tr {
+    border-color: var(--borda);
+  }
 
-    /* Ajustes da Tabela Mobile no Modo Escuro */
-    [data-theme="escuro"] .table-custom tbody tr {
-        border-color: var(--borda);
-    }
+  [data-theme="escuro"] .table-custom td:last-child {
+    border-top-color: var(--borda);
+  }
 
-    [data-theme="escuro"] .table-custom td:last-child {
-        border-top-color: var(--borda);
-    }
+  /* Modais com ocupação total nativa (estilo tela de App) */
+  .modal-dialog {
+    margin: 0 !important; /* Zero margem para colar na tela */
+    max-width: 100% !important;
+    height: 100dvh !important; /* Altura exata da tela dinâmica */
+  }
 
-    /* Modais com ocupação total nativa (estilo tela de App) */
-    .modal-dialog {
-        margin: 12px;
-        max-width: calc(100% - 24px) !important;
-    }
+  .modal-content {
+    border-radius: 0 !important; /* Sem cantos arredondados no mobile */
+    height: 100% !important;
+  }
 
-    .modal-content {
-        border-radius: 24px;
-    }
-
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-        padding: 16px;
-    }
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 10px 20px;
+  }
 }
-
 
 /* --- 3. MOBILE PADRÃO (Máximo 768px) --- */
 @media (max-width: 768px) {
-
-    /* Alinha a grid do dashboard para 1 coluna */
-    .list-commanded.cards-view {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
+  /* Alinha a grid do dashboard para 1 coluna */
+  .list-commanded.cards-view {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
-
 
 /* --- 4. MOBILE COMPACTO (Telas pequenas - Máximo 480px) --- */
 @media (max-width: 480px) {
-
-    /* Otimizações extremas para ganho de espaço e ajuste fino do padding inferior */
-    /* .main-only {
+  /* Otimizações extremas para ganho de espaço e ajuste fino do padding inferior */
+  /* .main-only {
         padding: 76px 12px 0px 12px !important;
     } */
 
-    .filter-card {
-        padding: 12px;
-    }
+  .filter-card {
+    padding: 12px;
+  }
 
-    /* Encolhe botões e inputs mantendo área de toque mínima da Apple (44px) */
-    .form-control,
-    .form-select {
-        height: 44px;
-    }
+  /* Encolhe botões e inputs mantendo área de toque mínima da Apple (44px) */
+  .form-control,
+  .form-select {
+    height: 44px;
+  }
 
-    .btn {
-        height: 44px;
-        padding: 8px 16px;
-    }
+  .btn {
+    height: 44px;
+    padding: 8px 16px;
+  }
 
-    /* Barra inferior ligeiramente mais baixa para compensar a tela menor */
-    .bottom-nav,
-    .modern-bottom-nav {
-        height: 65px;
-        bottom: 15px;
-    }
+  /* Barra inferior ligeiramente mais baixa para compensar a tela menor */
+  .bottom-nav,
+  .modern-bottom-nav {
+    height: 65px;
+    bottom: 15px;
+  }
 }

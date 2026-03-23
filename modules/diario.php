@@ -76,7 +76,7 @@
                 <div class="table-responsive list-table-diario" style="max-height: 70vh;">
                     <div class="text-center py-5 text-muted opacity-50">
                         <i class="fas fa-arrow-up mb-3 d-block" style="font-size: 2.5rem;"></i>
-                        <h5 class="fw-bold text-body">Selecione Turma e Disciplina</h5>
+                        <h6 class="fw-bold text-body">Selecione Turma e Disciplina</h6>
                         <p class="small text-secondary">Utilize os filtros acima para visualizar ou lançar o diário.</p>
                     </div>
                 </div>

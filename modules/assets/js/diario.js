@@ -138,13 +138,6 @@ const resetInterface = () => {
     selSub.disable();
   }
   $("#btn_new_session").prop("disabled", true);
-  $(".list-table-diario").html(`
-    <div class="text-center py-5 text-muted opacity-50">
-        <i class="fas fa-arrow-up mb-3 d-block" style="font-size: 2.5rem;"></i>
-        <h5 class="fw-bold text-body">Selecione Turma e Disciplina</h5>
-        <p class="small text-secondary">Utilize os filtros acima para visualizar ou lançar o diário.</p>
-    </div>
-  `);
   $(".pagination-diario").empty();
 };
 
