@@ -247,6 +247,7 @@
     .ios-search-container {
         background-color: transparent !important;
         padding-top: 10px;
+        margin-bottom: 10px !important;
     }
 /* 
     .ios-search-bar {

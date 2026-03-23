@@ -1387,7 +1387,7 @@ INSERT INTO people.family_ties (person_id, relative_id, relationship_type, is_le
 
 -- 3. Educação
 INSERT INTO education.academic_years (year_id, org_id, name, start_date, end_date, is_active) VALUES
-(2026, 2, '2026', '2026-01-01', '2026-12-31', FALSE);
+(2026, 2, '2026', '2026-01-01', '2026-12-31', TRUE);
 
 INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES 
 (2, 'Novo Testamento', 'Estudo dos Evangelhos e Atos dos Apóstolos.'),

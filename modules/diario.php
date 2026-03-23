@@ -27,7 +27,7 @@
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
                         style="font-size: 1.5rem; letter-spacing: -0.8px;">
-                        GDiário de Classe
+                        Diário de Classe
                     </li>
                 </ol>
             </nav>

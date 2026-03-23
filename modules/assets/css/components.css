@@ -884,12 +884,15 @@ label {
 }
 
 /* -- SweetAlert 2 */
+.swal2-popup {
+    border-radius: 24px !important;
+    box-shadow: none !important;
+}
+
 [data-theme="escuro"] .swal2-popup {
     background-color: var(--fundo) !important;
     border: 1px solid var(--borda) !important;
     color: var(--white) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5) !important;
 }
 
 [data-theme="escuro"] .swal2-title,

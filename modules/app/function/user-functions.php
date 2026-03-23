@@ -16,7 +16,7 @@ function getUsuariosParoquia($data)
             ':page' => (int)$data['page']
         ];
 
-        $where = "WHERE up.id_client = :oid AND u.active IS TRUE AND up.active IS TRUE AND u.deleted IS FALSE AND u.staff IS FALSE";
+        $where = "WHERE up.id_client = :oid AND u.deleted IS FALSE AND u.staff IS FALSE";
 
         if (!empty($data['search'])) {
             $where .= " AND (u.name ILIKE :search OR u.email ILIKE :search)";

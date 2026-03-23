@@ -10,3 +10,4 @@
 <link href="assets/css/mobile.css?v=<?php echo time(); ?>" rel="stylesheet">
 <link href="assets/css/desktop.css?v=<?php echo time(); ?>" rel="stylesheet">
 <link href="assets/css/responsive.css?v=<?php echo time(); ?>" rel="stylesheet">
+<link href="assets/css/foto.css?v=<?php echo time(); ?>" rel="stylesheet">

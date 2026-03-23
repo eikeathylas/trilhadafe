@@ -6,10 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Organizações - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
-
-    <link href="assets/css/foto.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
 <body>
@@ -19,7 +16,7 @@
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
-    <div class="main-only px-0 px-md-3">
+    <div class="main-only">
         <div class="d-none d-md-flex align-items-center mb-4 mt-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
@@ -32,22 +29,24 @@
         </div>
 
         <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
-            <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0 px-3">
-                <div class="modern-tabs-wrapper">
-                    <ul class="nav nav-pills m-0" id="orgTab" role="tablist" style="flex-wrap: nowrap;">
+            <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0 px-2 px-md-3">
+                <div class="modern-tabs-wrapper mobile-segmented-control">
+                    <ul class="nav nav-pills m-0 d-flex flex-nowrap" id="orgTab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active fw-medium" id="dioc-tab" data-bs-toggle="tab" data-bs-target="#diocese" type="button" role="tab">
-                                <i class="fa-solid fa-synagogue me-2"></i> Diocese
+                            <button class="nav-link active fw-medium text-nowrap py-2 px-3 px-md-4" id="dioc-tab" data-bs-toggle="tab" data-bs-target="#diocese" type="button" role="tab" onclick="$('.pane-btn').addClass('d-none'); $('#pane-btn-diocese').removeClass('d-none');">
+                                <i class="fa-solid fa-synagogue me-1 me-md-2"></i> Diocese
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-medium" id="inst-tab" data-bs-toggle="tab" data-bs-target="#instituicoes" type="button" role="tab">
-                                <i class="fas fa-church me-2"></i> Paróquia
+                            <button class="nav-link fw-medium text-nowrap py-2 px-3 px-md-4" id="inst-tab" data-bs-toggle="tab" data-bs-target="#instituicoes" type="button" role="tab" onclick="$('.pane-btn').addClass('d-none'); $('#pane-btn-paroquia').removeClass('d-none');">
+                                <i class="fas fa-church me-1 me-md-2"></i> Paróquia
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-medium" id="locais-tab-btn" data-bs-toggle="tab" data-bs-target="#locais" type="button" role="tab">
-                                <i class="fas fa-door-open me-2"></i> Salas/Espaços
+                            <button class="nav-link fw-medium text-nowrap py-2 px-3 px-md-4" id="locais-tab-btn" data-bs-toggle="tab" data-bs-target="#locais" type="button" role="tab" onclick="$('.pane-btn').addClass('d-none'); $('#pane-btn-locais').removeClass('d-none');">
+                                <i class="fas fa-door-open me-1 me-md-2"></i>
+                                <span class="d-none d-md-inline">Salas/Espaços</span>
+                                <span class="d-inline d-md-none">Salas</span>
                             </button>
                         </li>
                     </ul>
@@ -55,43 +54,39 @@
             </div>
 
             <div class="card-body p-3 p-md-4 mt-2">
-                <div class="tab-content">
-                    <div class="row g-2 g-md-3 align-items-end">
-                        <div class="col-12 d-md-none mb-2 text-center">
-                            <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Gestão de Organização</h4>
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-md-5 text-center text-md-start">
+                        <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;"></h4>
+                    </div>
+
+                    <div class="col-12 col-md-7">
+
+                        <div id="pane-btn-diocese" class="pane-btn d-block text-center text-md-end">
+                            <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4 w-100 w-md-auto" style="height: 44px;" onclick="modalDiocese()">
+                                <i class="fas fa-plus me-2"></i> Nova Diocese
+                            </button>
                         </div>
 
-                        <div class="col-12">
-                            <div class="tab-content">
-                                <div class="tab-pane fade show active" id="pane-btn-diocese">
-                                    <div class="text-end">
-                                        <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4" style="height: 42px;" onclick="modalDiocese()">
-                                            <i class="fas fa-plus me-2"></i> Nova Diocese
-                                        </button>
-                                    </div>
+                        <div id="pane-btn-paroquia" class="pane-btn d-none text-center text-md-end">
+                            <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4 w-100 w-md-auto" style="height: 44px;" onclick="modalInstituicao()">
+                                <i class="fas fa-plus me-2"></i> Nova Paróquia
+                            </button>
+                        </div>
+
+                        <div id="pane-btn-locais" class="pane-btn d-none">
+                            <div class="row g-2 align-items-end justify-content-center justify-content-md-end">
+                                <div class="col-12 col-md-7 text-start">
+                                    <label class="form-label small fw-bold text-uppercase text-body mb-1" style="font-size: 0.7rem;"><i class="fas fa-filter me-1 opacity-50"></i> Filtrar Paróquia</label>
+                                    <select id="filtro-org-locais" class="form-control select-orgs" placeholder="Selecione a Paróquia..."></select>
                                 </div>
-                                <div class="tab-pane fade" id="pane-btn-paroquia">
-                                    <div class="text-end">
-                                        <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4" style="height: 42px;" onclick="modalInstituicao()">
-                                            <i class="fas fa-plus me-2"></i> Nova Paróquia
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="pane-btn-locais">
-                                    <div class="row g-2 align-items-end">
-                                        <div class="col-md-5">
-                                            <label class="form-label small fw-bold text-uppercase text-muted mb-2"><i class="fas fa-filter me-1 opacity-50"></i> Paróquia</label>
-                                            <select id="filtro-org-locais" class="form-control select-orgs" placeholder="Filtrar..."></select>
-                                        </div>
-                                        <div class="col-md-7 text-end">
-                                            <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4" style="height: 42px;" onclick="modalLocal()">
-                                                <i class="fas fa-plus me-2"></i> Novo Local
-                                            </button>
-                                        </div>
-                                    </div>
+                                <div class="col-12 col-md-5 text-center text-md-end">
+                                    <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4 w-100" style="height: 44px;" onclick="modalLocal()">
+                                        <i class="fas fa-plus me-2"></i> Novo Local
+                                    </button>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -101,12 +96,19 @@
             <div class="card-body p-0 pt-md-4 px-md-0">
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="diocese" role="tabpanel">
-                        <div class="table-responsive list-table-diocese" style="max-height: 70vh;"></div>
+                        <div class="table-responsive list-table-diocese" style="max-height: 70vh;">
+                            <div class="text-center py-5 opacity-50">
+                                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                                <p class="mt-3 fw-medium">Carregando diretório...</p>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="tab-pane fade" id="instituicoes" role="tabpanel">
                         <div class="table-responsive list-table-orgs" style="max-height: 70vh;"></div>
                         <div class="pagination paginationButtons pagination-orgs mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
                     </div>
+
                     <div class="tab-pane fade" id="locais" role="tabpanel">
                         <div class="table-responsive list-table-locais" style="max-height: 70vh;"></div>
                         <div class="pagination paginationButtons pagination-locais mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
@@ -237,6 +239,7 @@
 
                 <div class="modal-body p-4">
                     <input type="hidden" id="loc_id">
+
                     <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 p-md-4 mb-4 shadow-inner">
                         <div class="row g-3">
                             <div class="col-12">
@@ -255,10 +258,20 @@
                     </div>
 
                     <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 p-md-4 shadow-inner">
-                        <h6 class="fw-bold text-primary mb-3"><i class="fas fa-cubes me-2 opacity-75"></i> Infraestrutura</h6>
+                        <h6 class="fw-bold text-primary mb-3 d-flex align-items-center"><i class="fas fa-cubes me-2 opacity-75"></i> Infraestrutura</h6>
                         <div class="row g-2">
                             <?php
-                            $recursos = ['wifi' => 'Wi-Fi', 'ac' => 'Ar-Condic.', 'projector' => 'Projetor', 'sound' => 'Som', 'whiteboard' => 'Lousa', 'access' => 'Acessíb.', 'sacred' => 'Sagrado', 'kitchen' => 'Cozinha', 'parking' => 'Vagas'];
+                            $recursos = [
+                                'wifi' => 'Wi-Fi',
+                                'ac' => 'Ar-Condic.',
+                                'projector' => 'Projetor',
+                                'sound' => 'Som',
+                                'whiteboard' => 'Lousa',
+                                'access' => 'Acessíb.',
+                                'sacred' => 'Sagrado',
+                                'kitchen' => 'Cozinha',
+                                'parking' => 'Vagas'
+                            ];
                             foreach ($recursos as $id => $label): ?>
                                 <div class="col-6 col-md-4">
                                     <div class="form-check form-switch d-flex align-items-center bg-body p-2 px-3 rounded-3 border border-secondary border-opacity-10 transition-all cursor-pointer">

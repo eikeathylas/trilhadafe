@@ -63,7 +63,6 @@
 .list-commanded {
     position: relative;
     background-color: var(--fundo);
-    padding: 10px;
     border-radius: 10px;
     height: 100%;
     border: 1px solid var(--borda);

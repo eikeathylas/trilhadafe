@@ -6,10 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Pessoas - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
-
-    <link href="assets/css/foto.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 
 <body>
@@ -17,7 +14,7 @@
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
-    <div class="main-only px-0 px-md-3">
+    <div class="main-only">
         <div class="d-none d-md-flex align-items-center mb-4 mt-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">

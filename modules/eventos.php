@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
     <title>Agenda e Eventos - Trilha da Fé</title>
-
     <?php include "./assets/components/Head.php"; ?>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -18,14 +17,14 @@
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
-    <div class="main-only px-0 px-md-3">
+    <div class="main-only">
 
         <div class="d-none d-md-flex align-items-center mb-4 mt-4">
-                <nav aria-label="breadcrumb" class="w-100">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
-                            style="font-size: 1.5rem; letter-spacing: -0.8px;">
-                            Gestão de Agenda e Eventos
+            <nav aria-label="breadcrumb" class="w-100">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
+                        style="font-size: 1.5rem; letter-spacing: -0.8px;">
+                        Agenda e Eventos
                     </li>
                 </ol>
             </nav>

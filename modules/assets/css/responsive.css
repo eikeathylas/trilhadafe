@@ -167,9 +167,9 @@
 @media (max-width: 480px) {
 
     /* Otimizações extremas para ganho de espaço e ajuste fino do padding inferior */
-    .main-only {
-        padding: 76px 12px calc(120px + env(safe-area-inset-bottom)) 12px !important;
-    }
+    /* .main-only {
+        padding: 76px 12px 0px 12px !important;
+    } */
 
     .filter-card {
         padding: 12px;
