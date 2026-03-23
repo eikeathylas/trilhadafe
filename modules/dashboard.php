@@ -114,11 +114,9 @@
                 </div>
             </div>
 
-            <hr class="my-4 border-secondary border-opacity-10 d-none d-md-block">
+            <div class="row ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
 
-            <div class="row g-4 mb-5 px-3 px-md-0">
-
-                <div class="col-12 col-lg-4">
+                <div class="col-12 col-lg-4 mt-3 mt-md-0">
                     <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
                         <div class="card-header bg-body border-bottom border-secondary border-opacity-10 py-3 px-4">
                             <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
@@ -136,7 +134,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-lg-4">
+                <div class="col-12 col-lg-4 mt-3 mt-md-0">
                     <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
                         <div class="card-header bg-body border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
@@ -155,7 +153,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-lg-4">
+                <div class="col-12 col-lg-4 mt-3 mt-md-0">
                     <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
                         <div class="card-header bg-body border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
