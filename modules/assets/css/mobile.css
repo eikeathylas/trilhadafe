@@ -46,7 +46,7 @@
 }
 
 .bottom-nav-item:active,
-.modern-bottom-nav-item:active {
+.modern-bottom-nav-item.active {
     transform: scale(0.92) !important;
     opacity: 0.7;
     transition: transform 0.1s ease !important;

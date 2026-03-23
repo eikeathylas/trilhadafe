@@ -1,7 +1,7 @@
 @import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900);
 
 /* ============================================================
-   1. RESET E VARIÁVEIS GLOBAIS
+   1. RESET E VARIÁVEIS GLOBAIS (LIGHT MODE)
    ============================================================ */
 * {
   margin: 0;
@@ -31,14 +31,21 @@
 
   --input-bg: #f1f5f9;
   --input-border: transparent;
-
   --descricao: #858796;
 
   --danger: #e74a3b;
   --success: #1cc88a;
   --warning: #f6c23e;
+
+  /* Variáveis Dinâmicas da Sidebar (Modo Claro) */
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e3e6f0;
+  --sidebar-text: #64748b;
+  --sidebar-text-active: #3b6cc9;
+  --sidebar-bg-active: rgba(92, 142, 241, 0.1);
 }
 
+/* Correção: O body deve ser genérico para as variáveis funcionarem */
 body {
   background: var(--body);
   color: var(--black);
@@ -55,38 +62,38 @@ body {
    🌙 MODO ESCURO (SOFT DARK / SLATE FEEL PREMIUM)
    ============================================================ */
 [data-theme="escuro"] {
-  /* Tons em tons pastel (evita o brilho neon, mais confortável para a visão) */
   --padrao: #60a5fa;
   --padrao1: #3b82f6;
   --padrao2: #fbbf24;
   --padrao-suave: rgba(96, 165, 250, 0.15);
 
-  /* Níveis de Profundidade - Slate (Azulado Acinzentado) */
-  --body: #0f172a; /* Fundo base suave (Slate 900) */
-  --fundo: #1e293b; /* Superfícies dos cartões (Slate 800) */
-  --borda: rgba(255, 255, 255, 0.08); /* Bordas translúcidas subtis */
+  --body: #0f172a;
+  --fundo: #1e293b;
+  --borda: rgba(255, 255, 255, 0.08);
 
-  /* Variáveis de Inputs Nativos */
-  --input-bg: #0f172a; /* Fundo escavado para contraste suave */
+  --input-bg: #0f172a;
   --input-border: rgba(255, 255, 255, 0.1);
 
-  /* Textos Suaves (Evita a fadiga ocular do branco puro) */
   --white: #ffffff;
-  --black: #f1f5f9; /* Texto principal (Branco sujo / Slate 100) */
-  --descricao: #94a3b8; /* Texto secundário (Cinza azulado / Slate 400) */
+  --black: #f1f5f9;
+  --descricao: #94a3b8;
 
-  /* Cores de Sistema (Tons pastel) */
-  --danger: #f87171; /* Vermelho suave */
-  --success: #34d399; /* Verde esmeralda */
-  --warning: #fbbf24; /* Âmbar */
+  --danger: #f87171;
+  --success: #34d399;
+  --warning: #fbbf24;
+
+  /* Variáveis Dinâmicas da Sidebar (Modo Escuro) */
+  --sidebar-bg: #1e293b;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-text: #94a3b8;
+  --sidebar-text-active: #60a5fa;
+  --sidebar-bg-active: rgba(96, 165, 250, 0.1);
 }
 
 [data-theme="escuro"] ::selection {
   background-color: rgba(96, 165, 250, 0.3);
   color: #ffffff;
 }
-
-/* Força herança de cor com a nova paleta soft */
 [data-theme="escuro"] h1,
 [data-theme="escuro"] h2,
 [data-theme="escuro"] h3,
@@ -95,26 +102,93 @@ body {
 [data-theme="escuro"] h6 {
   color: var(--black);
 }
-
 [data-theme="escuro"] .text-gray-800 {
   color: #f1f5f9 !important;
 }
-
 [data-theme="escuro"] .text-muted {
   color: #94a3b8 !important;
 }
-
 [data-theme="escuro"] .text-black,
 [data-theme="escuro"] .text-body {
   color: var(--black) !important;
 }
-
 [data-theme="escuro"] .bg-white {
   background-color: var(--fundo) !important;
 }
-
 [data-theme="escuro"] .bg-light {
-  background-color: rgba(15, 23, 42, 0.6) !important; /* Fundo translúcido para barras/headers */
+  background-color: rgba(15, 23, 42, 0.6) !important;
+}
+
+/* ==========================================================
+   🌟 ESTRUTURA UNIFICADA DA SIDEBAR (APPLE HIG)
+   ========================================================== */
+.sidebar-only {
+  background-color: var(--sidebar-bg) !important;
+  background: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--sidebar-border) !important;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
+}
+
+.modern-bottom-nav {
+  background-color: var(--sidebar-bg) !important;
+  background: var(--sidebar-bg) !important;
+  border-top: 1px solid var(--sidebar-border) !important;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
+}
+
+.sidebar-only .text-only,
+.sidebar-only .icon-only,
+.modern-bottom-nav-item span,
+.modern-bottom-nav-item .material-symbols-outlined {
+  color: var(--sidebar-text) !important;
+  transition: all 0.2s ease;
+}
+
+.sidebar-only .title-only {
+  color: var(--sidebar-text) !important;
+  opacity: 0.7;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Efeito Premium na Aba Ativa (Pílula Translúcida) */
+.sidebar-only .menu-only > ul > li > a:hover,
+.sidebar-only .menu-only > ul > li > a.active,
+.sidebar-only .menu-only > ul > li.active-only > a {
+  background-color: var(--sidebar-bg-active) !important;
+  color: var(--sidebar-text-active) !important;
+  border-radius: 12px !important;
+}
+
+/* Acende os ícones e textos em destaque */
+.sidebar-only .menu-only > ul > li > a:hover .icon-only,
+.sidebar-only .menu-only > ul > li > a:hover .text-only,
+.sidebar-only .menu-only > ul > li > a.active .icon-only,
+.sidebar-only .menu-only > ul > li > a.active .text-only,
+.sidebar-only .menu-only > ul > li.active-only > a .icon-only,
+.sidebar-only .menu-only > ul > li.active-only > a .text-only,
+.modern-bottom-nav-item.active span,
+.modern-bottom-nav-item.active .material-symbols-outlined {
+  color: var(--sidebar-text-active) !important;
+  font-weight: 600 !important;
+}
+
+.modern-bottom-nav-item.active {
+  background-color: transparent !important;
+}
+
+/* Ajuste dos inputs na Sidebar */
+.sidebar-only select,
+.sidebar-only .selectize-input {
+  background-color: var(--input-bg) !important;
+  border: 1px solid var(--sidebar-border) !important;
+  color: var(--black) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
 }
 
 /* ============================================================
@@ -134,7 +208,6 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.25);
 }
-
 [data-theme="escuro"] ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
 }
@@ -238,7 +311,6 @@ body {
     transform: rotate(360deg);
   }
 }
-
 [data-theme="escuro"] .div-loader {
   background: rgba(15, 23, 42, 0.85);
 }
@@ -278,62 +350,4 @@ body {
 }
 [data-theme="escuro"] #desk-notif-badge {
   border-color: var(--fundo) !important;
-}
-
-/* ==========================================================
-   🚨 6. CORREÇÃO CRÍTICA: OVERRIDES DE SIDEBAR (MODO ESCURO)
-   ========================================================== */
-
-/* Remove o fundo azul estourado e aplica o fundo neutro escuro (Slate 800) */
-[data-theme="escuro"] .sidebar-only,
-[data-theme="escuro"] .modern-bottom-nav {
-  background-color: var(--fundo) !important;
-  background: var(--fundo) !important;
-  border-right: 1px solid var(--borda) !important;
-}
-
-[data-theme="escuro"] .modern-bottom-nav {
-  border-top: 1px solid var(--borda) !important;
-}
-
-/* Neutraliza as cores dos textos não selecionados na Sidebar */
-[data-theme="escuro"] .sidebar-only .text-only,
-[data-theme="escuro"] .sidebar-only .icon-only,
-[data-theme="escuro"] .modern-bottom-nav-item span,
-[data-theme="escuro"] .modern-bottom-nav-item .material-symbols-outlined {
-  color: var(--descricao) !important;
-  transition: all 0.2s ease;
-}
-
-/* Neutraliza os cabeçalhos das categorias ("Visão Geral", "Escola da Fé") */
-[data-theme="escuro"] .sidebar-only .title-only {
-  color: var(--descricao) !important;
-  opacity: 0.6;
-  font-weight: 700;
-}
-
-/* Aplica o Azul de forma elegante APENAS nos itens com Hover ou Ativos */
-[data-theme="escuro"] .sidebar-only .menu-only > ul > li > a:hover,
-[data-theme="escuro"] .sidebar-only .menu-only > ul > li > a.active,
-[data-theme="escuro"] .sidebar-only .menu-only > ul > li.active-only > a,
-[data-theme="escuro"] .modern-bottom-nav-item.active {
-  background-color: var(--padrao-suave) !important;
-  color: var(--padrao) !important;
-  border-radius: 8px; /* Adiciona um recorte suave */
-}
-
-/* Garante que o ícone do menu ativo também fica azul */
-[data-theme="escuro"] .sidebar-only .menu-only > ul > li > a.active .icon-only,
-[data-theme="escuro"] .sidebar-only .menu-only > ul > li > a.active .text-only,
-[data-theme="escuro"] .modern-bottom-nav-item.active span,
-[data-theme="escuro"] .modern-bottom-nav-item.active .material-symbols-outlined {
-  color: var(--padrao) !important;
-}
-
-/* Ajusta as caixas de Select (Unidade e Ano Letivo) na Sidebar */
-[data-theme="escuro"] .sidebar-only select,
-[data-theme="escuro"] .sidebar-only .selectize-input {
-  background-color: var(--body) !important;
-  border: 1px solid var(--borda) !important;
-  color: var(--black) !important;
 }
