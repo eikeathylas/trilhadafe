@@ -1,7 +1,7 @@
 @import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900);
 
 /* ============================================================
-   1. RESET E VARIÁVEIS GLOBAIS (LIGHT MODE)
+   1. RESET E VARIÁVEIS GLOBAIS (DESIGN SYSTEM - APPLE HIG)
    ============================================================ */
 * {
   margin: 0;
@@ -18,21 +18,25 @@
 
 :root,
 [data-theme="claro"] {
+  /* Cores de Ação */
   --padrao: #5c8ef1;
   --padrao1: #3b6cc9;
   --padrao2: #ffd966;
   --padrao-suave: #eef4ff;
 
+  /* Superfícies e Contrastes */
   --white: #ffffff;
   --borda: #e3e6f0;
   --black: #2c3e50;
   --fundo: #ffffff;
   --body: #f8f9fc;
 
+  /* Inputs e Textos */
   --input-bg: #f1f5f9;
   --input-border: transparent;
   --descricao: #858796;
 
+  /* Feedback */
   --danger: #e74a3b;
   --success: #1cc88a;
   --warning: #f6c23e;
@@ -43,41 +47,36 @@
   --sidebar-text: #64748b;
   --sidebar-text-active: #3b6cc9;
   --sidebar-bg-active: rgba(92, 142, 241, 0.1);
+
+  /* HIERARQUIA DE Z-INDEX (MAPA OFICIAL DO SISTEMA) */
+  --z-main: 1;
+  --z-header-mob: 1030;
+  --z-sidebar: 1040;
+  --z-bottom-nav: 1050;
+  --z-offcanvas: 1070;
+  --z-modal: 1090;
+  --z-swal: 9999;
+  --z-loader: 10000;
 }
 
-/* Correção: O body deve ser genérico para as variáveis funcionarem */
-body {
-  background: var(--body);
-  color: var(--black);
-  transition:
-    background-color 0.3s,
-    color 0.3s;
-  overflow-x: hidden;
-  overscroll-behavior-y: none;
-  text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
-}
-
-/* ============================================================
-   🌙 MODO ESCURO (SOFT DARK / SLATE FEEL PREMIUM)
-   ============================================================ */
 [data-theme="escuro"] {
+  /* Tons Pastel para Conforto Visual (Anti-Halation) */
   --padrao: #60a5fa;
   --padrao1: #3b82f6;
   --padrao2: #fbbf24;
   --padrao-suave: rgba(96, 165, 250, 0.15);
 
+  /* Superfícies Slate Premium */
   --body: #0f172a;
   --fundo: #1e293b;
   --borda: rgba(255, 255, 255, 0.08);
-
   --input-bg: #0f172a;
   --input-border: rgba(255, 255, 255, 0.1);
 
+  /* Contrastes Suavizados */
   --white: #ffffff;
   --black: #f1f5f9;
   --descricao: #94a3b8;
-
   --danger: #f87171;
   --success: #34d399;
   --warning: #fbbf24;
@@ -90,10 +89,19 @@ body {
   --sidebar-bg-active: rgba(96, 165, 250, 0.1);
 }
 
-[data-theme="escuro"] ::selection {
-  background-color: rgba(96, 165, 250, 0.3);
-  color: #ffffff;
+body {
+  background: var(--body);
+  color: var(--black);
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
 }
+
+/* Força cores de cabeçalho no modo escuro */
 [data-theme="escuro"] h1,
 [data-theme="escuro"] h2,
 [data-theme="escuro"] h3,
@@ -126,20 +134,45 @@ body {
   background-color: var(--sidebar-bg) !important;
   background: var(--sidebar-bg) !important;
   border-right: 1px solid var(--sidebar-border) !important;
+  z-index: var(--z-sidebar);
+  position: relative;
   transition:
     background-color 0.3s,
-    border-color 0.3s;
+    border-color 0.3s,
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.modern-bottom-nav {
+/* Botão Toggle Flutuante de Toggle Sidebar */
+.menu-btn-only {
+  position: absolute;
+  top: 32px;
+  right: -16px;
+  width: 32px;
+  height: 32px;
   background-color: var(--sidebar-bg) !important;
-  background: var(--sidebar-bg) !important;
-  border-top: 1px solid var(--sidebar-border) !important;
-  transition:
-    background-color 0.3s,
-    border-color 0.3s;
+  border: 1px solid var(--sidebar-border) !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: calc(var(--z-sidebar) + 20);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  color: var(--sidebar-text);
 }
 
+.menu-btn-only:hover {
+  background-color: var(--padrao) !important;
+  color: #ffffff !important;
+  border-color: var(--padrao) !important;
+  transform: scale(1.15);
+}
+.sidebar-only.active-only .menu-btn-only span {
+  transform: rotate(180deg);
+}
+
+/* Navegação e Links */
 .sidebar-only .text-only,
 .sidebar-only .icon-only,
 .modern-bottom-nav-item span,
@@ -153,24 +186,23 @@ body {
   opacity: 0.7;
   font-weight: 700;
   letter-spacing: 0.5px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  padding-left: 15px;
 }
 
-/* Efeito Premium na Aba Ativa (Pílula Translúcida) */
+/* Pílula Ativa Premium */
 .sidebar-only .menu-only > ul > li > a:hover,
 .sidebar-only .menu-only > ul > li > a.active,
 .sidebar-only .menu-only > ul > li.active-only > a {
   background-color: var(--sidebar-bg-active) !important;
   color: var(--sidebar-text-active) !important;
-  border-radius: 12px !important;
+  border-radius: 30px !important;
 }
 
-/* Acende os ícones e textos em destaque */
-.sidebar-only .menu-only > ul > li > a:hover .icon-only,
-.sidebar-only .menu-only > ul > li > a:hover .text-only,
 .sidebar-only .menu-only > ul > li > a.active .icon-only,
 .sidebar-only .menu-only > ul > li > a.active .text-only,
 .sidebar-only .menu-only > ul > li.active-only > a .icon-only,
-.sidebar-only .menu-only > ul > li.active-only > a .text-only,
 .modern-bottom-nav-item.active span,
 .modern-bottom-nav-item.active .material-symbols-outlined {
   color: var(--sidebar-text-active) !important;
@@ -188,11 +220,107 @@ body {
   border: 1px solid var(--sidebar-border) !important;
   color: var(--black) !important;
   border-radius: 8px !important;
-  box-shadow: none !important;
+}
+
+/* ==========================================================
+   📱 COMPONENTES MOBILE (HEADER E BOTTOM NAV)
+   ========================================================== */
+.modern-bottom-nav {
+  background-color: var(--sidebar-bg) !important;
+  border-top: 1px solid var(--sidebar-border) !important;
+  z-index: var(--z-bottom-nav);
+  transition: background-color 0.3s;
+}
+
+.mobile-top-header {
+  background-color: var(--fundo);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding-top: env(safe-area-inset-top);
+  z-index: var(--z-header-mob);
+}
+
+/* ==========================================================
+   🏛️ MOTOR DE MODAIS FULL-SCREEN (NATIVE FEEL) - V2
+   ========================================================== */
+body.modal-open {
+  overflow: hidden !important;
+}
+
+.modal-fullscreen-native .modal-dialog {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+  z-index: var(--z-modal);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 992px) {
+  .modal-fullscreen-native .modal-dialog {
+    padding: 20px;
+  } /* Margem Desktop para contexto */
+  .modal-fullscreen-native .modal-content {
+    border-radius: 24px !important;
+    max-height: calc(100vh - 40px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.modal-fullscreen-native .modal-content {
+  height: 100%;
+  border: none !important;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--body);
+}
+
+.modal-fullscreen-native .modal-header {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1080;
+  border-bottom: 1px solid var(--borda) !important;
+  padding: 1rem 1.5rem;
+  background-color: var(--fundo);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Suporte a abas fixas no corpo do modal */
+.modal-fullscreen-native .sticky-tabs-container {
+  position: sticky;
+  top: 0;
+  z-index: 1070;
+  background-color: var(--fundo);
+  border-bottom: 1px solid var(--borda);
+  padding: 10px 1.5rem;
+  margin: 0 -2rem 2rem -2rem;
+}
+
+.modal-fullscreen-native .modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  background-color: var(--body);
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-fullscreen-native .modal-footer {
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 1080;
+  border-top: 1px solid var(--borda) !important;
+  padding: 1.2rem 1.5rem;
+  background-color: var(--fundo);
+  backdrop-filter: blur(10px);
 }
 
 /* ============================================================
-   2. CUSTOMIZAÇÃO SCROLLBAR
+   2. CUSTOMIZAÇÃO SCROLLBAR (macOS STYLE)
    ============================================================ */
 ::-webkit-scrollbar {
   width: 8px;
@@ -216,7 +344,7 @@ body {
 }
 
 /* ============================================================
-   3. UTILITÁRIOS GLOBAIS
+   3. UTILITÁRIOS E ANIMAÇÕES
    ============================================================ */
 .txt-theme {
   color: var(--padrao);
@@ -268,9 +396,7 @@ body {
   justify-content: center;
 }
 
-/* ============================================================
-   4. ANIMAÇÕES E LOADERS GLOBAIS
-   ============================================================ */
+/* Loaders */
 .div-loader {
   width: 100%;
   height: 100vh;
@@ -281,10 +407,11 @@ body {
   justify-content: center;
   align-items: center;
   background: rgba(255, 255, 255, 0.85);
-  z-index: 10000;
+  z-index: var(--z-loader);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
+
 .loader {
   width: 44px;
   height: 44px;
@@ -293,6 +420,7 @@ body {
   border-radius: 50%;
   animation: rotation 1s linear infinite;
 }
+
 .loader-sm {
   width: 16px;
   height: 16px;
@@ -311,6 +439,7 @@ body {
     transform: rotate(360deg);
   }
 }
+
 [data-theme="escuro"] .div-loader {
   background: rgba(15, 23, 42, 0.85);
 }
@@ -337,13 +466,14 @@ body {
   background-color: var(--danger) !important;
   color: #ffffff !important;
   z-index: 10 !important;
+  border: 2px solid var(--fundo) !important;
 }
 
 #mob-notif-badge {
-  border: 2px solid #ffffff !important;
+  border-color: #ffffff !important;
 }
 #desk-notif-badge {
-  border: 2px solid var(--fundo) !important;
+  border-color: var(--fundo) !important;
 }
 [data-theme="escuro"] #mob-notif-badge {
   border-color: var(--padrao1) !important;
