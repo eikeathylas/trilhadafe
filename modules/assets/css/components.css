@@ -246,21 +246,23 @@ label {
 }
 
 /* ============================================================
-   3. CARDS E WIDGETS (SISTEMA DE SOMBRAS DIFUSAS E ELEVAÇÃO)
+   3. CARDS E WIDGETS (APPLE HIG / PREMIUM DEPTH)
    ============================================================ */
-/* -- Estilos base */
+/* -- Estilos base -- */
 .card,
 .filter-card {
   border: 1px solid var(--borda) !important;
-  border-radius: 20px;
+  border-radius: 24px !important; /* Arredondamento suave iOS */
   background-color: var(--fundo);
-  box-shadow: var(--shadow-md) !important; /* Usa a sombra do main.css */
+  box-shadow: var(--shadow-sm) !important; /* Puxa do main.css */
   transition:
-    transform 0.3s ease,
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Efeito Clickable para Cards de Dashboard */
+/* Efeito de Elevação ao Passar o Mouse */
 .card.clickable,
 .mobile-card.clickable {
   cursor: pointer;
@@ -269,15 +271,57 @@ label {
 .card.clickable:hover,
 .mobile-card.clickable:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md) !important;
 }
 
+/* Feedback tátil ao clicar */
 .card.clickable:active,
 .mobile-card.clickable:active {
   transform: scale(0.97);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm) !important;
 }
 
+/* -- Tipografia Imersiva para Dashboards -- */
+.card-body h2,
+.card-body .display-5,
+.card-body .fs-2,
+.card-body h3 {
+  font-weight: 800 !important;
+  letter-spacing: -1px; /* Números mais juntos e impactantes */
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.card-body .text-muted,
+.card-body .text-uppercase {
+  font-size: 0.75rem;
+  letter-spacing: 1px; /* Títulos mais afastados para leitura limpa */
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* -- Ícones (Squircle Apple Style em vez de círculos perfeitos) -- */
+.icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px; /* Padrão Squircle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  background-color: var(--padrao-suave);
+  color: var(--padrao);
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Micro-interação: Ícone reage ao hover no card */
+.card.clickable:hover .icon-circle {
+  transform: scale(1.1) rotate(3deg);
+}
+
+/* -- Outros Componentes de Widget -- */
 .filter-card {
   padding: 16px;
   margin-bottom: 20px;
@@ -298,25 +342,10 @@ label {
   color: var(--padrao);
 }
 
-.icon-circle {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
-  background-color: var(--padrao-suave);
-  color: var(--padrao);
-  flex-shrink: 0;
-}
-
-/* Agenda Widget */
 .event-date-box {
   background-color: var(--body);
-  border-radius: 8px;
-  padding: 5px 10px;
+  border-radius: 12px;
+  padding: 6px 12px;
   text-align: center;
   min-width: 60px;
   border: 1px solid transparent;
@@ -338,13 +367,26 @@ label {
   line-height: 1.1;
 }
 
-/* -- Modo escuro (SISTEMA DE ELEVAÇÃO) */
+/* ============================================================
+   SISTEMA DE ILUMINAÇÃO INTERNA PREMIUM (MODO ESCURO)
+   ============================================================ */
 [data-theme="escuro"] .card,
 [data-theme="escuro"] .filter-card {
-  background-color: var(--fundo);
-  border: 1px solid var(--borda);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.55) !important;
+  /* Gradiente suave para não parecer uma caixa chapada */
+  background: linear-gradient(145deg, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Hairline Top Glow (Simula luz batendo na borda superior do card) */
+[data-theme="escuro"] .card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
 }
 
 [data-theme="escuro"] .card-header {
@@ -363,15 +405,18 @@ label {
   color: var(--white);
 }
 
-/* -- Responsividade */
+/* -- Responsividade -- */
 @media (max-width: 768px) {
   .filter-card {
     padding: 14px;
     border-radius: 16px;
     margin-bottom: 16px;
   }
+  .card,
+  .filter-card {
+    border-radius: 20px !important;
+  }
 }
-
 /* ============================================================
    4. TABELAS (DESKTOP)
    ============================================================ */
