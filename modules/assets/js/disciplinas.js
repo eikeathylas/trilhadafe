@@ -154,11 +154,9 @@ const renderTableSubjects = (data) => {
               </div>
               <div class="text-end">
                   <div class="d-flex align-items-center justify-content-end gap-2">
+                  <!-- <div class="status-text-sub-${item.subject_id} d-flex align-items-center">${statusIconHtml}</div> -->
                       <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
                           <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleSubject(${item.subject_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
-                      </div>
-                      <div class="status-text-sub-${item.subject_id} d-flex align-items-center">
-                          ${statusIconHtml}
                       </div>
                   </div>
               </div>

@@ -225,10 +225,10 @@ const renderTablePeople = (data) => {
 
           <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-3" style="min-width: 90px;">
               <div class="d-flex align-items-center justify-content-end gap-2 w-100">
+              <!-- <div class="status-text-peo-${item.person_id} d-flex align-items-center">${statusIconHtml}</div> -->
                 <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
                   <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_active ? "checked" : ""} onchange="togglePerson(${item.person_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
                 </div>
-                ${statusIconHtml}
               </div>
               <div class="d-flex gap-2">
                   <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>

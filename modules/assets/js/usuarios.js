@@ -127,10 +127,7 @@ const renderUsers = (data) => {
           <td class="align-middle text-center"><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">${item.anos_letivos || "Acesso Geral"}</span></td>
           <td class="text-center align-middle" style="width: 130px;">
               <div class="d-flex align-items-center justify-content-center gap-2">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
-                      <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleUsuario(${item.id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
-                  </div>
-                  <div class="status-text-usr-${item.id} d-flex align-items-center">${statusIconHtml}</div>
+                  <div class="status-text-usr-${item.id} d-flex align-items-center" style="font-size: 30px;">${statusIconHtml}</div>
               </div>
           </td>
           <td class="text-end align-middle pe-4 text-nowrap">
@@ -192,10 +189,7 @@ const renderUsers = (data) => {
               </div>
               <div class="ms-2">
                   <div class="d-flex align-items-center justify-content-end gap-2 w-100">
-                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleUsuario(${item.id}, this)" style="width: 50px; height: 28px; cursor: pointer;">
-                      </div>
-                      <div class="status-text-usr-${item.id} d-flex align-items-center">${statusIconHtml}</div>
+                      <div class="status-text-usr-${item.id} d-flex align-items-center" style="font-size: 30px;">${statusIconHtml}</div>
                   </div>
               </div>
           </div>

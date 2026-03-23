@@ -148,7 +148,7 @@ const renderTableDiocese = (data) => {
                       <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
                           <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleDio(${item.org_id}, this)" style="width: 50px; height: 28px; cursor: pointer;">
                       </div>
-                      <div class="status-text-org-${item.org_id} d-flex align-items-center">${statusIconHtml}</div>
+                      <!-- <div class="status-text-org-${item.org_id} d-flex align-items-center">${statusIconHtml}</div> -->
                   </div>
               </div>
           </div>
@@ -249,10 +249,10 @@ const renderTableOrgs = (data) => {
               </div>
               <div class="ms-2">
                   <div class="d-flex align-items-center justify-content-end gap-2 w-100">
+                      <!-- <div class="status-text-org-${item.org_id} d-flex align-items-center">${statusIconHtml}</div> -->
                       <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
                           <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleOrg(${item.org_id}, this)" style="width: 50px; height: 28px; cursor: pointer;">
                       </div>
-                      <div class="status-text-org-${item.org_id} d-flex align-items-center">${statusIconHtml}</div>
                   </div>
               </div>
           </div>
@@ -385,7 +385,7 @@ const renderTableLocais = (data) => {
                       <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
                           <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleLoc(${item.location_id}, this)" style="width: 50px; height: 28px; cursor: pointer;">
                       </div>
-                      <div class="status-text-loc-${item.location_id} d-flex align-items-center">${statusIconHtml}</div>
+                      <!-- <div class="status-text-loc-${item.location_id} d-flex align-items-center">${statusIconHtml}</div> -->
                   </div>
               </div>
           </div>

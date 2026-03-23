@@ -500,7 +500,7 @@ const handleToggle = async (validator, id, element, successMsg, labelSelector, f
     }
   } catch (e) {
     $chk.prop("checked", !status);
-    setVisualState(!status);
+    // setVisualState(!status);
 
     const errorMessage = e.message || "Erro de conexão com o servidor.";
     window.alertErrorWithSupport(`Alternar Status`, errorMessage);

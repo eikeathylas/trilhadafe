@@ -90,14 +90,14 @@ const renderTableEvents = (data) => {
   // Helper para Status no Desktop (Badge)
   const getBlockerLabel = (is) =>
     is
-      ? '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1" style="cursor: help;" title="Feriado/Sem Aula">Bloqueado <i class="fas fa-lock ms-1 opacity-75"></i></span>'
-      : '<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1">Liberado <i class="fas fa-lock-open ms-1 opacity-75"></i></span>';
+      ? `<span title="Bloqueado (Feriado)" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-lock"></i></span>`
+      : `<span title="Liberado (Dia Letivo)" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-lock-open"></i></span>`;
 
   // Helper para Status no Mobile (Ícone Limpo)
   const getStatusIconHtml = (is) =>
     is
-      ? `<span title="Bloqueado (Feriado)" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px;"><i class="fas fa-lock"></i></span>`
-      : `<span title="Liberado (Dia Letivo)" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px;"><i class="fas fa-lock-open"></i></span>`;
+      ? `<span title="Bloqueado (Feriado)" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-lock"></i></span>`
+      : `<span title="Liberado (Dia Letivo)" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-lock-open"></i></span>`;
 
   // =========================================================
   // 1. VISÃO DESKTOP (TABELA CLEAN)
@@ -108,12 +108,12 @@ const renderTableEvents = (data) => {
 
       const toggleHtml = `
         <div class="d-flex align-items-center justify-content-center">
-            <div class="form-check form-switch mb-0 d-flex align-items-center">
-                <input class="form-check-input shadow-sm m-0" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer;">
-            </div>
-            <div id="lbl_desk_${item.event_id}" class="ms-2">
-                ${getBlockerLabel(item.is_academic_blocker)}
-            </div>
+          <div class="form-check form-switch mb-0 d-flex align-items-center">
+            <input class="form-check-input shadow-sm m-0" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer;">
+          </div>
+          <div id="lbl_desk_${item.event_id}" class="ms-2">
+              ${getBlockerLabel(item.is_academic_blocker)}
+          </div>
         </div>`;
 
       return `
@@ -172,12 +172,12 @@ const renderTableEvents = (data) => {
 
             <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-3" style="min-width: 90px;">
                 <div class="d-flex align-items-center justify-content-end gap-1 w-100">
+                    <div id="lbl_mob_${item.event_id}">
+                        ${getStatusIconHtml(item.is_academic_blocker)}
+                    </div>
                     <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
                         <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
                         <span class="toggle-loader spinner-border spinner-border-sm text-secondary d-none ms-2" role="status"></span>
-                    </div>
-                    <div id="lbl_mob_${item.event_id}">
-                        ${getStatusIconHtml(item.is_academic_blocker)}
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -220,11 +220,15 @@ window.toggleBlocker = async (id, element) => {
 
   const setVisualState = (isBlocker) => {
     // Atualiza Desktop
-    const badgeDesk = isBlocker ? '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1" style="cursor: help;" title="Feriado/Sem Aula">Bloqueado <i class="fas fa-lock ms-1 opacity-75"></i></span>' : '<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1">Liberado <i class="fas fa-lock-open ms-1 opacity-75"></i></span>';
+    const badgeDesk = isBlocker
+      ? '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1" style="cursor: help;" title="Feriado/Sem Aula">Bloqueado <i class="fas fa-lock ms-1 opacity-75"></i></span>'
+      : '<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1">Liberado <i class="fas fa-lock-open ms-1 opacity-75"></i></span>';
     $labelDesk.html(badgeDesk);
 
     // Atualiza Mobile (Ícone Redondo Sólido)
-    const iconMob = isBlocker ? `<div title="Bloqueado (Feriado)" class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 16px; height: 16px; font-size: 0.6rem;"><i class="fas fa-times"></i></div>` : `<div title="Liberado (Dia Letivo)" class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 16px; height: 16px; font-size: 0.6rem;"><i class="fas fa-check"></i></div>`;
+    const iconMob = isBlocker
+      ? `<div title="Bloqueado (Feriado)" class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 16px; height: 16px; font-size: 0.6rem;"><i class="fas fa-times"></i></div>`
+      : `<div title="Liberado (Dia Letivo)" class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 16px; height: 16px; font-size: 0.6rem;"><i class="fas fa-check"></i></div>`;
     $labelMob.html(iconMob);
   };
 
