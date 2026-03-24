@@ -54,13 +54,13 @@ function getHistory($data)
 
         if (empty($logs)) return success("Nenhum histórico encontrado.", []);
 
-        // --- 3. COLETA DE DADOS AUXILIARES (Batch Querying) ---
+        // --- 3. COLETA DE DADOS AUXILIARES E ALUNOS (Batch Querying) ---
         $userIds = $roleIds = $subjectIds = $peopleIds = $orgIds = [];
 
         foreach ($logs as $log) {
             if ($log['user_id']) $userIds[] = $log['user_id'];
 
-            // Decodificação segura com Null Coalescing e supressão de nulos puros
+            // PHP 8.1+ Safe JSON Decode
             $old = !empty($log['old_values']) ? json_decode($log['old_values'], true) : [];
             $new = !empty($log['new_values']) ? json_decode($log['new_values'], true) : [];
 
@@ -86,7 +86,7 @@ function getHistory($data)
             }
         }
 
-        // Helpers para buscar em lote
+        // Helpers para buscar nomes
         $usersMap    = !empty($userIds) ? fetchMap($conectStaff, "SELECT id, name FROM public.users WHERE id IN (" . implode(',', array_unique($userIds)) . ")", 'id', 'name') : [];
         $rolesMap    = !empty($roleIds) ? fetchMap($conectLocal, "SELECT role_id, description_pt as nome FROM people.roles WHERE role_id IN (" . implode(',', array_unique($roleIds)) . ")", 'role_id', 'nome') : [];
         $peopleMap   = !empty($peopleIds) ? fetchMap($conectLocal, "SELECT person_id, full_name FROM people.persons WHERE person_id IN (" . implode(',', array_unique($peopleIds)) . ")", 'person_id', 'full_name') : [];
@@ -106,7 +106,6 @@ function getHistory($data)
             $log['target_name'] = "";
             $log['__exclude'] = false;
 
-            // Arrays pré-decodificados para facilitar validações de título (seguros contra null)
             $oldArr = !empty($log['old_values']) ? json_decode($log['old_values'], true) : [];
             $newArr = !empty($log['new_values']) ? json_decode($log['new_values'], true) : [];
 
@@ -133,7 +132,7 @@ function getHistory($data)
             // --- FREQUÊNCIA (ATTENDANCE) ---
             elseif ($log['table_name'] === 'attendance') {
                 $sid = $newArr['student_id'] ?? $oldArr['student_id'] ?? null;
-                $log['target_name'] = $sid && isset($peopleMap[$sid]) ? $peopleMap[$sid] : "Catequizando (ID $sid)";
+                $log['student_name'] = $sid && isset($peopleMap[$sid]) ? $peopleMap[$sid] : "Catequizando (ID $sid)";
 
                 $humanizeAttendance = function ($json) {
                     if (empty($json)) return null;
@@ -165,7 +164,7 @@ function getHistory($data)
                 $log['new_values'] = $humanizeAttendance($log['new_values']);
             }
 
-            // --- GRADES CURRICULARES (CURRICULUM) ---
+            // --- GRADES CURRICULARES ---
             elseif ($log['table_name'] === 'curriculum') {
                 $sId = $newArr['subject_id'] ?? $oldArr['subject_id'] ?? 0;
 
@@ -409,9 +408,6 @@ function rollbackChange($data)
     }
 }
 
-/**
- * Helper interno para extrair mapeamentos em lote com código limpo.
- */
 function fetchMap($conn, $query, $keyField, $valField)
 {
     $map = [];
