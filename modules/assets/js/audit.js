@@ -193,7 +193,6 @@ const formatValue = (val, key = "") => {
     if (absMap[val]) return absMap[val];
   }
 
-  // Traduções de Parentescos e Metodologias (DOCTRINAL, FATHER, etc)
   if (typeof val === "string") {
     const valUpper = val.toUpperCase();
     const translateMap = {
@@ -221,6 +220,7 @@ const formatValue = (val, key = "") => {
     if (val === false || val === "f" || val === "false" || val === 0) return `<span class="badge bg-secondary text-white px-2 py-1"><i class="fas fa-minus-circle me-1"></i> Não</span>`;
   }
 
+  // Permite que o Documento Rico chegue ao sistema de Diferenças
   if (key === "content" && typeof val === "string" && (val.includes("Oculto") || val.includes("<p>"))) return `<span class="text-secondary fst-italic"><i class="fas fa-code me-1"></i> Documento Rico (HTML)</span>`;
 
   const statusMap = {
@@ -268,7 +268,6 @@ const renderTimeline = (logs, container) => {
     return;
   }
 
-  // ATENÇÃO: Removido "notes" da Blacklist para que apareçam as observações editadas
   const globalBlacklist = [
     "updated_at",
     "created_at",
@@ -303,7 +302,6 @@ const renderTimeline = (logs, container) => {
     return kLow.endsWith("_id") || kLow === "id" || kLow === "deleted" || globalBlacklist.includes(kLow);
   };
 
-  // LÓGICA DE AGRUPAMENTO (CONSOLIDAÇÃO POR TRANSAÇÃO)
   const groupedTransactions = [];
   const transactionMap = new Map();
 
@@ -408,26 +406,44 @@ const renderTimeline = (logs, container) => {
         allKeys.forEach((key) => {
           if (isBlockedKey(key)) return;
 
-          const displayOld = formatValue(oldVal[key], key);
-          const displayNew = formatValue(newVal[key], key);
+          const rawOld = oldVal[key];
+          const rawNew = newVal[key];
+
+          // Se a string raw do banco for idêntica e não for criação nova, ignorar.
+          if (rawOld === rawNew && logOp !== "INSERT") return;
+
+          let displayOld = formatValue(rawOld, key);
+          let displayNew = formatValue(rawNew, key);
+
+          // [NOVO] Diferenciador Dinâmico para Texto Rico:
+          // Se o validador transformou ambos em "Documento Rico" mas eles eram de fato diferentes no banco:
+          if (displayOld === displayNew && rawOld !== rawNew) {
+            displayOld = `<span class="text-muted"><i class="fas fa-file-code me-1"></i> Versão Anterior</span>`;
+            displayNew = `<span class="text-primary fw-bold"><i class="fas fa-file-code me-1"></i> Nova Versão Atualizada</span>`;
+          }
+
+          // Tratamento Elegante de Título Contextual para Roteiros e Subitens
+          let fieldLabel = formatKey(key);
+          if (log.target_name && log.table_name !== mainLog.table_name) {
+            fieldLabel = `<span class="text-primary">${log.target_name}</span> <span class="opacity-50 mx-1">•</span> ${fieldLabel}`;
+          }
 
           if (logOp === "INSERT") {
             if (isEffectivelyEmpty(displayNew) || String(displayNew).includes("Não informado")) return;
             generalFieldsHTML += `
                       <div class="col-12 col-md-6 mb-3">
                           <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                              <i class="fas fa-tag me-1 opacity-50"></i> ${formatKey(key)}
+                              <i class="fas fa-tag me-1 opacity-50"></i> ${fieldLabel}
                           </div>
                           <div class="p-2 rounded-3 bg-white border border-secondary border-opacity-10 text-body" style="font-size: 0.85rem;">
                               ${displayNew}
                           </div>
                       </div>`;
           } else {
-            if (displayOld === displayNew) return;
             generalFieldsHTML += `
                       <div class="col-12 mb-3">
                           <div class="text-muted fw-bolder mb-2" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;">
-                              <i class="fas fa-exchange-alt me-1 opacity-50"></i> ${formatKey(key)}
+                              <i class="fas fa-exchange-alt me-1 opacity-50"></i> ${fieldLabel}
                           </div>
                           <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center">
                               <div class="flex-fill p-2 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger d-flex align-items-center" style="font-size: 0.85rem; min-height: 42px;">
@@ -465,9 +481,11 @@ const renderTimeline = (logs, container) => {
           </div>`;
     }
 
-    // FALLBACK INTELIGENTE: Se foi Update mas não tem fields visíveis, mostra o toque na matrícula
+    let p = false;
+    // FALLBACK INTELIGENTE
     if (generalFieldsHTML === "" && attendanceHTML === "" && isUpdate) {
-      diffHtml = `<div class="text-muted small fw-medium fst-italic py-2"><i class="fas fa-info-circle me-1 opacity-50"></i> Atualização de metadados, status sistêmico ou registro de nova ocorrência na matrícula.</div>`;
+      diffHtml = `<div class="text-muted small fw-medium fst-italic py-2"><i class="fas fa-info-circle me-1 opacity-50"></i> Clicou em <b>Salvar</b> sem mudar nenhuma informação.</div>`;
+      p = true;
       hasVisibleChanges = true;
     } else if (diffHtml !== "") {
       hasVisibleChanges = true;
@@ -477,15 +495,15 @@ const renderTimeline = (logs, container) => {
 
     visibleLogsCount++;
 
-    // Só gera botão de rollback se houver um UPDATE mestre
-    let rollbackBtn = isUpdate
-      ? `
+    let rollbackBtn =
+      isUpdate & !p
+        ? `
           <div class="mt-3 pt-3 border-top border-secondary border-opacity-10 text-end">
               <button class="btn btn-sm rounded-3 px-4 fw-bold border border-warning text-warning bg-warning bg-opacity-10 hover-scale w-100 w-md-auto d-inline-flex align-items-center justify-content-center" onclick="doRollback(${group.log_id}, '${group.date_fmt}'); event.stopPropagation();" style="height: 42px;">
                   <i class="fas fa-history me-2"></i> Solicitar Reversão de Segurança
               </button>
           </div>`
-      : "";
+        : "";
 
     const isLast = index === groupedTransactions.length - 1;
     const lineHtml = !isLast ? `<div class="position-absolute border-start border-2 border-secondary border-opacity-10" style="left: 17px; top: 36px; bottom: -12px; z-index: 1;"></div>` : ``;

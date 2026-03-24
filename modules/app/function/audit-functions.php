@@ -40,6 +40,12 @@ function getHistory($data)
                           OR
                           l.old_values->>'curriculum_id' IN (SELECT CAST(curriculum_id AS TEXT) FROM education.curriculum WHERE course_id = CAST(:id AS INTEGER))
                       )";
+        } elseif ($table === 'curriculum') { // [NOVO] Adicionado suporte direto para a Grade Curricular
+            $sql .= " UNION ALL 
+                      SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name 
+                      FROM security.change_logs l 
+                      WHERE l.schema_name = 'education' AND l.table_name = 'curriculum_plans' 
+                      AND (l.new_values->>'curriculum_id' = :id OR l.old_values->>'curriculum_id' = :id)";
         } elseif ($table === 'organizations') {
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'organization' AND l.table_name = 'locations' AND (l.new_values->>'org_id' = :id OR l.old_values->>'org_id' = :id)";
         } elseif ($table === 'class_sessions') {
@@ -119,7 +125,7 @@ function getHistory($data)
                     if (empty($vals)) return null;
                     $arr = json_decode($vals, true);
                     if (is_array($arr)) {
-                        if (isset($arr['content'])) $arr['content'] = empty($arr['content']) ? "[Vazio]" : "Plano de aula atualizado";
+                        // Limpa IDs irrelevantes mas DEIXA o raw content intacto para o JS avaliar
                         unset($arr['curriculum_id'], $arr['plan_id'], $arr['created_at']);
                         return json_encode($arr);
                     }
@@ -184,7 +190,7 @@ function getHistory($data)
 
                 $log['old_values'] = $inject($log['old_values']);
                 $log['new_values'] = $inject($log['new_values']);
-                $log['target_name'] = $subjectsMap[$sId] ?? "Grade";
+                $log['target_name'] = $subjectsMap[$sId] ?? "Grade Curricular";
             }
 
             // --- TURMAS (CLASSES) ---
