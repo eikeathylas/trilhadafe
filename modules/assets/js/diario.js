@@ -15,7 +15,7 @@ const diarioState = {
 let fpInstance = null;
 
 // =========================================================
-// 1. CONFIGURAÇÃO RESPONSIVA DO EDITOR (SUMMERNOTE)
+// 1. CONFIGURAÇÃO RESPONSIVA DO EDITOR E RESIZER
 // =========================================================
 const summernoteConfig = {
   lang: "pt-BR",
@@ -32,6 +32,8 @@ const summernoteConfig = {
 };
 
 $(document).ready(() => {
+  initResizer();
+
   window.addEventListener("yearChanged", () => {
     resetInterface();
     const $selClass = $("#sel_filter_class");
@@ -41,6 +43,46 @@ $(document).ready(() => {
     initFilters();
   });
 });
+
+const initResizer = () => {
+  const resizer = document.getElementById("dragMe");
+  const leftPane = document.getElementById("pane-editor");
+  const rightPane = document.getElementById("pane-attendance");
+  if (!resizer || !leftPane || !rightPane) return;
+
+  let x = 0;
+  let leftWidth = 0;
+
+  const mouseDownHandler = function (e) {
+    x = e.clientX;
+    leftWidth = leftPane.getBoundingClientRect().width;
+    document.addEventListener("mousemove", mouseMoveHandler);
+    document.addEventListener("mouseup", mouseUpHandler);
+    $("body").css("cursor", "col-resize");
+    $("body").css("user-select", "none");
+  };
+
+  const mouseMoveHandler = function (e) {
+    const dx = e.clientX - x;
+    const containerWidth = resizer.parentNode.getBoundingClientRect().width;
+    let newLeftPct = ((leftWidth + dx) * 100) / containerWidth;
+
+    // Limites de expansão: mínimo de 35% e máximo de 75%
+    if (newLeftPct > 35 && newLeftPct < 75) {
+      leftPane.style.flexBasis = `${newLeftPct}%`;
+      rightPane.style.flexBasis = `${100 - newLeftPct}%`;
+    }
+  };
+
+  const mouseUpHandler = function () {
+    document.removeEventListener("mousemove", mouseMoveHandler);
+    document.removeEventListener("mouseup", mouseUpHandler);
+    $("body").css("cursor", "");
+    $("body").css("user-select", "");
+  };
+
+  resizer.addEventListener("mousedown", mouseDownHandler);
+};
 
 // =========================================================
 // 2. MOTORES DE FILTRO (Turmas e Disciplinas)
@@ -157,7 +199,6 @@ const resetInterface = () => {
 // =========================================================
 // 3. CARREGAMENTO E RENDERIZAÇÃO DO HISTÓRICO
 // =========================================================
-
 window.getHistory = async () => {
   const page = Math.max(0, defaultDiary.currentPage - 1);
   const container = $(".list-table-diario");
@@ -250,7 +291,8 @@ const renderTableHistory = (data) => {
   // --- VISÃO DESKTOP ---
   const desktopRows = data
     .map((item) => {
-      const dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
+      const dateParts = item.session_date.split(" ")[0].split("-");
+      const dateFmt = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
       const rawIsoDate = item.session_date.split(" ")[0];
       const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
       const summary = cleanDesc.length > 35 ? cleanDesc.substring(0, 35) + "..." : cleanDesc;
@@ -260,7 +302,6 @@ const renderTableHistory = (data) => {
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       const progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
 
-      // Ações condicionais Desktop
       let actionsHtml = "";
       if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>`;
@@ -300,16 +341,16 @@ const renderTableHistory = (data) => {
       <table class="table-custom">
           <thead>
               <tr>
-                  <th colspan="2" class="ps-3">Encontro / Conteúdo</th>
-                  <th class="text-center">Quadro de Frequência</th>
-                  <th class="text-end pe-4">Ações</th>
+                  <th colspan="2" class="ps-3 text-uppercase small opacity-75">Encontro / Conteúdo</th>
+                  <th class="text-center text-uppercase small opacity-75">Quadro de Frequência</th>
+                  <th class="text-end pe-4 text-uppercase small opacity-75">Ações</th>
               </tr>
           </thead>
           <tbody>${desktopRows}</tbody>
       </table>
     </div>`;
 
-  // --- VISÃO MOBILE (Padrão Original Restaurado + Frequência Top Right) ---
+  // --- VISÃO MOBILE ---
   const mobileRows = data
     .map((item) => {
       const dateParts = item.session_date.split(" ")[0].split("-");
@@ -325,21 +366,10 @@ const renderTableHistory = (data) => {
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       const badgeStyle = pct < 70 ? "bg-danger text-white" : pct < 90 ? "bg-warning text-dark" : "bg-success text-white";
 
-      // Ações condicionais Mobile
       let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
-
-      let mobileFooter = "";
-      if (mobActionsHtml !== "") {
-        mobileFooter = `
-          <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-0 w-100">
-              <div class="d-flex gap-2">
-                  ${mobActionsHtml}
-              </div>
-          </div>`;
-      }
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.class_sessions', ${item.session_id}, this)"><i class="fas fa-history"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSession(${item.session_id})"><i class="fas fa-trash"></i></button>`;
 
       return `
       <div class="ios-list-item flex-column align-items-stretch position-relative" style="padding: 12px 16px;">
@@ -350,9 +380,7 @@ const renderTableHistory = (data) => {
           <div class="d-flex w-100 align-items-center">
               <div class="me-3 flex-shrink-0">
                   <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 48px; height: 52px; border-radius: 8px;">
-                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.5rem; height: 16px; letter-spacing: 0.5px;">
-                          AULA
-                      </div>
+                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.5rem; height: 16px; letter-spacing: 0.5px;">AULA</div>
                       <div class="d-flex align-items-center justify-content-center flex-grow-1">
                           <span class="fw-bold text-body lh-1">${day}/${month}</span>
                       </div>
@@ -367,7 +395,7 @@ const renderTableHistory = (data) => {
               </div>
           </div>
 
-          ${mobileFooter}
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-0 w-100"><div class="d-flex gap-2">${mobActionsHtml}</div></div>` : ""}
       </div>`;
     })
     .join("");
@@ -533,7 +561,8 @@ window.checkDateLogic = async (dateStr) => {
 
         $("#diario_content").summernote("enable");
         $("#diario_content").summernote("code", info.content);
-        loadStudentsList(info.attendance);
+        // Passando data como filtro
+        loadStudentsList(info.attendance, dateStr);
       } else if (info.status === "NEW") {
         diarioState.sessionId = null;
         $statusIcon.html('<i class="fas fa-check-circle text-success"></i>');
@@ -546,7 +575,8 @@ window.checkDateLogic = async (dateStr) => {
         } else {
           $("#diario_content").summernote("code", "");
         }
-        loadStudentsList(null);
+        // Passando data como filtro
+        loadStudentsList(null, dateStr);
       }
     } else {
       throw new Error(res.alert || "Não foi possível validar as regras desta data.");
@@ -560,15 +590,17 @@ window.checkDateLogic = async (dateStr) => {
 };
 
 // =========================================================
-// 5. LISTA DE ALUNOS (EXCELÊNCIA DESKTOP & MOBILE)
+// 5. LISTA DE ALUNOS COM RESIZER MÁGICO E STACK
 // =========================================================
-const loadStudentsList = async (existingAttendance = null) => {
+const loadStudentsList = async (existingAttendance = null, sessionDateStr = null) => {
   const container = $("#lista-alunos");
   try {
+    const dt = sessionDateStr || $("#diario_date").val();
     const res = await window.ajaxValidator({
       validator: "getStudentsForDiary",
       token: defaultApp.userInfo.token,
       class_id: diarioState.classId,
+      date: dt,
     });
 
     if (res.status) {
@@ -598,7 +630,7 @@ const loadStudentsList = async (existingAttendance = null) => {
         <div class="text-center py-5">
             <i class="fas fa-users-slash fs-1 text-danger opacity-50 mb-3"></i>
             <h6 class="text-body fw-bold">Falha de conexão</h6>
-            <button class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2" onclick="loadStudentsList(${existingAttendance ? JSON.stringify(existingAttendance) : "null"})">
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2" onclick="loadStudentsList(${existingAttendance ? JSON.stringify(existingAttendance) : "null"}, '${sessionDateStr}')">
                 <i class="fas fa-sync-alt me-2"></i> Tentar novamente
             </button>
         </div>
@@ -606,7 +638,6 @@ const loadStudentsList = async (existingAttendance = null) => {
     window.alertErrorWithSupport(`Carregar Lista de Chamada`, errorMessage);
   }
 };
-
 const renderStudents = () => {
   const container = $("#lista-alunos");
   const students = diarioState.currentStudents;
@@ -615,26 +646,24 @@ const renderStudents = () => {
     container.html(`
         <div class="text-center py-5 opacity-50">
             <span class="material-symbols-outlined fs-1">group_off</span>
-            <p class="mt-2 fw-medium text-body">Nenhum aluno matriculado na turma.</p>
+            <p class="mt-2 fw-medium text-body">Nenhum aluno ativo nesta data.</p>
         </div>`);
     return;
   }
 
-  // --- VISÃO DESKTOP (Ajustada para remover o esmagamento) ---
-  const desktopRows = students
+  // --- VISÃO UNIFICADA: CARDS RESPONSIVOS PARA DESKTOP E MOBILE ---
+  const unifiedRows = students
     .map((std, idx) => {
       const nameParts = std.full_name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
       const avatarHtml = std.profile_photo_url
         ? `<img src="${std.profile_photo_url}?v=${new Date().getTime()}"
-                class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-                style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
-                onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${std.profile_photo_url}', '${nameParts[0].replace(/'/g, "\\'")}')"
-                onmouseover="this.style.transform='scale(1.15)'" 
-                onmouseout="this.style.transform='scale(1)'"
-                title="Ver foto">`
-        : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-6" style="width:42px; height:42px;">${initials}</div>`;
+            class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
+            style="width:46px; height:46px; object-fit:cover; cursor: pointer;"
+            onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${std.profile_photo_url}', '${nameParts[0].replace(/'/g, "\\'")}')"
+            title="Ver foto">`
+        : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:46px; height:46px;">${initials}</div>`;
 
       const isP = std.is_present;
       const statusBadge = isP
@@ -642,64 +671,7 @@ const renderStudents = () => {
         : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
 
       return `
-      <tr>
-          <td class="align-middle ps-3 text-center" style="width: 65px;">${avatarHtml}</td>
-          <td class="align-middle fw-bold text-body" style="font-size: 0.95rem;">${std.full_name}</td>
-          <td class="align-middle text-center" style="width: 150px;">
-              <div class="d-flex align-items-center justify-content-center gap-3">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="width: 44px; height: 24px; cursor: pointer;">
-                  </div>
-                  <div class="status-container-${idx}" style="min-width: 70px;">${statusBadge}</div>
-              </div>
-          </td>
-          <td class="align-middle pe-3">
-              <div id="just-area-${idx}" class="d-flex gap-2 ${isP ? "d-none" : ""}">
-                  <select class="form-control shadow-none border-secondary border-opacity-25 text-body" style="width: 150px; height: 42px;" onchange="updateAbsenceType(${idx}, this.value)">
-                      <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>S/ Justificativa</option>
-                      <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
-                      <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
-                  </select>
-                  <input type="text" class="form-control shadow-none border-secondary border-opacity-25 flex-grow-1 text-body" style="height: 42px; min-width: 150px;" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes (opcional)...">
-              </div>
-              <span id="just-empty-${idx}" class="text-secondary small opacity-50 fw-medium ${isP ? "" : "d-none"}"><i class="fas fa-check-circle me-1 text-success"></i> Aluno em sala</span>
-          </td>
-      </tr>`;
-    })
-    .join("");
-
-  const desktopHtml = `
-    <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
-        <table class="table-custom">
-            <thead>
-                <tr>
-                    <th colspan="2" class="ps-4 text-secondary text-uppercase small opacity-75">Catequizando</th>
-                    <th class="text-center text-secondary text-uppercase small opacity-75">Status / Chamada</th>
-                    <th class="text-secondary text-uppercase small opacity-75">Motivo da Ausência</th>
-                </tr>
-            </thead>
-            <tbody>${desktopRows}</tbody>
-        </table>
-    </div>`;
-
-  // --- VISÃO MOBILE (Versão Aprovada Restaurada Intacta) ---
-  const mobileRows = students
-    .map((std, idx) => {
-      const nameParts = std.full_name.trim().split(" ");
-      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-
-      const avatarHtml = std.profile_photo_url
-        ? `<img src="${std.profile_photo_url}?v=${new Date().getTime()}"
-              class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-              style="width:42px; height:42px; object-fit:cover; cursor: pointer;"
-              onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${std.profile_photo_url}', '${nameParts[0].replace(/'/g, "\\'")}')">`
-        : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:42px; height:42px;">${initials}</div>`;
-
-      const isP = std.is_present;
-      const statusBadge = isP ? `<span class="text-success fw-bold status-label-${idx}">Presente</span>` : `<span class="text-danger fw-bold status-label-${idx}">Faltou</span>`;
-
-      return `
-    <div class="ios-list-item flex-column align-items-stretch" style="padding: 12px 16px;">
+    <div class="p-3 mb-2 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-sm shadow-inner w-100">
         <div class="d-flex w-100 align-items-center">
             <div class="me-3 flex-shrink-0">${avatarHtml}</div>
             
@@ -710,55 +682,44 @@ const renderStudents = () => {
             
             <div class="ms-2 flex-shrink-0">
                 <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                    <input class="form-check-input m-0 shadow-none" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="cursor: pointer; width: 48px; height: 26px;">
+                    <input class="form-check-input m-0 shadow-none" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="cursor: pointer; width: 44px; height: 24px;">
                 </div>
             </div>
         </div>
         
-        <div id="just-box-mob-${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
-            <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-danger border-opacity-10 shadow-inner">
+        <div id="just-box-${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
+            <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-danger border-opacity-10 shadow-inner w-100">
                 <label class="form-label small fw-bold text-danger text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Motivo da Ausência</label>
-                <select class="form-control shadow-none border-0 mb-2 text-body" onchange="updateAbsenceType(${idx}, this.value)" style="height: 44px; border-radius: 10px;">
-                    <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
-                    <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
-                    <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
-                </select>
-                <input type="text" class="form-control shadow-none border-0 text-body" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo (opcional)..." style="height: 44px; border-radius: 10px;">
+                <div class="d-flex flex-column gap-2 w-100">
+                    <select class="form-control shadow-none border-0 text-body bg-body fw-medium w-100" onchange="updateAbsenceType(${idx}, this.value)" style="height: 38px; border-radius: 8px; font-size: 0.8rem;">
+                        <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>S/ Justificativa</option>
+                        <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
+                        <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
+                    </select>
+                    <input type="text" class="form-control shadow-none border-0 text-body bg-body fw-medium w-100" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo (opcional)..." style="height: 38px; border-radius: 8px; font-size: 0.8rem;">
+                </div>
             </div>
         </div>
     </div>`;
     })
     .join("");
 
-  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
-
-  container.html(desktopHtml + mobileHtml);
+  container.html(`<div class="d-flex flex-column w-100">${unifiedRows}</div>`);
 };
 
-// =========================================================
-// 6. GERENCIAMENTO DE ESTADO E SALVAMENTO
-// =========================================================
 window.updateAttendance = (idx, isPresent) => {
   diarioState.currentStudents[idx].is_present = isPresent;
 
-  const desktopBadge = isPresent
+  const badgeHtml = isPresent
     ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
     : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
 
-  const mobileBadge = isPresent ? `<span class="text-success fw-bold status-label-${idx}">Presente</span>` : `<span class="text-danger fw-bold status-label-${idx}">Faltou</span>`;
-
-  if ($(window).width() >= 768) {
-    $(`.status-container-${idx}`).html(desktopBadge);
-  } else {
-    $(`.status-container-${idx}`).html(mobileBadge);
-  }
+  $(`.status-container-${idx}`).html(badgeHtml);
 
   if (isPresent) {
-    $(`#just-area-${idx}, #just-box-mob-${idx}`).addClass("d-none");
-    $(`#just-empty-${idx}`).removeClass("d-none");
+    $(`#just-box-${idx}`).addClass("d-none");
   } else {
-    $(`#just-area-${idx}, #just-box-mob-${idx}`).removeClass("d-none");
-    $(`#just-empty-${idx}`).addClass("d-none");
+    $(`#just-box-${idx}`).removeClass("d-none");
   }
 };
 
@@ -852,30 +813,18 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
 
-  // Container centralizado com gap para os botões e responsividade tátil
   let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+  html += `<button onclick="${funcName}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior"><i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i></button>`;
 
-  // Botão Anterior (Chevron Left)
-  html += `<button onclick="${funcName}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior">
-              <i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i>
-           </button>`;
-
-  // Miolo Numérico Inteligente (Mostra apenas a página Atual, -1 e +1)
   for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
     if (p === current) {
-      // Página Atual (Sólida e Inativa para clique)
       html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
     } else {
-      // Páginas Vizinhas (Translúcidas e Clicáveis)
       html += `<button onclick="${funcName}(${p})" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
     }
   }
 
-  // Botão Próxima (Chevron Right)
-  html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima">
-              <i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i>
-           </button>`;
-
+  html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
   html += `</div>`;
   container.html(html);
 };

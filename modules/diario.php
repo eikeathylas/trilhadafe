@@ -70,7 +70,7 @@
 
         <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-0 pt-md-4 px-md-3">
-                <div class="table-responsive list-table-diario" style="max-height: 70vh;">
+                <div class="table-responsive list-table-diario" style="max-height: 70vh;" data-slug="diario.list">
                     <div class="text-center py-5 text-muted opacity-50">
                         <i class="fas fa-arrow-up mb-3 d-block" style="font-size: 2.5rem;"></i>
                         <h6 class="fw-bold text-body">Selecione Turma e Disciplina</h6>
@@ -104,8 +104,9 @@
                 <div class="modal-body p-3 p-md-4 bg-body">
                     <input type="hidden" id="session_id">
 
-                    <div class="row g-3 g-md-4 h-100">
-                        <div class="col-lg-8">
+                    <div class="d-flex flex-column flex-lg-row w-100 gap-3 gap-lg-0 wrapper-diario">
+                        
+                        <div id="pane-editor" class="d-flex flex-column" style="flex-basis: 60%; min-width: 30%;">
                             <div class="card border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 h-100 overflow-hidden shadow-inner">
                                 <div class="card-header bg-transparent border-0 pt-4 px-4 pb-3">
                                     <div class="row align-items-center">
@@ -127,15 +128,17 @@
                                     </div>
                                 </div>
 
-                                <div class="card-body p-3 p-md-4 pt-0">
-                                    <div class="summernote-wrapper">
+                                <div class="card-body p-3 p-md-4 pt-0 d-flex flex-column">
+                                    <div class="summernote-wrapper flex-grow-1">
                                         <textarea id="diario_content" class="w-100"></textarea>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-lg-4">
+                        <div class="resizer d-none d-lg-flex mx-1" id="dragMe"></div>
+
+                        <div id="pane-attendance" class="d-flex flex-column" style="flex-basis: 40%; min-width: 25%;">
                             <div class="card border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 h-100 d-flex flex-column shadow-inner">
                                 <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -147,7 +150,7 @@
                                 </div>
 
                                 <div class="card-body p-0 attendance-scroll bg-transparent" style="max-height: 480px; overflow-y: auto; overflow-x: hidden;">
-                                    <div id="lista-alunos" class="p-2 p-md-3">
+                                    <div id="lista-alunos" class="p-0">
                                         <div class="text-center py-5 text-muted opacity-50">
                                             <span class="material-symbols-outlined spin fs-1">sync</span>
                                             <p class="mt-2 small mb-0 fw-medium">Carregando lista...</p>

@@ -44,8 +44,11 @@ function checkDateContent()
 function getStudentsForDiary()
 {
     if (!verifyToken()) return;
-    $classId = $_POST['class_id'] ?? 0;
-    echo json_encode(getStudentsForDiaryF($classId));
+    $data = [
+        'class_id' => $_POST['class_id'],
+        'date' => $_POST['date'],
+    ];
+    echo json_encode(getStudentsForDiaryF($data));
 }
 
 function saveClassDiary()

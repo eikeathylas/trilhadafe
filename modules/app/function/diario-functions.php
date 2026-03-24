@@ -20,7 +20,7 @@ function getTeacherClassesF($userId, $roleLevel, $yearId, $orgId)
             $yearFilter = "AND ay.is_active IS TRUE";
         }
 
-        $superUsers = [/*'ADMIN', 'MANAGER', 'SECRETARY', */ 'DEV' /*, 'STAFF', 'ROOT', 'PAROCO', 'COORD' */];
+        $superUsers = [/*'ADMIN', 'MANAGER', 'SECRETARY', */'DEV' /*, 'STAFF', 'ROOT', 'PAROCO', 'COORD' */];
 
         if (in_array(strtoupper($roleLevel), $superUsers)) {
             // ADMIN: Vê todas as turmas da Org e Ano
@@ -70,6 +70,7 @@ function getTeacherClassesF($userId, $roleLevel, $yearId, $orgId)
         return success("Erro ao listar.", []);
     }
 }
+
 function getClassSubjectsF($classId)
 {
     try {
@@ -268,18 +269,33 @@ function checkDateContentF($data)
         return failure("Erro na verificação.");
     }
 }
-function getStudentsForDiaryF($classId)
+
+function getStudentsForDiaryF($data)
 {
+
     try {
         $conect = $GLOBALS["local"];
+        $classId = $data['class_id'];
+
+        // Pega a data da sessão. Se não houver, assume a data atual.
+        $date = !empty($data['date']) ? $data['date'] : date('Y-m-d');
+
+        // Filtro de data: A matrícula deve ter sido criada ATÉ o dia da sessão da aula
         $sql = "SELECT e.student_id, p.full_name, p.profile_photo_url 
                 FROM education.enrollments e
                 JOIN people.persons p ON p.person_id = e.student_id
                 WHERE e.class_id = :cid AND e.status = 'ACTIVE' AND e.deleted IS FALSE
+                AND e.enrollment_date::date <= :dt
                 ORDER BY p.full_name ASC";
+
         $stmt = $conect->prepare($sql);
-        $stmt->execute(['cid' => $classId]);
-        return success("Catequizando listados", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $stmt->execute([
+            'cid' => $classId,
+            'dt'  => $date
+        ]);
+        $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return success("Catequizandos listados", $dados);
     } catch (Exception $e) {
         logSystemError("painel", "diario", "getStudentsForDiaryF", "sql", $e->getMessage(), ['class_id' => $classId]);
         return failure("Erro ao buscar catequizandos.");

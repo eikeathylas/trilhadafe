@@ -183,3 +183,63 @@
   background: transparent;
   padding-top: 30px;
 }
+
+.resizer {
+  width: 12px;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  user-select: none;
+}
+.resizer::after {
+  content: "";
+  width: 4px;
+  height: 40px;
+  background-color: var(--bs-secondary);
+  opacity: 0.3;
+  border-radius: 4px;
+  transition:
+    background-color 0.2s,
+    opacity 0.2s;
+}
+.resizer:hover::after,
+.resizer:active::after {
+  background-color: var(--bs-primary);
+  opacity: 1;
+}
+
+/* COMPORTAMENTO INTELIGENTE: DESKTOP VS MOBILE */
+@media (min-width: 992px) {
+  .wrapper-diario {
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+}
+@media (max-width: 991.98px) {
+  .wrapper-diario {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  /* Libera os limites de largura/altura no mobile */
+  #pane-editor,
+  #pane-attendance {
+    flex-basis: auto !important;
+    min-width: 100% !important;
+  }
+  /* Garante que o editor tenha um tamanho mínimo decente no celular */
+  #pane-editor {
+    min-height: 450px;
+  }
+  /* Remove as amarras de altura dos cards internos */
+  #pane-editor .card,
+  #pane-attendance .card {
+    height: auto !important;
+  }
+  /* Destrava o scroll da frequência para rolar a tela toda */
+  .attendance-scroll {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+}
