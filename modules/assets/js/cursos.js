@@ -867,7 +867,7 @@ window.salvarCurso = async (btn) => {
 
   if (!name) return window.alertDefault("O nome do curso é obrigatório.", "warning");
 
-  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
   if (typeof window.saveActiveSummernote === "function") {
     window.saveActiveSummernote();
   }

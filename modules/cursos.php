@@ -176,10 +176,10 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-2 bg-transparent d-flex justify-content-end gap-2">
+                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border m-0" data-bs-dismiss="modal">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save m-0" onclick="salvarCurso(this)" data-slug="cursos.save">
-                        <i class="fas fa-save me-2"></i> Salvar Curso
+                        <i class="fas fa-save me-2"></i> Salvar
                     </button>
                 </div>
             </div>
@@ -235,7 +235,7 @@
                         Fechar
                     </button>
                     <button type="button" class="btn btn-primary fw-bold rounded-3 shadow-sm transition-all d-flex align-items-center justify-content-center" onclick="closeTemplateModal()" data-slug="cursos.template" style="height: 48px;">
-                        <i class="fas fa-save me-2"></i> Salvar Planejamento
+                        <i class="fas fa-save me-2"></i> Salvar
                     </button>
                 </div>
             </div>

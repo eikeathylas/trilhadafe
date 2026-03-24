@@ -673,7 +673,7 @@ window.salvarPessoa = async (btn) => {
   const name = $("#full_name").val();
   if (!name) return window.alertDefault("Nome Completo é obrigatório.", "warning");
 
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   const formData = new FormData();
   formData.append("validator", "savePerson");

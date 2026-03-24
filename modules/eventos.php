@@ -30,20 +30,29 @@
             </nav>
         </div>
 
-        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-3 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
-                <div class="row g-1 g-md-3 align-items-center">
+                <div class="row g-2 g-md-3 align-items-end">
                     <div class="col-12 d-md-none mb-2 mt-2">
                         <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Agenda e Eventos</h5>
                     </div>
 
-                    <div class="col-9 col-md-9 flex-grow-1">
-                        <input type="text" id="search_event" class="form-control shadow-sm" placeholder="Buscar eventos..." style="border-radius: 12px; height: 48px;">
+                    <div class="col-12 col-md flex-grow-1">
+                        <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
+                            <i class="fas fa-search opacity-50 me-1"></i> Localizar Evento
+                        </label>
+                        <div class="input-group bg-fundo rounded-3 overflow-hidden border-0">
+                            <span class="input-group-text border-0 bg-transparent ps-3">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="search_event" class="form-control shadow-sm" placeholder="Buscar eventos..." style="border-radius: 12px; height: 48px;">
+                        </div>
                     </div>
 
-                    <div class="col-3 col-md-3 d-grid d-md-block" data-slug="eventos.create">
-                        <button class="btn btn-primary fw-bold shadow-sm w-100 d-flex align-items-center justify-content-center p-0" style="height: 48px; border-radius: 12px;" onclick="openEventModal()">
-                            <i class="fas fa-plus me-md-2"></i> <span class="d-none d-md-inline">Novo Evento</span>
+                    <div class="col-12 col-md-auto d-grid" data-slug="eventos.create">
+                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center" onclick="openEventModal()" style="height: 48px; border-radius: 12px; min-width: 160px;">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            <span>Novo Evento</span>
                         </button>
                     </div>
                 </div>
@@ -135,7 +144,7 @@
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="saveEvent(this)" data-slug="eventos.save">
-                        <i class="fas fa-save me-2"></i> Salvar evento
+                        <i class="fas fa-save me-2"></i> Salvar
                     </button>
                 </div>
             </div>

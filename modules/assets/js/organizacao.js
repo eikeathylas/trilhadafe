@@ -518,7 +518,7 @@ window.salvarInstituicao = async (btn) => {
   if (!nome) return window.alertDefault("Nome Fantasia é obrigatório.", "warning");
 
   btn = $(btn);
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
   const orgId = $("#org_id").val();
 
   // Envio via FormData para suportar binário de imagem (Padrão pessoas.js)
@@ -596,7 +596,7 @@ window.salvarLocal = async (btn) => {
   const orgId = $("#loc_org_id").val();
   if (!nome || !orgId) return window.alertDefault("Nome e Paróquia são obrigatórios.", "warning");
   btn = $(btn);
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   try {
     const data = {

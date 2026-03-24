@@ -105,9 +105,12 @@ const renderTableSubjects = (data) => {
 
       // Ações Desktop Condicionais
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
@@ -132,7 +135,7 @@ const renderTableSubjects = (data) => {
               </div>
           </td>
           <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
-              <div class="d-flex justify-content-end gap-1">
+              <div class="d-flex justify-content-end align-items-center flex-nowrap">
                 ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50" title="Somente leitura"></i>'}
               </div>
           </td>
@@ -156,48 +159,41 @@ const renderTableSubjects = (data) => {
     </div>`;
 
   // =========================================================
-  // 2. VISÃO MOBILE (IOS-LIST-ITEM APPLE HIG)
+  // 2. VISÃO MOBILE ULTRA-COMPACTA (APPLE HIG)
   // =========================================================
   const mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
       const summary = item.syllabus_summary ? item.syllabus_summary : '<span class="fst-italic opacity-50">Sem ementa registada.</span>';
 
-      // Ações Mobile Condicionais
+      // Ações Mobile Condicionais (Usando os botões redondos para manter coerência visual)
       let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch">
-          
-          <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1 pe-3" style="min-width: 0;">
-                  <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 1.05rem; letter-spacing: -0.5px;">${item.name}</h6>
-                  <div class="mt-2">
-                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                          <i class="fas fa-book me-1"></i> DISCIPLINA
-                      </span>
-                  </div>
+      <div class="ios-list-item flex-column align-items-stretch mb-2 p-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                  <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;"><i class="fas fa-book me-1"></i> DISCIPLINA</span>
+                  <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem;">${item.name}</h6>
               </div>
-              <div class="text-end">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
-                             ${canEdit ? `onchange="toggleSubject(${item.subject_id}, this)"` : "disabled"} 
-                             style="cursor: ${canEdit ? "pointer" : "default"}; width: 44px; height: 24px;">
-                  </div>
+              <div class="form-check form-switch m-0 p-0 d-flex align-items-center flex-shrink-0 ms-2">
+                  <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                         ${canEdit ? `onchange="toggleSubject(${item.subject_id}, this)"` : "disabled"} 
+                         style="cursor: ${canEdit ? "pointer" : "default"}; width: 44px; height: 24px;">
               </div>
           </div>
 
-          <div class="mt-3 p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner">
-              <label class="form-label small fw-bold text-uppercase text-muted mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Ementa / Resumo</label>
-              <div class="text-body small fw-medium lh-sm" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                  ${summary}
-              </div>
+          <div class="text-secondary fw-medium lh-sm mb-2" style="font-size: 0.75rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; opacity: 0.8;">
+              ${summary}
           </div>
           
-          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-2 mt-2 border-top border-secondary border-opacity-10 flex-nowrap w-100">${mobActionsHtml}</div>` : ""}
       </div>`;
     })
     .join("");
@@ -219,7 +215,7 @@ window.modalDisciplina = (id = null, btn = false) => {
   if (id) {
     loadSubjectData(id, btn);
   } else {
-    $("#modalLabel").text("Nova Disciplina");
+    $("#modalLabel").html('<i class="fas fa-book-open me-3 opacity-75"></i> Nova Disciplina');
     modal.modal("show");
   }
 };
@@ -240,7 +236,7 @@ const loadSubjectData = async (id, btn) => {
       $("#subject_name").val(d.name);
       $("#subject_summary").val(d.syllabus_summary);
 
-      $("#modalLabel").text("Editar Disciplina/Etapa");
+      $("#modalLabel").html('<i class="fas fa-pen me-3 opacity-75"></i> Editar Disciplina');
       $("#modalDisciplina").modal("show");
     } else {
       throw new Error(result.alert || "O servidor não retornou os dados desta disciplina.");
@@ -260,7 +256,7 @@ window.salvarDisciplina = async (btn) => {
 
   if (!name) return window.alertDefault("O nome da disciplina é obrigatório.", "warning");
 
-  window.setButton(true, btn, id ? " A guardar..." : " A registar...");
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
 
   const data = {
     subject_id: id,
@@ -342,6 +338,7 @@ window.changePage = (page) => {
   getDisciplinas();
 };
 
+// MOTOR DE PAGINAÇÃO INTELIGENTE (Padrão Trilha da Fé)
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);
   container.empty();
@@ -349,15 +346,19 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
 
-  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
+  let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+  html += `<button onclick="${funcName}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior"><i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i></button>`;
 
-  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
-    let btnClass = p === current ? "btn-primary" : "btn-secondary";
-    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${btnClass} me-1 shadow-sm">${p}</button>`;
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
+    if (p === current) {
+      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
+    } else {
+      html += `<button onclick="${funcName}(${p})" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
+    }
   }
 
-  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
-
+  html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
+  html += `</div>`;
   container.html(html);
 };
 

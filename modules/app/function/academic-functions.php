@@ -88,7 +88,7 @@ function upsertSubject($data)
         ];
 
         if (!empty($data['subject_id'])) {
-            $sql = "UPDATE education.subjects SET name=:name, syllabus_summary=:syllabus WHERE subject_id=:id";
+            $sql = "UPDATE education.subjects SET name=:name, syllabus_summary=:syllabus, updated_at=CURRENT_TIMESTAMP WHERE subject_id=:id";
             $params['id'] = $data['subject_id'];
             $msg = "Disciplina atualizada!";
         } else {

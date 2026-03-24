@@ -58,9 +58,8 @@
 
                     <div class="col-12 mt-3 mt-md-0 col-md-2 d-grid d-md-block" data-slug="diario.create">
                         <button id="btn_new_session" class="btn btn-primary fw-bold w-100 shadow-sm d-flex align-items-center justify-content-center" disabled onclick="openSessionModal()" style="height: 48px; border-radius: 12px;">
-                            <i class="fas fa-plus me-2"></i>
-                            <span class="d-none d-xl-inline">Nova Aula</span>
-                            <span class="d-inline d-xl-none">Adicionar</span>
+                            <i class="fas fa-plus-circle me-2"></i>
+                            <span>Nova Aula</span>
                         </button>
                     </div>
 
@@ -105,7 +104,7 @@
                     <input type="hidden" id="session_id">
 
                     <div class="d-flex flex-column flex-lg-row w-100 gap-3 gap-lg-0 wrapper-diario">
-                        
+
                         <div id="pane-editor" class="d-flex flex-column" style="flex-basis: 60%; min-width: 30%;">
                             <div class="card border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 h-100 overflow-hidden shadow-inner">
                                 <div class="card-header bg-transparent border-0 pt-4 px-4 pb-3">
@@ -165,7 +164,7 @@
 
                 <div class="modal-footer border-0 p-3 p-md-4 bg-body text-center justify-content-center justify-content-md-end">
                     <button class="btn btn-primary shadow-sm rounded-3 fw-bold d-flex align-items-center justify-content-center transition-all w-100 w-md-auto hover-scale" onclick="salvarDiario(this)" style="height: 50px; min-width: 220px;" data-slug="diario.save">
-                        <i class="fas fa-cloud-upload-alt me-2"></i> Salvar diário
+                        <i class="fas fa-plus-circle me-2"></i> Salvar
                     </button>
                 </div>
 

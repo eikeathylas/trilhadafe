@@ -419,7 +419,7 @@ window.salvarUsuario = async (btn) => {
     return;
   }
 
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
   try {
     const res = await window.ajaxValidator({
       validator: "saveUsuarioInfo",

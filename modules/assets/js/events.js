@@ -371,7 +371,7 @@ window.saveEvent = async (btn) => {
     return;
   }
 
-  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
 
   try {
     const res = await window.ajaxValidator({
