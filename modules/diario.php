@@ -77,7 +77,7 @@
                         <p class="small text-secondary">Utilize os filtros acima para visualizar ou lançar o diário.</p>
                     </div>
                 </div>
-                <div class="pagination paginationButtons pagination-diario mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
+                <div class="pagination-diario mt-3 pb-4 pb-md-0 w-100"></div>
             </div>
         </div>
 
@@ -161,7 +161,6 @@
                 </div>
 
                 <div class="modal-footer border-0 p-3 p-md-4 bg-body text-center justify-content-center justify-content-md-end">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border shadow-sm d-none d-md-inline-block hover-scale" data-bs-dismiss="modal" style="height: 50px;">Cancelar</button>
                     <button class="btn btn-primary shadow-sm rounded-3 fw-bold d-flex align-items-center justify-content-center transition-all w-100 w-md-auto hover-scale" onclick="salvarDiario(this)" style="height: 50px; min-width: 220px;">
                         <i class="fas fa-cloud-upload-alt me-2"></i> Salvar diário
                     </button>

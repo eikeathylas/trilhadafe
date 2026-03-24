@@ -84,7 +84,7 @@
                     <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 z-2 shadow-sm">
+                <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 z-2 shadow-sm text-center">
                     <div class="modern-tabs-wrapper">
                         <ul class="nav nav-pills gap-1" id="turmaTab" role="tablist" style="flex-wrap: nowrap;">
                             <li class="nav-item" role="presentation">
@@ -205,7 +205,7 @@
                 </div>
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarTurma(this)">
                         <i class="fas fa-save me-2"></i> Salvar Turma
                     </button>

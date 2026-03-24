@@ -411,12 +411,36 @@ window.changePage = (p) => {
 const _generatePaginationButtons = (c, k, t, f, o) => {
   let container = $(`.${c}`);
   container.empty();
+
   let total = o[t];
   let current = o[k];
-  let html = `<button onclick="${f}(1)" class="btn btn-sm btn-secondary me-1" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
-  for (let p = Math.max(1, current - 2); p <= Math.min(total, current + 2); p++) {
-    html += `<button onclick="${f}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1">${p}</button>`;
+
+  if (!total || total < 1) total = 1;
+
+  // Container centralizado com gap para os botões
+  let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+
+  // Botão Anterior (Chevron Left)
+  html += `<button onclick="${f}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior">
+              <i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i>
+           </button>`;
+
+  // Miolo Numérico Inteligente (Mostra apenas Atual, -1 e +1)
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
+    if (p === current) {
+      // Página Atual (Sólida e Inativa para clique)
+      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
+    } else {
+      // Páginas Vizinhas (Translúcidas e Clicáveis)
+      html += `<button onclick="${f}(${p})" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
+    }
   }
-  html += `<button onclick="${f}(${total})" class="btn btn-sm btn-secondary" ${current === total ? "disabled" : ""}>Última</button>`;
+
+  // Botão Próxima (Chevron Right)
+  html += `<button onclick="${f}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima">
+              <i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i>
+           </button>`;
+
+  html += `</div>`;
   container.html(html);
 };
