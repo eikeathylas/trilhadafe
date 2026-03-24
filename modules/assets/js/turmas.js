@@ -151,9 +151,17 @@ const renderTableClasses = (data) => {
                 </div>
             </td>
             <td class="text-end align-middle pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Auditoria/Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>
+                <div class="d-flex gap-2 justify-content-end">
+                    <button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Auditoria/Log">
+                        <i class="fas fa-history" style="font-size: 0.85rem;"></i>
+                    </button>
+                    <button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar">
+                        <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
+                    </button>
+                    <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir">
+                        <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
+                    </button>
+                </div>
             </td>
         </tr>`;
     })
@@ -176,7 +184,7 @@ const renderTableClasses = (data) => {
         </table>
     </div>`;
 
-  // --- VISÃO MOBILE (ESPELHANDO PESSOAS.JS) ---
+  // --- VISÃO MOBILE ---
   const mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
@@ -218,10 +226,10 @@ const renderTableClasses = (data) => {
                   <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
                 </div>
               </div>
-              <div class="d-flex gap-2">
-                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.classes', ${item.class_id}, this)"><i class="fas fa-bolt"></i></button>
-                  <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalTurma(${item.class_id}, this)"><i class="fas fa-pen"></i></button>
-                  <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteTurma(${item.class_id})"><i class="fas fa-trash-can"></i></button>
+              <div class="d-flex mt-4 gap-2">
+                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history"></i></button>
+                  <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+                  <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>
               </div>
           </div>
       </div>`;
@@ -250,6 +258,16 @@ const loadEnrollmentHistory = async (enrollmentId) => {
   try {
     const res = await window.ajaxValidator({ validator: "getEnrollmentHistory", token: defaultApp.userInfo.token, enrollment_id: enrollmentId });
     if (res.status) {
+      const actionMap = {
+        ENROLLED: "Matrícula Inicial",
+        SUSPENDED: "Suspensão",
+        DROPPED: "Desistência",
+        TRANSFERRED: "Transferência",
+        ACTIVE: "Reativação",
+        COMPLETED: "Conclusão",
+        COMMENT: "Observação",
+      };
+
       const html = (res.data || [])
         .map(
           (item) => `
@@ -257,10 +275,10 @@ const loadEnrollmentHistory = async (enrollmentId) => {
             <div class="position-absolute start-0 top-0 translate-middle-x bg-primary rounded-circle border border-3 border-body shadow-sm" style="width: 12px; height: 12px; margin-top: 5px;"></div>
             <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 shadow-inner">
                 <div class="d-flex justify-content-between mb-1">
-                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">${item.action_type}</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">${actionMap[item.action_type] || item.action_type}</span>
                     <small class="text-muted fw-bold" style="font-size: 0.7rem;">${item.action_date_fmt}</small>
                 </div>
-                <p class="mb-2 text-body small fw-medium">${item.observation || "Registo de sistema."}</p>
+                <p class="mb-2 text-body small fw-medium">${item.observation || "Registro de sistema."}</p>
                 <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-2 mt-1">
                     <div class="small text-muted" style="font-size: 0.65rem;"><i class="fas fa-user-circle me-1 opacity-50"></i> Por: <b>${item.user_name}</b></div>
                     <button class="btn btn-link text-danger p-0 text-decoration-none" onclick="deleteHistoryItem(${item.history_id}, ${enrollmentId})"><i class="fas fa-trash-can"></i></button>
@@ -269,6 +287,7 @@ const loadEnrollmentHistory = async (enrollmentId) => {
         </div>`,
         )
         .join("");
+
       container.html(html || '<div class="text-center py-4 small opacity-50">Sem histórico.</div>');
     }
   } catch (e) {
@@ -294,7 +313,7 @@ window.addHistoryItem = async (btn) => {
       observation: obs,
     });
     if (res.status) {
-      window.alertDefault("Registo Adicionado!", "success");
+      window.alertDefault("Registro adicionado!", "success");
       $("#hist_obs").val("");
       loadEnrollmentHistory(eid);
       loadClassStudents($("#class_id").val());
@@ -352,11 +371,10 @@ const loadClassStudents = async (classId) => {
 const renderStudentsList = (data) => {
   const container = $("#lista-alunos");
   if (data.length === 0) {
-    container.html('<div class="text-center py-4 opacity-50 small">Nenhum aluno.</div>');
+    container.html('<div class="text-center py-4 opacity-50 small">Nenhum aluno matriculado.</div>');
     return;
   }
 
-  // TRADUÇÃO DE STATUS APLICADA
   const statusMap = {
     ACTIVE: { label: "Ativo", color: "success" },
     SUSPENDED: { label: "Suspenso", color: "warning" },
@@ -422,7 +440,7 @@ const initSelects = () => {
 };
 
 // =========================================================
-// 4. LÓGICA DE SALVAMENTO E MODAL (FIX: org_id flatten)
+// 4. LÓGICA DE SALVAMENTO E MODAL
 // =========================================================
 window.modalTurma = (id = null, btn = false) => {
   if (btn) btn = $(btn);
@@ -443,7 +461,7 @@ window.modalTurma = (id = null, btn = false) => {
     $("#alunos-tab").removeClass("disabled");
     loadClassData(id, btn);
   } else {
-    $("#modalLabel").html('<i class="fas fa-layer-group me-2 opacity-75"></i> Configurar Turma');
+    $("#modalLabel").html('<i class="fas fa-screen-users me-2 opacity-75"></i> Configurar Turma');
     $("#alunos-tab").addClass("disabled");
     modal.modal("show");
   }
@@ -498,7 +516,6 @@ window.salvarTurma = async (btn) => {
   window.setButton(true, btn, " Gravando...");
 
   try {
-    // FIX: Payload achatado. data não é mais envelopado em um objeto "data: { ... }"
     const res = await window.ajaxValidator({
       validator: "saveClass",
       token: defaultApp.userInfo.token,
@@ -558,7 +575,9 @@ const renderSchedulesTable = () => {
                 <div class="small text-muted fw-medium"><i class="fas fa-location-dot me-1"></i> ${item.location_name || "Local Turma"}</div>
             </div>
         </div>
-        <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="currentSchedules.splice(${index}, 1); renderSchedulesTable();"><i class="fas fa-trash-can"></i></button>
+        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="currentSchedules.splice(${index}, 1); renderSchedulesTable();">
+            <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
+        </button>
     </div>`,
     )
     .join("");
