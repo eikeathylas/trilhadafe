@@ -27,7 +27,7 @@
             <div class="ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
                 <div class="row g-1">
 
-                    <div class="col-6 col-lg">
+                    <div class="col-6 col-lg" data-slug="pessoas">
                         <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
@@ -43,7 +43,7 @@
                         </div>
                     </div>
 
-                    <div class="col-6 col-lg" data-slug="">
+                    <div class="col-6 col-lg" data-slug="pessoas">
                         <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
@@ -59,7 +59,7 @@
                         </div>
                     </div>
 
-                    <div class="col-6 col-lg permission-admin">
+                    <div class="col-6 col-lg" data-slug="turmas">
                         <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
@@ -75,7 +75,7 @@
                         </div>
                     </div>
 
-                    <div class="col-6 col-lg permission-admin">
+                    <div class="col-6 col-lg" data-slug="usuarios">
                         <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
@@ -91,7 +91,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-xl-auto permission-finance d-none">
+                    <div class="col-12 col-xl-auto" data-slug="financeiro">
                         <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift" style="min-width: 250px;">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
@@ -131,7 +131,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-lg-4 mt-3 mt-md-0">
+                    <div class="col-12 col-lg-4 mt-3 mt-md-0" data-slug="eventos">
                         <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
                             <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
                                 <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
@@ -150,7 +150,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-lg-4 mt-3 mt-md-0">
+                    <div class="col-12 col-lg-4 mt-3 mt-md-0" data-slug="pessoas">
                         <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
                             <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
                                 <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">

@@ -87,6 +87,25 @@ const renderTableEvents = (data) => {
     return;
   }
 
+  // =========================================================
+  // LÓGICA DE PERMISSÕES (RBAC)
+  // =========================================================
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+
+  const canEdit = allowedSlugs.includes("eventos.edit");
+  const canHistory = allowedSlugs.includes("eventos.history");
+  const canDelete = allowedSlugs.includes("eventos.delete");
+
   // Helper para Status no Desktop (Badge)
   const getBlockerLabel = (is) =>
     is
@@ -106,15 +125,27 @@ const renderTableEvents = (data) => {
     .map((item) => {
       const timeInfo = item.start_time ? `<small class="text-secondary d-block"><i class="far fa-clock me-1 opacity-50"></i> ${item.start_time}</small>` : `<small class="text-secondary d-block"><i class="far fa-clock me-1 opacity-50"></i> Dia todo</small>`;
 
+      // Renderiza o switch apenas se puder editar
       const toggleHtml = `
         <div class="d-flex align-items-center justify-content-center">
+          ${
+            canEdit
+              ? `
           <div class="form-check form-switch mb-0 d-flex align-items-center">
             <input class="form-check-input shadow-sm m-0" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer;">
-          </div>
-          <div id="lbl_desk_${item.event_id}" class="ms-2">
+          </div>`
+              : ""
+          }
+          <div id="lbl_desk_${item.event_id}" class="${canEdit ? "ms-2" : ""}">
               ${getBlockerLabel(item.is_academic_blocker)}
           </div>
         </div>`;
+
+      // Renderiza as ações condicionalmente
+      let actionsHtml = "";
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning bg-warning bg-opacity-10 hover-scale shadow-none" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary bg-primary bg-opacity-10 hover-scale shadow-none" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger bg-danger bg-opacity-10 hover-scale shadow-none" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
 
       return `
         <tr>
@@ -136,15 +167,7 @@ const renderTableEvents = (data) => {
             </td>
             <td class="align-middle text-end pe-4">
                 <div class="d-flex justify-content-end gap-2">
-                    <button class="btn-icon-action text-warning bg-warning bg-opacity-10 hover-scale shadow-none" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Histórico">
-                        <i class="fas fa-history"></i>
-                    </button>
-                    <button class="btn-icon-action text-primary bg-primary bg-opacity-10 hover-scale shadow-none" onclick="editEvent(${item.event_id}, this)" title="Editar">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="btn-icon-action text-danger bg-danger bg-opacity-10 hover-scale shadow-none" onclick="deleteEvent(${item.event_id})" title="Excluir">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${actionsHtml || '<span class="text-muted small opacity-50"><i class="fas fa-ban"></i></span>'}
                 </div>
             </td>
         </tr>`;
@@ -156,6 +179,37 @@ const renderTableEvents = (data) => {
   // =========================================================
   let mobileRows = data
     .map((item) => {
+      // Mobile Toggle condicional
+      let mobileToggleHtml = `
+        <div id="lbl_mob_${item.event_id}">
+            ${getStatusIconHtml(item.is_academic_blocker)}
+        </div>`;
+      if (canEdit) {
+        mobileToggleHtml += `
+        <div class="form-check form-switch m-0 p-0 d-flex align-items-center ms-2">
+            <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer; width: 38px; height: 22px;">
+        </div>`;
+      }
+
+      // Mobile Actions condicionais
+      let mobActionsHtml = "";
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash" style="font-size: 0.85rem;"></i></button>`;
+
+      let mobileFooter = "";
+      if (mobActionsHtml !== "") {
+        mobileFooter = `
+        <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-top border-secondary border-opacity-10 w-100">
+            <div class="d-flex gap-2">
+                ${mobActionsHtml}
+            </div>
+        </div>`;
+      }
+
       return `
         <div class="ios-list-item flex-column align-items-stretch" style="padding: 12px 16px;">
             <div class="d-flex w-100 align-items-center">
@@ -179,29 +233,12 @@ const renderTableEvents = (data) => {
 
                 <div class="d-flex flex-column align-items-end justify-content-center ms-2 flex-shrink-0">
                     <div class="d-flex align-items-center justify-content-end gap-2 w-100">
-                        <div id="lbl_mob_${item.event_id}">
-                            ${getStatusIconHtml(item.is_academic_blocker)}
-                        </div>
-                        <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                            <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer; width: 38px; height: 22px;">
-                        </div>
+                        ${mobileToggleHtml}
                     </div>
                 </div>
             </div>
 
-            <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-top border-secondary border-opacity-10 w-100">
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Histórico">
-                        <i class="fas fa-history" style="font-size: 0.85rem;"></i>
-                    </button>
-                    <button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="editEvent(${item.event_id}, this)" title="Editar">
-                        <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
-                    </button>
-                    <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEvent(${item.event_id})" title="Excluir">
-                        <i class="fas fa-trash" style="font-size: 0.85rem;"></i>
-                    </button>
-                </div>
-            </div>
+            ${mobileFooter}
         </div>`;
     })
     .join("");

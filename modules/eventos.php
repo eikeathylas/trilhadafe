@@ -41,7 +41,7 @@
                         <input type="text" id="search_event" class="form-control shadow-sm" placeholder="Buscar eventos..." style="border-radius: 12px; height: 48px;">
                     </div>
 
-                    <div class="col-3 col-md-3 d-grid d-md-block">
+                    <div class="col-3 col-md-3 d-grid d-md-block" data-slug="eventos.create">
                         <button class="btn btn-primary fw-bold shadow-sm w-100 d-flex align-items-center justify-content-center p-0" style="height: 48px; border-radius: 12px;" onclick="openEventModal()">
                             <i class="fas fa-plus me-md-2"></i> <span class="d-none d-md-inline">Novo Evento</span>
                         </button>
@@ -134,7 +134,7 @@
 
                 <div class="modal-footer border-0 p-1">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="saveEvent(this)">
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="saveEvent(this)" data-slug="eventos.save">
                         <i class="fas fa-save me-2"></i> Salvar evento
                     </button>
                 </div>

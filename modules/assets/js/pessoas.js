@@ -75,176 +75,147 @@ const renderTablePeople = (data) => {
   }
 
   // ==========================================
-  // HELPERS COMUNS (Formatação e Badges)
+  // LÓGICA DE PERMISSÕES (RBAC)
   // ==========================================
-  const formatCPF = (cpf) => {
-    if (!cpf) return "Não informado";
-    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-  };
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
 
-  const formatDateBR = (dateStr) => {
-    if (!dateStr || dateStr === "0000-00-00") return "Não informada";
-    return dateStr.split('-').reverse().join('/');
-  };
+  const canEdit = allowedSlugs.includes("pessoas.save");
+  const canHistory = allowedSlugs.includes("pessoas.history");
+  const canDelete = allowedSlugs.includes("pessoas.delete");
+
+  // ==========================================
+  // HELPERS COMUNS
+  // ==========================================
+  const formatCPF = (cpf) => (cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "Não informado");
+  const formatDateBR = (dateStr) => (!dateStr || dateStr === "0000-00-00" ? "Não informada" : dateStr.split("-").reverse().join("/"));
 
   const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
   const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
 
-  // ==========================================
-  // TOGGLES DE STATUS DESKTOP
-  // ==========================================
-  const getToggleHtml = (id, active) => {
-    return `
-    <div class="d-flex align-items-center justify-content-center">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input shadow-sm" type="checkbox" ${active ? "checked" : ""} onchange="togglePerson(${id}, this)" style="cursor: pointer;">
-        </div>
-    </div>`;
-  };
-
-  // =========================================================
-  // 1. VISÃO DESKTOP (TABELA CLEAN)
-  // =========================================================
-  let desktopRows = data.map((item) => {
-
-    let avatarHtml = "";
-    if (item.profile_photo_url) {
-      avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}"
-                           class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-                           style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
-                           onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')"
-                           onmouseover="this.style.transform='scale(1.15)'" 
-                           onmouseout="this.style.transform='scale(1)'"
-                           title="Ver foto">`;
-    } else {
+  // --- VISÃO DESKTOP ---
+  let desktopRows = data
+    .map((item) => {
+      const isActive = item.is_active === true || item.is_active === "t";
       const nameParts = item.full_name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-      avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold shadow-sm" style="width:42px; height:42px; background-color: var(--fundo);">${initials}</div>`;
-    }
 
-    let rolesHtml = "";
-    if (item.roles_array) {
-      item.roles_array.forEach((r) => {
-        if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-secondary border"} me-1">${roleNames[r] || r}</span>`;
-      });
-    }
+      const avatarHtml = item.profile_photo_url
+        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm" style="width:42px; height:42px; object-fit:cover; cursor: pointer;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold shadow-sm" style="width:42px; height:42px; background-color: var(--fundo); font-size: 0.8rem;">${initials}</div>`;
 
-    let contactHtml = "";
-    if (item.phone_mobile) {
-      const whatsLink = `https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}`;
-      contactHtml += `<a href="${whatsLink}" target="_blank" class="text-success me-2 text-decoration-none" title="WhatsApp"><i class="fab fa-whatsapp fs-5"></i></a>`;
-    }
-    contactHtml += item.email ? `<span class="text-body small">${item.email}</span>` : '<span class="text-muted small">-</span>';
+      let rolesHtml = "";
+      if (item.roles_array) {
+        item.roles_array.forEach((r) => {
+          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-secondary border"} me-1" style="font-size: 0.65rem;">${roleNames[r] || r}</span>`;
+        });
+      }
 
-    return `
+      let contactHtml = "";
+      if (item.phone_mobile) {
+        contactHtml += `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="text-success me-2 text-decoration-none"><i class="fab fa-whatsapp fs-5"></i></a>`;
+      }
+      contactHtml += item.email ? `<span class="text-body small">${item.email}</span>` : '<span class="text-muted small">-</span>';
+
+      // Ações Desktop Condicionais
+      let actionsHtml = "";
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+
+      return `
         <tr>
             <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
             <td class="align-middle">
                 <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.full_name}</div>
-                <div class="text-muted small mt-1">
-                    CPF: ${formatCPF(item.tax_id)} &nbsp;|&nbsp; Nasc.: ${formatDateBR(item.birth_date)}
-                </div>
+                <div class="text-muted small mt-1">CPF: ${formatCPF(item.tax_id)} &nbsp;|&nbsp; Nasc.: ${formatDateBR(item.birth_date)}</div>
             </td>
             <td class="align-middle">${rolesHtml}</td>
             <td class="align-middle">${contactHtml}</td>
             <td class="text-center align-middle">
-                ${getToggleHtml(item.person_id, item.is_active)}
+                <div class="form-check form-switch mb-0 d-inline-block">
+                    <input class="form-check-input shadow-sm" type="checkbox" ${isActive ? "checked" : ""} 
+                           ${canEdit ? `onchange="togglePerson(${item.person_id}, this)"` : "disabled"} style="cursor: ${canEdit ? "pointer" : "default"};">
+                </div>
             </td>
             <td class="text-end align-middle pe-3">
-                <button class="btn-icon-action text-warning" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                <div class="d-flex justify-content-end gap-1">
+                    ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50"></i>'}
+                </div>
             </td>
         </tr>`;
-  }).join("");
+    })
+    .join("");
 
-  const tableHtml = `<div class="d-none d-md-block table-responsive">
-                        <table class="table-custom">
-                            <thead>
-                                <tr>
-                                    <th colspan="2" class="ps-3">Pessoa</th>
-                                    <th>Vínculos</th>
-                                    <th>Contato</th>
-                                    <th class="text-center">Ativo</th>
-                                    <th class="text-end pe-4">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>${desktopRows}</tbody>
-                        </table>
-                     </div>`;
-
-  // =========================================================
-  // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG)
-  // =========================================================
-  const mobileRows = data.map((item) => {
-
-    // Avatar
-    let avatarHtml = "";
-    if (item.profile_photo_url) {
-      avatarHtml = `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" 
-                           class="rounded-circle border border-secondary border-opacity-25" 
-                           style="width:48px; height:48px; object-fit:cover; cursor: pointer;"
-                           onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`;
-    } else {
+  // --- VISÃO MOBILE ---
+  const mobileRows = data
+    .map((item) => {
+      const isActive = item.is_active === true || item.is_active === "t";
       const nameParts = item.full_name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
-      avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
-    }
 
-    // Função (Apenas a primeira, colada no nome)
-    let rolesHtml = "";
-    if (item.roles_array && item.roles_array.length > 0) {
-      const r = item.roles_array[0];
-      if (r) {
-        const color = roleColors[r] || "secondary";
-        const label = roleNames[r] || r;
-        rolesHtml = `<span class="badge bg-${color} bg-opacity-10 text-${color} fw-bold px-2 py-1" style="font-size: 0.5rem; border-radius: 6px;">${label}</span>`;
-      }
-    }
+      const avatarHtml = item.profile_photo_url
+        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25" style="width:48px; height:48px; object-fit:cover;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
 
-    // Ícone de Status Explícito e Alinhado
-    const statusIconHtml = item.is_active
-      ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-      : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+      const role = item.roles_array && item.roles_array[0] ? item.roles_array[0] : null;
+      const roleHtml = role ? `<span class="badge bg-${roleColors[role] || "secondary"} bg-opacity-10 text-${roleColors[role] || "secondary"} fw-bold px-2 py-1" style="font-size: 0.5rem; border-radius: 6px;">${roleNames[role] || role}</span>` : "";
 
-    return `
+      let mobActionsHtml = "";
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('people.persons', ${item.person_id}, this)"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalPessoa(${item.person_id}, this)"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deletePerson(${item.person_id})"><i class="fas fa-trash"></i></button>`;
+
+      return `
       <div class="ios-list-item">
-          <div class="me-3">
-              ${avatarHtml}
-          </div>
-          
-          <div class="flex-grow-1 d-flex flex-column justify-content-center py-1" style="min-width: 0;">
+          <div class="me-3">${avatarHtml}</div>
+          <div class="flex-grow-1 py-1" style="min-width: 0;">
               <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                   <h6 class="fw-bold text-body m-0" style="font-size: 0.85rem;">${item.full_name}</h6>
-                  ${rolesHtml}
+                  ${roleHtml}
               </div>
-              <div class="d-flex align-items-center gap-3 mt-1">
-                  <span class="text-muted" style="font-size: 0.55rem;">CPF: ${formatCPF(item.tax_id)}</span>
-              </div>
+              <span class="text-muted d-block" style="font-size: 0.65rem;">CPF: ${formatCPF(item.tax_id)}</span>
           </div>
-
-          <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-3" style="min-width: 90px;">
-              <div class="d-flex align-items-center justify-content-end gap-2 w-100">
-              <!-- <div class="status-text-peo-${item.person_id} d-flex align-items-center">${statusIconHtml}</div> -->
-                <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                  <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_active ? "checked" : ""} onchange="togglePerson(${item.person_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
-                </div>
+          <div class="d-flex flex-column align-items-end ms-2 gap-3" style="min-width: 90px;">
+              <div class="form-check form-switch m-0 p-0">
+                  <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                         ${canEdit ? `onchange="togglePerson(${item.person_id}, this)"` : "disabled"} style="width: 44px; height: 24px;">
               </div>
-              <div class="d-flex gap-2">
-                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-                  <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-                  <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-              </div>
+              <div class="d-flex gap-2">${mobActionsHtml}</div>
           </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
-  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
+  container.html(`
+    <div class="d-none d-md-block table-responsive">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th colspan="2" class="ps-3 opacity-75 small">PESSOA</th>
+                    <th class="opacity-75 small">VÍNCULOS</th>
+                    <th class="opacity-75 small">CONTATO</th>
+                    <th class="text-center opacity-75 small">ATIVO</th>
+                    <th class="text-end pe-4 opacity-75 small">AÇÕES</th>
+                </tr>
+            </thead>
+            <tbody>${desktopRows}</tbody>
+        </table>
+    </div>
+    <div class="d-md-none ios-list-container">${mobileRows}</div>
+  `);
 
-  container.html(tableHtml + mobileHtml);
   _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "changePage", defaultPeople);
 };
-
 
 window.modalPessoa = (id = null, btn = null) => {
   const modal = $("#modalPessoa");
@@ -513,97 +484,106 @@ window.removeRelative = (index) => {
 };
 
 const renderFamilyTable = () => {
-  const container = $("#lista-familia");
+  const container = $("#lista-familia-cards"); // Ajustado para bater com o ID do PHP
   container.empty();
+
   if (currentFamilyList.length === 0) {
-    container.html('<tr><td colspan="4" class="text-center text-muted py-3">Nenhum familiar vinculado.</td></tr>');
+    container.html('<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">family_restroom</span><p class="mt-2 small mb-0 fw-medium">Nenhum familiar vinculado.</p></div>');
     return;
   }
+
+  // Permissão para gerir família
+  let allowedSlugs = [];
+  try {
+    access = JSON.parse(localStorage.getItem("tf_access"));
+    allowedSlugs = access.map((a) => a.slug);
+  } catch (e) {}
+  const canFamily = allowedSlugs.includes("pessoas.family");
+
   const typeMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
-  currentFamilyList.forEach((fam, index) => {
-    let badges = "";
-    if (fam.is_financial_responsible) badges += '<span class="badge bg-success me-1">$ Finan</span>';
-    if (fam.is_legal_guardian) badges += '<span class="badge bg-primary">Legal</span>';
-    container.append(
-      `<tr><td>${fam.relative_name}</td><td>${typeMap[fam.relationship_type] || fam.relationship_type}</td><td class="text-center">${badges}</td><td class="text-center"><button class="btn btn-sm btn-outline-danger border-0" onclick="removeRelative(${index})"><i class="fas fa-times"></i></button></td></tr>`,
-    );
-  });
+
+  const html = currentFamilyList
+    .map((fam, index) => {
+      let badges = "";
+      if (fam.is_financial_responsible) badges += '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-0 fw-bold me-1" style="font-size: 0.6rem;">$ FINAN</span>';
+      if (fam.is_legal_guardian) badges += '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">LEGAL</span>';
+
+      return `
+      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner transition-all">
+          <div class="flex-grow-1 pe-2">
+              <div class="fw-bold text-body small">${fam.relative_name}</div>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                  <span class="text-muted small fw-bold">${typeMap[fam.relationship_type] || fam.relationship_type}</span>
+                  ${badges}
+              </div>
+          </div>
+          ${
+            canFamily
+              ? `
+          <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="removeRelative(${index})" title="Remover Vínculo">
+              <i class="fas fa-times" style="font-size: 0.85rem;"></i>
+          </button>`
+              : ""
+          }
+      </div>`;
+    })
+    .join("");
+
+  container.html(html);
 };
 
 const renderAttachmentsTable = (data) => {
-  const container = $("#lista-anexos");
-
+  const container = $("#lista-anexos-cards");
   if (!data || data.length === 0) {
-    container.html(`
-            <div class="text-center py-5 opacity-50">
-                <span class="material-symbols-outlined" style="font-size: 48px;">folder_open</span>
-                <p class="mt-2 text-muted">Nenhum documento anexado.</p>
-            </div>
-        `);
+    container.html('<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">folder_open</span><p class="mt-2 small mb-0 fw-medium">Nenhum documento anexado.</p></div>');
     return;
   }
+
+  // Permissão para gerir anexos
+  let allowedSlugs = [];
+  try {
+    access = JSON.parse(localStorage.getItem("tf_access"));
+    allowedSlugs = access.map((a) => a.slug);
+  } catch (e) {}
+  const canManageFiles = allowedSlugs.includes("pessoas.attachments");
 
   const getFileIcon = (filename) => {
     const ext = filename.split(".").pop().toLowerCase();
     if (["pdf"].includes(ext)) return { icon: "picture_as_pdf", color: "text-danger", bg: "bg-danger" };
-    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return { icon: "image", color: "text-primary", bg: "bg-primary" };
-    if (["doc", "docx"].includes(ext)) return { icon: "description", color: "text-primary", bg: "bg-primary" };
-    if (["xls", "xlsx", "csv"].includes(ext)) return { icon: "table_view", color: "text-success", bg: "bg-success" };
-    if (["zip", "rar"].includes(ext)) return { icon: "folder_zip", color: "text-warning", bg: "bg-warning" };
+    if (["jpg", "jpeg", "png", "webp"].includes(ext)) return { icon: "image", color: "text-primary", bg: "bg-primary" };
+    if (["doc", "docx"].includes(ext)) return { icon: "description", color: "text-info", bg: "bg-info" };
     return { icon: "insert_drive_file", color: "text-secondary", bg: "bg-secondary" };
   };
 
-  const rows = data
+  const html = data
     .map((item) => {
-      const fileStyle = getFileIcon(item.file_name);
-      const dateDisplay = item.uploaded_at;
-
+      const style = getFileIcon(item.file_name);
       return `
-            <tr>
-                <td class="text-center align-middle ps-3" style="width: 60px;">
-                    <div class="icon-circle ${fileStyle.bg} bg-opacity-10 ${fileStyle.color}">
-                        <span class="material-symbols-outlined">${fileStyle.icon}</span>
-                    </div>
-                </td>
-                <td class="align-middle">
-                    <div class="fw-bold text-body">${item.file_name}</div>
-                    <div class="small text-muted opacity-75">${item.description || "Sem descrição"}</div>
-                </td>
-                <td class="text-center align-middle">
-                    <span class="badge border text-body bg-transparent opacity-75">
-                        <i class="fas fa-calendar-alt me-1"></i> ${dateDisplay}
-                    </span>
-                </td>
-                <td class="text-end align-middle pe-4">
-                    <a href="${item.file_path}" target="_blank" class="btn-icon-action text-info me-2" title="Visualizar">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    <a href="${item.file_path}" download="${item.file_name}" class="btn-icon-action text-primary me-2" title="Baixar">
-                        <i class="fas fa-download"></i>
-                    </a>
-                    <button onclick="removeAttachment(${item.attachment_id})" class="btn-icon-action delete" title="Excluir">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
+      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner transition-all">
+          <div class="d-flex align-items-center gap-3">
+              <div class="${style.bg} bg-opacity-10 ${style.color} rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px;">
+                  <span class="material-symbols-outlined">${style.icon}</span>
+              </div>
+              <div>
+                  <div class="fw-bold text-body small text-truncate" style="max-width: 200px;">${item.file_name}</div>
+                  <div class="text-muted small lh-1 opacity-75">${item.description || "Sem descrição"}</div>
+              </div>
+          </div>
+          <div class="d-flex gap-2 ms-3">
+              <a href="${item.file_path}" target="_blank" class="ios-action-pill text-info bg-info bg-opacity-10" title="Ver"><i class="fas fa-eye"></i></a>
+              <a href="${item.file_path}" download="${item.file_name}" class="ios-action-pill text-primary bg-primary bg-opacity-10" title="Baixar"><i class="fas fa-download"></i></a>
+              ${
+                canManageFiles
+                  ? `
+              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="removeAttachment(${item.attachment_id})" title="Excluir"><i class="fas fa-trash"></i></button>`
+                  : ""
+              }
+          </div>
+      </div>`;
     })
     .join("");
 
-  container.html(`
-        <div class="table-responsive rounded border">
-            <table class="table-custom">
-                <thead>
-                    <tr>
-                        <th colspan="2" class="ps-3 opacity-75">DOCUMENTOS</th>
-                        <th class="text-center opacity-75">DATA DE ENVIO</th>
-                        <th class="text-end pe-4 opacity-75">AÇÕES</th>
-                    </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-            </table>
-        </div>
-    `);
+  container.html(html);
 };
 
 window.uploadAttachment = async (btn) => {
@@ -630,13 +610,13 @@ window.uploadAttachment = async (btn) => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-        url: defaultApp.validator,
-        data: formData,
-        type: "POST",
-        processData: false,
-        contentType: false,
-        dataType: "json",
-      }));
+          url: defaultApp.validator,
+          data: formData,
+          type: "POST",
+          processData: false,
+          contentType: false,
+          dataType: "json",
+        }));
 
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
@@ -731,13 +711,13 @@ window.salvarPessoa = async (btn) => {
     const result = await (window.ajaxValidatorFoto
       ? window.ajaxValidatorFoto(formData)
       : $.ajax({
-        url: defaultApp.validator,
-        data: formData,
-        type: "POST",
-        processData: false,
-        contentType: false,
-        dataType: "json",
-      }));
+          url: defaultApp.validator,
+          data: formData,
+          type: "POST",
+          processData: false,
+          contentType: false,
+          dataType: "json",
+        }));
     const res = result.status !== undefined ? result : JSON.parse(result);
     if (res.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");

@@ -73,6 +73,25 @@ const renderTableClasses = (data) => {
     return;
   }
 
+  // =========================================================
+  // LÓGICA DE PERMISSÕES (RBAC)
+  // =========================================================
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+
+  const canEdit = allowedSlugs.includes("turmas.edit");
+  const canHistory = allowedSlugs.includes("turmas.history");
+  const canDelete = allowedSlugs.includes("turmas.delete");
+
   const getProgressHtml = (enrolled, cap) => {
     if (!cap || parseInt(cap) === 0) return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1">Ilimitado</span>';
     const pct = Math.min(100, Math.round((parseInt(enrolled || 0) / parseInt(cap)) * 100));
@@ -116,6 +135,20 @@ const renderTableClasses = (data) => {
         photoHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-primary border fw-bold shadow-sm" style="width:34px; height:34px; background-color: var(--fundo); font-size: 0.75rem;">${initials}</div>`;
       }
 
+      // Switch Ativo/Inativo Condicional
+      const toggleHtml = canEdit
+        ? `<div class="form-check form-switch mb-0"><input class="form-check-input shadow-sm" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="cursor: pointer;"></div>`
+        : `<div class="form-check form-switch mb-0"><input class="form-check-input shadow-sm" type="checkbox" ${isActive ? "checked" : ""} disabled></div>`;
+
+      // Ações Desktop Condicionais
+      let actionsHtml = "";
+      if (canHistory)
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+
       return `
         <tr>
             <td class="text-center align-middle ps-3" style="width: 60px;">
@@ -145,22 +178,12 @@ const renderTableClasses = (data) => {
             <td class="text-center align-middle">${getProgressHtml(item.enrolled_count, item.max_capacity)}</td>
             <td class="text-center align-middle">
                 <div class="d-flex align-items-center justify-content-center">
-                    <div class="form-check form-switch mb-0">
-                        <input class="form-check-input shadow-sm" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="cursor: pointer;">
-                    </div>
+                    ${toggleHtml}
                 </div>
             </td>
             <td class="text-end align-middle pe-3">
                 <div class="d-flex gap-2 justify-content-end">
-                    <button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Auditoria/Log">
-                        <i class="fas fa-history" style="font-size: 0.85rem;"></i>
-                    </button>
-                    <button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar">
-                        <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
-                    </button>
-                    <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir">
-                        <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
-                    </button>
+                    ${actionsHtml || '<span class="text-muted small opacity-50"><i class="fas fa-ban"></i></span>'}
                 </div>
             </td>
         </tr>`;
@@ -201,6 +224,25 @@ const renderTableClasses = (data) => {
         avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
       }
 
+      // Switch Mobile Condicional
+      const mobToggleHtml = canEdit
+        ? `<div class="form-check form-switch m-0 p-0 d-flex align-items-center"><input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="cursor: pointer; width: 44px; height: 24px;"></div>`
+        : `<div class="form-check form-switch m-0 p-0 d-flex align-items-center"><input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} disabled style="width: 44px; height: 24px;"></div>`;
+
+      // Ações Mobile Condicionais
+      let mobActionsHtml = "";
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>`;
+
+      let mobileFooter = "";
+      if (mobActionsHtml !== "") {
+        mobileFooter = `
+          <div class="d-flex mt-4 gap-2">
+              ${mobActionsHtml}
+          </div>`;
+      }
+
       return `
       <div class="ios-list-item">
           <div class="me-3">
@@ -222,15 +264,9 @@ const renderTableClasses = (data) => {
 
           <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-3" style="min-width: 90px;">
               <div class="d-flex align-items-center justify-content-end gap-2 w-100">
-                <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                  <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
-                </div>
+                ${mobToggleHtml}
               </div>
-              <div class="d-flex mt-4 gap-2">
-                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history"></i></button>
-                  <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-                  <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>
-              </div>
+              ${mobileFooter}
           </div>
       </div>`;
     })
@@ -375,6 +411,24 @@ const renderStudentsList = (data) => {
     return;
   }
 
+  // =========================================================
+  // LÓGICA DE PERMISSÕES (RBAC) - ALUNOS
+  // =========================================================
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+
+  const canHistory = allowedSlugs.includes("turmas.history");
+  const canDrop = allowedSlugs.includes("turmas.drop");
+
   const statusMap = {
     ACTIVE: { label: "Ativo", color: "success" },
     SUSPENDED: { label: "Suspenso", color: "warning" },
@@ -387,6 +441,19 @@ const renderStudentsList = (data) => {
   const html = data
     .map((item) => {
       const st = statusMap[item.status] || { label: item.status, color: "secondary" };
+
+      let actionsHtml = "";
+      if (canHistory)
+        actionsHtml += `
+        <button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Linha do Tempo">
+            <i class="fas fa-clock-rotate-left" style="font-size: 0.85rem;"></i>
+        </button>`;
+      if (canDrop)
+        actionsHtml += `
+        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover Matrícula">
+            <i class="fas fa-user-minus" style="font-size: 0.85rem;"></i>
+        </button>`;
+
       return `
         <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner">
             <div class="flex-grow-1 pe-2">
@@ -394,12 +461,7 @@ const renderStudentsList = (data) => {
                 <span class="badge bg-${st.color}-subtle text-${st.color} rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">${st.label}</span>
             </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Linha do Tempo">
-                    <i class="fas fa-clock-rotate-left" style="font-size: 0.85rem;"></i>
-                </button>
-                <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover Matrícula">
-                    <i class="fas fa-user-minus" style="font-size: 0.85rem;"></i>
-                </button>
+                ${actionsHtml}
             </div>
         </div>`;
     })
@@ -567,6 +629,24 @@ const renderSchedulesTable = () => {
     container.html('<div class="text-center py-4 opacity-50 small">Sem horários definidos.</div>');
     return;
   }
+
+  // =========================================================
+  // LÓGICA DE PERMISSÕES (RBAC) - HORÁRIOS
+  // =========================================================
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+
+  const canEdit = allowedSlugs.includes("turmas.edit");
+
   const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
   const html = currentSchedules
     .map(
@@ -579,9 +659,14 @@ const renderSchedulesTable = () => {
                 <div class="small text-muted fw-medium"><i class="fas fa-location-dot me-1 opacity-50"></i> ${item.location_name || "Local Turma"}</div>
             </div>
         </div>
+        ${
+          canEdit
+            ? `
         <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="currentSchedules.splice(${index}, 1); renderSchedulesTable();" title="Remover Horário">
             <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
-        </button>
+        </button>`
+            : ""
+        }
     </div>`,
     )
     .join("");

@@ -217,6 +217,35 @@ window.getHistory = async () => {
 const renderTableHistory = (data) => {
   const container = $(".list-table-diario");
 
+  if (data.length === 0) {
+    container.html(`
+        <div class="text-center py-5 text-muted opacity-50">
+            <span class="material-symbols-outlined fs-1">event_busy</span>
+            <p class="mt-2">Nenhuma aula registrada.</p>
+        </div>
+    `);
+    return;
+  }
+
+  // =========================================================
+  // LÓGICA DE PERMISSÕES (RBAC)
+  // =========================================================
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+
+  const canHistory = allowedSlugs.includes("diario.history");
+  const canEdit = allowedSlugs.includes("diario.edit");
+  const canDelete = allowedSlugs.includes("diario.delete");
+
   // --- VISÃO DESKTOP ---
   const desktopRows = data
     .map((item) => {
@@ -229,6 +258,12 @@ const renderTableHistory = (data) => {
       const present = parseInt(item.present_count) || 0;
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       const progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
+
+      // Ações condicionais Desktop
+      let actionsHtml = "";
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
 
       return `
       <tr>
@@ -253,9 +288,7 @@ const renderTableHistory = (data) => {
           </div>
         </td>
         <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
-          <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>
-          <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>
-          <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+          ${actionsHtml || '<span class="text-muted small opacity-50"><i class="fas fa-ban"></i></span>'}
         </td>
       </tr>`;
     })
@@ -290,6 +323,22 @@ const renderTableHistory = (data) => {
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       const badgeStyle = pct < 70 ? "bg-danger text-white" : pct < 90 ? "bg-warning text-dark" : "bg-success text-white";
 
+      // Ações condicionais Mobile
+      let mobActionsHtml = "";
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+
+      let mobileFooter = "";
+      if (mobActionsHtml !== "") {
+        mobileFooter = `
+          <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-0 w-100">
+              <div class="d-flex gap-2">
+                  ${mobActionsHtml}
+              </div>
+          </div>`;
+      }
+
       return `
       <div class="ios-list-item flex-column align-items-stretch position-relative" style="padding: 12px 16px;">
           <div class="position-absolute" style="top: 12px; right: 16px;">
@@ -316,13 +365,7 @@ const renderTableHistory = (data) => {
               </div>
           </div>
 
-          <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-0 w-100">
-              <div class="d-flex gap-2">
-                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>
-                  <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>
-                  <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-              </div>
-          </div>
+          ${mobileFooter}
       </div>`;
     })
     .join("");
@@ -720,6 +763,7 @@ window.updateAttendance = (idx, isPresent) => {
 window.updateJustification = (idx, val) => {
   diarioState.currentStudents[idx].justification = val;
 };
+
 window.updateAbsenceType = (idx, val) => {
   diarioState.currentStudents[idx].absence_type = val;
 };

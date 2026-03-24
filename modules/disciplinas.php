@@ -34,15 +34,15 @@
                 </div>
 
                 <div class="row g-3 align-items-end">
-                    <div class="col-12 col-md-9">
+                    <div class="col-12 col-md flex-grow-1">
                         <label class="form-label d-none d-md-flex" for="busca-texto">
                             <i class="fas fa-search opacity-50"></i> Buscar Disciplina
                         </label>
                         <input type="text" id="busca-texto" class="form-control shadow-sm" placeholder="Ex: Bíblia, Liturgia, História da Igreja...">
                     </div>
 
-                    <div class="col-12 col-md-3 mt-3 mt-md-0">
-                        <button class="btn btn-primary fw-bold shadow-sm w-100" style="height: 50px;" onclick="modalDisciplina()">
+                    <div class="col-12 col-md-auto mt-3 mt-md-0 d-grid" data-slug="disciplinas.create">
+                        <button class="btn btn-primary fw-bold shadow-sm w-100" style="height: 50px; min-width: 180px;" onclick="modalDisciplina()">
                             <i class="fas fa-plus me-2"></i>
                             <span class="d-none d-md-inline">Nova Disciplina</span>
                             <span class="d-inline d-md-none">Adicionar</span>
@@ -102,7 +102,7 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarDisciplina(this)">
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarDisciplina(this)" data-slug="disciplinas.save">
                         <i class="fas fa-save me-2"></i> Salvar
                     </button>
                 </div>

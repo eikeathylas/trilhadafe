@@ -76,16 +76,40 @@ const renderTableSubjects = (data) => {
   }
 
   // =========================================================
+  // LÓGICA DE PERMISSÕES (RBAC)
+  // =========================================================
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+
+  const canEdit = allowedSlugs.includes("disciplinas.save");
+  const canHistory = allowedSlugs.includes("disciplinas.history");
+  const canDelete = allowedSlugs.includes("disciplinas.delete");
+
+  // =========================================================
   // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
   // =========================================================
-  const desktopRows = data.map((item) => {
-    const summary = item.syllabus_summary
-      ? (item.syllabus_summary.length > 70 ? item.syllabus_summary.substring(0, 70) + "..." : item.syllabus_summary)
-      : '<span class="text-muted small fst-italic">Sem ementa registada</span>';
+  const desktopRows = data
+    .map((item) => {
+      const summary = item.syllabus_summary ? (item.syllabus_summary.length > 70 ? item.syllabus_summary.substring(0, 70) + "..." : item.syllabus_summary) : '<span class="text-muted small fst-italic">Sem ementa registada</span>';
 
-    const isActive = item.is_active === true || item.is_active === "t";
+      const isActive = item.is_active === true || item.is_active === "t";
 
-    return `
+      // Ações Desktop Condicionais
+      let actionsHtml = "";
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+
+      return `
       <tr>
           <td class="text-center align-middle ps-3" style="width: 60px;">
               <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
@@ -101,27 +125,30 @@ const renderTableSubjects = (data) => {
           <td class="text-center align-middle" style="width: 130px;">
               <div class="d-flex align-items-center justify-content-center gap-2">
                   <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
-                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleSubject(${item.subject_id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
+                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} 
+                             ${canEdit ? `onchange="toggleSubject(${item.subject_id}, this)"` : "disabled"} 
+                             style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
                   </div>
               </div>
           </td>
           <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
-              <button class="btn-icon-action text-warning" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action text-primary" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action text-danger" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              <div class="d-flex justify-content-end gap-1">
+                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50" title="Somente leitura"></i>'}
+              </div>
           </td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 
   const desktopHtml = `
     <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th colspan="2" class="ps-3 text-uppercase" style="font-size: 0.75rem;">Disciplina</th>
-                    <th class="text-uppercase" style="font-size: 0.75rem;">Ementa / Resumo</th>
-                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Estado</th>
-                    <th class="text-end pe-4 text-uppercase" style="font-size: 0.75rem;">Ações</th>
+                    <th colspan="2" class="ps-3 text-uppercase small opacity-75">Disciplina</th>
+                    <th class="text-uppercase small opacity-75">Ementa / Resumo</th>
+                    <th class="text-center text-uppercase small opacity-75">Estado</th>
+                    <th class="text-end pe-4 text-uppercase small opacity-75">Ações</th>
                 </tr>
             </thead>
             <tbody>${desktopRows}</tbody>
@@ -131,16 +158,18 @@ const renderTableSubjects = (data) => {
   // =========================================================
   // 2. VISÃO MOBILE (IOS-LIST-ITEM APPLE HIG)
   // =========================================================
-  const mobileRows = data.map((item) => {
-    const isActive = item.is_active === true || item.is_active === "t";
-    const summary = item.syllabus_summary ? item.syllabus_summary : '<span class="fst-italic opacity-50">Sem ementa registada.</span>';
+  const mobileRows = data
+    .map((item) => {
+      const isActive = item.is_active === true || item.is_active === "t";
+      const summary = item.syllabus_summary ? item.syllabus_summary : '<span class="fst-italic opacity-50">Sem ementa registada.</span>';
 
-    // Ícone estático de estado para Mobile
-    const statusIconHtml = isActive
-      ? `<span title="Ativa" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-      : `<span title="Inativa" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+      // Ações Mobile Condicionais
+      let mobActionsHtml = "";
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
 
-    return `
+      return `
       <div class="ios-list-item flex-column align-items-stretch">
           
           <div class="d-flex justify-content-between align-items-start">
@@ -153,11 +182,10 @@ const renderTableSubjects = (data) => {
                   </div>
               </div>
               <div class="text-end">
-                  <div class="d-flex align-items-center justify-content-end gap-2">
-                  <!-- <div class="status-text-sub-${item.subject_id} d-flex align-items-center">${statusIconHtml}</div> -->
-                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
-                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleSubject(${item.subject_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
-                      </div>
+                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                             ${canEdit ? `onchange="toggleSubject(${item.subject_id}, this)"` : "disabled"} 
+                             style="cursor: ${canEdit ? "pointer" : "default"}; width: 44px; height: 24px;">
                   </div>
               </div>
           </div>
@@ -169,13 +197,10 @@ const renderTableSubjects = (data) => {
               </div>
           </div>
           
-          <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-          </div>
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
       </div>`;
-  }).join("");
+    })
+    .join("");
 
   const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
 

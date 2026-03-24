@@ -81,15 +81,19 @@
                             <span class="text-only">Turmas</span>
                         </a>
                     </li>
-                    <li data-slug="academico">
+                    <li>
                         <a href="#" onclick="return false;" class="<?= in_array(basename($_SERVER['PHP_SELF']), ['disciplinas.php', 'cursos.php']) ? 'active' : '' ?>" data-tooltip="Acadêmico">
                             <span class="material-symbols-outlined icon-only">settings_accessibility</span>
                             <span class="text-only">Config. Acadêmica</span>
                             <span class="material-symbols-outlined arrow-only ms-auto">expand_more</span>
                         </a>
                         <ul class="sub-menu-only" style="<?= in_array(basename($_SERVER['PHP_SELF']), ['disciplinas.php', 'cursos.php']) ? 'display:block' : '' ?>">
-                            <li><a href="cursos.php" class="<?= basename($_SERVER['PHP_SELF']) == 'cursos.php' ? 'fw-bold text-white' : '' ?>">Cursos</a></li>
-                            <li><a href="disciplinas.php" class="<?= basename($_SERVER['PHP_SELF']) == 'disciplinas.php' ? 'fw-bold text-white' : '' ?>">Disciplinas</a></li>
+                            <li data-slug="cursos">
+                                <a href="cursos.php" class="<?= basename($_SERVER['PHP_SELF']) == 'cursos.php' ? 'fw-bold text-white' : '' ?>">Cursos</a>
+                            </li>
+                            <li data-slug="disciplinas">
+                                <a href="disciplinas.php" class="<?= basename($_SERVER['PHP_SELF']) == 'disciplinas.php' ? 'fw-bold text-white' : '' ?>">Disciplinas</a>
+                            </li>
                         </ul>
                     </li>
                 </ul>

@@ -69,7 +69,7 @@
                             </button>
                             <button
                                 class="btn btn-primary fw-bold shadow-sm flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center px-4 transition-all"
-                                style="height: 42px; border-radius: 12px;" onclick="openCreateModal()">
+                                style="height: 42px; border-radius: 12px;" onclick="openCreateModal()" data-slug="usuarios.create">
                                 <i class="fas fa-user-plus me-2"></i> Novo
                             </button>
                         </div>
@@ -171,7 +171,7 @@
                     </div>
 
                     <div class="card border-0 rounded-4 bg-danger bg-opacity-10 p-3 p-md-4 border-start border-4 border-danger"
-                        id="div_reset_password">
+                        id="div_reset_password" data-slug="usuarios.password">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                             <div>
                                 <h6 class="fw-bold text-danger mb-1"><i class="fas fa-key me-2"></i> Segurança da Conta
@@ -191,7 +191,7 @@
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border"
                         data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm"
-                        onclick="salvarUsuario(this)">
+                        onclick="salvarUsuario(this)" data-slug="usuarios.save">
                         <i class="fas fa-save me-2"></i> Salvar Acesso
                     </button>
                 </div>
@@ -218,7 +218,7 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 text-center justify-content-center">
                     <button type="button" class="btn btn-light fw-bold px-5 rounded-3 border shadow-sm"
-                        data-bs-dismiss="modal">Fechar Histórico</button>
+                        data-bs-modal="modal">Fechar Histórico</button>
                 </div>
             </div>
         </div>

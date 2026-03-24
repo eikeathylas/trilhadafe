@@ -80,11 +80,10 @@ window.getCursos = async () => {
         $(".pagination-cursos").empty();
       }
     } else {
-      throw new Error(result.alert || result.msg || "O servidor não conseguiu processar a lista de cursos.");
+      throw new Error(result.alert || result.msg || "Erro ao processar lista.");
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor.";
-
     container.html(`
         <div class="text-center py-5">
             <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 64px; height: 64px;">
@@ -96,7 +95,6 @@ window.getCursos = async () => {
             </button>
         </div>
     `);
-
     window.alertErrorWithSupport("Listar Cursos", errorMessage);
   }
 };
@@ -104,31 +102,42 @@ window.getCursos = async () => {
 const renderTableCourses = (data) => {
   const container = $(".list-table-cursos");
 
-  if (data.length === 0) {
-    container.html(`
-        <div class="text-center py-5 opacity-50">
-            <span class="material-symbols-outlined fs-1 text-secondary">school</span>
-            <p class="mt-2 fw-medium text-body">Nenhum curso cadastrado.</p>
-        </div>
-    `);
-    $(".pagination-cursos").empty();
-    return;
+  // --- LÓGICA DE PERMISSÕES (RBAC) ---
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
   }
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
-  // =========================================================
-  const desktopRows = data.map((item) => {
-    let ageLabel = "Livre";
-    if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
-    else if (item.min_age) ageLabel = `A partir de ${item.min_age} anos`;
+  const canEdit = allowedSlugs.includes("cursos.save");
+  const canHistory = allowedSlugs.includes("cursos.history");
+  const canDelete = allowedSlugs.includes("cursos.delete");
 
-    const isActive = item.is_active === true || item.is_active === "t";
-    const statusIconHtml = isActive
-      ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help; margin: 0 auto;"><i class="fas fa-check-circle"></i></span>`
-      : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help; margin: 0 auto;"><i class="fas fa-times-circle"></i></span>`;
+  // --- VISÃO DESKTOP ---
+  const desktopRows = data
+    .map((item) => {
+      let ageLabel = "Livre";
+      if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
+      else if (item.min_age) ageLabel = `A partir de ${item.min_age} anos`;
 
-    return `
+      const isActive = item.is_active === true || item.is_active === "t";
+      const statusIconHtml = isActive
+        ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help; margin: 0 auto;"><i class="fas fa-check-circle"></i></span>`
+        : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help; margin: 0 auto;"><i class="fas fa-times-circle"></i></span>`;
+
+      // Ações Desktop Condicionais
+      let actionsHtml = "";
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Auditoria/Log"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+
+      return `
       <tr>
           <td class="text-center align-middle ps-3" style="width: 60px;">
               <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
@@ -154,8 +163,9 @@ const renderTableCourses = (data) => {
           <td class="text-center align-middle" style="width: 130px;">
               <div class="d-flex align-items-center justify-content-center gap-2">
                   <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
-                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
-                      <span class="toggle-loader spinner-border spinner-border-sm text-primary position-absolute d-none" role="status" style="right: -25px;"></span>
+                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} 
+                             ${canEdit ? `onchange="toggleCourse(${item.course_id}, this)"` : "disabled"} 
+                             style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
                   </div>
                   <div class="status-text-course-${item.course_id} d-flex align-items-center">
                       ${statusIconHtml}
@@ -163,57 +173,55 @@ const renderTableCourses = (data) => {
               </div>
           </td>
           <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
-              <button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              <div class="d-flex justify-content-end gap-1">
+                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50" title="Acesso restrito"></i>'}
+              </div>
           </td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 
   const desktopHtml = `
     <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th colspan="2" class="ps-3 text-uppercase" style="font-size: 0.75rem;">Curso / Faixa Etária</th>
-                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Carga Horária</th>
-                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Grade</th>
-                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Estado</th>
-                    <th class="text-end pe-4 text-uppercase" style="font-size: 0.75rem;">Ações</th>
+                    <th colspan="2" class="ps-3 text-uppercase small opacity-75">Curso / Faixa Etária</th>
+                    <th class="text-center text-uppercase small opacity-75">Carga Horária</th>
+                    <th class="text-center text-uppercase small opacity-75">Grade</th>
+                    <th class="text-center text-uppercase small opacity-75">Estado</th>
+                    <th class="text-end pe-4 text-uppercase small opacity-75">Ações</th>
                 </tr>
             </thead>
             <tbody>${desktopRows}</tbody>
         </table>
     </div>`;
 
-  // =========================================================
-  // 2. VISÃO MOBILE (IOS-LIST-ITEM APPLE HIG)
-  // =========================================================
-  const mobileRows = data.map((item) => {
-    let ageLabel = "Livre";
-    if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
-    else if (item.min_age) ageLabel = `+${item.min_age} anos`;
+  // --- VISÃO MOBILE (IOS-STYLE) ---
+  const mobileRows = data
+    .map((item) => {
+      let ageLabel = "Livre";
+      if (item.min_age && item.max_age) ageLabel = `${item.min_age} a ${item.max_age} anos`;
+      else if (item.min_age) ageLabel = `+${item.min_age} anos`;
 
-    const isActive = item.is_active === true || item.is_active === "t";
-    const statusIconHtml = isActive
-      ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-      : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+      const isActive = item.is_active === true || item.is_active === "t";
 
-    return `
+      let mobActionsHtml = "";
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+
+      return `
       <div class="ios-list-item flex-column align-items-stretch">
-          
           <div class="d-flex justify-content-between align-items-start">
               <div class="flex-grow-1 pe-3" style="min-width: 0;">
                   <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 1.05rem; letter-spacing: -0.5px;">${item.name}</h6>
               </div>
               <div class="text-end">
-                  <div class="d-flex align-items-center justify-content-end gap-2">
-                  <!-- <div class="status-text-course-${item.course_id} d-flex align-items-center">${statusIconHtml}</div> -->
-                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
-                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleCourse(${item.course_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
-                          <span class="toggle-loader spinner-border spinner-border-sm text-primary position-absolute d-none" role="status" style="left: -25px;"></span>
-                      </div>
-                      
+                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                             ${canEdit ? `onchange="toggleCourse(${item.course_id}, this)"` : "disabled"} 
+                             style="cursor: ${canEdit ? "pointer" : "default"}; width: 44px; height: 24px;">
                   </div>
               </div>
           </div>
@@ -239,17 +247,12 @@ const renderTableCourses = (data) => {
               </div>
           </div>
           
-          <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-          </div>
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
       </div>`;
-  }).join("");
+    })
+    .join("");
 
-  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
-
-  container.html(desktopHtml + mobileHtml);
+  container.html(desktopHtml + `<div class="d-md-none ios-list-container">${mobileRows}</div>`);
   _generatePaginationButtons("pagination-cursos", "currentPage", "totalPages", "changePage", defaultCourse);
 };
 
@@ -272,7 +275,7 @@ window.modalCurso = (id = null, btn = false) => {
 
   initSelectSubjects();
 
-  const firstTabEl = document.querySelector('#courseTab button:first-child');
+  const firstTabEl = document.querySelector("#courseTab button:first-child");
   if (firstTabEl) {
     const tab = new bootstrap.Tab(firstTabEl);
     tab.show();
@@ -281,7 +284,7 @@ window.modalCurso = (id = null, btn = false) => {
   if (id) {
     loadCourseData(id, btn);
   } else {
-    $("#modalLabel").text("Novo Curso");
+    $("#modalLabel").html('<i class="fas fa-layer-group me-2"></i> Novo Curso');
     modal.modal("show");
   }
 };
@@ -289,15 +292,10 @@ window.modalCurso = (id = null, btn = false) => {
 window.loadCourseData = async (id, btn) => {
   try {
     window.setButton(true, btn, "");
-    const result = await window.ajaxValidator({
-      validator: "getCourseById",
-      token: window.defaultApp.userInfo.token,
-      id: id,
-    });
+    const result = await window.ajaxValidator({ validator: "getCourseById", token: window.defaultApp.userInfo.token, id: id });
 
     if (result.status) {
       const d = result.data;
-
       $("#course_id").val(d.course_id);
       $("#course_name").val(d.name);
       $("#course_description").val(d.description);
@@ -306,22 +304,18 @@ window.loadCourseData = async (id, btn) => {
       $("#total_workload").val(d.total_workload_hours);
 
       window.currentCurriculumList = Array.isArray(d.curriculum) ? d.curriculum : [];
-
       window.currentCurriculumList.forEach((item) => {
         if (!Array.isArray(item.plans)) item.plans = [];
       });
 
-      if (typeof renderCurriculumTable === "function") renderCurriculumTable();
-      if (typeof initSelectSubjects === "function") initSelectSubjects();
+      renderCurriculumTable();
+      initSelectSubjects();
 
-      $("#modalLabel").text("Editar Estrutura do Curso");
+      $("#modalLabel").html('<i class="fas fa-pen me-2"></i> Editar Estrutura do Curso');
       $("#modalCurso").modal("show");
-    } else {
-      throw new Error(result.alert || "O servidor não retornou os dados deste curso.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar curso.";
-    window.alertErrorWithSupport(`Abrir Edição de Curso`, errorMessage);
+    console.error(e);
   } finally {
     window.setButton(false, btn);
   }
@@ -441,29 +435,39 @@ const renderCurriculumTable = () => {
     return;
   }
 
-  const html = window.currentCurriculumList.map((item, index) => {
-    const mandatoryBadge = item.is_mandatory
-      ? '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill fw-bold px-2 py-1" style="font-size: 0.65rem;">Obrigatória</span>'
-      : '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill fw-bold px-2 py-1" style="font-size: 0.65rem;">Opcional</span>';
+  // Permissões da Grade
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {}
 
-    let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
-    const planIconClass = plansCount > 0 ? "text-primary" : "text-muted opacity-50";
-    const planBtnClass = plansCount > 0 ? "bg-primary" : "bg-secondary";
-    const planTextHtml = plansCount > 0
-      ? `<span class="small text-success fw-bold ms-2" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas</span>`
-      : `<span class="small text-muted fst-italic ms-2 opacity-75" style="font-size: 0.75rem;">Sem plano</span>`;
+  const canEdit = allowedSlugs.includes("cursos.save");
+  const canTemplate = allowedSlugs.includes("cursos.template");
 
-    return `
-      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-sm shadow-inner transition-all">
+  const html = window.currentCurriculumList
+    .map((item, index) => {
+      const mandatoryBadge = item.is_mandatory
+        ? '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill fw-bold px-2 py-1" style="font-size: 0.65rem;">Obrigatória</span>'
+        : '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill fw-bold px-2 py-1" style="font-size: 0.65rem;">Opcional</span>';
+
+      let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
+      const planBtnClass = plansCount > 0 ? "bg-primary" : "bg-secondary";
+      const planTextHtml = plansCount > 0 ? `<span class="small text-success fw-bold ms-2" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas</span>` : `<span class="small text-muted fst-italic ms-2 opacity-75" style="font-size: 0.75rem;">Sem roteiro</span>`;
+
+      return `
+      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner transition-all">
           <div class="d-flex align-items-center gap-3">
               <div class="bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px;">
                   <i class="fas fa-book-open"></i>
               </div>
-              
               <div>
-                  <div class="fw-bold text-body fs-6 mb-1">${item.subject_name}</div>
+                  <div class="fw-bold text-body small mb-1">${item.subject_name}</div>
                   <div class="d-flex align-items-center flex-wrap gap-2">
-                      <span class="badge text-body border rounded-pill fw-medium px-2 py-1 shadow-sm" style="font-size: 0.7rem;">
+                      <span class="badge text-body border rounded-pill fw-medium px-2 py-1 shadow-sm" style="font-size: 0.65rem;">
                           <i class="far fa-clock me-1 text-primary opacity-75"></i> ${item.workload_hours}h
                       </span>
                       ${mandatoryBadge}
@@ -473,15 +477,21 @@ const renderCurriculumTable = () => {
           </div>
 
           <div class="d-flex align-items-center gap-2 ms-3">
-              <button class="ios-action-pill text-primary ${planBtnClass} bg-opacity-10" onclick="configureTemplate(${index})" title="Planejar Aulas">
-                  <i class="fas fa-book-reader ${planIconClass}"></i>
+              <button class="ios-action-pill text-primary ${planBtnClass} bg-opacity-10" onclick="configureTemplate(${index})" title="${canTemplate ? "Gerenciar Roteiro" : "Ver Roteiro"}">
+                  <i class="fas ${canTemplate ? "fa-book-reader" : "fa-eye"}"></i>
               </button>
+              ${
+                canEdit
+                  ? `
               <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="removeSubjectFromGrid(${index})" title="Remover">
                   <i class="fas fa-trash-can"></i>
-              </button>
+              </button>`
+                  : ""
+              }
           </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
   container.html(html);
 };
@@ -506,77 +516,108 @@ const renderAccordionList = () => {
   const container = $("#accordionPlans");
   const plans = window.currentCurriculumList[editingCurriculumIndex].plans;
 
+  // Permissão Template
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {}
+  const canTemplate = allowedSlugs.includes("cursos.template");
+
   if (plans.length === 0) {
     container.html(`
         <div class="text-center py-5 opacity-50">
             <span class="material-symbols-outlined text-secondary" style="font-size: 56px;">calendar_month</span>
             <p class="mt-3 fw-medium text-body">Nenhum encontro planejado.</p>
+            ${
+              canTemplate
+                ? `
             <div class="d-flex justify-content-center gap-2 mt-3">
                 <button class="btn btn-primary btn-sm px-3 shadow-sm rounded-pill fw-bold" onclick="addPlan()"><i class="fas fa-plus me-1"></i> Criar 1º Encontro</button>
                 <button class="btn btn-outline-primary btn-sm px-3 shadow-sm rounded-pill fw-bold" onclick="addDefaultModel()"><i class="fas fa-magic me-1"></i> Modelo Padrão</button>
-            </div>
+            </div>`
+                : ""
+            }
         </div>
     `);
     return;
   }
 
-  const html = plans.map((plan, i) => {
-    const collapseId = `collapsePlan${i}`;
-    const headingId = `headingPlan${i}`;
-    const isFirst = i === 0;
-    const isLast = i === plans.length - 1;
+  const html = plans
+    .map((plan, i) => {
+      const collapseId = `collapsePlan${i}`;
+      const headingId = `headingPlan${i}`;
+      const isFirst = i === 0;
+      const isLast = i === plans.length - 1;
 
-    const upBtn = `<button class="btn btn-sm btn-link text-body p-0 me-1" ${isFirst ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>`;
-    const downBtn = `<button class="btn btn-sm btn-link text-body p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>`;
+      // Controles de ordenação (apenas se puder editar template)
+      const orderControls = canTemplate
+        ? `
+      <div class="me-3 d-flex align-items-center opacity-75" style="min-width: 40px;">
+        <button class="btn btn-sm btn-link text-body p-0 me-1" ${isFirst ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, -1)" title="Subir"><i class="fas fa-arrow-up"></i></button>
+        <button class="btn btn-sm btn-link text-body p-0 me-2" ${isLast ? 'disabled style="opacity:0.2"' : ""} onclick="event.stopPropagation(); movePlan(${i}, 1)" title="Descer"><i class="fas fa-arrow-down"></i></button>
+      </div>`
+        : "";
 
-    return `
-      <div class="plan-item card border-0 rounded-4 bg-secondary bg-opacity-10 mb-3 shadow-sm shadow-inner overflow-hidden">
+      const deleteBtn = canTemplate
+        ? `
+      <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
+          <i class="fas fa-trash-can"></i>
+      </button>`
+        : "";
+
+      return `
+      <div class="plan-item card border-0 rounded-4 bg-secondary bg-opacity-10 mb-3 shadow-inner overflow-hidden">
           <div class="accordion-header" id="${headingId}">
               <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                  
-                  <div class="me-3 d-flex align-items-center opacity-75" style="min-width: 40px;">${upBtn}${downBtn}</div>
-                  
+                  ${orderControls}
                   <div class="me-3">
                       <span class="badge rounded-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; font-size: 0.85rem;">
                           ${i + 1}
                       </span>
                   </div>
-                  
                   <div class="flex-grow-1 me-3">
-                      <input type="text" class="form-control bg-transparent border-0 shadow-none fw-bold text-body fs-6 px-0" value="${plan.title || "Encontro " + (i + 1)}" onclick="event.stopPropagation()" onchange="updatePlanTitle(${i}, this.value)" placeholder="Título do Encontro...">
+                      <input type="text" class="form-control bg-transparent border-0 shadow-none fw-bold text-body fs-6 px-0" 
+                             value="${plan.title || "Encontro " + (i + 1)}" 
+                             ${canTemplate ? `onchange="updatePlanTitle(${i}, this.value)"` : "readonly"} 
+                             onclick="event.stopPropagation()" placeholder="Título do Encontro...">
                   </div>
-                  
                   <div class="ms-auto d-flex align-items-center">
                       <i class="fas fa-chevron-down text-muted me-3 transition-icon"></i>
-                      <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
-                          <i class="fas fa-trash-can"></i>
-                      </button>
+                      ${deleteBtn}
                   </div>
               </div>
           </div>
-          
           <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionPlans">
               <div class="p-3 pt-0 border-top border-secondary border-opacity-10">
                   <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
               </div>
           </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
   container.html(html);
 
+  // Inicializa Summernote condicionalmente
   const collapses = document.querySelectorAll(".accordion-collapse");
   collapses.forEach((el) => {
     el.addEventListener("shown.bs.collapse", function () {
       $(this).prev().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-up text-primary");
       const textarea = this.querySelector(".summernote-dynamic");
-      $(textarea).summernote(summernoteConfig);
+
+      const config = { ...summernoteConfig };
+      $(textarea).summernote(config);
+      if (!canTemplate) $(textarea).summernote("disable"); // Modo Read-Only
     });
     el.addEventListener("hide.bs.collapse", function () {
       $(this).prev().find(".fa-chevron-up").removeClass("fa-chevron-up text-primary").addClass("fa-chevron-down");
       const textarea = this.querySelector(".summernote-dynamic");
       if ($(textarea).next(".note-editor").length > 0) {
-        window.saveActiveSummernote();
+        if (canTemplate) window.saveActiveSummernote();
         $(textarea).summernote("destroy");
       }
     });
@@ -897,13 +938,23 @@ window.getCursos = getCursos;
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);
   container.empty();
+
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
-  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
-  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
-    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
+
+  let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+  html += `<button onclick="${funcName}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior"><i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i></button>`;
+
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
+    if (p === current) {
+      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
+    } else {
+      html += `<button onclick="${funcName}(${p})" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
+    }
   }
-  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
+
+  html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
+  html += `</div>`;
   container.html(html);
 };
 

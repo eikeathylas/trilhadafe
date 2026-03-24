@@ -90,7 +90,7 @@
                         </div>
 
                         <div class="d-grid mt-2">
-                            <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill py-2 d-flex align-items-center justify-content-center" id="btnGenerateReport" style="height: 48px;">
+                            <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill py-2 d-flex align-items-center justify-content-center" id="btnGenerateReport" style="height: 48px;" data-slug="relatorios.export">
                                 <i class="fas fa-file-invoice me-2"></i> Gerar Relatório
                             </button>
                         </div>

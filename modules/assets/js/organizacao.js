@@ -95,12 +95,34 @@ const renderTableDiocese = (data) => {
     return;
   }
 
+  // =========================================================
+  // LÓGICA DE PERMISSÕES (RBAC)
+  // =========================================================
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+
+  const canHistory = allowedSlugs.includes("organizacao.view");
+  const canEdit = allowedSlugs.includes("organizacao.edit");
+  const canDelete = allowedSlugs.includes("organizacao.save");
+
+  // --- VISÃO DESKTOP ---
   const desktopRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-      const statusIconHtml = isActive
-        ? `<span title="Ativa" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-        : `<span title="Inativa" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+
+      let actionsHtml = "";
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
 
       return `
       <tr>
@@ -109,31 +131,33 @@ const renderTableDiocese = (data) => {
               <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.display_name}</div>
               <div class="text-muted small mt-1">Contato: ${item.phone_main || "Não informado"}</div>
           </td>
-          <td class="text-center align-middle"><span class="badge bg-primary rounded-pill px-3 shadow-sm">DIOCESE</span></td>
+          <td class="text-center align-middle"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 shadow-sm">DIOCESE</span></td>
           <td class="align-middle text-body small fw-medium">${item.city_state || "-"}</td>
           <td class="text-center align-middle" style="width: 130px;">
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                      <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleDio(${item.org_id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
-                  </div>
-                  <div class="status-text-org-${item.org_id}">${statusIconHtml}</div>
+              <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
+                  <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} 
+                         ${canEdit ? `onchange="toggleDio(${item.org_id}, this)"` : "disabled"} 
+                         style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
               </div>
           </td>
-          <td class="text-end align-middle pe-3">
-              <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+          <td class="text-end align-middle pe-3 text-nowrap">
+              <div class="d-flex justify-content-end gap-1">
+                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50" title="Acesso restrito"></i>'}
+              </div>
           </td>
       </tr>`;
     })
     .join("");
 
+  // --- VISÃO MOBILE ---
   const mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-      const statusIconHtml = isActive
-        ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-        : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+
+      let mobActionsHtml = "";
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.organizations', ${item.org_id}, this)"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalInstituicao(${item.org_id}, this)"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteOrg(${item.org_id})"><i class="fas fa-trash"></i></button>`;
 
       return `
       <div class="ios-list-item flex-column align-items-stretch">
@@ -144,19 +168,14 @@ const renderTableDiocese = (data) => {
                   <div class="small text-secondary mt-1 text-truncate"><i class="fas fa-map-marker-alt me-1 opacity-50"></i> ${item.city_state || "Sem local"}</div>
               </div>
               <div class="ms-2">
-                  <div class="d-flex align-items-center justify-content-end gap-2 w-100">
-                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleDio(${item.org_id}, this)" style="width: 50px; height: 28px; cursor: pointer;">
-                      </div>
-                      <!-- <div class="status-text-org-${item.org_id} d-flex align-items-center">${statusIconHtml}</div> -->
+                  <div class="form-check form-switch m-0 p-0">
+                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                             ${canEdit ? `onchange="toggleDio(${item.org_id}, this)"` : "disabled"} 
+                             style="width: 50px; height: 28px;">
                   </div>
               </div>
           </div>
-          <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-          </div>
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
       </div>`;
     })
     .join("");
@@ -199,12 +218,34 @@ window.getOrganizacoes = async () => {
 
 const renderTableOrgs = (data) => {
   const container = $(".list-table-orgs");
+
+  // Reutiliza a lógica de permissões
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+
+  console.log(allowedSlugs);
+
+  const canHistory = allowedSlugs.includes("organizacao.view_paroc");
+  const canEdit = allowedSlugs.includes("organizacao.edit_paroc");
+  const canDelete = allowedSlugs.includes("organizacao.save_paroc");
+
   const desktopRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-      const statusIconHtml = isActive
-        ? `<span title="Ativa" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-        : `<span title="Inativa" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+
+      let actionsHtml = "";
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
 
       return `
       <tr>
@@ -216,17 +257,16 @@ const renderTableOrgs = (data) => {
           <td class="text-center align-middle"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.65rem;">PARÓQUIA</span></td>
           <td class="align-middle text-body small fw-medium">${item.city_state || "-"}</td>
           <td class="text-center align-middle" style="width: 130px;">
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                      <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleOrg(${item.org_id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
-                  </div>
-                  <div class="status-text-org-${item.org_id}">${statusIconHtml}</div>
+              <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
+                  <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} 
+                         ${canEdit ? `onchange="toggleOrg(${item.org_id}, this)"` : "disabled"} 
+                         style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
               </div>
           </td>
           <td class="text-end align-middle pe-3">
-              <button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              <div class="d-flex justify-content-end gap-1">
+                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50"></i>'}
+              </div>
           </td>
       </tr>`;
     })
@@ -235,9 +275,11 @@ const renderTableOrgs = (data) => {
   const mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-      const statusIconHtml = isActive
-        ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-        : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+
+      let mobActionsHtml = "";
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.organizations', ${item.org_id}, this)"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalInstituicao(${item.org_id}, this)"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteOrg(${item.org_id})"><i class="fas fa-trash"></i></button>`;
 
       return `
       <div class="ios-list-item flex-column align-items-stretch">
@@ -248,19 +290,14 @@ const renderTableOrgs = (data) => {
                   <div class="small text-secondary mt-1 text-truncate"><i class="fas fa-map-marker-alt me-1 opacity-50"></i> ${item.city_state || "Sem local"}</div>
               </div>
               <div class="ms-2">
-                  <div class="d-flex align-items-center justify-content-end gap-2 w-100">
-                      <!-- <div class="status-text-org-${item.org_id} d-flex align-items-center">${statusIconHtml}</div> -->
-                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleOrg(${item.org_id}, this)" style="width: 50px; height: 28px; cursor: pointer;">
-                      </div>
+                  <div class="form-check form-switch m-0 p-0">
+                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                             ${canEdit ? `onchange="toggleOrg(${item.org_id}, this)"` : "disabled"} 
+                             style="width: 50px; height: 28px;">
                   </div>
               </div>
           </div>
-          <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-          </div>
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
       </div>`;
     })
     .join("");
@@ -312,13 +349,27 @@ window.getLocais = async () => {
 
 const renderTableLocais = (data) => {
   const container = $(".list-table-locais");
+
+  // Permissões
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler permissões", e);
+  }
+  const canEdit = allowedSlugs.includes("organizacao.edit_loc");
+  const canHistory = allowedSlugs.includes("organizacao.view_loc");
+  const canDelete = allowedSlugs.includes("organizacao.save_loc");
+
   const desktopRows = data
     .map((item) => {
       const itemStr = encodeURIComponent(JSON.stringify(item));
       const isActive = item.is_active === true || item.is_active === "t";
-      const statusIconHtml = isActive
-        ? `<span title="Ativa" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-        : `<span title="Inativa" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
 
       let icons = "";
       if (item.has_ac) icons += window.getResourceIcon("ac");
@@ -327,6 +378,11 @@ const renderTableLocais = (data) => {
       let resObj = typeof item.resources === "string" ? JSON.parse(item.resources || "{}") : item.resources || {};
       if (resObj.wifi) icons += window.getResourceIcon("wifi");
       if (resObj.projector) icons += window.getResourceIcon("projector");
+
+      let actionsHtml = "";
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
 
       return `
       <tr>
@@ -340,17 +396,16 @@ const renderTableLocais = (data) => {
           <td class="text-center align-middle"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">${item.capacity || 0}</span></td>
           <td class="text-center align-middle"><div class="d-flex justify-content-center flex-wrap gap-1">${icons || "-"}</div></td>
           <td class="text-center align-middle" style="width: 130px;">
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                      <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleLoc(${item.location_id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
-                  </div>
-                  <div class="status-text-loc-${item.location_id}">${statusIconHtml}</div>
+              <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
+                  <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} 
+                         ${canEdit ? `onchange="toggleLoc(${item.location_id}, this)"` : "disabled"} 
+                         style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
               </div>
           </td>
           <td class="text-end pe-3 align-middle">
-              <button class="btn-icon-action text-warning" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action text-primary" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action text-danger" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              <div class="d-flex justify-content-end gap-1">
+                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50"></i>'}
+              </div>
           </td>
       </tr>`;
     })
@@ -360,7 +415,6 @@ const renderTableLocais = (data) => {
     .map((item) => {
       const itemStr = encodeURIComponent(JSON.stringify(item));
       const isActive = item.is_active === true || item.is_active === "t";
-      const statusIconHtml = isActive ? `<span title="Ativo" class="text-success"><i class="fas fa-check-circle"></i></span>` : `<span title="Inativo" class="text-danger"><i class="fas fa-times-circle"></i></span>`;
 
       let icons = "";
       if (item.has_ac) icons += window.getResourceIcon("ac");
@@ -369,6 +423,11 @@ const renderTableLocais = (data) => {
       let resObj = typeof item.resources === "string" ? JSON.parse(item.resources || "{}") : item.resources || {};
       if (resObj.wifi) icons += window.getResourceIcon("wifi");
       if (resObj.projector) icons += window.getResourceIcon("projector");
+
+      let mobActionsHtml = "";
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.locations', ${item.location_id}, this)"><i class="fas fa-bolt"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)'><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteLoc(${item.location_id})"><i class="fas fa-trash"></i></button>`;
 
       return `
       <div class="ios-list-item flex-column align-items-stretch">
@@ -381,20 +440,15 @@ const renderTableLocais = (data) => {
                   <div class="small text-secondary mt-1 text-truncate"><i class="fas fa-users me-1 opacity-50"></i> Cap: ${item.capacity || 0}</div>
               </div>
               <div class="ms-2">
-                  <div class="d-flex align-items-center justify-content-end gap-2 w-100">
-                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleLoc(${item.location_id}, this)" style="width: 50px; height: 28px; cursor: pointer;">
-                      </div>
-                      <!-- <div class="status-text-loc-${item.location_id} d-flex align-items-center">${statusIconHtml}</div> -->
+                  <div class="form-check form-switch m-0 p-0">
+                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                             ${canEdit ? `onchange="toggleLoc(${item.location_id}, this)"` : "disabled"} 
+                             style="width: 50px; height: 28px;">
                   </div>
               </div>
           </div>
           ${icons ? `<div class="mt-3 p-2 px-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner d-flex flex-wrap gap-3">${icons}</div>` : ""}
-          <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-          </div>
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
       </div>`;
     })
     .join("");

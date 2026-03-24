@@ -37,24 +37,23 @@
                 </div>
 
                 <div class="row g-3 align-items-end">
-                    <div class="col-12 col-md-9">
+                    <div class="col-12 col-md flex-grow-1">
                         <label class="form-label d-none d-md-flex" for="busca-texto">
                             <i class="fas fa-search opacity-50"></i> Buscar Curso
                         </label>
                         <input type="text" id="busca-texto" class="form-control shadow-sm" placeholder="Ex: Primeira Eucaristia, Crisma...">
                     </div>
 
-                    <div class="col-12 col-md-3 mt-3 mt-md-0">
-                        <button class="btn btn-primary fw-bold shadow-sm w-100" style="height: 50px;" onclick="modalCurso()">
+                    <div class="col-12 col-md-auto mt-3 mt-md-0" data-slug="cursos.create">
+                        <button class="btn btn-primary fw-bold shadow-sm w-100" style="height: 50px; min-width: 180px;" onclick="modalCurso()">
                             <i class="fas fa-plus me-2"></i>
-                            <span class="d-none d-md-inline">Nova Curso</span>
+                            <span class="d-none d-md-inline">Novo Curso</span>
                             <span class="d-inline d-md-none">Adicionar</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-
 
         <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
             <div class="card-body px-0 pt-4">
@@ -140,8 +139,7 @@
                         </div>
 
                         <div class="tab-pane fade" id="tab-grade">
-
-                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 mb-4">
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 mb-4" data-slug="cursos.save">
                                 <div class="row g-3 align-items-end">
                                     <div class="col-12 col-md-6">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">Adicionar Disciplina</label>
@@ -174,7 +172,7 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save" onclick="salvarCurso(this)">
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm btn-save" onclick="salvarCurso(this)" data-slug="cursos.save">
                         <i class="fas fa-save me-2"></i> Salvar Curso
                     </button>
                 </div>
@@ -200,7 +198,7 @@
                 </div>
 
                 <div class="modal-body p-0">
-                    <div class="sticky-top d-flex justify-content-between align-items-center p-3 border-bottom border-secondary border-opacity-10 shadow-sm" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); z-index: 10;">
+                    <div class="sticky-top d-flex justify-content-between align-items-center p-3 border-bottom border-secondary border-opacity-10 shadow-sm" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); z-index: 10;" data-slug="cursos.template">
                         <div class="d-flex gap-2">
                             <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center px-3" onclick="addPlan()">
                                 <i class="fas fa-plus-circle me-2"></i> Adicionar Encontro
@@ -231,7 +229,7 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" onclick="closeTemplateModal()">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-3 shadow-sm transition-all" onclick="closeTemplateModal()">
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-3 shadow-sm transition-all" onclick="closeTemplateModal()" data-slug="cursos.template">
                         <i class="fas fa-check-double me-2"></i> Concluir Planejamento
                     </button>
                 </div>

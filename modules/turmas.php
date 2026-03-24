@@ -33,7 +33,7 @@
                         <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Turmas</h4>
                     </div>
 
-                    <div class="col-12 col-md-9">
+                    <div class="col-12 col-md flex-grow-1">
                         <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
                             <i class="fas fa-search opacity-50 me-1"></i> Localizar Turma
                         </label>
@@ -45,8 +45,8 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-md-3 d-grid">
-                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center" onclick="modalTurma()" style="height: 48px; border-radius: 12px;">
+                    <div class="col-12 col-md-auto d-grid" data-slug="turmas.create">
+                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center" onclick="modalTurma()" style="height: 48px; border-radius: 12px; min-width: 160px;">
                             <i class="fas fa-plus-circle me-2"></i>
                             <span>Nova Turma</span>
                         </button>
@@ -71,7 +71,6 @@
     </div>
 
     <?php include "./assets/components/Footer.php"; ?>
-    </div>
 
     <div class="modal fade" id="modalTurma" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-lg-down">
@@ -89,7 +88,7 @@
                         <ul class="nav nav-pills gap-1" id="turmaTab" role="tablist" style="flex-wrap: nowrap;">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active fw-medium" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab" aria-selected="true">
-                                    <i class="fas fa-info-circle me-2"></i> Geral
+                                    <i class="fas fa-id-card me-2"></i> Geral
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
@@ -154,7 +153,7 @@
                         </div>
 
                         <div class="tab-pane fade" id="tab-horarios" role="tabpanel">
-                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 mb-3 shadow-inner">
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 mb-3 shadow-inner" data-slug="turmas.edit">
                                 <label class="form-label small fw-bold text-primary text-uppercase mb-3 ms-1">Adicionar Período</label>
                                 <div class="row g-2">
                                     <div class="col-12 col-md-4">
@@ -188,7 +187,7 @@
                         </div>
 
                         <div class="tab-pane fade" id="tab-alunos" role="tabpanel">
-                            <div class="bg-primary bg-opacity-10 p-3 rounded-4 mb-4 border border-primary border-opacity-10">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-4 mb-4 border border-primary border-opacity-10" data-slug="turmas.enroll">
                                 <label class="form-label small fw-bold text-primary text-uppercase mb-2 ms-1">Efetuar Matrícula</label>
                                 <div class="d-flex gap-2">
                                     <div class="flex-grow-1">
@@ -206,7 +205,7 @@
 
                 <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarTurma(this)">
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarTurma(this)" data-slug="turmas.save">
                         <i class="fas fa-save me-2"></i> Salvar Turma
                     </button>
                 </div>
@@ -227,7 +226,7 @@
                 <div class="modal-body p-4 bg-body">
                     <input type="hidden" id="hist_enrollment_id">
 
-                    <div class="bg-secondary bg-opacity-10 p-3 rounded-4 mb-4 border border-secondary border-opacity-10">
+                    <div class="bg-secondary bg-opacity-10 p-3 rounded-4 mb-4 border border-secondary border-opacity-10" data-slug="turmas.enroll">
                         <label class="form-label small fw-bold text-uppercase text-primary mb-2">Nova Ocorrência</label>
                         <select id="hist_action" class="form-control mb-2 shadow-sm border-0" style="height: 45px;">
                             <option value="COMMENT">Apenas Observação</option>
