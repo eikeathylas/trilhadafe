@@ -27,7 +27,7 @@ function saveClass()
 {
     if (!verifyToken()) return;
 
-    $data = $_POST['data'] ?? [];
+    $data = $_POST ?? [];
     $data['user_id'] = getAuthUserId();
 
     echo json_encode(upsertClass($data));

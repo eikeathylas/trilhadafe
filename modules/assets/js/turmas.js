@@ -393,9 +393,13 @@ const renderStudentsList = (data) => {
                 <div class="fw-bold text-body text-truncate small">${item.student_name}</div>
                 <span class="badge bg-${st.color}-subtle text-${st.color} rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">${st.label}</span>
             </div>
-            <div class="d-flex gap-1">
-                <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Linha do Tempo"><i class="fas fa-clock-rotate-left"></i></button>
-                <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover Matrícula"><i class="fas fa-user-minus"></i></button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Linha do Tempo">
+                    <i class="fas fa-clock-rotate-left" style="font-size: 0.85rem;"></i>
+                </button>
+                <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover Matrícula">
+                    <i class="fas fa-user-minus" style="font-size: 0.85rem;"></i>
+                </button>
             </div>
         </div>`;
     })
