@@ -30,7 +30,7 @@
             <div class="card-body p-3 p-md-4">
 
                 <div class="col-12 d-md-none mb-3">
-                    <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Central de Relatórios</h4>
+                    <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Central de Relatórios</h5>
                 </div>
 
                 <div class="row align-items-end">

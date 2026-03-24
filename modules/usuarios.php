@@ -33,7 +33,7 @@
                 <div class="row g-2 g-md-3 align-items-end">
 
                     <div class="col-12 d-md-none mb-2">
-                        <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Gestão de Usuários</h4>
+                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Gestão de Usuários</h5>
                     </div>
 
                     <div class="col-12 col-md-5">

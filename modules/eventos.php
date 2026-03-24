@@ -34,7 +34,7 @@
             <div class="card-body p-3 p-md-4">
                 <div class="row g-1 g-md-3 align-items-center">
                     <div class="col-12 d-md-none mb-2 mt-2">
-                        <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Agenda e Eventos</h4>
+                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Agenda e Eventos</h5>
                     </div>
 
                     <div class="col-9 col-md-9 flex-grow-1">

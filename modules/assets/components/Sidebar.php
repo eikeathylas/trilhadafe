@@ -111,7 +111,7 @@
                     <li data-slug="organizacao">
                         <a href="organizacao.php" class="<?= basename($_SERVER['PHP_SELF']) == 'organizacao.php' ? 'active' : '' ?>" data-tooltip="Organização">
                             <span class="material-symbols-outlined icon-only">domain</span>
-                            <span class="text-only">Minha Paróquia</span>
+                            <span class="text-only">Organizações</span>
                         </a>
                     </li>
                     <li data-slug="usuarios">

@@ -157,6 +157,7 @@ const resetInterface = () => {
 // =========================================================
 // 3. CARREGAMENTO E RENDERIZAÇÃO DO HISTÓRICO
 // =========================================================
+
 window.getHistory = async () => {
   const page = Math.max(0, defaultDiary.currentPage - 1);
   const container = $(".list-table-diario");
@@ -342,7 +343,7 @@ const renderTableHistory = (data) => {
       return `
       <div class="ios-list-item flex-column align-items-stretch position-relative" style="padding: 12px 16px;">
           <div class="position-absolute" style="top: 12px; right: 16px;">
-              <span class="badge ${badgeStyle} rounded-pill shadow-sm" style="font-size: 0.7rem; letter-spacing: 0.5px;">${pct}% F.</span>
+              <span class="badge ${badgeStyle} rounded-pill shadow-sm" style="font-size: 0.7rem; letter-spacing: 0.5px;">${pct}%</span>
           </div>
 
           <div class="d-flex w-100 align-items-center">

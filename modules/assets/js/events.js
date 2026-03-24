@@ -160,7 +160,7 @@ const renderTableEvents = (data) => {
             </td>
             <td class="align-middle">
                 <div class="fw-bold text-body">${item.date_fmt}</div>
-                ${timeInfo}
+                ${canEdit ? timeInfo : ''}
             </td>
             <td class="align-middle text-center" style="width: 220px;">
                 ${toggleHtml}
