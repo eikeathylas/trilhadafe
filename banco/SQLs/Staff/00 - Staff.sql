@@ -238,8 +238,6 @@ INSERT INTO public.profiles (id, title, description, staff, active) VALUES
 -- ==========================================================
 -- 3.6 AÇÕES (MENUS PRINCIPAIS - IDs 1 a 99)
 -- ==========================================================
-DELETE FROM public.profiles_actions;
-DELETE FROM public.actions;
 
 INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller) VALUES 
 (1,  'dashboard',   'Painel Principal',     'Visão geral e gráficos.', TRUE, 'icon-home', 'DashboardController'),
