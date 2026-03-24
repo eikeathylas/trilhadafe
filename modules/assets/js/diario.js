@@ -314,6 +314,7 @@ const renderTableHistory = (data) => {
     .map((item) => {
       const dateParts = item.session_date.split(" ")[0].split("-");
       const day = dateParts[2];
+      const month = dateParts[1];
       const rawIsoDate = item.session_date.split(" ")[0];
 
       const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
@@ -353,7 +354,7 @@ const renderTableHistory = (data) => {
                           AULA
                       </div>
                       <div class="d-flex align-items-center justify-content-center flex-grow-1">
-                          <span class="fs-5 fw-bold text-body lh-1">${day}</span>
+                          <span class="fw-bold text-body lh-1">${day}/${month}</span>
                       </div>
                   </div>
               </div>
