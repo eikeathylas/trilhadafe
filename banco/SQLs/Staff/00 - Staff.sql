@@ -235,34 +235,133 @@ INSERT INTO public.profiles (id, title, description, staff, active) VALUES
 (30, 'CATEQUISTA', 'Professor/Evangelizador', FALSE, TRUE),
 (10, 'ALUNO/RESPONSÁVEL', 'Portal do Fiel', FALSE, TRUE);
 
--- 3.6 AÇÕES (MENU)
+-- ==========================================================
+-- 3.6 AÇÕES (MENUS PRINCIPAIS - IDs 1 a 99)
+-- ==========================================================
+-- Estas são as páginas mestras que aparecem no Menu Lateral e Inferior
 INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller) VALUES 
-(1, 'dashboard', 'Painel Principal', 'Visão geral.', TRUE, 'icon-home', 'DashboardController'),
-(4, 'academico', 'Secretaria Escolar', 'Gestão de matrículas.', TRUE, 'icon-book', 'AcademicController'),
-(7, 'financeiro', 'Financeiro', 'Controle de caixa.', TRUE, 'icon-money', 'FinanceController'),
-(8, 'organizacao', 'Minha Paróquia', 'Estrutura física.', TRUE, 'icon-building', 'OrganizationController'),
-(9, 'disciplinas', 'Disciplinas', 'Cadastro de matérias.', TRUE, 'icon-list', 'AcademicController'),
-(10, 'cursos', 'Cursos e Grades', 'Definição formativa.', TRUE, 'icon-school', 'AcademicController'),
-(11, 'turmas', 'Gestão de Turmas', 'Abertura de turmas.', TRUE, 'icon-group', 'AcademicController'),
-(12, 'diario', 'Diário de Classe', 'Área do professor.', TRUE, 'icon-calendar', 'AcademicController'),
-(13, 'pessoas', 'Diretório de Pessoas', 'Prontuário único.', TRUE, 'icon-user', 'PeopleController'),
-(14, 'liturgia', 'Liturgia e Missas', 'Agenda de celebrações.', TRUE, 'icon-church', 'PastoralController'),
-(15, 'eventos', 'Eventos e Festas', 'Gestão de quermesses.', TRUE, 'icon-ticket', 'EventsController'),
-(16, 'comunicacao', 'Site e App', 'Gerenciamento de notícias.', TRUE, 'icon-rss', 'CommunicationController'),
-(17, 'relatorios', 'Relatórios', 'Análise de dados.', TRUE, 'icon-description', 'ReportsController'),
-(18, 'usuarios', 'Usuários', 'Gerenciamento de usuários.', TRUE, 'icon-users', 'UsersController');
+(1,  'dashboard',   'Painel Principal',     'Visão geral e gráficos.', TRUE, 'icon-home', 'DashboardController'),
+(2,  'eventos',     'Eventos e Festas',     'Gestão de calendário.', TRUE, 'icon-ticket', 'EventsController'),
+(3,  'relatorios',  'Relatórios',           'Análise de dados e exportação.', TRUE, 'icon-description', 'ReportsController'),
+(4,  'diario',      'Diário de Classe',     'Área do professor/frequência.', TRUE, 'icon-calendar', 'AcademicController'),
+(5,  'turmas',      'Gestão de Turmas',     'Administração de salas e alunos.', TRUE, 'icon-group', 'AcademicController'),
+(6,  'cursos',      'Cursos e Grades',      'Definição formativa.', TRUE, 'icon-school', 'AcademicController'),
+(7,  'disciplinas', 'Disciplinas',          'Cadastro de matérias.', TRUE, 'icon-list', 'AcademicController'),
+(8,  'pessoas',     'Diretório de Pessoas', 'Prontuário único.', TRUE, 'icon-user', 'PeopleController'),
+(9,  'organizacao', 'Minha Paróquia',       'Estrutura física e dados.', TRUE, 'icon-building', 'OrganizationController'),
+(10, 'usuarios',    'Usuários',             'Gerenciamento de acessos.', TRUE, 'icon-users', 'UsersController'),
+(11, 'ajuda',       'Ajuda e Suporte',      'Base de conhecimento.', TRUE, 'icon-help', 'HelpController');
 
--- Sub-ações
+-- ==========================================================
+-- 3.6.1 SUB-AÇÕES (MICRO-PERMISSÕES DOS BOTÕES E MODAIS)
+-- ==========================================================
+
+-- BLOCO 100: DASHBOARD (Módulo Pai: 1)
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
-(2, 1, 'dashboard.view_students_stats', 'Ver Gráfico de Alunos', 'Visualizar estatísticas.', FALSE),
-(3, 1, 'dashboard.view_finance_stats', 'Ver Gráfico Financeiro', 'Visualizar caixa.', FALSE),
-(5, 4, 'academico.create_student', 'Cadastrar Aluno', 'Registrar novos alunos.', FALSE),
-(6, 4, 'academico.approve_registration', 'Aprovar Matrícula Web', 'Analisar solicitações.', FALSE);
+(101, 1, 'dashboard.view_students_stats', 'Ver Gráfico de Alunos', 'Acesso ao gráfico de matrículas.', FALSE),
+(102, 1, 'dashboard.view_finance_stats',  'Ver Gráfico Financeiro', 'Acesso ao resumo de caixa.', FALSE);
 
--- 3.7 PERMISSÕES
+-- BLOCO 200: EVENTOS (Módulo Pai: 2)
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(201, 2, 'eventos.list',    'Listar Eventos',   'Ver a lista e calendário.', FALSE),
+(202, 2, 'eventos.modal',   'Abrir Modal',      'Acesso à janela do formulário.', FALSE),
+(203, 2, 'eventos.create',  'Cadastrar Evento', 'Botão de criar novo evento.', FALSE),
+(204, 2, 'eventos.edit',    'Editar Evento',    'Botão de editar (Caneta).', FALSE),
+(205, 2, 'eventos.save',    'Salvar Evento',    'Permissão para gravar no banco.', FALSE),
+(206, 2, 'eventos.history', 'Ver Histórico',    'Acesso ao log de auditoria.', FALSE),
+(207, 2, 'eventos.delete',  'Excluir Evento',   'Botão de lixeira.', FALSE);
 
--- DEV (99)
-INSERT INTO public.profiles_actions (id_profile, id_action) SELECT 99, id FROM public.actions;
+-- BLOCO 300: RELATÓRIOS (Módulo Pai: 3)
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(301, 3, 'relatorios.list',   'Listar Relatórios', 'Ver listagem de relatórios.', FALSE),
+(302, 3, 'relatorios.export', 'Exportar Dados',    'Botão de exportar PDF/Excel.', FALSE);
+
+-- BLOCO 400: DIÁRIO DE CLASSE (Módulo Pai: 4)
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(401, 4, 'diario.list',    'Listar Diários',    'Ver o histórico de aulas.', FALSE),
+(402, 4, 'diario.modal',   'Abrir Modal',       'Acesso ao preenchimento da aula.', FALSE),
+(403, 4, 'diario.create',  'Cadastrar Diário',  'Pode iniciar uma nova aula.', FALSE),
+(404, 4, 'diario.edit',    'Editar Diário',     'Pode alterar aula já dada.', FALSE),
+(405, 4, 'diario.save',    'Salvar Diário',     'Permite salvar presença e conteúdo.', FALSE),
+(406, 4, 'diario.history', 'Ver Histórico',     'Auditoria da aula.', FALSE),
+(407, 4, 'diario.delete',  'Excluir Diário',    'Excluir registro da aula.', FALSE);
+
+-- BLOCO 500: TURMAS (Módulo Pai: 5)
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(501, 5, 'turmas.list',    'Listar Turmas',    'Ver turmas ativas.', FALSE),
+(502, 5, 'turmas.modal',   'Abrir Modal',      'Acesso às abas da turma.', FALSE),
+(503, 5, 'turmas.create',  'Criar Turma',      'Botão de Nova Turma.', FALSE),
+(504, 5, 'turmas.edit',    'Editar Turma',     'Alterar coordenador e local.', FALSE),
+(505, 5, 'turmas.save',    'Salvar Turma',     'Salvar dados gerais da turma.', FALSE),
+(506, 5, 'turmas.history', 'Ver Histórico',    'Log de alterações na turma.', FALSE),
+(507, 5, 'turmas.delete',  'Excluir Turma',    'Remover turma.', FALSE),
+(508, 5, 'turmas.enroll',  'Matricular Aluno', 'Vincular catequizando à turma.', FALSE),
+(509, 5, 'turmas.drop',    'Remover Aluno',    'Desvincular catequizando.', FALSE);
+
+-- BLOCO 600: CURSOS (Módulo Pai: 6)
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(601, 6, 'cursos.list',    'Listar Cursos',   'Visualizar grades.', FALSE),
+(602, 6, 'cursos.modal',   'Abrir Modal',     'Janela de curso.', FALSE),
+(603, 6, 'cursos.create',  'Criar Curso',     'Novo curso.', FALSE),
+(604, 6, 'cursos.edit',    'Editar Curso',    'Alterar curso.', FALSE),
+(605, 6, 'cursos.save',    'Salvar Curso',    'Gravar curso.', FALSE),
+(606, 6, 'cursos.history', 'Ver Histórico',   'Auditoria de curso.', FALSE),
+(607, 6, 'cursos.delete',  'Excluir Curso',   'Excluir curso.', FALSE);
+
+-- BLOCO 700: DISCIPLINAS (Módulo Pai: 7)
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(701, 7, 'disciplinas.list',    'Listar Materiais', 'Ver lista.', FALSE),
+(702, 7, 'disciplinas.modal',   'Abrir Modal',      'Janela.', FALSE),
+(703, 7, 'disciplinas.create',  'Criar Disc.',      'Nova.', FALSE),
+(704, 7, 'disciplinas.edit',    'Editar Disc.',     'Alterar.', FALSE),
+(705, 7, 'disciplinas.save',    'Salvar Disc.',     'Gravar.', FALSE),
+(706, 7, 'disciplinas.history', 'Histórico',        'Auditoria.', FALSE),
+(707, 7, 'disciplinas.delete',  'Excluir',          'Lixeira.', FALSE);
+
+-- BLOCO 800: PESSOAS (Módulo Pai: 8) - Possui particularidades de Abas
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(801, 8, 'pessoas.list',             'Listar Pessoas',    'Acesso ao diretório.', FALSE),
+(802, 8, 'pessoas.modal',            'Abrir Modal',       'Pode abrir o prontuário.', FALSE),
+(803, 8, 'pessoas.create',           'Cadastrar Pessoa',  'Nova pessoa.', FALSE),
+(804, 8, 'pessoas.edit',             'Editar Pessoa',     'Alterar dados.', FALSE),
+(805, 8, 'pessoas.save',             'Salvar Pessoa',     'Gravar alterações.', FALSE),
+(806, 8, 'pessoas.history',          'Ver Histórico',     'Log da pessoa.', FALSE),
+(807, 8, 'pessoas.delete',           'Excluir Pessoa',    'Remover cadastro.', FALSE),
+(808, 8, 'pessoas.tab_contact',      'Aba Contato',       'Ver dados de contato.', FALSE),
+(809, 8, 'pessoas.tab_family',       'Aba Família',       'Ver/editar vínculos familiares.', FALSE),
+(810, 8, 'pessoas.tab_sacraments',   'Aba Sacramentos',   'Ver/editar dados religiosos.', FALSE),
+(811, 8, 'pessoas.tab_attachments',  'Aba Anexos',        'Acesso aos documentos PDF/Img.', FALSE);
+
+-- BLOCO 900: MINHA PARÓQUIA (Módulo Pai: 9) - Altamente restrito
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(901, 9, 'organizacao.view',  'Ver Dados Paróquia', 'Pode ler as informações gerais.', FALSE),
+(902, 9, 'organizacao.edit',  'Editar Dados',       'Pode alterar configurações paroquiais.', FALSE),
+(903, 9, 'organizacao.save',  'Salvar Paróquia',    'Pode gravar configurações vitais.', FALSE);
+
+-- BLOCO 1000: USUÁRIOS (Módulo Pai: 10)
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(1001, 10, 'usuarios.list',    'Listar Acessos',   'Ver quem tem acesso ao sistema.', FALSE),
+(1002, 10, 'usuarios.modal',   'Abrir Modal',      'Janela de permissão.', FALSE),
+(1003, 10, 'usuarios.create',  'Criar Usuário',    'Novo acesso.', FALSE),
+(1004, 10, 'usuarios.edit',    'Editar Usuário',   'Alterar e-mail/perfil.', FALSE),
+(1005, 10, 'usuarios.save',    'Salvar Usuário',   'Gravar.', FALSE),
+(1006, 10, 'usuarios.history', 'Histórico',        'Log de acessos/mudanças.', FALSE),
+(1007, 10, 'usuarios.delete',  'Excluir Usuário',  'Revogar acesso.', FALSE);
+
+-- BLOCO 1100: AJUDA (Módulo Pai: 11)
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(1101, 11, 'ajuda.secretary', 'FAQ Secretaria', 'Ver manuais focados na gestão.', FALSE),
+(1102, 11, 'ajuda.professor', 'FAQ Professor',  'Ver manuais focados em diário e turma.', FALSE);
+
+
+-- ==========================================================
+-- 3.7 ATUALIZAÇÃO DE PERMISSÕES (RBAC)
+-- ==========================================================
+
+-- DEV (99): Libera todas as ações (Menus e Sub-ações) para o Perfil de Desenvolvedor
+INSERT INTO public.profiles_actions (id_profile, id_action) 
+SELECT 99, id FROM public.actions ON CONFLICT DO NOTHING;
+
 
 -- PÁROCO (50)
 INSERT INTO public.profiles_actions (id_profile, id_action) VALUES 
