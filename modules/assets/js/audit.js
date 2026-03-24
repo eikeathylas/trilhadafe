@@ -1,9 +1,13 @@
+// Força o z-index do SweetAlert para ficar acima dos modais nativos do Bootstrap
+if (!$("#swal-z-index-fix").length) {
+  $('<style id="swal-z-index-fix">.swal2-container { z-index: 109000 !important; }</style>').appendTo("head");
+}
+
 window.openAudit = async (table, id, btn) => {
   btn = $(btn);
   const container = $("#audit-timeline-container");
   const modal = $("#modalAudit");
 
-  // Limpa o CSS da classe antiga para evitar conflitos com o novo layout gerado pelo JS
   container.removeClass("timeline-audit").css({ "padding-left": "0", "border-left": "none", "margin-left": "0" });
 
   modal.modal("show");
@@ -37,7 +41,6 @@ window.openAudit = async (table, id, btn) => {
       `);
     }
   } catch (e) {
-    console.error(e);
     container.html(`
         <div class="text-center py-5 text-danger opacity-75">
             <i class="fas fa-bomb fa-4x mb-3"></i>
@@ -166,7 +169,6 @@ const formatKey = (key) => {
   return map[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
-// Nova função formatValue limpa de HTML para o design de diff elegante
 const formatValue = (val, key = "") => {
   const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory", "is_academic_blocker"];
 
@@ -255,6 +257,7 @@ const renderTimeline = (logs, container) => {
   const isTrue = (v) => v === true || v === "t" || v === "true" || v === 1;
   const isFalse = (v) => v === false || v === "f" || v === "false" || v === 0 || v === null;
 
+  // Sem deduplicação: Mostramos todos os registos para não esconder histórico
   logs.forEach((log, index) => {
     let oldVal = {},
       newVal = {};
@@ -271,14 +274,14 @@ const renderTimeline = (logs, container) => {
     const isSoftDelete = op === "UPDATE" && isTrue(newVal.deleted) && !isTrue(oldVal.deleted);
     const isReactivation = op === "UPDATE" && isFalse(newVal.deleted) && isTrue(oldVal.deleted);
 
-    let icon = "pen"; // Lápis para edição
+    let icon = "pen";
     let colorClass = "primary";
     let diffHtml = "";
     let hasVisibleChanges = false;
+    let isCollapsible = false;
 
-    let headerText = log.target_name || "Atualização";
+    let headerText = log.target_name || "Atualização de Dados";
 
-    // Tratamento de Labels de Tabelas Relacionadas
     if (!log.target_name) {
       const labelsMap = {
         person_roles: "Cargos e Funções",
@@ -293,109 +296,148 @@ const renderTimeline = (logs, container) => {
       if (labelsMap[log.table_name]) headerText = labelsMap[log.table_name];
     }
 
-    let itemName = oldVal.title || newVal.title || oldVal.description || newVal.description || oldVal.file_name || newVal.file_name || oldVal.name || newVal.name || "Registo";
-
-    // COMPORTAMENTOS (Criação, Exclusão, Edição)
     if (isInsert) {
       icon = "plus";
       colorClass = "success";
-      headerText = "Criação";
-      diffHtml = `<div class="text-success fw-bold"><i class="fas fa-check-circle me-2"></i> Registo mestre criado no sistema.</div>`;
+      headerText = "Criação de Registo";
+
+      let diffLines = "";
+      Object.keys(newVal).forEach((key) => {
+        if (globalBlacklist.includes(key)) return;
+        const displayNew = formatValue(newVal[key], key);
+        if (isEffectivelyEmpty(displayNew) || displayNew === "Não informado") return;
+        diffLines += `
+            <div class="mb-3 d-flex flex-column">
+                <span class="text-muted fw-bold" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">${formatKey(key)}</span>
+                <div class="text-success fw-bold mt-1" style="font-size: 0.85rem;">${displayNew}</div>
+            </div>`;
+      });
+
+      if (diffLines) {
+        diffHtml = `<div class="text-success fw-medium mb-3" style="font-size: 0.8rem;">Registo principal estruturado no sistema com os seguintes dados iniciais:</div>${diffLines}`;
+        isCollapsible = true;
+      } else {
+        diffHtml = `<div class="text-success fw-medium mt-1" style="font-size: 0.8rem;">Registo principal estruturado no sistema.</div>`;
+      }
       hasVisibleChanges = true;
     } else if (isHardDelete || isSoftDelete) {
       icon = "trash";
       colorClass = "danger";
       headerText = "Exclusão";
-      diffHtml = `<div class="text-danger fw-bold"><i class="fas fa-trash-alt me-2"></i> Registo removido do sistema.</div>`;
+
+      let diffLines = "";
+      Object.keys(oldVal).forEach((key) => {
+        if (globalBlacklist.includes(key)) return;
+        const displayOld = formatValue(oldVal[key], key);
+        if (isEffectivelyEmpty(displayOld) || displayOld === "Não informado") return;
+        diffLines += `
+            <div class="mb-3 d-flex flex-column">
+                <span class="text-muted fw-bold" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">${formatKey(key)}</span>
+                <div class="text-danger fw-bold text-decoration-line-through opacity-75 mt-1" style="font-size: 0.85rem;">${displayOld}</div>
+            </div>`;
+      });
+
+      if (diffLines) {
+        diffHtml = `<div class="text-danger fw-medium mb-3" style="font-size: 0.8rem;">Registo removido do sistema. Dados apagados:</div>${diffLines}`;
+        isCollapsible = true;
+      } else {
+        diffHtml = `<div class="text-danger fw-medium mt-1" style="font-size: 0.8rem;">Registo removido do sistema.</div>`;
+      }
       hasVisibleChanges = true;
     } else if (isReactivation) {
       icon = "recycle";
       colorClass = "info";
       headerText = "Restauração";
-      diffHtml = `<div class="text-info fw-bold"><i class="fas fa-recycle me-2"></i> Registo restaurado da lixeira.</div>`;
+      diffHtml = `<div class="text-info fw-medium mt-1" style="font-size: 0.8rem;">Registo restaurado da lixeira.</div>`;
       hasVisibleChanges = true;
     } else {
-      // PROCESSO DE UPDATE (Montagem do Diff Limpo)
       let diffLines = "";
       const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
 
       allKeys.forEach((key) => {
         if (globalBlacklist.includes(key)) return;
 
-        const vOld = oldVal[key];
-        const vNew = newVal[key];
-
-        const displayOld = formatValue(vOld, key);
-        const displayNew = formatValue(vNew, key);
+        const displayOld = formatValue(oldVal[key], key);
+        const displayNew = formatValue(newVal[key], key);
 
         if (displayOld === displayNew) return;
 
-        hasVisibleChanges = true;
         diffLines += `
-            <div class="mb-3">
-                <div class="fw-bold text-body small mb-1">${formatKey(key)}</div>
-                <div class="d-flex align-items-center flex-wrap gap-2 fs-6">
+            <div class="mb-3 d-flex flex-column">
+                <span class="text-muted fw-bold" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">${formatKey(key)}</span>
+                <div class="d-flex align-items-center flex-wrap gap-2 mt-1" style="font-size: 0.85rem;">
                     <span class="text-danger text-decoration-line-through opacity-75">${displayOld}</span>
-                    <i class="fas fa-arrow-right text-secondary opacity-50 mx-1" style="font-size: 0.8rem;"></i>
-                    <span class="text-success fw-medium">${displayNew}</span>
+                    <i class="fas fa-arrow-right text-secondary opacity-50 mx-1" style="font-size: 0.7rem;"></i>
+                    <span class="text-success fw-bold">${displayNew}</span>
                 </div>
             </div>`;
       });
 
-      if (diffLines) diffHtml = `<div>${diffLines}</div>`;
+      if (diffLines) {
+        diffHtml = diffLines;
+        hasVisibleChanges = true;
+        isCollapsible = true;
+      }
     }
 
     if (!hasVisibleChanges) return;
-
     visibleLogsCount++;
 
-    // Botão de Rollback Imersivo (Aparece apenas em Updates válidos)
     let rollbackBtn = "";
     if (op === "UPDATE" && !isSoftDelete && !isReactivation) {
       rollbackBtn = `
-        <div class="mt-3 text-end pt-3">
-            <button class="btn btn-sm rounded-pill px-4 fw-bold border border-warning text-warning bg-transparent hover-scale w-100 w-md-auto d-inline-flex align-items-center justify-content-center" onclick="doRollback(${log.log_id}, '${log.date_fmt}')">
-                <i class="fas fa-undo-alt me-2"></i> Restaurar versão
+        <div class="mt-2 pt-3 border-top border-secondary border-opacity-10 text-end">
+            <button class="btn btn-sm rounded-3 px-3 fw-bold border border-warning text-warning bg-warning bg-opacity-10 hover-scale w-100 w-md-auto" onclick="doRollback(${log.log_id}, '${log.date_fmt}'); event.stopPropagation();">
+                <i class="fas fa-undo-alt me-2"></i> Restaurar esta versão
             </button>
         </div>`;
     }
 
-    // Linha conectora gerada dinamicamente, exceto no último item
-    const lineHtml = index !== logs.length - 1 ? `<div class="position-absolute border-start border-2 border-secondary border-opacity-25" style="left: 21px; top: 44px; bottom: -24px; z-index: 1;"></div>` : ``;
+    const isLast = index === logs.length - 1;
+    const lineHtml = !isLast ? `<div class="position-absolute border-start border-2 border-secondary border-opacity-10" style="left: 17px; top: 36px; bottom: -12px; z-index: 1;"></div>` : ``;
 
-    // Montagem final do HTML idêntica à imagem
+    const toggleAttr = isCollapsible ? `data-bs-toggle="collapse" data-bs-target="#collapseAudit${index}" style="cursor: pointer;"` : ``;
+    const chevron = isCollapsible ? `<i class="fas fa-chevron-down text-secondary opacity-50 ms-2 toggle-chevron transition-all" style="font-size: 0.7rem;"></i>` : ``;
+
     html += `
-        <div class="d-flex position-relative mb-4 pb-2">
+        <div class="d-flex position-relative mb-0 pb-4 transition-all" ${toggleAttr}>
             ${lineHtml}
             
             <div class="flex-shrink-0 position-relative z-2">
-                <div class="rounded-circle bg-${colorClass} bg-opacity-10 text-${colorClass} d-flex align-items-center justify-content-center border border-${colorClass} border-opacity-25 shadow-sm" style="width: 44px; height: 44px;">
-                    <i class="fas fa-${icon}"></i>
+                <div class="rounded-circle bg-${colorClass} text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;">
+                    <i class="fas fa-${icon}" style="font-size: 0.85rem;"></i>
                 </div>
             </div>
             
-            <div class="flex-grow-1 ms-3 pt-1 w-100">
-                <div class="d-flex justify-content-between align-items-start mb-1 flex-wrap gap-2">
+            <div class="flex-grow-1 ms-3 w-100">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <h6 class="fw-bold mb-1 text-body fs-6">${log.user_name || "Sistema"}</h6>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-medium px-2 py-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">${headerText}</span>
-                            <button class="btn btn-sm btn-light bg-transparent border-secondary border-opacity-25 rounded-circle p-0 d-flex align-items-center justify-content-center text-primary hover-scale" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAudit${index}" style="width: 24px; height: 24px;">
-                                <i class="fas fa-chevron-down toggle-chevron" style="font-size: 0.7rem; transition: transform 0.3s ease;"></i>
-                            </button>
+                        <h6 class="fw-bold mb-0 text-body d-flex align-items-center" style="font-size: 0.95rem;">
+                            ${headerText} ${chevron}
+                        </h6>
+                        <div class="text-secondary fw-medium mt-1" style="font-size: 0.75rem;">
+                            ${log.user_name || "Sistema"}
                         </div>
                     </div>
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-medium px-2 py-1 d-flex align-items-center mt-1 mt-md-0" style="font-size: 0.7rem;">
-                        <i class="fas fa-clock me-1 opacity-50"></i> ${log.date_fmt}
-                    </span>
+                    <div class="text-end">
+                        <div class="fw-bold text-body" style="font-size: 0.8rem;">${log.date_fmt.split(" ")[0]}</div>
+                        <div class="text-secondary opacity-75" style="font-size: 0.7rem;">${log.date_fmt.split(" ")[1] || ""}</div>
+                    </div>
                 </div>
                 
+                ${!isCollapsible ? diffHtml : ""}
+                
+                ${
+                  isCollapsible
+                    ? `
                 <div class="collapse mt-3" id="collapseAudit${index}">
-                    <div class="card card-body bg-secondary bg-opacity-10 border-0 p-3 p-md-4 rounded-4 shadow-inner">
+                    <div class="card card-body bg-secondary bg-opacity-10 border-0 p-3 rounded-4 shadow-inner" onclick="event.stopPropagation();">
                         ${diffHtml}
                         ${rollbackBtn}
                     </div>
-                </div>
+                </div>`
+                    : ""
+                }
             </div>
         </div>`;
   });
@@ -409,7 +451,6 @@ const renderTimeline = (logs, container) => {
   } else {
     container.html(`<div class="pt-2 px-2">${html}</div>`);
 
-    // Engine de animação do Accordion (Chevron)
     container
       .find(".collapse")
       .on("show.bs.collapse", function () {
@@ -435,8 +476,8 @@ window.doRollback = (logId, dateStr = "") => {
     `,
     icon: "question",
     showCancelButton: true,
-    confirmButtonColor: "#f59e0b", // Padrão warning Apple
-    cancelButtonColor: "#64748b", // Padrão slate Apple
+    confirmButtonColor: "#f59e0b",
+    cancelButtonColor: "#64748b",
     confirmButtonText: '<i class="fas fa-history me-2"></i> Confirmar Restauro',
     cancelButtonText: "Cancelar",
     reverseButtons: true,
@@ -449,7 +490,6 @@ window.doRollback = (logId, dateStr = "") => {
         if (res.status) {
           Swal.fire({ title: "Registo Restaurado!", icon: "success", timer: 2000, showConfirmButton: false }).then(() => {
             $("#modalAudit").modal("hide");
-            // Dispara um recarregamento na tela mãe baseada na URL
             const url = window.location.href;
             if (typeof window.getPessoas === "function") window.getPessoas();
             if (url.includes("turmas") && typeof window.getTurmas === "function") window.getTurmas();

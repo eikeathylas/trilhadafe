@@ -32,7 +32,7 @@
 
         <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
-                <div class="row g-2 g-md-3 align-items-center">
+                <div class="row g-1 g-md-3 align-items-center">
                     <div class="col-12 d-md-none mb-0 mt-2">
                         <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Agenda e Eventos</h4>
                     </div>
@@ -135,7 +135,7 @@
                 <div class="modal-footer border-0 p-1">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="saveEvent(this)">
-                        <i class="fas fa-save me-2"></i> Gravar Evento
+                        <i class="fas fa-save me-2"></i> Salvar evento
                     </button>
                 </div>
             </div>

@@ -14,16 +14,20 @@ const diarioState = {
 
 let fpInstance = null;
 
+// =========================================================
+// 1. CONFIGURAÇÃO RESPONSIVA DO EDITOR (SUMMERNOTE)
+// =========================================================
 const summernoteConfig = {
-  height: 350,
+  height: $(window).width() < 768 ? 220 : 350,
   lang: "pt-BR",
   placeholder: "Descreva o roteiro, atividades ou observações do encontro...",
   dialogsInBody: true,
+  disableResizeEditor: true,
   toolbar: [
-    ["style", ["style", "bold", "italic", "underline", "clear"]],
+    ["style", ["bold", "italic", "underline", "clear"]],
     ["para", ["ul", "ol", "paragraph"]],
-    ["insert", ["link", "picture"]],
-    ["view", ["fullscreen", "codeview"]],
+    ["insert", ["link"]],
+    ["view", ["fullscreen"]],
   ],
   callbacks: {},
 };
@@ -39,6 +43,9 @@ $(document).ready(() => {
   });
 });
 
+// =========================================================
+// 2. MOTORES DE FILTRO (Turmas e Disciplinas)
+// =========================================================
 const initFilters = () => {
   if ($("#sel_filter_class").length && !$("#sel_filter_class")[0].selectize) {
     $("#sel_filter_class").selectize({
@@ -139,8 +146,18 @@ const resetInterface = () => {
   }
   $("#btn_new_session").prop("disabled", true);
   $(".pagination-diario").empty();
+  $(".list-table-diario").html(`
+    <div class="text-center py-5 text-muted opacity-50">
+        <i class="fas fa-arrow-up mb-3 d-block" style="font-size: 2.5rem;"></i>
+        <h6 class="fw-bold text-body">Selecione Turma e Disciplina</h6>
+        <p class="small text-secondary">Utilize os filtros acima para visualizar ou lançar o diário.</p>
+    </div>
+  `);
 };
 
+// =========================================================
+// 3. CARREGAMENTO E RENDERIZAÇÃO DO HISTÓRICO
+// =========================================================
 const getHistory = async () => {
   const page = Math.max(0, defaultDiary.currentPage - 1);
   const container = $(".list-table-diario");
@@ -201,9 +218,7 @@ const getHistory = async () => {
 const renderTableHistory = (data) => {
   const container = $(".list-table-diario");
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (TABELA DE EXCELÊNCIA)
-  // =========================================================
+  // --- VISÃO DESKTOP ---
   const desktopRows = data
     .map((item) => {
       const dateFmt = item.session_date.split(" ")[0].split("-").reverse().join("/");
@@ -239,7 +254,7 @@ const renderTableHistory = (data) => {
           </div>
         </td>
         <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
-          <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+          <button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>
           <button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>
           <button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
         </td>
@@ -261,9 +276,7 @@ const renderTableHistory = (data) => {
       </table>
     </div>`;
 
-  // =========================================================
-  // 2. VISÃO MOBILE (INSET LIST - APPLE HIG)
-  // =========================================================
+  // --- VISÃO MOBILE (Padrão Original Restaurado + Frequência Top Right) ---
   const mobileRows = data
     .map((item) => {
       const dateParts = item.session_date.split(" ")[0].split("-");
@@ -271,7 +284,7 @@ const renderTableHistory = (data) => {
       const rawIsoDate = item.session_date.split(" ")[0];
 
       const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
-      const summary = cleanDesc.length > 40 ? cleanDesc.substring(0, 40) + "..." : cleanDesc;
+      const summary = cleanDesc.length > 25 ? cleanDesc.substring(0, 25) + "..." : cleanDesc;
 
       const total = parseInt(item.total_students) || 0;
       const present = parseInt(item.present_count) || 0;
@@ -279,29 +292,34 @@ const renderTableHistory = (data) => {
       const badgeStyle = pct < 70 ? "bg-danger text-white" : pct < 90 ? "bg-warning text-dark" : "bg-success text-white";
 
       return `
-      <div class="ios-list-item align-items-center">
-          <div class="me-3">
-              <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 52px; height: 56px; border-radius: 10px;">
-                  <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.6rem; height: 18px; letter-spacing: 0.5px;">
-                      DIA
-                  </div>
-                  <div class="d-flex align-items-center justify-content-center flex-grow-1">
-                      <span class="fs-5 fw-bold text-body lh-1">${day}</span>
+      <div class="ios-list-item flex-column align-items-stretch position-relative" style="padding: 12px 16px;">
+          <div class="position-absolute" style="top: 12px; right: 16px;">
+              <span class="badge ${badgeStyle} rounded-pill shadow-sm" style="font-size: 0.7rem; letter-spacing: 0.5px;">${pct}% Freq.</span>
+          </div>
+
+          <div class="d-flex w-100 align-items-center">
+              <div class="me-3 flex-shrink-0">
+                  <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 48px; height: 52px; border-radius: 8px;">
+                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.5rem; height: 16px; letter-spacing: 0.5px;">
+                          AULA
+                      </div>
+                      <div class="d-flex align-items-center justify-content-center flex-grow-1">
+                          <span class="fs-5 fw-bold text-body lh-1">${day}</span>
+                      </div>
                   </div>
               </div>
-          </div>
-          
-          <div class="flex-grow-1" style="min-width: 0;">
-              <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem;">${summary || "Sem descrição..."}</h6>
-              <div class="small text-secondary mt-1 d-flex align-items-center">
-                  <i class="fas fa-user-check opacity-50 me-1"></i> ${present} de ${total} presentes
+              
+              <div class="flex-grow-1 pe-4" style="min-width: 0;">
+                  <h6 class="fw-bold text-body m-0 text-truncate w-100" style="font-size: 0.95rem;">${summary || "Sem descrição..."}</h6>
+                  <div class="small text-secondary mt-1 d-flex align-items-center">
+                      <i class="fas fa-user-check opacity-50 me-1"></i> ${present} de ${total} presentes
+                  </div>
               </div>
           </div>
 
-          <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-2">
-              <span class="badge ${badgeStyle} rounded-pill shadow-sm" style="font-size: 0.75rem;">${pct}%</span>
-              <div class="d-flex gap-2 mt-1">
-                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
+          <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-0 w-100">
+              <div class="d-flex gap-2">
+                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>
                   <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>
                   <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>
               </div>
@@ -316,11 +334,16 @@ const renderTableHistory = (data) => {
   _generatePaginationButtons("pagination-diario", "currentPage", "totalPages", "changePage", defaultDiary);
 };
 
+// =========================================================
+// 4. LÓGICA DO MODAL (Calendário e Integração)
+// =========================================================
 window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
   diarioState.sessionId = sessionId;
 
-  btn = $(btn);
-  window.setButton(true, btn, "");
+  if (btn) {
+    btn = $(btn);
+    window.setButton(true, btn, "");
+  }
 
   const $dateInput = $("#diario_date");
   const $editor = $("#diario_content");
@@ -415,7 +438,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
     $("#lista-alunos").html(`<div class='text-center py-5 text-danger'><i class='fas fa-exclamation-circle fs-2 mb-2'></i><p>${errorMessage}</p></div>`);
     window.alertErrorWithSupport(`Abrir Modal de Diário`, errorMessage);
   } finally {
-    window.setButton(false, btn);
+    if (btn) window.setButton(false, btn);
   }
 
   if ($editor.length && typeof $.fn.summernote !== "undefined") {
@@ -493,9 +516,8 @@ window.checkDateLogic = async (dateStr) => {
 };
 
 // =========================================================
-// LISTA DE ALUNOS (EXCELÊNCIA DESKTOP & MOBILE)
+// 5. LISTA DE ALUNOS (EXCELÊNCIA DESKTOP & MOBILE)
 // =========================================================
-
 const loadStudentsList = async (existingAttendance = null) => {
   const container = $("#lista-alunos");
   try {
@@ -554,15 +576,12 @@ const renderStudents = () => {
     return;
   }
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
-  // =========================================================
+  // --- VISÃO DESKTOP (Ajustada para remover o esmagamento) ---
   const desktopRows = students
     .map((std, idx) => {
       const nameParts = std.full_name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
-      // Implementação da Foto com Animação Hover + Evasão de Cache + Zoom Fix
       const avatarHtml = std.profile_photo_url
         ? `<img src="${std.profile_photo_url}?v=${new Date().getTime()}"
                 class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
@@ -582,7 +601,7 @@ const renderStudents = () => {
       <tr>
           <td class="align-middle ps-3 text-center" style="width: 65px;">${avatarHtml}</td>
           <td class="align-middle fw-bold text-body" style="font-size: 0.95rem;">${std.full_name}</td>
-          <td class="align-middle text-center" style="width: 200px;">
+          <td class="align-middle text-center" style="width: 150px;">
               <div class="d-flex align-items-center justify-content-center gap-3">
                   <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
                       <input class="form-check-input shadow-none m-0" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="width: 44px; height: 24px; cursor: pointer;">
@@ -590,14 +609,14 @@ const renderStudents = () => {
                   <div class="status-container-${idx}" style="min-width: 70px;">${statusBadge}</div>
               </div>
           </td>
-          <td class="align-middle pe-3" style="width: 380px;">
+          <td class="align-middle pe-3">
               <div id="just-area-${idx}" class="d-flex gap-2 ${isP ? "d-none" : ""}">
-                  <select class="form-control shadow-none border-secondary border-opacity-25 text-body" style="width: 140px; height: 42px;" onchange="updateAbsenceType(${idx}, this.value)">
-                      <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Sem Justificativa</option>
+                  <select class="form-control shadow-none border-secondary border-opacity-25 text-body" style="width: 150px; height: 42px;" onchange="updateAbsenceType(${idx}, this.value)">
+                      <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>S/ Justificativa</option>
                       <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
                       <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
                   </select>
-                  <input type="text" class="form-control shadow-none border-secondary border-opacity-25 flex-grow-1 text-body" style="height: 42px;" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes (opcional)...">
+                  <input type="text" class="form-control shadow-none border-secondary border-opacity-25 flex-grow-1 text-body" style="height: 42px; min-width: 150px;" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Detalhes (opcional)...">
               </div>
               <span id="just-empty-${idx}" class="text-secondary small opacity-50 fw-medium ${isP ? "" : "d-none"}"><i class="fas fa-check-circle me-1 text-success"></i> Aluno em sala</span>
           </td>
@@ -619,57 +638,51 @@ const renderStudents = () => {
         </table>
     </div>`;
 
-  // =========================================================
-  // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG)
-  // =========================================================
+  // --- VISÃO MOBILE (Versão Aprovada Restaurada Intacta) ---
   const mobileRows = students
     .map((std, idx) => {
       const nameParts = std.full_name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
-      // Implementação da Foto com Animação Hover + Evasão de Cache + Zoom Fix
       const avatarHtml = std.profile_photo_url
         ? `<img src="${std.profile_photo_url}?v=${new Date().getTime()}"
-                class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-                style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
-                onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${std.profile_photo_url}', '${nameParts[0].replace(/'/g, "\\'")}')"
-                onmouseover="this.style.transform='scale(1.15)'" 
-                onmouseout="this.style.transform='scale(1)'"
-                title="Ver foto">`
-        : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
+              class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
+              style="width:42px; height:42px; object-fit:cover; cursor: pointer;"
+              onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${std.profile_photo_url}', '${nameParts[0].replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:42px; height:42px;">${initials}</div>`;
 
       const isP = std.is_present;
-      const statusBadge = isP
-        ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
-        : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
+      const statusBadge = isP ? `<span class="text-success fw-bold status-label-${idx}">Presente</span>` : `<span class="text-danger fw-bold status-label-${idx}">Faltou</span>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch">
-          <div class="d-flex w-100 align-items-center">
-              <div class="me-3">${avatarHtml}</div>
-              <div class="flex-grow-1" style="min-width: 0;">
-                  <div class="fw-bold text-body text-truncate" style="font-size: 1rem;">${std.full_name}</div>
-                  <div class="status-container-${idx} mt-1">${statusBadge}</div>
-              </div>
-              <div class="ms-2">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="width: 50px; height: 28px; cursor: pointer;">
-                  </div>
-              </div>
-          </div>
-          
-          <div id="just-box-mob-${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
-              <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-danger border-opacity-10 shadow-inner">
-                  <label class="form-label small fw-bold text-danger text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Justificativa da Falta</label>
-                  <select class="form-control shadow-none border-0 mb-2 text-body" onchange="updateAbsenceType(${idx}, this.value)" style="height: 44px;">
-                      <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
-                      <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
-                      <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
-                  </select>
-                  <input type="text" class="form-control shadow-none border-0 text-body" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo..." style="height: 44px;">
-              </div>
-          </div>
-      </div>`;
+    <div class="ios-list-item flex-column align-items-stretch" style="padding: 12px 16px;">
+        <div class="d-flex w-100 align-items-center">
+            <div class="me-3 flex-shrink-0">${avatarHtml}</div>
+            
+            <div class="flex-grow-1" style="min-width: 0;">
+                <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem;">${std.full_name}</h6>
+                <div class="status-container-${idx} mt-1 small" style="font-size: 0.75rem;">${statusBadge}</div>
+            </div>
+            
+            <div class="ms-2 flex-shrink-0">
+                <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                    <input class="form-check-input m-0 shadow-none" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="cursor: pointer; width: 48px; height: 26px;">
+                </div>
+            </div>
+        </div>
+        
+        <div id="just-box-mob-${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
+            <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-danger border-opacity-10 shadow-inner">
+                <label class="form-label small fw-bold text-danger text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Motivo da Ausência</label>
+                <select class="form-control shadow-none border-0 mb-2 text-body" onchange="updateAbsenceType(${idx}, this.value)" style="height: 44px; border-radius: 10px;">
+                    <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
+                    <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
+                    <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
+                </select>
+                <input type="text" class="form-control shadow-none border-0 text-body" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo (opcional)..." style="height: 44px; border-radius: 10px;">
+            </div>
+        </div>
+    </div>`;
     })
     .join("");
 
@@ -678,15 +691,23 @@ const renderStudents = () => {
   container.html(desktopHtml + mobileHtml);
 };
 
+// =========================================================
+// 6. GERENCIAMENTO DE ESTADO E SALVAMENTO
+// =========================================================
 window.updateAttendance = (idx, isPresent) => {
   diarioState.currentStudents[idx].is_present = isPresent;
 
-  const newBadge = isPresent
+  const desktopBadge = isPresent
     ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
     : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
 
-  // Atualiza simultaneamente em caso de resize (Desktop e Mobile)
-  $(`.status-container-${idx}`).html(newBadge);
+  const mobileBadge = isPresent ? `<span class="text-success fw-bold status-label-${idx}">Presente</span>` : `<span class="text-danger fw-bold status-label-${idx}">Faltou</span>`;
+
+  if ($(window).width() >= 768) {
+    $(`.status-container-${idx}`).html(desktopBadge);
+  } else {
+    $(`.status-container-${idx}`).html(mobileBadge);
+  }
 
   if (isPresent) {
     $(`#just-area-${idx}, #just-box-mob-${idx}`).addClass("d-none");
@@ -700,7 +721,6 @@ window.updateAttendance = (idx, isPresent) => {
 window.updateJustification = (idx, val) => {
   diarioState.currentStudents[idx].justification = val;
 };
-
 window.updateAbsenceType = (idx, val) => {
   diarioState.currentStudents[idx].absence_type = val;
 };

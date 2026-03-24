@@ -25,7 +25,7 @@
         </div>
         <div class="list-commanded mt-0 mt-md-3 mb-5">
             <div class="ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
-                <div class="row g-3">
+                <div class="row g-1">
 
                     <div class="col-6 col-lg">
                         <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
@@ -111,7 +111,7 @@
             </div>
 
             <div class="ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
-                <div class="row g-3">
+                <div class="row g-1">
 
                     <div class="col-12 col-lg-4 mt-3 mt-md-0">
                         <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
@@ -170,7 +170,7 @@
                     </div>
 
                 </div>
-                <div class="row mb-5 mt-5 g-3 d-flex d-md-none">
+                <div class="row mb-5 mt-5 g-1 d-flex d-md-none">
                 </div>
             </div>
         </div>

@@ -413,3 +413,80 @@
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--white);
 }
+
+/* ============================================================
+           NATIVIZAÇÃO DO SUMMERNOTE (UX MOBILE)
+           ============================================================ */
+.note-editor.note-frame {
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Transforma a Toolbar em uma linha única rolável com o dedo */
+.note-toolbar {
+  background-color: var(--fundo) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  /* Firefox */
+  padding: 8px 12px !important;
+}
+
+.note-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chrome/Safari */
+.note-btn-group {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  margin-right: 8px !important;
+}
+
+.note-btn {
+  background: transparent !important;
+  border: none !important;
+  color: var(--black) !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+}
+
+.note-btn:active {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.note-editable {
+  background-color: var(--fundo) !important;
+  color: var(--black) !important;
+  padding: 20px !important;
+}
+
+.note-statusbar {
+  display: none !important;
+}
+
+/* Esconde lixo visual inferior */
+
+/* Proteção Modo Escuro */
+[data-theme="escuro"] .note-editor.note-frame {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="escuro"] .note-toolbar,
+[data-theme="escuro"] .note-editable {
+  background-color: var(--body) !important;
+  color: var(--white) !important;
+}
+
+[data-theme="escuro"] .note-btn {
+  color: var(--white) !important;
+}
+
+[data-theme="escuro"] .note-btn:active {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
