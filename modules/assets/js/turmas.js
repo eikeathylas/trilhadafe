@@ -564,7 +564,7 @@ window.addSchedule = () => {
 const renderSchedulesTable = () => {
   const container = $("#lista-horarios");
   if (currentSchedules.length === 0) {
-    container.html('<div class="text-center py-3 opacity-50 small">Sem horários.</div>');
+    container.html('<div class="text-center py-4 opacity-50 small">Sem horários definidos.</div>');
     return;
   }
   const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -575,11 +575,11 @@ const renderSchedulesTable = () => {
         <div class="d-flex align-items-center gap-3">
             <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 0.75rem;">${days[item.day_of_week].substring(0, 3).toUpperCase()}</div>
             <div>
-                <div class="fw-bold text-body small"><i class="far fa-clock me-1"></i> ${item.start_time.substring(0, 5)} — ${item.end_time.substring(0, 5)}</div>
-                <div class="small text-muted fw-medium"><i class="fas fa-location-dot me-1"></i> ${item.location_name || "Local Turma"}</div>
+                <div class="fw-bold text-body small"><i class="far fa-clock me-1 text-primary opacity-75"></i> ${item.start_time.substring(0, 5)} — ${item.end_time.substring(0, 5)}</div>
+                <div class="small text-muted fw-medium"><i class="fas fa-location-dot me-1 opacity-50"></i> ${item.location_name || "Local Turma"}</div>
             </div>
         </div>
-        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="currentSchedules.splice(${index}, 1); renderSchedulesTable();">
+        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="currentSchedules.splice(${index}, 1); renderSchedulesTable();" title="Remover Horário">
             <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
         </button>
     </div>`,
@@ -622,16 +622,37 @@ window.changePage = (p) => {
   getTurmas();
 };
 
-const _generatePaginationButtons = (c, ck, tk, f, o) => {
-  let container = $(`.${c}`);
+const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
+  let container = $(`.${containerClass}`);
   container.empty();
-  let total = o[tk];
-  let current = o[ck];
-  if (total <= 1) return;
-  let html = `<button onclick="${f}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
-  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
-    html += `<button onclick="${f}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
+
+  let total = contextObj[totalPagesKey];
+  let current = contextObj[currentPageKey];
+
+  // Container centralizado com gap para os botões
+  let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+
+  // Botão Anterior (Chevron Left)
+  html += `<button onclick="${funcName}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior">
+              <i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i>
+           </button>`;
+
+  // Miolo Numérico Inteligente (Mostra apenas Atual, -1 e +1)
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
+    if (p === current) {
+      // Página Atual (Sólida e Inativa para clique)
+      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
+    } else {
+      // Páginas Vizinhas (Translúcidas e Clicáveis)
+      html += `<button onclick="${funcName}(${p})" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
+    }
   }
-  html += `<button onclick="${f}(total)" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
+
+  // Botão Próxima (Chevron Right)
+  html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima">
+              <i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i>
+           </button>`;
+
+  html += `</div>`;
   container.html(html);
 };

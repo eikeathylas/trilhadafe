@@ -65,11 +65,12 @@
                     </div>
                 </div>
 
-                <div class="pagination paginationButtons pagination-turmas mt-4 pb-4 pb-md-0 d-flex justify-content-center"></div>
+                <div class="pagination-turmas mt-4 pb-4 pb-md-0 w-100"></div>
             </div>
         </div>
+    </div>
 
-        <?php include "./assets/components/Footer.php"; ?>
+    <?php include "./assets/components/Footer.php"; ?>
     </div>
 
     <div class="modal fade" id="modalTurma" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
