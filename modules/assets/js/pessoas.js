@@ -1,6 +1,6 @@
 const defaultPeople = {
   currentPage: 1,
-  rowsPerPage: 20,
+  rowsPerPage: 10,
   totalPages: 1,
 };
 
@@ -198,7 +198,7 @@ const renderTablePeople = (data) => {
       if (r) {
         const color = roleColors[r] || "secondary";
         const label = roleNames[r] || r;
-        rolesHtml = `<span class="badge bg-${color} bg-opacity-10 text-${color} fw-bold px-2 py-1" style="font-size: 0.65rem; border-radius: 6px;">${label}</span>`;
+        rolesHtml = `<span class="badge bg-${color} bg-opacity-10 text-${color} fw-bold px-2 py-1" style="font-size: 0.5rem; border-radius: 6px;">${label}</span>`;
       }
     }
 
@@ -215,11 +215,11 @@ const renderTablePeople = (data) => {
           
           <div class="flex-grow-1 d-flex flex-column justify-content-center py-1" style="min-width: 0;">
               <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                  <h6 class="fw-bold text-body m-0" style="font-size: 1rem;">${item.full_name}</h6>
+                  <h6 class="fw-bold text-body m-0" style="font-size: 0.85rem;">${item.full_name}</h6>
                   ${rolesHtml}
               </div>
               <div class="d-flex align-items-center gap-3 mt-1">
-                  <span class="text-muted" style="font-size: 0.8rem;">CPF: ${formatCPF(item.tax_id)}</span>
+                  <span class="text-muted" style="font-size: 0.55rem;">CPF: ${formatCPF(item.tax_id)}</span>
               </div>
           </div>
 

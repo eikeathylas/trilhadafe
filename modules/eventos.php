@@ -33,7 +33,7 @@
         <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
                 <div class="row g-1 g-md-3 align-items-center">
-                    <div class="col-12 d-md-none mb-0 mt-2">
+                    <div class="col-12 d-md-none mb-2 mt-2">
                         <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Agenda e Eventos</h4>
                     </div>
 

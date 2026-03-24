@@ -517,7 +517,7 @@ window.salvarTurma = async (btn) => {
   if (!orgId) return window.alertDefault("Organização não definida na sessão.", "error");
 
   btn = $(btn);
-  window.setButton(true, btn, " Gravando...");
+  window.setButton(true, btn, " Salvando...");
 
   try {
     const res = await window.ajaxValidator({

@@ -18,7 +18,6 @@ let fpInstance = null;
 // 1. CONFIGURAÇÃO RESPONSIVA DO EDITOR (SUMMERNOTE)
 // =========================================================
 const summernoteConfig = {
-  height: $(window).width() < 768 ? 220 : 350,
   lang: "pt-BR",
   placeholder: "Descreva o roteiro, atividades ou observações do encontro...",
   dialogsInBody: true,

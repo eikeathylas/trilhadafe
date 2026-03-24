@@ -102,22 +102,19 @@ const renderUserHeader = () => {
   `);
 };
 
-// Oculta dinamicamente elementos não autorizados (Desktop e Mobile)
+// Oculta dinamicamente elementos não autorizados (Desktop, Mobile e Cards de Painel)
 const configureProfile = () => {
   // 1. Filtra Menu Lateral (Desktop)
   $(".nav-only .menu-only li").each(function () {
-    const slug = $(this).data("slug"); // Busca a permissão mapeada no HTML
+    const slug = $(this).data("slug");
     const href = $(this).find("> a").attr("href");
 
-    // Ignora separadores ou links vazios sem slug
     if (!slug && (!href || href === "#" || href.startsWith("javascript"))) return;
 
-    // Tenta usar o slug, se não tiver, usa o nome do arquivo php (compatibilidade)
     const screen = slug || (href ? href.split(".")[0] : null);
 
-    // Exceções globais
     if (screen && screen !== "index" && screen !== "dashboard" && !defaults.screensAllowed.includes(screen)) {
-      $(this).remove(); // Remove o <li> inteiro do DOM
+      $(this).remove();
     }
   });
 
@@ -138,7 +135,7 @@ const configureProfile = () => {
   // 3. Limpeza de submenus (dropdowns) laterais que ficaram vazios
   $(".nav-only .menu-only ul.sub-menu-only").each(function () {
     if ($(this).find("li").length === 0) {
-      $(this).closest("li").remove(); // Remove o pai inteiro
+      $(this).closest("li").remove();
     }
   });
 
@@ -146,6 +143,28 @@ const configureProfile = () => {
   $(".nav-only .menu-only").each(function () {
     if ($(this).find("ul > li").length === 0) {
       $(this).hide();
+    }
+  });
+
+  // 5. Filtra Cards e Atalhos Genéricos no corpo da página (Dashboard)
+  $("[data-slug]").each(function () {
+    // Ignora elementos que já fazem parte do menu lateral ou inferior (já tratados acima)
+    if ($(this).closest(".nav-only, .bottom-nav").length > 0) return;
+
+    const slug = $(this).data("slug");
+
+    // Verifica se a tag tem slug, não é página nativa e o usuário não possui a permissão
+    if (slug && slug !== "index" && slug !== "dashboard" && !defaults.screensAllowed.includes(slug)) {
+      // Inteligência de Grid Bootstrap: Verifica se o card é filho único de uma coluna (.col-*)
+      const colParent = $(this).closest('[class*="col-"], .col');
+
+      if (colParent.length > 0 && colParent.children().length === 1) {
+        // Remove a coluna inteira para não quebrar o layout/grid
+        colParent.remove();
+      } else {
+        // Remove apenas o elemento solto
+        $(this).remove();
+      }
     }
   });
 };
@@ -167,16 +186,12 @@ $(document).ready(function () {
 
   // --- LÓGICA DE SUBMENUS (ACCORDION) ---
   $(".nav-only .menu-only > ul > li > a").click(function (e) {
-    // Apenas intercepta se tiver submenu (href="#")
     if ($(this).attr("href") === "#" || $(this).siblings("ul").length > 0) {
-      e.preventDefault(); // Evita scroll para o topo
+      e.preventDefault();
 
       const $parentLi = $(this).parent();
 
-      // Fecha outros menus abertos no mesmo nível
       $parentLi.siblings().removeClass("active-only").find("ul").slideUp();
-
-      // Alterna abertura do menu atual
       $parentLi.toggleClass("active-only").find("ul").slideToggle();
     }
   });
@@ -186,11 +201,9 @@ $(document).ready(function () {
     const sidebar = $("#sidebar-only");
     const mainContent = $(".main-only");
 
-    // Alterna classe de minimização
     sidebar.toggleClass("active-only");
     mainContent.toggleClass("active-only");
 
-    // Se minimizou, fecha submenus abertos para evitar bugs visuais
     if (sidebar.hasClass("active-only")) {
       $("ul.sub-menu-only").slideUp();
       $(".nav-only li").removeClass("active-only");
@@ -213,13 +226,11 @@ $(document).ready(function () {
     const li = activeLink.closest("li");
     const parentUl = li.parent();
 
-    // Marca o LI direto
     li.addClass("active-only");
     activeLink.addClass("active");
 
-    // Se estiver dentro de um submenu, abre e marca o pai
     if (parentUl.hasClass("sub-menu-only")) {
-      parentUl.show(); // Força display block
+      parentUl.show();
       parentUl.closest("li").addClass("active-only");
     }
   }

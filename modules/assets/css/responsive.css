@@ -157,6 +157,14 @@
     grid-template-columns: 1fr;
     gap: 12px;
   }
+
+  .note-editor.note-frame {
+    height: 350px !important;
+  }
+
+  .note-editable {
+    height: 350px !important;
+  }
 }
 
 /* --- 4. MOBILE COMPACTO (Telas pequenas - Máximo 480px) --- */

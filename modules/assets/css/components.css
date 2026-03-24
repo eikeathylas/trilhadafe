@@ -72,7 +72,7 @@
   transform: translateY(-2px);
 }
 
-.btn-icon-action:active {
+.btn-icon-action.active {
   transform: scale(0.92) !important;
 }
 
@@ -324,8 +324,8 @@ label {
 }
 
 /* Feedback tátil ao clicar */
-.card.clickable:active,
-.mobile-card.clickable:active {
+.card.clickable.active,
+.mobile-card.clickable.active {
   transform: scale(0.97);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
 }
@@ -508,7 +508,7 @@ label {
   border-color: rgba(0, 0, 0, 0.05);
 }
 
-.table-custom tbody tr:active {
+.table-custom tbody tr.active {
   transform: scale(0.995);
 }
 
@@ -637,7 +637,7 @@ label {
     transform 0.2s;
 }
 
-.offcanvas-footer .btn-link.text-danger:active {
+.offcanvas-footer .btn-link.text-danger.active {
   opacity: 0.6;
   transform: scale(0.96);
 }
@@ -926,6 +926,11 @@ label {
   box-shadow: none;
   border-radius: 12px;
   overflow: hidden;
+  height: 500px !important;
+}
+
+.note-editable {
+  height: 500px !important;
 }
 
 /* -- Modo escuro (Plugins) */
