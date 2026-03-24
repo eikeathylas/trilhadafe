@@ -132,8 +132,8 @@
                     </form>
                 </div>
 
-                <div class="modal-footer border-0 p-1">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Cancelar</button>
+                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="saveEvent(this)" data-slug="eventos.save">
                         <i class="fas fa-save me-2"></i> Salvar evento
                     </button>

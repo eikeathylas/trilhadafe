@@ -8,7 +8,7 @@ let currentCurriculumList = [];
 let editingCurriculumIndex = -1;
 
 // Função global de Ligar/Desligar alinhada ao padrão Dual Status
-window.toggleCourse = (id, element) => handleToggle("toggleCourse", id, element, "Status atualizado.", `.status-text-course-${id}`, getCursos);
+window.toggleCourse = (id, element) => handleToggle("toggleCourse", id, element, "Estado do curso atualizado.", `.status-text-course-${id}`, getCursos);
 
 window.saveActiveSummernote = () => {
   $(".summernote-dynamic").each(function () {
@@ -119,6 +119,29 @@ const renderTableCourses = (data) => {
   const canHistory = allowedSlugs.includes("cursos.history");
   const canDelete = allowedSlugs.includes("cursos.delete");
 
+  const getProgressHtml = (enrolled, cap) => {
+    if (!cap || parseInt(cap) === 0) return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1">Ilimitado</span>';
+    const pct = Math.min(100, Math.round((parseInt(enrolled || 0) / parseInt(cap)) * 100));
+    let color = pct < 80 ? "bg-success" : pct < 100 ? "bg-warning" : "bg-danger";
+    return `
+        <div class="w-100" style="max-width: 140px; margin: 0 auto;">
+            <div class="d-flex justify-content-between fw-bold text-muted mb-1" style="font-size: 0.65rem;">
+                <span>${enrolled}/${cap}</span>
+                <span>${pct}%</span>
+            </div>
+            <div class="progress bg-secondary bg-opacity-10 shadow-inner" style="height: 6px; border-radius: 10px;">
+                <div class="progress-bar ${color} rounded-pill shadow-sm" role="progressbar" style="width: ${pct}%"></div>
+            </div>
+        </div>`;
+  };
+
+  const getInitials = (fullName) => {
+    if (!fullName) return "?";
+    const parts = fullName.trim().split(" ");
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   // --- VISÃO DESKTOP ---
   const desktopRows = data
     .map((item) => {
@@ -127,15 +150,12 @@ const renderTableCourses = (data) => {
       else if (item.min_age) ageLabel = `A partir de ${item.min_age} anos`;
 
       const isActive = item.is_active === true || item.is_active === "t";
-      const statusIconHtml = isActive
-        ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help; margin: 0 auto;"><i class="fas fa-check-circle"></i></span>`
-        : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help; margin: 0 auto;"><i class="fas fa-times-circle"></i></span>`;
 
       // Ações Desktop Condicionais
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Auditoria/Log"><i class="fas fa-bolt"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Auditoria/Log"><i class="fas fa-history"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>`;
 
       return `
       <tr>
@@ -160,15 +180,12 @@ const renderTableCourses = (data) => {
                   <i class="fas fa-book me-1"></i> ${item.subjects_count || 0} Matérias
               </span>
           </td>
-          <td class="text-center align-middle" style="width: 130px;">
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
-                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} 
+          <td class="text-center align-middle" style="width: 100px;">
+              <div class="d-flex align-items-center justify-content-center w-100">
+                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
+                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
                              ${canEdit ? `onchange="toggleCourse(${item.course_id}, this)"` : "disabled"} 
-                             style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
-                  </div>
-                  <div class="status-text-course-${item.course_id} d-flex align-items-center">
-                      ${statusIconHtml}
+                             style="cursor: ${canEdit ? "pointer" : "default"}; width: 44px; height: 24px;">
                   </div>
               </div>
           </td>
@@ -197,7 +214,7 @@ const renderTableCourses = (data) => {
         </table>
     </div>`;
 
-  // --- VISÃO MOBILE (IOS-STYLE) ---
+  // --- VISÃO MOBILE (IOS-STYLE COMPACTA) ---
   const mobileRows = data
     .map((item) => {
       let ageLabel = "Livre";
@@ -207,17 +224,25 @@ const renderTableCourses = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10 flex-shrink-0" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-history"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10 flex-shrink-0" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10 flex-shrink-0" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch">
-          <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1 pe-3" style="min-width: 0;">
-                  <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 1.05rem; letter-spacing: -0.5px;">${item.name}</h6>
+      <div class="ios-list-item flex-column align-items-stretch position-relative mb-2" style="padding: 12px 16px;">
+          <div class="d-flex w-100 align-items-center">
+              <div class="flex-grow-1 pe-2" style="min-width: 0;">
+                  <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                      <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem; max-width: 200px;">${item.name}</h6>
+                      <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-0 border border-primary border-opacity-25 rounded-pill" style="font-size: 0.65rem;">${item.subjects_count || 0} matérias</span>
+                  </div>
+                  <div class="small text-muted fw-medium d-flex align-items-center mt-1" style="font-size: 0.75rem;">
+                      <i class="far fa-clock opacity-50 me-1"></i> Carga: ${item.total_workload_hours || 0}h
+                      <span class="mx-2 opacity-25">|</span>
+                      <i class="fas fa-user-graduate opacity-50 me-1"></i> ${ageLabel}
+                  </div>
               </div>
-              <div class="text-end">
+              <div class="d-flex flex-column align-items-end justify-content-center ms-2 flex-shrink-0">
                   <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
                       <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
                              ${canEdit ? `onchange="toggleCourse(${item.course_id}, this)"` : "disabled"} 
@@ -225,29 +250,8 @@ const renderTableCourses = (data) => {
                   </div>
               </div>
           </div>
-
-          <div class="d-flex flex-column gap-2 mt-3 p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner">
-              <div class="d-flex align-items-center text-body small">
-                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
-                      <i class="fas fa-user-graduate" style="font-size: 0.7rem;"></i>
-                  </div>
-                  <span class="text-truncate ms-2 fw-medium">Idade: ${ageLabel}</span>
-              </div>    
-              <div class="d-flex align-items-center text-body mt-1 small">
-                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
-                      <i class="far fa-clock" style="font-size: 0.7rem;"></i>
-                  </div>
-                  <span class="text-truncate ms-2 fw-medium">Carga: ${item.total_workload_hours || 0} horas</span>
-              </div>
-              <div class="d-flex align-items-center text-body mt-1 small">
-                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info" style="width: 26px; height: 26px; flex-shrink: 0;">
-                      <i class="fas fa-book" style="font-size: 0.7rem;"></i>
-                  </div>
-                  <span class="text-truncate ms-2 fw-medium">Grade: ${item.subjects_count || 0} matérias</span>
-              </div>
-          </div>
           
-          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end align-items-center mt-3 pt-3 border-top border-secondary border-opacity-10 w-100"><div class="d-flex gap-2 flex-nowrap">${mobActionsHtml}</div></div>` : ""}
       </div>`;
     })
     .join("");
@@ -284,7 +288,7 @@ window.modalCurso = (id = null, btn = false) => {
   if (id) {
     loadCourseData(id, btn);
   } else {
-    $("#modalLabel").html('<i class="fas fa-layer-group me-2"></i> Novo Curso');
+    $("#modalLabel").html('<i class="fas fa-layer-group me-3 opacity-75"></i> Gerenciar Novo Curso');
     modal.modal("show");
   }
 };
@@ -311,7 +315,7 @@ window.loadCourseData = async (id, btn) => {
       renderCurriculumTable();
       initSelectSubjects();
 
-      $("#modalLabel").html('<i class="fas fa-pen me-2"></i> Editar Estrutura do Curso');
+      $("#modalLabel").html('<i class="fas fa-pen me-3 opacity-75"></i> Editar Curso e Grade');
       $("#modalCurso").modal("show");
     }
   } catch (e) {
@@ -336,15 +340,20 @@ window.initSelectSubjects = () => {
     valueField: "id",
     labelField: "title",
     searchField: "title",
-    placeholder: "Busque uma disciplina para adicionar...",
+    placeholder: "Busque uma disciplina...",
     preload: true,
     maxOptions: 50,
     render: {
       option: function (item, escape) {
         return `
-          <div class="py-1 px-2 border-bottom border-light">
-            <div class="fw-bold text-body">${escape(item.title)}</div>
-            ${item.summary ? `<small class="text-muted d-block opacity-75">${escape(item.summary)}</small>` : ""}
+          <div class="d-flex align-items-center py-2 px-3 border-bottom border-secondary border-opacity-10">
+            <div class="bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 36px; height: 36px;">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="flex-grow-1" style="min-width: 0;">
+              <div class="fw-bold text-body text-truncate" style="font-size: 0.9rem;">${escape(item.title)}</div>
+              ${item.summary ? `<small class="text-muted text-truncate d-block fw-medium" style="font-size: 0.7rem;">${escape(item.summary)}</small>` : ""}
+            </div>
           </div>`;
       },
     },
@@ -435,18 +444,22 @@ const renderCurriculumTable = () => {
     return;
   }
 
-  // Permissões da Grade
+  // =========================================================
+  // LÓGICA DE PERMISSÕES (RBAC) - GRADE CURRICULAR
+  // =========================================================
   let allowedSlugs = [];
   try {
     let access = localStorage.getItem("tf_access");
     if (access) {
       let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed); // CORREÇÃO RBAC
       allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
     }
   } catch (e) {}
 
   const canEdit = allowedSlugs.includes("cursos.save");
   const canTemplate = allowedSlugs.includes("cursos.template");
+  const canHistory = allowedSlugs.includes("cursos.history");
 
   const html = window.currentCurriculumList
     .map((item, index) => {
@@ -455,8 +468,29 @@ const renderCurriculumTable = () => {
         : '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill fw-bold px-2 py-1" style="font-size: 0.65rem;">Opcional</span>';
 
       let plansCount = Array.isArray(item.plans) ? item.plans.length : 0;
-      const planBtnClass = plansCount > 0 ? "bg-primary" : "bg-secondary";
+      const planBtnClass = plansCount > 0 ? "text-primary bg-primary" : "text-secondary bg-secondary";
       const planTextHtml = plansCount > 0 ? `<span class="small text-success fw-bold ms-2" style="font-size: 0.75rem;"><i class="fas fa-check-circle me-1"></i>${plansCount} aulas</span>` : `<span class="small text-muted fst-italic ms-2 opacity-75" style="font-size: 0.75rem;">Sem roteiro</span>`;
+
+      let actionsHtml = "";
+
+      if (canHistory && item.curriculum_id) {
+        actionsHtml += `
+        <button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" onclick="openAudit('education.curriculum', ${item.curriculum_id}, this)" title="Auditoria da Disciplina">
+            <i class="fas fa-history" style="font-size: 0.85rem;"></i>
+        </button>`;
+      }
+
+      actionsHtml += `
+        <button class="btn btn-sm ${planBtnClass} bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" onclick="configureTemplate(${index})" title="${canTemplate ? "Gerenciar Roteiro" : "Ver Roteiro"}">
+            <i class="fa-solid fa-book-open-reader" style="font-size: 0.85rem;"></i>
+        </button>`;
+
+      if (canEdit) {
+        actionsHtml += `
+        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" onclick="removeSubjectFromGrid(${index})" title="Remover da Grade">
+            <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
+        </button>`;
+      }
 
       return `
       <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner transition-all">
@@ -476,18 +510,8 @@ const renderCurriculumTable = () => {
               </div>
           </div>
 
-          <div class="d-flex align-items-center gap-2 ms-3">
-              <button class="ios-action-pill text-primary ${planBtnClass} bg-opacity-10" onclick="configureTemplate(${index})" title="${canTemplate ? "Gerenciar Roteiro" : "Ver Roteiro"}">
-                  <i class="fas ${canTemplate ? "fa-book-reader" : "fa-eye"}"></i>
-              </button>
-              ${
-                canEdit
-                  ? `
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="removeSubjectFromGrid(${index})" title="Remover">
-                  <i class="fas fa-trash-can"></i>
-              </button>`
-                  : ""
-              }
+          <div class="d-flex align-items-center gap-2 ms-3 flex-nowrap">
+              ${actionsHtml}
           </div>
       </div>`;
     })
@@ -507,7 +531,7 @@ window.configureTemplate = (index) => {
   if (!Array.isArray(item.plans)) item.plans = [];
 
   renderAccordionList();
-  $("#modalTemplateAulaLabel").html(`<i class="fas fa-book-reader me-2"></i> Planejamento: <strong>${item.subject_name}</strong>`);
+  $("#modalTemplateAulaLabel").html(`<i class="fa-solid fa-book-open-reader me-3 opacity-75"></i><strong class="text-white ms-1 fw-bold">${item.subject_name}</strong>`);
   $("#modalTemplateAula").css("z-index", 1060);
   $("#modalTemplateAula").modal("show");
 };
@@ -522,6 +546,7 @@ const renderAccordionList = () => {
     let access = localStorage.getItem("tf_access");
     if (access) {
       let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed); // CORREÇÃO RBAC
       allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
     }
   } catch (e) {}
@@ -553,7 +578,6 @@ const renderAccordionList = () => {
       const isFirst = i === 0;
       const isLast = i === plans.length - 1;
 
-      // Controles de ordenação (apenas se puder editar template)
       const orderControls = canTemplate
         ? `
       <div class="me-3 d-flex align-items-center opacity-75" style="min-width: 40px;">
@@ -564,7 +588,7 @@ const renderAccordionList = () => {
 
       const deleteBtn = canTemplate
         ? `
-      <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
+      <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="event.stopPropagation(); removePlan(${i})" title="Excluir">
           <i class="fas fa-trash-can"></i>
       </button>`
         : "";
@@ -574,18 +598,18 @@ const renderAccordionList = () => {
           <div class="accordion-header" id="${headingId}">
               <div class="d-flex align-items-center p-3 w-100 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
                   ${orderControls}
-                  <div class="me-3">
+                  <div class="me-3 flex-shrink-0">
                       <span class="badge rounded-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; font-size: 0.85rem;">
                           ${i + 1}
                       </span>
                   </div>
-                  <div class="flex-grow-1 me-3">
-                      <input type="text" class="form-control bg-transparent border-0 shadow-none fw-bold text-body fs-6 px-0" 
+                  <div class="flex-grow-1 me-3" style="min-width: 0;">
+                      <input type="text" class="form-control bg-transparent border-0 shadow-none fw-bold text-body fs-6 px-0 text-truncate" 
                              value="${plan.title || "Encontro " + (i + 1)}" 
                              ${canTemplate ? `onchange="updatePlanTitle(${i}, this.value)"` : "readonly"} 
                              onclick="event.stopPropagation()" placeholder="Título do Encontro...">
                   </div>
-                  <div class="ms-auto d-flex align-items-center">
+                  <div class="ms-auto d-flex align-items-center flex-nowrap">
                       <i class="fas fa-chevron-down text-muted me-3 transition-icon"></i>
                       ${deleteBtn}
                   </div>
@@ -602,7 +626,6 @@ const renderAccordionList = () => {
 
   container.html(html);
 
-  // Inicializa Summernote condicionalmente
   const collapses = document.querySelectorAll(".accordion-collapse");
   collapses.forEach((el) => {
     el.addEventListener("shown.bs.collapse", function () {
@@ -611,7 +634,7 @@ const renderAccordionList = () => {
 
       const config = { ...summernoteConfig };
       $(textarea).summernote(config);
-      if (!canTemplate) $(textarea).summernote("disable"); // Modo Read-Only
+      if (!canTemplate) $(textarea).summernote("disable");
     });
     el.addEventListener("hide.bs.collapse", function () {
       $(this).prev().find(".fa-chevron-up").removeClass("fa-chevron-up text-primary").addClass("fa-chevron-down");

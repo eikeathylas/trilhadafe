@@ -119,7 +119,7 @@ function getHistory($data)
                     if (empty($vals)) return null;
                     $arr = json_decode($vals, true);
                     if (is_array($arr)) {
-                        if (isset($arr['content'])) $arr['content'] = empty($arr['content']) ? "[Vazio]" : "[Conteúdo HTML atualizado]";
+                        if (isset($arr['content'])) $arr['content'] = empty($arr['content']) ? "[Vazio]" : "Plano de aula atualizado";
                         unset($arr['curriculum_id'], $arr['plan_id'], $arr['created_at']);
                         return json_encode($arr);
                     }
