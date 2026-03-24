@@ -53,8 +53,8 @@
 
             <div class="card-body p-3 p-md-4 mt-2">
                 <div class="row g-3 align-items-center">
-                    <div class="col-12 col-md-5 text-center text-md-start">
-                        <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;"></h4>
+                    <div class="col-12 col-md-5 text-center text-md-start d-none d-md-flex">
+                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;"></h5>
                     </div>
 
                     <div class="col-12 col-md-7">
