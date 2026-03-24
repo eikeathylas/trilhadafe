@@ -219,7 +219,7 @@ const renderTableEvents = (data) => {
                             ${item.day_week || "DIA"}
                         </div>
                         <div class="d-flex align-items-center justify-content-center flex-grow-1">
-                            <span class="fs-5 fw-bold text-body lh-1">${item.date_fmt.split("/")[0]}</span>
+                            <span class="fw-bold text-body lh-1">${item.date_fmt.split("/")[0]}/${item.date_fmt.split("/")[1]}</span>
                         </div>
                     </div>
                 </div>
