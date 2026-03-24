@@ -6,12 +6,11 @@ const defaultClass = {
 
 let currentSchedules = [];
 
-// Declaração Global restaurada para ligar o Toggle ao utilitário handleToggle
-window.toggleTurma = (id, element) => handleToggle("toggleClass", id, element, "Estado atualizado.", `.status-text-turma-${id}`, getTurmas);
+// Toggle Global de Status
+window.toggleTurma = (id, element) => handleToggle("toggleClass", id, element, "Estado da turma atualizado.", `.status-text-turma-${id}`, getTurmas);
 
 $(document).ready(() => {
   initSelects();
-
   $("#busca-texto").on("keyup", function () {
     clearTimeout(window.searchTimeout);
     window.searchTimeout = setTimeout(() => {
@@ -19,27 +18,24 @@ $(document).ready(() => {
       getTurmas();
     }, 500);
   });
-
   window.addEventListener("yearChanged", () => {
     defaultClass.currentPage = 1;
     getTurmas();
   });
+  getTurmas();
 });
 
+// =========================================================
+// 1. MOTOR DE RENDERIZAÇÃO RESPONSIVA
+// =========================================================
 const getTurmas = async () => {
   try {
     const page = Math.max(0, defaultClass.currentPage - 1);
-    const search = $("#busca-texto").val();
     const year = localStorage.getItem("sys_active_year");
     const container = $(".list-table-turmas");
 
     if (!year) {
-      container.html(`
-        <div class="text-center py-5 opacity-50">
-            <span class="material-symbols-outlined fs-1">event_busy</span>
-            <p class="mt-3 fw-medium text-body">Selecione um Ano Letivo no menu lateral.</p>
-        </div>
-      `);
+      container.html('<div class="text-center py-5 opacity-50"><p>Selecione um Ano Letivo.</p></div>');
       return;
     }
 
@@ -48,7 +44,7 @@ const getTurmas = async () => {
       token: defaultApp.userInfo.token,
       limit: defaultClass.rowsPerPage,
       page: page * defaultClass.rowsPerPage,
-      search: search,
+      search: $("#busca-texto").val(),
       org_id: localStorage.getItem("tf_active_parish"),
       year: year,
     });
@@ -57,24 +53,9 @@ const getTurmas = async () => {
       const total = result.data[0]?.total_registros || 0;
       defaultClass.totalPages = Math.max(1, Math.ceil(total / defaultClass.rowsPerPage));
       renderTableClasses(result.data || []);
-    } else {
-      throw new Error(result.alert || "Erro ao obter turmas.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha ao ligar com o servidor para buscar as turmas.";
-    $(".list-table-turmas").html(`
-        <div class="text-center py-5">
-            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 64px; height: 64px;">
-                <i class="fas fa-exclamation-triangle fs-3"></i>
-            </div>
-            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
-            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm mt-2" onclick="getTurmas()">
-                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
-            </button>
-        </div>
-    `);
-
-    window.alertErrorWithSupport("Listar Turmas", errorMessage);
+    console.error(e);
   }
 };
 
@@ -83,270 +64,466 @@ const renderTableClasses = (data) => {
 
   if (data.length === 0) {
     container.html(`
-      <div class="text-center py-5 opacity-50">
-          <span class="material-symbols-outlined fs-1 text-secondary">class</span>
-          <p class="mt-2 fw-medium text-body">Nenhuma turma encontrada.</p>
-      </div>
-    `);
+            <div class="text-center py-5">
+                <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3 opacity-25"></i>
+                <p class="text-muted">Nenhuma turma encontrada.</p>
+            </div>
+        `);
     $(".pagination-turmas").empty();
     return;
   }
 
   const getProgressHtml = (enrolled, cap) => {
-    if (!cap || parseInt(cap) === 0) return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-1">Ilimitado</span>';
-
-    const e = parseInt(enrolled || 0);
-    const c = parseInt(cap);
-    const percent = Math.min(100, Math.round((e / c) * 100));
-
-    let color = percent < 80 ? "bg-success" : percent < 100 ? "bg-warning" : "bg-danger";
-
+    if (!cap || parseInt(cap) === 0) return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1">Ilimitado</span>';
+    const pct = Math.min(100, Math.round((parseInt(enrolled || 0) / parseInt(cap)) * 100));
+    let color = pct < 80 ? "bg-success" : pct < 100 ? "bg-warning" : "bg-danger";
     return `
         <div class="w-100" style="max-width: 140px; margin: 0 auto;">
-            <div class="d-flex justify-content-between fw-bold text-muted mb-2" style="font-size: 0.75rem;">
-                <span>${e}/${c}</span>
-                <span>${percent}%</span>
+            <div class="d-flex justify-content-between fw-bold text-muted mb-1" style="font-size: 0.65rem;">
+                <span>${enrolled}/${cap}</span>
+                <span>${pct}%</span>
             </div>
-            <div class="progress bg-secondary bg-opacity-10 shadow-inner" style="height: 8px;">
-                <div class="progress-bar ${color} rounded-pill" role="progressbar" style="width: ${percent}%"></div>
+            <div class="progress bg-secondary bg-opacity-10 shadow-inner" style="height: 6px; border-radius: 10px;">
+                <div class="progress-bar ${color} rounded-pill shadow-sm" role="progressbar" style="width: ${pct}%"></div>
             </div>
         </div>`;
   };
 
-  // =========================================================
-  // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
-  // =========================================================
-  const desktopRows = data.map((item) => {
-    let avatarHtml = `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold" style="width:38px; height:38px; font-size: 0.85rem;">?</div>`;
+  const getInitials = (fullName) => {
+    if (!fullName) return "?";
+    const parts = fullName.trim().split(" ");
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
 
-    if (item.coordinator_photo) {
-      avatarHtml = `<img src="${item.coordinator_photo}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width:38px; height:38px;">`;
-    } else if (item.coordinator_name) {
-      const ini = item.coordinator_name.substring(0, 2).toUpperCase();
-      avatarHtml = `<div class="rounded-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center fw-bold" style="width:38px; height:38px; font-size: 0.85rem;">${ini}</div>`;
-    }
+  // --- VISÃO DESKTOP ---
+  let desktopRows = data
+    .map((item) => {
+      const isActive = item.is_active === true || item.is_active === "t";
+      const coordNameEscaped = (item.coordinator_name || "Sem coordenador").replace(/'/g, "\\'");
 
-    const isActive = item.is_active === true || item.is_active === "t";
+      let photoHtml = "";
+      if (item.coordinator_photo) {
+        photoHtml = `<img src="${item.coordinator_photo}" 
+                           class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
+                           style="width:34px; height:34px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                           onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${item.coordinator_photo}', '${coordNameEscaped}')"
+                           onmouseover="this.style.transform='scale(1.15)'" 
+                           onmouseout="this.style.transform='scale(1)'"
+                           title="Ver foto">`;
+      } else {
+        const initials = getInitials(item.coordinator_name || "?");
+        photoHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center text-primary border fw-bold shadow-sm" style="width:34px; height:34px; background-color: var(--fundo); font-size: 0.75rem;">${initials}</div>`;
+      }
 
-    return `
-      <tr>
-          <td class="align-middle ps-3">
-              <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.name}</div>
-              <div class="small text-primary mt-1 d-flex align-items-center gap-2">
-                  <span><i class="far fa-calendar-alt opacity-75 me-1"></i> ${item.year_name || "-"}</span>
-                  <span class="opacity-50">|</span>
-                  <span><i class="fas fa-graduation-cap opacity-75 me-1"></i> ${item.course_name}</span>
-              </div>
-          </td>
-          <td class="align-middle">
-              <div class="d-flex align-items-center gap-3">
-                  ${avatarHtml}
-                  <span class="fw-medium text-body small">${item.coordinator_name || "Sem coordenador"}</span>
-              </div>
-          </td>
-          <td class="align-middle">
-              <div class="d-flex flex-column gap-2">
-                  <span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-25 rounded-pill w-auto text-start px-2 py-1 fw-medium" style="font-size: 0.7rem;">
-                      <i class="far fa-clock me-1 text-primary opacity-75"></i> ${item.schedule_summary || "Sem horário"}
-                  </span>
-                  <span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-25 rounded-pill w-auto text-start px-2 py-1 fw-medium" style="font-size: 0.7rem;">
-                      <i class="fas fa-location-dot me-1 text-primary opacity-75"></i> ${item.location_name || "Sem local"}
-                  </span>
-              </div>
-          </td>
-          <td class="text-center align-middle" style="width: 180px;">${getProgressHtml(item.enrolled_count, item.max_capacity)}</td>
-          <td class="text-center align-middle" style="width: 130px;">
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                  <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
-                      <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="width: 44px; height: 24px; cursor: pointer;">
-                  </div>
-              </div>
-          </td>
-          <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
-              <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action text-primary" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action text-danger" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash"></i></button>
-          </td>
-      </tr>`;
-  }).join("");
+      return `
+        <tr>
+            <td class="text-center align-middle ps-3" style="width: 60px;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border shadow-sm" style="width:42px; height:42px; background-color: var(--fundo);">
+                    <i class="fas fa-layer-group opacity-50"></i>
+                </div>
+            </td>
+            <td class="align-middle">
+                <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.name}</div>
+                <div class="text-muted small mt-1">
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 py-1" style="font-size: 0.65rem;">${item.course_name}</span>
+                </div>
+            </td>
+            <td class="align-middle">
+                <div class="d-flex align-items-center gap-2">
+                    ${photoHtml}
+                    <div>
+                        <div class="fw-medium text-body small">${item.coordinator_name || "Sem coordenador"}</div>
+                        <div class="text-muted" style="font-size: 0.7rem;"><i class="far fa-calendar-alt me-1"></i> ${item.year_name || "-"}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="align-middle">
+                <div class="small text-body fw-bold"><i class="far fa-clock me-1 text-primary"></i> ${item.schedule_summary || "---"}</div>
+                <div class="small text-muted mt-1 text-truncate" style="max-width: 150px;"><i class="fas fa-location-dot me-1 opacity-50"></i> ${item.location_name || "Sede"}</div>
+            </td>
+            <td class="text-center align-middle">${getProgressHtml(item.enrolled_count, item.max_capacity)}</td>
+            <td class="text-center align-middle">
+                <div class="d-flex align-items-center justify-content-center">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input shadow-sm" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="cursor: pointer;">
+                    </div>
+                </div>
+            </td>
+            <td class="text-end align-middle pe-3">
+                <button class="btn-icon-action text-warning" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Auditoria/Log"><i class="fas fa-bolt"></i></button>
+                <button class="btn-icon-action text-primary" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn-icon-action text-danger" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>
+            </td>
+        </tr>`;
+    })
+    .join("");
 
-  const desktopHtml = `
-    <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
+  const tableHtml = `
+    <div class="d-none d-md-block table-responsive">
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th class="ps-3 text-uppercase" style="font-size: 0.75rem;">Turma / Curso</th>
-                    <th class="text-uppercase" style="font-size: 0.75rem;">Coordenação</th>
-                    <th class="text-uppercase" style="font-size: 0.75rem;">Horário / Local</th>
-                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Ocupação</th>
-                    <th class="text-center text-uppercase" style="font-size: 0.75rem;">Estado</th>
-                    <th class="text-end pe-4 text-uppercase" style="font-size: 0.75rem;">Ações</th>
+                    <th colspan="2" class="ps-3">Turma / Curso</th>
+                    <th>Responsável</th>
+                    <th>Agenda / Local</th>
+                    <th class="text-center">Ocupação</th>
+                    <th class="text-center">Ativa</th>
+                    <th class="text-end pe-4">Ações</th>
                 </tr>
             </thead>
             <tbody>${desktopRows}</tbody>
         </table>
     </div>`;
 
-  // =========================================================
-  // 2. VISÃO MOBILE (IOS-LIST-ITEM APPLE HIG)
-  // =========================================================
-  const mobileRows = data.map((item) => {
-    const isActive = item.is_active === true || item.is_active === "t";
+  // --- VISÃO MOBILE (ESPELHANDO PESSOAS.JS) ---
+  const mobileRows = data
+    .map((item) => {
+      const isActive = item.is_active === true || item.is_active === "t";
+      const coordNameEscaped = (item.coordinator_name || "Sem coordenador").replace(/'/g, "\\'");
 
-    const statusIconHtml = isActive
-      ? `<span title="Ativa" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
-      : `<span title="Inativa" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+      let avatarHtml = "";
+      if (item.coordinator_photo) {
+        avatarHtml = `<img src="${item.coordinator_photo}" 
+                           class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
+                           style="width:48px; height:48px; object-fit:cover; cursor: pointer;"
+                           onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${item.coordinator_photo}', '${coordNameEscaped}')">`;
+      } else {
+        const initials = getInitials(item.coordinator_name || item.name);
+        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
+      }
 
-    return `
-      <div class="ios-list-item flex-column align-items-stretch">
-          
-          <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1 pe-3" style="min-width: 0;">
-                  <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 1.05rem; letter-spacing: -0.5px;">${item.name}</h6>
-                  <div class="mt-2">
-                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                          <i class="fas fa-graduation-cap me-1"></i> ${item.course_name}
-                      </span>
-                  </div>
-              </div>
-              <div class="text-end">
-                  <div class="d-flex align-items-center justify-content-end gap-2">
-                  <!-- <div class="status-text-turma-${item.class_id} d-flex align-items-center">${statusIconHtml}</div> -->
-                      <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
-                          <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          <div class="d-flex flex-column gap-2 mt-3 p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner">
-              <div class="d-flex align-items-center text-body">
-                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
-                      <i class="fas fa-user-tie" style="font-size: 0.7rem;"></i>
-                  </div>
-                  <span class="text-truncate ms-2 fw-medium small">${item.coordinator_name || "Sem coordenador"}</span>
-              </div>    
-              <div class="d-flex align-items-center text-body mt-1">
-                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
-                      <i class="far fa-clock" style="font-size: 0.7rem;"></i>
-                  </div>
-                  <span class="text-truncate ms-2 fw-medium small">${item.schedule_summary || "Sem horário"}</span>
-              </div>
+      return `
+      <div class="ios-list-item">
+          <div class="me-3">
+              ${avatarHtml}
           </div>
           
-          <div class="mt-3">
-               <div class="d-flex justify-content-between small text-muted mb-2">
-                  <span class="text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">Ocupação da Turma</span>
-               </div>
-               ${getProgressHtml(item.enrolled_count, item.max_capacity).replace("max-width: 140px; margin: 0 auto;", "max-width: 100%;")} 
+          <div class="flex-grow-1 d-flex flex-column justify-content-center py-1" style="min-width: 0;">
+              <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                  <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 1rem; max-width: 180px;">${item.name}</h6>
+                  <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1" style="font-size: 0.6rem; border-radius: 6px;">${item.course_name}</span>
+              </div>
+              <div class="d-flex flex-column gap-1 mt-1">
+                  <span class="text-muted fw-medium" style="font-size: 0.75rem;"><i class="far fa-user me-1"></i> ${item.coordinator_name || "Sem coordenador"}</span>
+                  <div class="mt-1" style="width: 120px;">
+                    ${getProgressHtml(item.enrolled_count, item.max_capacity, true)}
+                  </div>
+              </div>
           </div>
-          
-          <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+
+          <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-3" style="min-width: 90px;">
+              <div class="d-flex align-items-center justify-content-end gap-2 w-100">
+                <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                  <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} onchange="toggleTurma(${item.class_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                  <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.classes', ${item.class_id}, this)"><i class="fas fa-bolt"></i></button>
+                  <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalTurma(${item.class_id}, this)"><i class="fas fa-pen"></i></button>
+                  <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteTurma(${item.class_id})"><i class="fas fa-trash-can"></i></button>
+              </div>
           </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
-  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
-
-  container.html(desktopHtml + mobileHtml);
+  container.html(tableHtml + `<div class="d-md-none ios-list-container">${mobileRows}</div>`);
   _generatePaginationButtons("pagination-turmas", "currentPage", "totalPages", "changePage", defaultClass);
 };
 
+// =========================================================
+// 2. LOGICA DE MATRÍCULAS E HISTÓRICO ALUNO
+// =========================================================
+window.openHistory = (enrollmentId, studentName) => {
+  $("#hist_enrollment_id").val(enrollmentId);
+  $("#hist_student_name").text(studentName);
+  $("#hist_obs").val("");
+  $("#hist_action").val("COMMENT");
+  loadEnrollmentHistory(enrollmentId);
+  $("#modalHistoricoAluno").modal("show");
+};
+
+const loadEnrollmentHistory = async (enrollmentId) => {
+  const container = $("#lista-historico-detalhe");
+  container.html('<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary"></div></div>');
+  try {
+    const res = await window.ajaxValidator({ validator: "getEnrollmentHistory", token: defaultApp.userInfo.token, enrollment_id: enrollmentId });
+    if (res.status) {
+      const html = (res.data || [])
+        .map(
+          (item) => `
+        <div class="position-relative ps-4 border-start border-2 border-secondary border-opacity-10 pb-4 ms-2">
+            <div class="position-absolute start-0 top-0 translate-middle-x bg-primary rounded-circle border border-3 border-body shadow-sm" style="width: 12px; height: 12px; margin-top: 5px;"></div>
+            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 shadow-inner">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">${item.action_type}</span>
+                    <small class="text-muted fw-bold" style="font-size: 0.7rem;">${item.action_date_fmt}</small>
+                </div>
+                <p class="mb-2 text-body small fw-medium">${item.observation || "Registo de sistema."}</p>
+                <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-2 mt-1">
+                    <div class="small text-muted" style="font-size: 0.65rem;"><i class="fas fa-user-circle me-1 opacity-50"></i> Por: <b>${item.user_name}</b></div>
+                    <button class="btn btn-link text-danger p-0 text-decoration-none" onclick="deleteHistoryItem(${item.history_id}, ${enrollmentId})"><i class="fas fa-trash-can"></i></button>
+                </div>
+            </div>
+        </div>`,
+        )
+        .join("");
+      container.html(html || '<div class="text-center py-4 small opacity-50">Sem histórico.</div>');
+    }
+  } catch (e) {
+    container.html('<div class="text-center text-danger py-4">Erro ao carregar histórico.</div>');
+  }
+};
+
+window.addHistoryItem = async (btn) => {
+  const eid = $("#hist_enrollment_id").val();
+  const action = $("#hist_action").val();
+  const obs = $("#hist_obs").val().trim();
+
+  if (!obs && action === "COMMENT") return window.alertDefault("Descreva a ocorrência.", "warning");
+
+  btn = $(btn);
+  window.setButton(true, btn, "");
+  try {
+    const res = await window.ajaxValidator({
+      validator: "addEnrollmentHistory",
+      token: defaultApp.userInfo.token,
+      enrollment_id: eid,
+      action_type: action,
+      observation: obs,
+    });
+    if (res.status) {
+      window.alertDefault("Registo Adicionado!", "success");
+      $("#hist_obs").val("");
+      loadEnrollmentHistory(eid);
+      loadClassStudents($("#class_id").val());
+    }
+  } catch (e) {
+    window.alertErrorWithSupport("Gravar Histórico", e.message);
+  } finally {
+    window.setButton(false, btn);
+  }
+};
+
+window.deleteHistoryItem = (historyId, enrollmentId) => {
+  Swal.fire({ title: "Apagar registro?", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
+    if (r.isConfirmed) {
+      await window.ajaxValidator({ validator: "deleteEnrollmentHistory", token: defaultApp.userInfo.token, id: historyId });
+      loadEnrollmentHistory(enrollmentId);
+    }
+  });
+};
+
+window.matricularAluno = async (btn) => {
+  const classId = $("#class_id").val();
+  const studentId = $("#sel_new_student").val();
+  if (!classId || !studentId) return window.alertDefault("Selecione o aluno.", "warning");
+
+  btn = $(btn);
+  window.setButton(true, btn, "");
+
+  try {
+    const res = await window.ajaxValidator({ validator: "enrollStudent", token: defaultApp.userInfo.token, class_id: classId, student_id: studentId });
+    if (res.status) {
+      window.alertDefault("Matriculado!", "success");
+      $("#sel_new_student")[0].selectize.clear();
+      loadClassStudents(classId);
+      getTurmas();
+    }
+  } catch (e) {
+    window.alertErrorWithSupport("Falha na matrícula", e.message);
+  } finally {
+    window.setButton(false, btn);
+  }
+};
+
+const loadClassStudents = async (classId) => {
+  const container = $("#lista-alunos");
+  container.html('<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+  try {
+    const res = await window.ajaxValidator({ validator: "getClassStudents", token: defaultApp.userInfo.token, class_id: classId });
+    if (res.status) renderStudentsList(res.data || []);
+  } catch (e) {
+    container.html('<div class="text-center text-danger small">Erro ao carregar catequizandos.</div>');
+  }
+};
+
+const renderStudentsList = (data) => {
+  const container = $("#lista-alunos");
+  if (data.length === 0) {
+    container.html('<div class="text-center py-4 opacity-50 small">Nenhum aluno.</div>');
+    return;
+  }
+
+  // TRADUÇÃO DE STATUS APLICADA
+  const statusMap = {
+    ACTIVE: { label: "Ativo", color: "success" },
+    SUSPENDED: { label: "Suspenso", color: "warning" },
+    DROPPED: { label: "Desistente", color: "danger" },
+    COMPLETED: { label: "Concluído", color: "primary" },
+    TRANSFERRED: { label: "Transferido", color: "info" },
+    PLANNED: { label: "Pré-matrícula", color: "secondary" },
+  };
+
+  const html = data
+    .map((item) => {
+      const st = statusMap[item.status] || { label: item.status, color: "secondary" };
+      return `
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner">
+            <div class="flex-grow-1 pe-2">
+                <div class="fw-bold text-body text-truncate small">${item.student_name}</div>
+                <span class="badge bg-${st.color}-subtle text-${st.color} rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">${st.label}</span>
+            </div>
+            <div class="d-flex gap-1">
+                <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Linha do Tempo"><i class="fas fa-clock-rotate-left"></i></button>
+                <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover Matrícula"><i class="fas fa-user-minus"></i></button>
+            </div>
+        </div>`;
+    })
+    .join("");
+
+  container.html(html);
+};
+
+// =========================================================
+// 3. AUXILIARES: SELECTS E PAGINAÇÃO
+// =========================================================
+const initSelects = () => {
+  const selects = [
+    { id: "#sel_course", val: "getCoursesList", ph: "Procurar curso..." },
+    { id: "#sel_coordinator", val: "getCatechistsList", ph: "Procurar coordenador..." },
+    { id: "#sel_assistant", val: "getCatechistsList", ph: "Procurar auxiliar..." },
+    { id: "#sel_location", val: "getLocations", ph: "Sala padrão..." },
+    { id: "#sel_location_sched", val: "getLocations", ph: "Sala específica..." },
+    { id: "#sel_new_student", val: "getStudentsList", ph: "Buscar por nome ou CPF...", search: ["title", "tax_id"] },
+  ];
+  selects.forEach((s) => {
+    if ($(s.id).length && !$(s.id)[0].selectize) {
+      $(s.id).selectize({
+        valueField: s.val === "getLocations" ? "location_id" : "id",
+        labelField: s.val === "getLocations" ? "name" : "title",
+        searchField: s.search || (s.val === "getLocations" ? "name" : "title"),
+        placeholder: s.ph,
+        preload: true,
+        onInitialize: function () {
+          this.$control.css({ border: "none", "background-color": "rgba(100, 116, 139, 0.1)", "border-radius": "10px", padding: "11px 14px", "font-size": "0.92rem", "font-weight": "600", "box-shadow": "inset 0 1px 2px rgba(0,0,0,0.05)" });
+        },
+        render: {
+          option: (item, escape) =>
+            `<div class="py-2 px-3 border-bottom border-secondary border-opacity-10"><div class="fw-bold text-body small">${escape(item.title || item.name)}</div>${item.tax_id ? `<div class="text-muted fw-medium" style="font-size: 0.65rem;">CPF: ${escape(item.tax_id)}</div>` : ""}</div>`,
+        },
+        load: (q, cb) => {
+          $.ajax({ url: defaultApp.validator, type: "POST", dataType: "json", data: { validator: s.val, token: defaultApp.userInfo.token, search: q, limit: 50 }, success: (r) => cb(r.data), error: () => cb() });
+        },
+      });
+    }
+  });
+};
+
+// =========================================================
+// 4. LÓGICA DE SALVAMENTO E MODAL (FIX: org_id flatten)
+// =========================================================
 window.modalTurma = (id = null, btn = false) => {
   if (btn) btn = $(btn);
   const modal = $("#modalTurma");
-
   $("#class_id").val("");
   $("#class_name").val("");
   $("#class_capacity").val("");
   $("#class_status").val("PLANNED");
-
-  if ($("#sel_course")[0]?.selectize) $("#sel_course")[0].selectize.clear();
-  if ($("#sel_coordinator")[0]?.selectize) $("#sel_coordinator")[0].selectize.clear();
-  if ($("#sel_assistant")[0]?.selectize) $("#sel_assistant")[0].selectize.clear();
-  if ($("#sel_location")[0]?.selectize) $("#sel_location")[0].selectize.clear();
-
   currentSchedules = [];
-  renderSchedulesTable();
-  $("#lista-alunos").html(`
-    <div class="text-center py-5 opacity-50">
-      <span class="material-symbols-outlined fs-1 text-secondary">save</span>
-      <p class="mt-2 text-body fw-medium">Guarde a turma para gerir catequizandos.</p>
-    </div>
-  `);
+  ["#sel_course", "#sel_coordinator", "#sel_assistant", "#sel_location"].forEach((s) => {
+    if ($(s)[0]?.selectize) $(s)[0].selectize.clear();
+  });
+  $("#lista-horarios").empty();
+  $("#lista-alunos").html('<div class="text-center py-5 opacity-50 small">Salve a turma primeiro.</div>');
 
   if (id) {
+    $("#modalLabel").html('<i class="fas fa-pen me-2 opacity-75"></i> Editar Turma');
     $("#alunos-tab").removeClass("disabled");
     loadClassData(id, btn);
   } else {
+    $("#modalLabel").html('<i class="fas fa-layer-group me-2 opacity-75"></i> Configurar Turma');
     $("#alunos-tab").addClass("disabled");
-    $("#modalLabel").text("Nova Turma");
     modal.modal("show");
   }
-
-  const firstTabEl = document.querySelector('#turmaTab button:first-child');
-  if (firstTabEl) {
-    const tab = new bootstrap.Tab(firstTabEl);
-    tab.show();
-  }
+  const firstTab = new bootstrap.Tab(document.querySelector("#turmaTab button:first-child"));
+  firstTab.show();
 };
 
 const loadClassData = async (id, btn) => {
   try {
     window.setButton(true, btn, "");
-    const result = await window.ajaxValidator({
-      validator: "getClassById",
-      token: defaultApp.userInfo.token,
-      id: id,
-    });
-
-    if (result.status) {
-      const d = result.data;
+    const res = await window.ajaxValidator({ validator: "getClassById", token: defaultApp.userInfo.token, id });
+    if (res.status) {
+      const d = res.data;
       $("#class_id").val(d.class_id);
       $("#class_name").val(d.name);
       $("#class_capacity").val(d.max_capacity);
       $("#class_status").val(d.status);
-
-      if (d.course_id && d.course_name_text) {
-        const sel = $("#sel_course")[0].selectize;
-        sel.addOption({ id: d.course_id, title: d.course_name_text });
-        sel.setValue(d.course_id);
-      }
-
-      if (d.coordinator_id && d.coordinator_name_text) {
-        const sel = $("#sel_coordinator")[0].selectize;
-        sel.addOption({ id: d.coordinator_id, title: d.coordinator_name_text });
-        sel.setValue(d.coordinator_id);
-      }
-
-      if (d.class_assistant_id && d.assistant_name_text) {
-        const sel = $("#sel_assistant")[0].selectize;
-        sel.addOption({ id: d.class_assistant_id, title: d.assistant_name_text });
-        sel.setValue(d.class_assistant_id);
-      }
-
-      if (d.main_location_id && d.location_name_text) {
-        const sel = $("#sel_location")[0].selectize;
-        sel.addOption({ location_id: d.main_location_id, name: d.location_name_text });
-        sel.setValue(d.main_location_id);
-      }
+      const updateSel = (selId, val, text) => {
+        if (val) {
+          const s = $(selId)[0].selectize;
+          s.addOption({ id: val, title: text, location_id: val, name: text });
+          s.setValue(val);
+        }
+      };
+      updateSel("#sel_course", d.course_id, d.course_name_text || d.course_name);
+      updateSel("#sel_coordinator", d.coordinator_id, d.coordinator_name_text || d.coordinator_name);
+      updateSel("#sel_assistant", d.class_assistant_id, d.assistant_name_text || d.assistant_name);
+      updateSel("#sel_location", d.main_location_id, d.location_name_text || d.location_name);
 
       currentSchedules = d.schedules || [];
       renderSchedulesTable();
       loadClassStudents(id);
-
-      $("#modalLabel").text("Editar Turma");
       $("#modalTurma").modal("show");
-    } else {
-      throw new Error(result.alert || "Erro ao carregar os dados da turma.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha ao ligar com o servidor para carregar a turma.";
-    window.alertErrorWithSupport(`Abrir Edição de Turma`, errorMessage);
-    $("#modalTurma").modal("hide");
+    console.error(e);
+  } finally {
+    window.setButton(false, btn);
+  }
+};
+
+window.salvarTurma = async (btn) => {
+  const name = $("#class_name").val().trim();
+  const course = $("#sel_course").val();
+  const yearId = localStorage.getItem("sys_active_year");
+  const orgId = localStorage.getItem("tf_active_parish");
+
+  if (!name || !course || !yearId) return window.alertDefault("Preencha os campos obrigatórios.", "warning");
+  if (!orgId) return window.alertDefault("Organização não definida na sessão.", "error");
+
+  btn = $(btn);
+  window.setButton(true, btn, " Gravando...");
+
+  try {
+    // FIX: Payload achatado. data não é mais envelopado em um objeto "data: { ... }"
+    const res = await window.ajaxValidator({
+      validator: "saveClass",
+      token: defaultApp.userInfo.token,
+      org_id: orgId,
+      class_id: $("#class_id").val(),
+      name: name,
+      year_id: yearId,
+      course_id: course,
+      coordinator_id: $("#sel_coordinator").val(),
+      class_assistant_id: $("#sel_assistant").val(),
+      main_location_id: $("#sel_location").val(),
+      max_capacity: $("#class_capacity").val(),
+      status: $("#class_status").val(),
+      schedules_json: JSON.stringify(currentSchedules),
+    });
+
+    if (res.status) {
+      window.alertDefault("Salvo com sucesso!", "success");
+      $("#modalTurma").modal("hide");
+      getTurmas();
+    } else {
+      throw new Error(res.alert || "Falha na validação do servidor.");
+    }
+  } catch (e) {
+    window.alertErrorWithSupport("Erro ao salvar", e.message);
   } finally {
     window.setButton(false, btn);
   }
@@ -356,500 +533,82 @@ window.addSchedule = () => {
   const day = $("#sched_day").val();
   const start = $("#sched_start").val();
   const end = $("#sched_end").val();
+  const locId = $("#sel_location_sched").val() || $("#sel_location").val();
+  if (!start || !end) return window.alertDefault("Informe o horário.", "warning");
 
-  let locId = $("#sel_location_sched").val();
-  if (!locId) {
-    locId = $("#sel_location").val();
-  }
-
-  if (!start || !end) return window.alertDefault("Informe horários.", "warning");
-
-  currentSchedules.push({
-    day_of_week: parseInt(day),
-    start_time: start,
-    end_time: end,
-    location_id: locId || null,
-  });
-
-  renderSchedulesTable();
-};
-
-window.removeSchedule = (index) => {
-  currentSchedules.splice(index, 1);
+  currentSchedules.push({ day_of_week: parseInt(day), start_time: start, end_time: end, location_id: locId || null, location_name: $("#sel_location_sched")[0]?.selectize?.getItem($("#sel_location_sched").val())?.text() || "Sala Padrão" });
   renderSchedulesTable();
 };
 
 const renderSchedulesTable = () => {
   const container = $("#lista-horarios");
-
   if (currentSchedules.length === 0) {
-    container.html(`
-        <div class="text-center py-4 opacity-50">
-            <i class="far fa-clock fa-2x mb-2"></i>
-            <p class="small mb-0 fw-medium text-body">Nenhum horário definido.</p>
-        </div>
-    `);
+    container.html('<div class="text-center py-3 opacity-50 small">Sem horários.</div>');
     return;
   }
-
-  const daysMap = { 0: "Domingo", 1: "Segunda", 2: "Terça", 3: "Quarta", 4: "Quinta", 5: "Sexta", 6: "Sábado" };
-
-  const html = currentSchedules.map((item, index) => {
-    const st = item.start_time.substring(0, 5);
-    const et = item.end_time.substring(0, 5);
-    const locLabel = item.location_name || (item.location_id ? "Sala Específica" : "Sala da Turma");
-
-    return `
-      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-sm transition-all shadow-inner">
-          <div class="d-flex align-items-center gap-3">
-              <div class="bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
-                  <span class="fw-bold" style="font-size: 0.85rem; letter-spacing: 0.5px;">${daysMap[item.day_of_week].substring(0, 3).toUpperCase()}</span>
-              </div>
-              
-              <div>
-                  <div class="fw-bold text-body" style="font-size: 0.95rem;">
-                      <i class="far fa-clock me-1 text-primary opacity-75"></i> ${st} — ${et}
-                  </div>
-                  <div class="small text-muted d-flex align-items-center mt-1 fw-medium">
-                      <i class="fas fa-location-dot me-1 opacity-50"></i> ${locLabel}
-                  </div>
-              </div>
-          </div>
-
-          <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="removeSchedule(${index})" title="Remover Horário">
-              <i class="fas fa-times"></i>
-          </button>
-      </div>`;
-  }).join("");
-
+  const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+  const html = currentSchedules
+    .map(
+      (item, index) => `
+    <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 0.75rem;">${days[item.day_of_week].substring(0, 3).toUpperCase()}</div>
+            <div>
+                <div class="fw-bold text-body small"><i class="far fa-clock me-1"></i> ${item.start_time.substring(0, 5)} — ${item.end_time.substring(0, 5)}</div>
+                <div class="small text-muted fw-medium"><i class="fas fa-location-dot me-1"></i> ${item.location_name || "Local Turma"}</div>
+            </div>
+        </div>
+        <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="currentSchedules.splice(${index}, 1); renderSchedulesTable();"><i class="fas fa-trash-can"></i></button>
+    </div>`,
+    )
+    .join("");
   container.html(html);
 };
 
-window.salvarTurma = async (btn) => {
-  const name = $("#class_name").val().trim();
-  const course = $("#sel_course").val();
-  const yearId = localStorage.getItem("sys_active_year");
-  btn = $(btn);
-
-  if (!name) return window.alertDefault("Nome da turma é obrigatório.", "warning");
-  if (!course) return window.alertDefault("Selecione um curso.", "warning");
-  if (!yearId) return window.alertDefault("Selecione o ano letivo.", "warning");
-
-  window.setButton(true, btn, " A guardar...");
-
-  const data = {
-    class_id: $("#class_id").val(),
-    name: name,
-    year_id: yearId,
-    course_id: course,
-    coordinator_id: $("#sel_coordinator").val(),
-    class_assistant_id: $("#sel_assistant").val(),
-    main_location_id: $("#sel_location").val(),
-    max_capacity: $("#class_capacity").val(),
-    status: $("#class_status").val(),
-    schedules_json: JSON.stringify(currentSchedules),
-  };
-
-  try {
-    const result = await window.ajaxValidator({
-      validator: "saveClass",
-      token: defaultApp.userInfo.token,
-      data: data,
-      org_id: localStorage.getItem("tf_active_parish"),
-    });
-
-    if (result.status) {
-      window.alertDefault("Turma guardada com sucesso!", "success");
-      $("#modalTurma").modal("hide");
-      getTurmas();
-    } else {
-      throw new Error(result.alert || "Erro inesperado ao guardar a turma no banco de dados.");
-    }
-  } catch (e) {
-    const errorMessage = e.message || "Falha na comunicação com o servidor. Tente novamente.";
-    const acaoContexto = data.class_id ? `Atualizar Turma` : "Criar Nova Turma";
-    window.alertErrorWithSupport(acaoContexto, errorMessage);
-  } finally {
-    window.setButton(false, btn);
-  }
-};
-
-const loadClassStudents = async (classId) => {
-  const container = $("#lista-alunos");
-  try {
-    container.html(`
-      <div class="text-center py-5 opacity-50">
-        <div class="spinner-border text-primary" style="width: 2.5rem; height: 2.5rem;" role="status"></div>
-        <p class="mt-3 fw-medium text-body">A carregar catequizandos...</p>
-      </div>
-    `);
-
-    const result = await window.ajaxValidator({
-      validator: "getClassStudents",
-      token: defaultApp.userInfo.token,
-      class_id: classId,
-    });
-
-    if (result.status) {
-      const dataArray = result.data || [];
-
-      if (dataArray.length > 0) {
-        renderStudentsList(dataArray);
-      } else {
-        container.html(`
-          <div class="text-center py-5 opacity-50">
-            <span class="material-symbols-outlined fs-1 text-secondary">person_off</span>
-            <p class="mt-2 fw-medium text-body">Nenhum catequizando matriculado nesta turma.</p>
-          </div>
-        `);
+window.deleteTurma = (id) => {
+  Swal.fire({ title: "Excluir?", text: "A turma irá para a lixeira.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
+    if (r.isConfirmed) {
+      try {
+        const res = await window.ajaxValidator({ validator: "deleteClass", token: defaultApp.userInfo.token, id });
+        if (res.status) {
+          window.alertDefault("Removida.", "success");
+          getTurmas();
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } else {
-      throw new Error(result.alert || "Falha ao obter lista de catequizandos do banco de dados.");
     }
-  } catch (e) {
-    const errorMessage = e.message || "Falha de ligação ao tentar carregar a lista de catequizandos.";
-    window.alertErrorWithSupport(`Carregar Catequizandos da Turma`, errorMessage);
-  }
-};
-
-const renderStudentsList = (data) => {
-  const container = $("#lista-alunos");
-
-  const statusMap = {
-    ACTIVE: { l: "Ativo", c: "success" },
-    SUSPENDED: { l: "Suspenso", c: "warning" },
-    DROPPED: { l: "Desistente", c: "danger" },
-    COMPLETED: { l: "Concluído", c: "primary" },
-    TRANSFERRED: { l: "Transferido", c: "info" },
-    PLANNED: { l: "Pré-matrícula", c: "secondary" },
-  };
-
-  const html = data.map((item) => {
-    const st = statusMap[item.status] || { l: item.status, c: "secondary" };
-
-    return `
-      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-sm shadow-inner transition-all">
-          <div class="flex-grow-1 pe-2" style="min-width: 0;">
-              <div class="fw-bold text-body text-truncate mb-1" style="font-size: 0.95rem;">${item.student_name}</div>
-              <div class="d-flex align-items-center gap-2">
-                  <span class="badge bg-${st.c}-subtle text-${st.c} border border-${st.c} border-opacity-25 rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                      ${st.l.toUpperCase()}
-                  </span>
-                  <span class="small text-muted fw-medium d-none d-sm-inline" style="font-size: 0.75rem;">
-                      <i class="far fa-calendar-alt me-1 opacity-50"></i> ${item.enrollment_date_fmt}
-                  </span>
-              </div>
-          </div>
-          
-          <div class="d-flex align-items-center gap-2">
-              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Histórico">
-                  <i class="fas fa-history"></i>
-              </button>
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover">
-                  <i class="fas fa-trash-can"></i>
-              </button>
-          </div>
-      </div>`;
-  }).join("");
-
-  container.html(html);
-};
-
-window.matricularAluno = async (btn) => {
-  const classId = $("#class_id").val();
-  const studentId = $("#sel_new_student").val();
-  btn = $(btn);
-
-  if (!classId) return window.alertDefault("Guarde a turma antes de realizar matrículas.", "warning");
-  if (!studentId) return window.alertDefault("Selecione um catequizando para matricular.", "warning");
-
-  window.setButton(true, btn, " A matricular...");
-
-  try {
-    const result = await window.ajaxValidator({
-      validator: "enrollStudent",
-      token: defaultApp.userInfo.token,
-      class_id: classId,
-      student_id: studentId,
-    });
-
-    if (result.status) {
-      window.alertDefault("Catequizando matriculado com sucesso!", "success");
-      $("#sel_new_student")[0].selectize.clear();
-      loadClassStudents(classId);
-      getTurmas();
-    } else {
-      throw new Error(result.alert || "Não foi possível efectuar a matrícula no banco de dados.");
-    }
-  } catch (e) {
-    const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar matricular.";
-    window.alertErrorWithSupport(`Matricular Catequizando`, errorMessage);
-  } finally {
-    window.setButton(false, btn);
-  }
+  });
 };
 
 window.deleteEnrollment = (id) => {
-  Swal.fire({
-    title: "Remover Catequizando?",
-    text: "O catequizando será desvinculado desta turma.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Sim, remover",
-    cancelButtonText: "Cancelar"
-  }).then(async (r) => {
+  Swal.fire({ title: "Remover Aluno?", text: "Desvincula o aluno desta turma.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
     if (r.isConfirmed) {
-      const res = await window.ajaxValidator({ validator: "deleteEnrollment", token: defaultApp.userInfo.token, id: id });
+      const res = await window.ajaxValidator({ validator: "deleteEnrollment", token: defaultApp.userInfo.token, id });
       if (res.status) {
         window.alertDefault("Removido.", "success");
         loadClassStudents($("#class_id").val());
         getTurmas();
-      } else {
-        window.alertDefault(res.alert, "error");
       }
     }
   });
 };
 
-window.openHistory = (enrollmentId, studentName) => {
-  $("#hist_enrollment_id").val(enrollmentId);
-  $("#hist_student_name").text(studentName);
-  $("#hist_obs").val("");
-  $("#hist_action").val("COMMENT");
-
-  loadEnrollmentHistory(enrollmentId);
-  $("#modalHistoricoAluno").modal("show");
-};
-
-const loadEnrollmentHistory = async (enrollmentId) => {
-  const container = $("#lista-historico-detalhe");
-
-  container.html(`
-    <div class="text-center py-5 opacity-50">
-        <div class="spinner-border text-primary" style="width: 2rem; height: 2rem;" role="status"></div>
-        <p class="mt-3 fw-medium text-body small">A carregar histórico...</p>
-    </div>
-  `);
-
-  try {
-    const result = await window.ajaxValidator({
-      validator: "getEnrollmentHistory",
-      token: defaultApp.userInfo.token,
-      enrollment_id: enrollmentId,
-    });
-
-    if (result.status) {
-      const dataArray = result.data || [];
-
-      if (dataArray.length > 0) {
-        const actionMap = {
-          ENROLLED: { t: "Matrícula Inicial", c: "success", i: "person_add" },
-          SUSPENDED: { t: "Suspensão", c: "warning", i: "pause_circle" },
-          DROPPED: { t: "Desistência", c: "danger", i: "block" },
-          TRANSFERRED: { t: "Transferência", c: "info", i: "move_up" },
-          ACTIVE: { t: "Reativação", c: "success", i: "check_circle" },
-          COMPLETED: { t: "Conclusão", c: "primary", i: "auto_awesome" },
-          COMMENT: { t: "Observação", c: "secondary", i: "chat_bubble" },
-        };
-
-        const html = dataArray.map((item) => {
-          const act = actionMap[item.action_type] || { t: item.action_type, c: "secondary", i: "info" };
-
-          return `
-            <div class="position-relative ps-4 border-start border-2 border-secondary border-opacity-25 pb-3 ms-2">
-                <div class="position-absolute start-0 top-0 translate-middle-x bg-${act.c} rounded-circle border border-3 border-body shadow-sm" 
-                     style="width: 14px; height: 14px; margin-left: -1px; margin-top: 14px;"></div>
-                
-                <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 shadow-sm shadow-inner">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="badge bg-${act.c}-subtle text-${act.c} border border-${act.c} border-opacity-25 rounded-pill px-2 py-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                            ${act.t.toUpperCase()}
-                        </span>
-                        <div class="text-muted fw-medium" style="font-size: 0.75rem;">
-                            <i class="far fa-clock me-1 opacity-50 text-primary"></i> ${item.action_date_fmt}
-                        </div>
-                    </div>
-                    
-                    <p class="mb-3 text-body small lh-sm opacity-90 fw-medium">${item.observation || "Sem observação detalhada."}</p>
-                    
-                    <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-10 pt-2">
-                        <div class="small text-muted" style="font-size: 0.75rem;">
-                            <i class="fas fa-user-circle me-1 text-primary opacity-50"></i> Por: <span class="fw-bold text-body">${item.user_name}</span>
-                        </div>
-                        <button class="btn btn-link text-danger p-0 text-decoration-none shadow-none transition-all" onclick="deleteHistoryItem(${item.history_id}, ${enrollmentId})" title="Excluir Registo">
-                            <i class="fas fa-trash-can" style="font-size: 0.95rem;"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-        }).join("");
-
-        container.html(html);
-      } else {
-        container.html(`
-          <div class="text-center py-5 opacity-50">
-              <span class="material-symbols-outlined fs-1 text-secondary">history</span>
-              <p class="mt-2 fw-medium text-body small mb-0">Nenhum registo encontrado no histórico.</p>
-          </div>
-        `);
-      }
-    } else {
-      throw new Error(result.alert || "Falha ao obter os registos do histórico académico.");
-    }
-  } catch (e) {
-    const errorMessage = e.message || "Falha de ligação ao tentar carregar o histórico.";
-    container.html(`
-        <div class="text-center py-4">
-            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 56px; height: 56px;">
-                <i class="fas fa-exclamation-triangle fs-4"></i>
-            </div>
-            <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
-            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm mt-2" onclick="loadEnrollmentHistory(${enrollmentId})">
-                <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
-            </button>
-        </div>
-    `);
-    window.alertErrorWithSupport(`Carregar Histórico`, errorMessage);
-  }
-};
-
-window.addHistoryItem = async () => {
-  const eid = $("#hist_enrollment_id").val();
-  const action = $("#hist_action").val();
-  const obs = $("#hist_obs").val();
-
-  if (!eid) return;
-  if (!obs && action === "COMMENT") return window.alertDefault("Digite uma observação.", "warning");
-
-  try {
-    const result = await window.ajaxValidator({
-      validator: "addEnrollmentHistory",
-      token: defaultApp.userInfo.token,
-      enrollment_id: eid,
-      action_type: action,
-      observation: obs,
-    });
-
-    if (result.status) {
-      window.alertDefault("Anotação adicionada ao histórico!", "success");
-
-      $("#hist_obs").val("");
-      loadEnrollmentHistory(eid);
-      if ($("#class_id").val()) loadClassStudents($("#class_id").val());
-    } else {
-      throw new Error(result.alert || "Não foi possível guardar o registo no banco de dados.");
-    }
-  } catch (e) {
-    const errorMessage = e.message || "Falha de comunicação com o servidor ao guardar o histórico.";
-    window.alertErrorWithSupport(`Adicionar histórico do catequizando`, errorMessage);
-  }
-};
-
-window.deleteHistoryItem = (historyId, enrollmentId) => {
-  Swal.fire({
-    title: "Apagar registo?",
-    text: "O registo será movido para a lixeira do sistema.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Apagar",
-    cancelButtonText: "Cancelar"
-  }).then(async (r) => {
-    if (r.isConfirmed) {
-      await window.ajaxValidator({
-        validator: "deleteEnrollmentHistory",
-        token: defaultApp.userInfo.token,
-        id: historyId,
-      });
-      loadEnrollmentHistory(enrollmentId);
-    }
-  });
-};
-
-const initSelects = () => {
-  const selects = [
-    { id: "#sel_course", val: "getCoursesList", ph: "Selecione o Curso..." },
-    { id: "#sel_coordinator", val: "getCatechistsList", ph: "Busque o catequista..." },
-    { id: "#sel_assistant", val: "getCatechistsList", ph: "Busque o auxiliar..." },
-    { id: "#sel_location", val: "getLocations", ph: "Sala Principal..." },
-    { id: "#sel_location_sched", val: "getLocations", ph: "Sala Específica..." },
-    { id: "#sel_new_student", val: "getStudentsList", ph: "Busque o catequizando...", search: ["title", "tax_id"] },
-  ];
-
-  selects.forEach((s) => {
-    if ($(s.id).length && !$(s.id)[0].selectize) {
-      $(s.id).selectize({
-        valueField: s.val === "getLocations" ? "location_id" : "id",
-        labelField: s.val === "getLocations" ? "name" : "title",
-        searchField: s.search || (s.val === "getLocations" ? "name" : "title"),
-        placeholder: s.ph,
-        preload: true,
-        render: {
-          option: function (item, escape) {
-            if (item.tax_id) {
-              return `<div class="py-1 px-2"><div class="fw-bold text-body">${escape(item.title)}</div><div class="small text-muted fw-medium">CPF: ${escape(item.tax_id)}</div></div>`;
-            }
-            return `<div class="py-1 px-2 fw-bold text-body">${escape(item.title || item.name)}</div>`;
-          },
-        },
-        load: function (q, cb) {
-          $.ajax({ url: defaultApp.validator, type: "POST", dataType: "json", data: { validator: s.val, token: defaultApp.userInfo.token, search: q, limit: 50 }, success: (r) => cb(r.data), error: () => cb() });
-        },
-      });
-    }
-  });
-};
-
-window.deleteTurma = (id) => {
-  Swal.fire({
-    title: "Excluir Turma?",
-    text: "O registo será movido para a lixeira do sistema.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Sim, excluir",
-    cancelButtonText: "Cancelar",
-  }).then(async (r) => {
-    if (r.isConfirmed) {
-      try {
-        const res = await window.ajaxValidator({
-          validator: "deleteClass",
-          token: defaultApp.userInfo.token,
-          id: id,
-        });
-
-        if (res.status) {
-          window.alertDefault("Turma excluída com sucesso.", "success");
-          getTurmas();
-        } else {
-          throw new Error(res.alert || "O banco de dados bloqueou a exclusão desta turma.");
-        }
-      } catch (e) {
-        const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar excluir.";
-        window.alertErrorWithSupport(`Excluir Turma`, errorMessage);
-      }
-    }
-  });
-};
-
-window.changePage = (page) => {
-  defaultClass.currentPage = page;
+window.changePage = (p) => {
+  defaultClass.currentPage = p;
   getTurmas();
 };
 
-const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
-  let container = $(`.${containerClass}`);
+const _generatePaginationButtons = (c, ck, tk, f, o) => {
+  let container = $(`.${c}`);
   container.empty();
-  let total = contextObj[totalPagesKey];
-  let current = contextObj[currentPageKey];
-  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
+  let total = o[tk];
+  let current = o[ck];
+  if (total <= 1) return;
+  let html = `<button onclick="${f}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
   for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
-    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
+    html += `<button onclick="${f}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
   }
-  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
+  html += `<button onclick="${f}(total)" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
   container.html(html);
 };
