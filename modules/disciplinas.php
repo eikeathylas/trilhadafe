@@ -94,7 +94,7 @@
 
                             <div class="mb-0">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Ementa / Resumo</label>
-                                <textarea id="subject_summary" class="form-control border-0 shadow-sm rounded-3 bg-body" rows="6" style="min-height: 150px;" placeholder="Descreva brevemente o que será ensinado..."></textarea>
+                                <textarea id="subject_summary" class="form-control border-0 shadow-sm rounded-3 bg-body" rows="6" style="min-height: 250px;" placeholder="Descreva brevemente o que será ensinado..."></textarea>
                                 <small class="text-muted d-block mt-2 lh-sm opacity-75 fw-medium" style="font-size: 0.75rem;">
                                     <i class="fas fa-circle-info me-1"></i> Esta ementa aparecerá no plano de ensino do curso.
                                 </small>
