@@ -19,7 +19,7 @@
 
     <div class="main-only">
 
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
@@ -30,34 +30,29 @@
             </nav>
         </div>
 
-        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
-                <div class="row g-2 g-md-3 align-items-end">
-
-                    <div class="col-12 d-md-none mb-2">
-                        <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Gestão de Agenda e Eventos</h4>
+                <div class="row g-2 g-md-3 align-items-center">
+                    <div class="col-12 d-md-none mb-0 mt-2">
+                        <h4 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Agenda e Eventos</h4>
                     </div>
 
-                    <div class="col-8 col-md-9 flex-grow-1">
-                        <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="search_event" style="letter-spacing: 0.5px;">
-                            <i class="fas fa-search me-1 opacity-50"></i> Buscar
-                        </label>
-                        <input type="text" id="search_event" class="form-control shadow-sm" placeholder="Digite o nome ou descrição...">
+                    <div class="col-9 col-md-9 flex-grow-1">
+                        <input type="text" id="search_event" class="form-control shadow-sm" placeholder="Buscar eventos..." style="border-radius: 12px; height: 48px;">
                     </div>
 
-                    <div class="col-4 col-md-3 d-grid d-md-block">
-                        <button class="btn btn-primary fw-bold shadow-sm w-100" style="height: 44px; border-radius: 12px;" onclick="openEventModal()">
-                            <i class="fas fa-plus me-md-2"></i> <span class="d-none d-md-inline">Novo Evento</span><span class="d-inline d-md-none">Adicionar</span>
+                    <div class="col-3 col-md-3 d-grid d-md-block">
+                        <button class="btn btn-primary fw-bold shadow-sm w-100 d-flex align-items-center justify-content-center p-0" style="height: 48px; border-radius: 12px;" onclick="openEventModal()">
+                            <i class="fas fa-plus me-md-2"></i> <span class="d-none d-md-inline">Novo Evento</span>
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
 
-        <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
-            <div class="card-body p-0 pt-md-4 px-md-0">
-                <div class="table-responsive list-table-events" style="max-height: 70vh;">
+        <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-sm rounded-4 bg-transparent-card">
+            <div class="card-body p-0 p-md-4">
+                <div class="table-responsive list-table-events">
                     <div class="text-center py-5 opacity-50">
                         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
                         <p class="mt-3 fw-medium">Carregando calendário de eventos...</p>
@@ -81,7 +76,7 @@
                     <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body p-4 bg-body">
+                <div class="modal-body p-4">
                     <form id="formEvent">
                         <input type="hidden" id="event_id">
 
@@ -91,11 +86,11 @@
                                     <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
                                         Título do Evento <span class="text-danger">*</span>
                                     </label>
-                                    <input type="text" id="evt_title" class="form-control bg-body text-body border-0 shadow-none" required placeholder="Ex: Festa do Padroeiro, Feriado...">
+                                    <input type="text" id="evt_title" class="form-control text-body border-0 shadow-none" required placeholder="Ex: Festa do Padroeiro, Feriado...">
                                 </div>
                                 <div class="mb-0">
                                     <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Descrição / Anotações</label>
-                                    <textarea id="evt_desc" class="form-control bg-body text-body border-0 shadow-none" rows="2" placeholder="Informações adicionais (opcional)..."></textarea>
+                                    <textarea id="evt_desc" class="form-control text-body border-0 shadow-none" rows="2" placeholder="Informações adicionais (opcional)..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -107,15 +102,15 @@
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
                                             <i class="far fa-calendar me-1"></i> Data Selecionada *
                                         </label>
-                                        <input type="text" id="evt_date" class="form-control bg-body text-body border-0 fw-bold shadow-none" readonly required placeholder="Selecione o dia...">
+                                        <input type="text" id="evt_date" class="form-control text-body border-0 fw-bold shadow-none" readonly required placeholder="Selecione o dia...">
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Início</label>
-                                        <input type="time" id="evt_start" class="form-control bg-body text-body border-0 shadow-none">
+                                        <input type="time" id="evt_start" class="form-control text-body border-0 shadow-none">
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Fim</label>
-                                        <input type="time" id="evt_end" class="form-control bg-body text-body border-0 shadow-none">
+                                        <input type="time" id="evt_end" class="form-control text-body border-0 shadow-none">
                                     </div>
                                 </div>
                             </div>
@@ -137,7 +132,7 @@
                     </form>
                 </div>
 
-                <div class="modal-footer border-0 p-1 bg-body">
+                <div class="modal-footer border-0 p-1">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="saveEvent(this)">
                         <i class="fas fa-save me-2"></i> Gravar Evento

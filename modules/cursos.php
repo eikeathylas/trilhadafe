@@ -18,7 +18,7 @@
 
     <div class="main-only">
 
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
@@ -29,7 +29,7 @@
             </nav>
         </div>
 
-        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
 
                 <div class="col-12 d-md-none mb-3">
@@ -58,7 +58,7 @@
 
         <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
             <div class="card-body px-0 pt-4">
-                <div class="table-responsive list-table-cursos" style="max-height: 600px;">
+                <div class="table-responsive list-table-cursos">
                     <div class="text-center py-5 opacity-50">
                         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
                         <p class="mt-3 fw-medium">Carregando cursos...</p>
@@ -120,17 +120,17 @@
                                         <div class="row g-3">
                                             <div class="col-4">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Idade Mín.</label>
-                                                <input type="number" id="min_age" class="form-control bg-body border-0 shadow-none text-center">
+                                                <input type="number" id="min_age" class="form-control border-0 shadow-none text-center">
                                             </div>
                                             <div class="col-4">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Idade Máx.</label>
-                                                <input type="number" id="max_age" class="form-control bg-body border-0 shadow-none text-center">
+                                                <input type="number" id="max_age" class="form-control border-0 shadow-none text-center">
                                             </div>
                                             <div class="col-4">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Carga Total</label>
                                                 <div class="input-group">
-                                                    <input type="text" id="total_workload" class="form-control bg-body border-0 shadow-none text-center fw-bold text-primary" readonly>
-                                                    <span class="input-group-text border-0 bg-body text-muted"><i class="fas fa-clock"></i></span>
+                                                    <input type="text" id="total_workload" class="form-control border-0 shadow-none text-center fw-bold text-primary" readonly>
+                                                    <span class="input-group-text border-0 text-muted"><i class="fas fa-clock"></i></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -205,7 +205,7 @@
                             <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center px-3" onclick="addPlan()">
                                 <i class="fas fa-plus-circle me-2"></i> Adicionar Encontro
                             </button>
-                            <button class="btn btn-outline-primary fw-bold shadow-sm d-flex align-items-center px-3 bg-body" onclick="addDefaultModel()">
+                            <button class="btn btn-outline-primary fw-bold shadow-sm d-flex align-items-center px-3" onclick="addDefaultModel()">
                                 <i class="fas fa-wand-magic-sparkles me-2"></i> Gerar Modelo Padrão
                             </button>
                         </div>

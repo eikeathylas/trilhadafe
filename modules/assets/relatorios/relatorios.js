@@ -35,7 +35,7 @@ function initMaestro() {
 }
 
 // ==========================================
-// 2. SISTEMA DE FAVORITOS (UX 4)
+// 2. SISTEMA DE FAVORITOS
 // ==========================================
 function loadFavorites() {
   const saved = localStorage.getItem("trilhaDaFe_favReports");
@@ -102,7 +102,7 @@ function renderTabs() {
 }
 
 // ==========================================
-// 4. RENDERIZAÇÃO DE CARDS E BUSCA GLOBAL
+// 4. RENDERIZAÇÃO DE CARDS PREMIUM (NATIVOS)
 // ==========================================
 function renderReports() {
   const $container = $("#reportsContainer");
@@ -138,33 +138,31 @@ function renderReports() {
   filtered.forEach((r) => {
     const isFav = favoriteIds.includes(r.id);
     const starIcon = isFav ? "star" : "star_border";
-    const starClass = isFav ? "text-warning" : "text-muted";
+    const starClass = isFav ? "text-warning" : "text-muted opacity-50";
 
-    // Badge de Notificação/Status com o estilo Ghost (Translúcido)
-    const badgeHtml = r.badge
-      ? `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 ms-2 align-middle" style="font-size: 0.65em; padding: 0.35em 0.65em;">${r.badge}</span>`
-      : "";
+    const badgeHtml = r.badge ? `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 ms-2 align-middle fw-bold" style="font-size: 0.65em; padding: 0.35em 0.65em;">${r.badge}</span>` : "";
 
+    // Card Premium Atualizado
     $container.append(`
         <div class="col-12 col-md-6 col-lg-4">
-            <div class="mobile-card h-100 hover-scale shadow-sm cursor-pointer p-3 rounded-4 border border-secondary border-opacity-10 bg-transparent-card transition-all" onclick="prepareReportConfig('${r.id}')">
-                <div class="d-flex align-items-start gap-3">
+            <div class="card clickable h-100 p-1" onclick="prepareReportConfig('${r.id}')">
+                <div class="card-body p-3 d-flex align-items-start gap-3">
                     
-                    <div class="icon-circle bg-primary bg-opacity-10 text-primary p-3 rounded-circle d-flex align-items-center justify-content-center" style="min-width: 48px; min-height: 48px;">
-                        <span class="material-symbols-outlined fs-3">${r.icon}</span>
+                    <div class="icon-circle bg-primary bg-opacity-10 text-primary shadow-sm border border-primary border-opacity-25" style="width: 48px; height: 48px;">
+                        <span class="material-symbols-outlined fs-4">${r.icon}</span>
                     </div>
                     
-                    <div class="flex-grow-1 pt-1">
-                        <h6 class="fw-bold mb-1 d-flex align-items-center flex-wrap text-body">
+                    <div class="flex-grow-1 pt-1" style="min-width: 0;">
+                        <h6 class="fw-bold mb-1 text-body d-flex align-items-center flex-wrap gap-1">
                             ${r.title} ${badgeHtml}
                         </h6>
-                        <p class="small text-muted mb-0 lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; opacity: 0.8;">
+                        <p class="small text-muted mb-0 lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                             ${r.description}
                         </p>
                     </div>
                     
-                    <div class="ms-auto z-2 p-1" onclick="toggleFavorite(event, '${r.id}')" style="margin-top: -5px; margin-right: -5px;">
-                        <span class="material-symbols-outlined ${starClass} fs-4 transition-all">
+                    <div class="ms-auto z-2 p-1 hover-scale cursor-pointer" onclick="toggleFavorite(event, '${r.id}')" style="margin-top: -5px; margin-right: -5px;" title="Favoritar">
+                        <span class="material-symbols-outlined ${starClass} fs-4">
                             ${starIcon}
                         </span>
                     </div>
@@ -227,8 +225,6 @@ $(document).on("click", "#btnGenerateReport", function () {
   }
 });
 
-/* Mantenha suas variáveis de estado e DEFAULT_REPORTS como estão */
-
 function compileAndPrintReport(report) {
   $("#modalReportConfig").modal("hide");
 
@@ -251,7 +247,7 @@ function compileAndPrintReport(report) {
   <head>
       <meta charset="UTF-8">
       <title>Impressão - ${report.title}</title>
-      <link href="assets/css/report-print.css" rel="stylesheet">
+      <link href="assets/css/report-print.css?v=${2}" rel="stylesheet">
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   </head>
   <body>
@@ -312,7 +308,6 @@ function compileAndPrintReport(report) {
 
         function updatePageNumbers() {
           const pages = document.querySelectorAll(".page");
-          console.log(pages)
           pages.forEach((p, i) => {
             const number = p.querySelector(".page-number");
             if (number) {

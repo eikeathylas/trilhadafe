@@ -15,7 +15,7 @@
 
     <div class="main-only">
 
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
@@ -26,7 +26,7 @@
             </nav>
         </div>
 
-        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
 
                 <div class="col-12 d-md-none mb-3">
@@ -55,7 +55,7 @@
 
         <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
             <div class="card-body px-0 pt-4">
-                <div class="table-responsive list-table-turmas" style="max-height: 600px;">
+                <div class="table-responsive list-table-turmas">
                     <div class="text-center py-5 opacity-50">
                         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
                         <p class="mt-3 fw-medium">Carregando turmas...</p>
@@ -81,7 +81,7 @@
 
                 <div class="modal-body p-0"> <input type="hidden" id="class_id">
 
-                    <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 bg-body z-2 shadow-sm">
+                    <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 z-2 shadow-sm">
                         <div class="modern-tabs-wrapper">
                             <ul class="nav nav-pills gap-1" id="turmaTab" role="tablist" style="flex-wrap: nowrap;">
                                 <li class="nav-item" role="presentation">
@@ -113,7 +113,7 @@
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label class="form-label small fw-bold text-uppercase text-muted mb-2">Curso Vinculado *</label>
-                                    <select id="sel_course" class="form-control bg-body border-0 shadow-none"></select>
+                                    <select id="sel_course" class="form-control border-0 shadow-none"></select>
                                 </div>
 
                                 <div class="col-12">
@@ -121,11 +121,11 @@
                                         <div class="row g-3">
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Coordenador / Catequista</label>
-                                                <select id="sel_coordinator" class="form-control bg-body border-0 shadow-none"></select>
+                                                <select id="sel_coordinator" class="form-control border-0 shadow-none"></select>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Auxiliar de Turma</label>
-                                                <select id="sel_assistant" class="form-control bg-body border-0 shadow-none"></select>
+                                                <select id="sel_assistant" class="form-control border-0 shadow-none"></select>
                                             </div>
                                         </div>
                                     </div>
@@ -232,7 +232,7 @@
                             </label>
                             <div class="row g-2 align-items-center">
                                 <div class="col-12 col-md-4">
-                                    <select id="hist_action" class="form-control bg-body border-0 shadow-none">
+                                    <select id="hist_action" class="form-control border-0 shadow-none">
                                         <option value="COMMENT">Apenas Observação</option>
                                         <option value="SUSPENDED">Suspender</option>
                                         <option value="DROPPED">Desistência / Abandono</option>
@@ -242,7 +242,7 @@
                                     </select>
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <input type="text" id="hist_obs" class="form-control bg-body border-0 shadow-none" placeholder="Motivo ou detalhe...">
+                                    <input type="text" id="hist_obs" class="form-control border-0 shadow-none" placeholder="Motivo ou detalhe...">
                                 </div>
                                 <div class="col-12 col-md-2">
                                     <button class="btn btn-primary fw-bold w-100 shadow-sm" onclick="addHistoryItem(this)">

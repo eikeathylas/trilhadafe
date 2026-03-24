@@ -309,19 +309,6 @@ label {
     transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.3s ease;
   position: relative;
-  overflow: hidden;
-}
-
-/* Brilho Superior (Top Glow) Subtil para Modo Claro */
-.card::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
-  z-index: 1;
 }
 
 /* Efeito de Elevação ao Passar o Rato */
@@ -437,10 +424,9 @@ label {
    ============================================================ */
 [data-theme="escuro"] .card,
 [data-theme="escuro"] .filter-card {
-  /* Gradiente suave para não parecer uma caixa chapada */
   background: linear-gradient(145deg, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+  /* border: 1px solid rgba(255, 255, 255, 0.05) !important; */
+  /* box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important; */
 }
 
 /* Hairline Top Glow (Simula luz batendo na borda superior do card) */
@@ -484,57 +470,6 @@ label {
   }
 }
 
-/* ============================================================
-   SISTEMA DE ILUMINAÇÃO INTERNA PREMIUM (MODO ESCURO)
-   ============================================================ */
-[data-theme="escuro"] .card,
-[data-theme="escuro"] .filter-card {
-  /* Gradiente suave para não parecer uma caixa chapada */
-  background: linear-gradient(145deg, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
-}
-
-/* Hairline Top Glow (Simula luz batendo na borda superior do card) */
-[data-theme="escuro"] .card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
-  z-index: 1;
-}
-
-[data-theme="escuro"] .card-header {
-  border-color: var(--borda);
-}
-
-[data-theme="escuro"] .icon-circle {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="escuro"] .event-date-box {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="escuro"] .event-num {
-  color: var(--white);
-}
-
-/* -- Responsividade -- */
-@media (max-width: 768px) {
-  .filter-card {
-    padding: 14px;
-    border-radius: 16px;
-    margin-bottom: 16px;
-  }
-  .card,
-  .filter-card {
-    border-radius: 20px !important;
-  }
-}
 /* ============================================================
    4. TABELAS (DESKTOP)
    ============================================================ */

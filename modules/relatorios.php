@@ -16,7 +16,7 @@
 
     <div class="main-only px-0 px-md-3">
 
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px;">
@@ -39,11 +39,11 @@
                             <i class="fas fa-search me-1 opacity-50"></i> O que você procura?
                         </label>
                         <div class="input-group shadow-sm" style="border-radius: 12px; overflow: hidden;">
-                            <span class="input-group-text bg-body border-end-0 border-secondary border-opacity-25 text-muted d-md-none">
+                            <span class="input-group-text border-end-0 border-secondary border-opacity-25 text-muted d-md-none">
                                 <i class="fas fa-search"></i>
                             </span>
-                            <input type="text" id="reportSearch" class="form-control border-start-0 border-end-0 bg-body border-secondary border-opacity-25 shadow-none" placeholder="Buscar por nome ou descrição..." style="height: 45px;">
-                            <span class="input-group-text bg-body border-start-0 border-secondary border-opacity-25 clear-search-btn d-none" id="clearSearchBtn" title="Limpar busca" style="cursor: pointer; transition: opacity 0.2s;">
+                            <input type="text" id="reportSearch" class="form-control border-start-0 border-end-0 border-secondary border-opacity-25 shadow-none" placeholder="Buscar por nome ou descrição..." style="height: 45px;">
+                            <span class="input-group-text border-start-0 border-secondary border-opacity-25 clear-search-btn d-none" id="clearSearchBtn" title="Limpar busca" style="cursor: pointer; transition: opacity 0.2s;">
                                 <i class="fas fa-times-circle text-secondary opacity-50"></i>
                             </span>
                         </div>
@@ -76,13 +76,13 @@
         <div class="modal-dialog modal-dialog-centered modal-md">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header border-0 bg-body pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="modal-title fw-bold text-body fs-4" id="reportTitle" style="letter-spacing: -0.5px;">
                     </h5>
                     <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="modal-body pt-2 px-4 pb-4 bg-body">
+                <div class="modal-body pt-2 px-4 pb-4">
                     <p id="reportDesc" class="text-secondary small mb-4 lh-sm opacity-75"></p>
 
                     <form id="formReport">

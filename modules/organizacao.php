@@ -17,7 +17,7 @@
     </div>
 
     <div class="main-only">
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
@@ -28,7 +28,7 @@
             </nav>
         </div>
 
-        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0 px-2 px-md-3">
                 <div class="modern-tabs-wrapper mobile-segmented-control">
                     <ul class="nav nav-pills m-0 d-flex flex-nowrap" id="orgTab" role="tablist">
@@ -96,7 +96,7 @@
             <div class="card-body p-0 pt-md-4 px-md-0">
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="diocese" role="tabpanel">
-                        <div class="table-responsive list-table-diocese" style="max-height: 70vh;">
+                        <div class="table-responsive list-table-diocese">
                             <div class="text-center py-5 opacity-50">
                                 <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
                                 <p class="mt-3 fw-medium">Carregando diretório...</p>
@@ -105,12 +105,12 @@
                     </div>
 
                     <div class="tab-pane fade" id="instituicoes" role="tabpanel">
-                        <div class="table-responsive list-table-orgs" style="max-height: 70vh;"></div>
+                        <div class="table-responsive list-table-orgs"></div>
                         <div class="pagination paginationButtons pagination-orgs mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
                     </div>
 
                     <div class="tab-pane fade" id="locais" role="tabpanel">
-                        <div class="table-responsive list-table-locais" style="max-height: 70vh;"></div>
+                        <div class="table-responsive list-table-locais"></div>
                         <div class="pagination paginationButtons pagination-locais mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
                     </div>
                 </div>
@@ -156,22 +156,22 @@
                                     <div class="row g-3">
                                         <div class="col-md-8">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome Fantasia <span class="text-danger">*</span></label>
-                                            <input type="text" id="org_display_name" class="form-control bg-body border-0 shadow-none" placeholder="Ex: Paróquia São José" />
+                                            <input type="text" id="org_display_name" class="form-control border-0 shadow-none" placeholder="Ex: Paróquia São José" />
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">Tipo</label>
-                                            <select id="org_type" class="form-control bg-body border-0 shadow-none">
+                                            <select id="org_type" class="form-control border-0 shadow-none">
                                                 <option value="DIOCESE">Diocese</option>
                                                 <option value="PARISH">Paróquia</option>
                                             </select>
                                         </div>
                                         <div class="col-md-8">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">Razão Social / Mitra</label>
-                                            <input type="text" id="org_legal_name" class="form-control bg-body border-0 shadow-none" />
+                                            <input type="text" id="org_legal_name" class="form-control border-0 shadow-none" />
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">CNPJ</label>
-                                            <input type="text" id="org_tax_id" class="form-control bg-body border-0 shadow-none mask-cnpj" placeholder="00.000.000/0000-00" />
+                                            <input type="text" id="org_tax_id" class="form-control border-0 shadow-none mask-cnpj" placeholder="00.000.000/0000-00" />
                                         </div>
                                     </div>
                                 </div>
@@ -182,33 +182,33 @@
                                         <div class="col-md-4">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">CEP</label>
                                             <div class="input-group">
-                                                <input type="text" id="org_zip" class="form-control bg-body border-0 shadow-none mask-cep" onblur="buscarCep(this.value)" placeholder="00000-000" />
-                                                <span class="input-group-text bg-body border-0 text-primary cursor-pointer" onclick="buscarCep($('#org_zip').val())"><i class="fas fa-search"></i></span>
+                                                <input type="text" id="org_zip" class="form-control border-0 shadow-none mask-cep" onblur="buscarCep(this.value)" placeholder="00000-000" />
+                                                <span class="input-group-text border-0 text-primary cursor-pointer" onclick="buscarCep($('#org_zip').val())"><i class="fas fa-search"></i></span>
                                             </div>
                                         </div>
                                         <div class="col-md-8">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">Rua / Logradouro</label>
-                                            <input type="text" id="org_street" class="form-control bg-body border-0 shadow-none" />
+                                            <input type="text" id="org_street" class="form-control border-0 shadow-none" />
                                         </div>
                                         <div class="col-md-5">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">Bairro</label>
-                                            <input type="text" id="org_district" class="form-control bg-body border-0 shadow-none" />
+                                            <input type="text" id="org_district" class="form-control border-0 shadow-none" />
                                         </div>
                                         <div class="col-md-5">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">Cidade</label>
-                                            <input type="text" id="org_city" class="form-control bg-body border-0 shadow-none" />
+                                            <input type="text" id="org_city" class="form-control border-0 shadow-none" />
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">UF</label>
-                                            <input type="text" id="org_state" class="form-control bg-body border-0 shadow-none text-center" maxlength="2" />
+                                            <input type="text" id="org_state" class="form-control border-0 shadow-none text-center" maxlength="2" />
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">Telefone</label>
-                                            <input type="text" id="org_phone" class="form-control bg-body border-0 shadow-none mask-phone" placeholder="(00) 0000-0000" />
+                                            <input type="text" id="org_phone" class="form-control border-0 shadow-none mask-phone" placeholder="(00) 0000-0000" />
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2">E-mail</label>
-                                            <input type="email" id="org_email" class="form-control bg-body border-0 shadow-none" placeholder="contato@paroquia.com" />
+                                            <input type="email" id="org_email" class="form-control border-0 shadow-none" placeholder="contato@paroquia.com" />
                                         </div>
                                     </div>
                                 </div>
@@ -244,15 +244,15 @@
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Vincular à Paróquia</label>
-                                <select id="loc_org_id" class="form-control bg-body border-0 shadow-none select-orgs-modal"></select>
+                                <select id="loc_org_id" class="form-control border-0 shadow-none select-orgs-modal"></select>
                             </div>
                             <div class="col-md-9">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome do Espaço <span class="text-danger">*</span></label>
-                                <input type="text" id="loc_name" class="form-control bg-body border-0 shadow-none" placeholder="Ex: Sala Catequese 01" />
+                                <input type="text" id="loc_name" class="form-control border-0 shadow-none" placeholder="Ex: Sala Catequese 01" />
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Lotação</label>
-                                <input type="number" id="loc_capacity" class="form-control bg-body border-0 shadow-none" placeholder="0" />
+                                <input type="number" id="loc_capacity" class="form-control border-0 shadow-none" placeholder="0" />
                             </div>
                         </div>
                     </div>
@@ -274,7 +274,7 @@
                             ];
                             foreach ($recursos as $id => $label): ?>
                                 <div class="col-6 col-md-4">
-                                    <div class="form-check form-switch d-flex align-items-center bg-body p-2 px-3 rounded-3 border border-secondary border-opacity-10 transition-all cursor-pointer">
+                                    <div class="form-check form-switch d-flex align-items-center p-2 px-3 rounded-3 border border-secondary border-opacity-10 transition-all cursor-pointer">
                                         <input class="form-check-input shadow-none m-0 me-3" type="checkbox" id="loc_<?php echo $id; ?>" style="cursor:pointer;">
                                         <label class="form-check-label small fw-bold text-body m-0" for="loc_<?php echo $id; ?>" style="cursor:pointer;"><?php echo $label; ?></label>
                                     </div>

@@ -22,7 +22,7 @@
 
     <div class="main-only">
 
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
@@ -33,7 +33,7 @@
             </nav>
         </div>
 
-        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
                 <div class="row g-2 g-md-3 align-items-end">
 
@@ -73,7 +73,7 @@
 
         <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
             <div class="card-body p-0 pt-md-4 px-md-3">
-                <div class="table-responsive list-table-diario" style="max-height: 70vh;">
+                <div class="table-responsive list-table-diario">
                     <div class="text-center py-5 text-muted opacity-50">
                         <i class="fas fa-arrow-up mb-3 d-block" style="font-size: 2.5rem;"></i>
                         <h6 class="fw-bold text-body">Selecione Turma e Disciplina</h6>
@@ -105,7 +105,7 @@
                     <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="modal-body p-3 p-md-4 bg-body">
+                <div class="modal-body p-3 p-md-4">
                     <input type="hidden" id="session_id">
 
                     <div class="row g-4 h-100">
@@ -119,8 +119,8 @@
                                                 <i class="far fa-calendar-check opacity-50"></i> Data e Hora da Aula
                                             </label>
                                             <div class="input-group">
-                                                <input type="text" id="diario_date" class="form-control fw-bold border-0 bg-body text-body shadow-none" placeholder="Toque para selecionar..." readonly style="height: 50px; cursor: pointer;">
-                                                <span class="input-group-text border-0 bg-body text-muted" id="date-status-icon"></span>
+                                                <input type="text" id="diario_date" class="form-control fw-bold border-0 text-body shadow-none" placeholder="Toque para selecionar..." readonly style="height: 50px; cursor: pointer;">
+                                                <span class="input-group-text border-0 text-muted" id="date-status-icon"></span>
                                             </div>
                                             <small id="date-msg" class="d-block mt-2 fw-bold text-truncate text-body" style="font-size: 0.75rem;"></small>
                                         </div>
@@ -132,7 +132,7 @@
                                     </div>
                                 </div>
 
-                                <div class="card-body p-0 border-top border-secondary border-opacity-10 bg-body">
+                                <div class="card-body p-0 border-top border-secondary border-opacity-10">
                                     <textarea id="diario_content" class="border-0 w-100"></textarea>
                                 </div>
                             </div>
@@ -158,7 +158,7 @@
                                     </div>
                                 </div>
 
-                                <div class="card-footer bg-body border-top border-secondary border-opacity-10 p-3">
+                                <div class="card-footer border-top border-secondary border-opacity-10 p-3">
                                     <button class="btn btn-primary w-100 shadow-sm rounded-3 fw-bold d-flex align-items-center justify-content-center transition-all" onclick="salvarDiario(this)" style="height: 50px;">
                                         <i class="fas fa-cloud-upload-alt me-2"></i> Gravar Diário
                                     </button>

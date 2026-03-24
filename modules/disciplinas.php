@@ -15,7 +15,7 @@
 
     <div class="main-only">
 
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
@@ -26,7 +26,7 @@
             </nav>
         </div>
 
-        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
 
                 <div class="col-12 d-md-none mb-3">
@@ -55,7 +55,7 @@
 
         <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
             <div class="card-body px-0 pt-4">
-                <div class="table-responsive list-table-disciplinas" style="max-height: 600px;">
+                <div class="table-responsive list-table-disciplinas">
                     <div class="text-center py-5 opacity-50">
                         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
                         <p class="mt-3 fw-medium">Carregando disciplinas...</p>
@@ -86,12 +86,12 @@
                         <div class="card-body p-3 p-md-4">
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Nome da Matéria <span class="text-danger">*</span></label>
-                                <input type="text" id="subject_name" class="form-control bg-body border-0 shadow-none" placeholder="Ex: Novo Testamento">
+                                <input type="text" id="subject_name" class="form-control border-0 shadow-none" placeholder="Ex: Novo Testamento">
                             </div>
 
                             <div class="mb-0">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Ementa / Resumo</label>
-                                <textarea id="subject_summary" class="form-control bg-body border-0 shadow-none" rows="4" placeholder="Descreva brevemente o que será ensinado..."></textarea>
+                                <textarea id="subject_summary" class="form-control border-0 shadow-none" rows="4" placeholder="Descreva brevemente o que será ensinado..."></textarea>
                                 <small class="text-muted d-block mt-2 lh-sm opacity-75">
                                     <i class="fas fa-circle-info me-1"></i> Aparecerá no plano de ensino do curso.
                                 </small>

@@ -281,11 +281,11 @@ const renderTableHistory = (data) => {
       return `
       <div class="ios-list-item align-items-center">
           <div class="me-3">
-              <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 bg-body shadow-sm overflow-hidden" style="width: 52px; height: 56px; border-radius: 10px;">
+              <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 52px; height: 56px; border-radius: 10px;">
                   <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.6rem; height: 18px; letter-spacing: 0.5px;">
                       DIA
                   </div>
-                  <div class="d-flex align-items-center justify-content-center flex-grow-1 bg-body">
+                  <div class="d-flex align-items-center justify-content-center flex-grow-1">
                       <span class="fs-5 fw-bold text-body lh-1">${day}</span>
                   </div>
               </div>
@@ -661,12 +661,12 @@ const renderStudents = () => {
           <div id="just-box-mob-${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
               <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-danger border-opacity-10 shadow-inner">
                   <label class="form-label small fw-bold text-danger text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Justificativa da Falta</label>
-                  <select class="form-control shadow-none border-0 mb-2 text-body bg-body" onchange="updateAbsenceType(${idx}, this.value)" style="height: 44px;">
+                  <select class="form-control shadow-none border-0 mb-2 text-body" onchange="updateAbsenceType(${idx}, this.value)" style="height: 44px;">
                       <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>Não Justificada</option>
                       <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
                       <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
                   </select>
-                  <input type="text" class="form-control shadow-none border-0 text-body bg-body" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo..." style="height: 44px;">
+                  <input type="text" class="form-control shadow-none border-0 text-body" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo..." style="height: 44px;">
               </div>
           </div>
       </div>`;

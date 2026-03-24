@@ -220,19 +220,19 @@ const renderTableCourses = (data) => {
 
           <div class="d-flex flex-column gap-2 mt-3 p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner">
               <div class="d-flex align-items-center text-body small">
-                  <div class="bg-body shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
+                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
                       <i class="fas fa-user-graduate" style="font-size: 0.7rem;"></i>
                   </div>
                   <span class="text-truncate ms-2 fw-medium">Idade: ${ageLabel}</span>
               </div>    
               <div class="d-flex align-items-center text-body mt-1 small">
-                  <div class="bg-body shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
+                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
                       <i class="far fa-clock" style="font-size: 0.7rem;"></i>
                   </div>
                   <span class="text-truncate ms-2 fw-medium">Carga: ${item.total_workload_hours || 0} horas</span>
               </div>
               <div class="d-flex align-items-center text-body mt-1 small">
-                  <div class="bg-body shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info" style="width: 26px; height: 26px; flex-shrink: 0;">
+                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-info" style="width: 26px; height: 26px; flex-shrink: 0;">
                       <i class="fas fa-book" style="font-size: 0.7rem;"></i>
                   </div>
                   <span class="text-truncate ms-2 fw-medium">Grade: ${item.subjects_count || 0} matérias</span>
@@ -463,7 +463,7 @@ const renderCurriculumTable = () => {
               <div>
                   <div class="fw-bold text-body fs-6 mb-1">${item.subject_name}</div>
                   <div class="d-flex align-items-center flex-wrap gap-2">
-                      <span class="badge bg-body text-body border rounded-pill fw-medium px-2 py-1 shadow-sm" style="font-size: 0.7rem;">
+                      <span class="badge text-body border rounded-pill fw-medium px-2 py-1 shadow-sm" style="font-size: 0.7rem;">
                           <i class="far fa-clock me-1 text-primary opacity-75"></i> ${item.workload_hours}h
                       </span>
                       ${mandatoryBadge}
@@ -556,7 +556,7 @@ const renderAccordionList = () => {
           </div>
           
           <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionPlans">
-              <div class="p-3 pt-0 border-top border-secondary border-opacity-10 bg-body">
+              <div class="p-3 pt-0 border-top border-secondary border-opacity-10">
                   <textarea class="summernote-dynamic" data-index="${i}">${plan.content || ""}</textarea>
               </div>
           </div>

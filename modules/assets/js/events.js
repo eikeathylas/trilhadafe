@@ -118,7 +118,7 @@ const renderTableEvents = (data) => {
 
       return `
         <tr>
-            <td class="align-middle ps-3" style="width: 60px;">
+            <td class="align-middle ps-4" style="width: 70px;">
                 <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
                     <span class="material-symbols-outlined" style="font-size: 20px;">event</span>
                 </div>
@@ -134,55 +134,72 @@ const renderTableEvents = (data) => {
             <td class="align-middle text-center" style="width: 220px;">
                 ${toggleHtml}
             </td>
-            <td class="align-middle text-end pe-3 text-nowrap">
-                <button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-                <button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon-action text-danger" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            <td class="align-middle text-end pe-4">
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn-icon-action text-warning bg-warning bg-opacity-10 hover-scale shadow-none" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Histórico">
+                        <i class="fas fa-history"></i>
+                    </button>
+                    <button class="btn-icon-action text-primary bg-primary bg-opacity-10 hover-scale shadow-none" onclick="editEvent(${item.event_id}, this)" title="Editar">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="btn-icon-action text-danger bg-danger bg-opacity-10 hover-scale shadow-none" onclick="deleteEvent(${item.event_id})" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </td>
         </tr>`;
     })
     .join("");
 
   // =========================================================
-  // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG)
+  // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG COM MICRO-TOOLBAR)
   // =========================================================
   let mobileRows = data
     .map((item) => {
       return `
-        <div class="ios-list-item">
-            <div class="me-3">
-                <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 bg-body shadow-sm overflow-hidden" style="width: 54px; height: 58px; border-radius: 10px;">
-                    <div class="text-uppercase fw-bold bg-danger text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.6rem; height: 18px; letter-spacing: 0.5px;">
-                        ${item.day_week || "DIA"}
-                    </div>
-                    <div class="d-flex align-items-center justify-content-center flex-grow-1 bg-body">
-                        <span class="fs-4 fw-bold text-body lh-1">${item.date_fmt.split("/")[0]}</span>
+        <div class="ios-list-item flex-column align-items-stretch" style="padding: 12px 16px;">
+            <div class="d-flex w-100 align-items-center">
+                <div class="me-3">
+                    <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 48px; height: 52px; border-radius: 10px;">
+                        <div class="text-uppercase fw-bold bg-danger text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.5rem; height: 16px; letter-spacing: 0.5px;">
+                            ${item.day_week || "DIA"}
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center flex-grow-1">
+                            <span class="fs-5 fw-bold text-body lh-1">${item.date_fmt.split("/")[0]}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="flex-grow-1 d-flex flex-column justify-content-center py-1" style="min-width: 0;">
-                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                    <h6 class="fw-bold text-body m-0" style="font-size: 1rem;">${item.title}</h6>
+                
+                <div class="flex-grow-1 d-flex flex-column justify-content-center" style="min-width: 0;">
+                    <h6 class="fw-bold text-body m-0 text-truncate w-100" style="font-size: 0.95rem;">${item.title}</h6>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="text-secondary" style="font-size: 0.75rem;"><i class="far fa-clock me-1 opacity-50"></i> ${item.start_time ? item.start_time : "Dia todo"}</span>
+                    </div>
                 </div>
-                <div class="d-flex align-items-center gap-3 mt-1">
-                    <span class="text-secondary" style="font-size: 0.8rem;"><i class="far fa-clock me-1 opacity-50"></i> ${item.start_time ? item.start_time : "Dia todo"}</span>
+
+                <div class="d-flex flex-column align-items-end justify-content-center ms-2 flex-shrink-0">
+                    <div class="d-flex align-items-center justify-content-end gap-2 w-100">
+                        <div id="lbl_mob_${item.event_id}">
+                            ${getStatusIconHtml(item.is_academic_blocker)}
+                        </div>
+                        <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                            <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer; width: 38px; height: 22px;">
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="d-flex flex-column align-items-end justify-content-center ms-2 gap-3" style="min-width: 90px;">
-                <div class="d-flex align-items-center justify-content-end gap-1 w-100">
-                    <div id="lbl_mob_${item.event_id}">
-                        ${getStatusIconHtml(item.is_academic_blocker)}
-                    </div>
-                    <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                        <input class="form-check-input m-0 shadow-none" type="checkbox" ${item.is_academic_blocker ? "checked" : ""} onchange="toggleBlocker(${item.event_id}, this)" style="cursor: pointer; width: 44px; height: 24px;">
-                    </div>
-                </div>
+            <div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-top border-secondary border-opacity-10 w-100">
                 <div class="d-flex gap-2">
-                    <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-                    <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-                    <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Histórico">
+                        <i class="fas fa-history" style="font-size: 0.85rem;"></i>
+                    </button>
+                    <button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="editEvent(${item.event_id}, this)" title="Editar">
+                        <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
+                    </button>
+                    <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEvent(${item.event_id})" title="Excluir">
+                        <i class="fas fa-trash" style="font-size: 0.85rem;"></i>
+                    </button>
                 </div>
             </div>
         </div>`;
@@ -245,7 +262,7 @@ window.toggleBlocker = async (id, element) => {
     });
 
     if (res.status) {
-      window.alertDefault(`Data ${status ? 'bloqueada' : 'liberada'} com sucesso!`, "success");
+      window.alertDefault(`Data ${status ? "bloqueada" : "liberada"} com sucesso!`, "success");
     } else {
       throw new Error(res.msg || res.alert || "O servidor não permitiu alterar o bloqueio deste evento.");
     }

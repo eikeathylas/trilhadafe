@@ -15,7 +15,7 @@
     </div>
 
     <div class="main-only">
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
@@ -26,7 +26,7 @@
             </nav>
         </div>
 
-        <div class="ios-search-container list-commanded border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
             <div class="card-body p-3 p-md-4">
                 <div class="row g-2 g-md-3 align-items-end">
 
@@ -66,7 +66,7 @@
 
         <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
             <div class="card-body p-0 pt-md-4 px-md-0">
-                <div class="table-responsive list-table-pessoas" style="max-height: 70vh;">
+                <div class="table-responsive list-table-pessoas">
                     <div class="text-center py-5 opacity-50">
                         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
                         <p class="mt-3 fw-medium">Carregando diretório...</p>
@@ -90,7 +90,7 @@
                     <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 bg-body z-2 shadow-sm">
+                <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 z-2 shadow-sm">
                     <div class="modern-tabs-wrapper">
                         <ul class="nav nav-pills gap-1" id="pessoaTab" role="tablist" style="flex-wrap: nowrap;">
                             <li class="nav-item" role="presentation">
@@ -154,34 +154,34 @@
                                         <div class="row g-3">
                                             <div class="col-md-8">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome Completo <span class="text-danger">*</span></label>
-                                                <input type="text" id="full_name" class="form-control bg-body border-0 shadow-none" placeholder="Nome na certidão" />
+                                                <input type="text" id="full_name" class="form-control border-0 shadow-none" placeholder="Nome na certidão" />
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome Social / Apelido</label>
-                                                <input type="text" id="religious_name" class="form-control bg-body border-0 shadow-none" placeholder="Como gosta de ser chamado" />
+                                                <input type="text" id="religious_name" class="form-control border-0 shadow-none" placeholder="Como gosta de ser chamado" />
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nascimento</label>
-                                                <input type="date" id="birth_date" class="form-control bg-body border-0 shadow-none" />
+                                                <input type="date" id="birth_date" class="form-control border-0 shadow-none" />
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">CPF</label>
-                                                <input type="text" id="tax_id" class="form-control bg-body border-0 shadow-none mask-cpf" maxlength="14" placeholder="000.000.000-00" />
+                                                <input type="text" id="tax_id" class="form-control border-0 shadow-none mask-cpf" maxlength="14" placeholder="000.000.000-00" />
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Gênero</label>
-                                                <select id="gender" class="form-control bg-body border-0 shadow-none">
+                                                <select id="gender" class="form-control border-0 shadow-none">
                                                     <option value="M">Masculino</option>
                                                     <option value="F">Feminino</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">RG / Documento (Opcional)</label>
-                                                <input type="text" id="national_id" class="form-control bg-body border-0 shadow-none" placeholder="Nº do Documento" />
+                                                <input type="text" id="national_id" class="form-control border-0 shadow-none" placeholder="Nº do Documento" />
                                             </div>
 
                                             <div class="col-md-12 mt-4">
-                                                <div class="bg-body p-3 rounded-3 border border-secondary border-opacity-10">
+                                                <div class="p-3 rounded-3 border border-secondary border-opacity-10">
                                                     <div class="form-check form-switch mb-0 d-flex align-items-center">
                                                         <input class="form-check-input shadow-none fs-5 m-0 me-3" type="checkbox" id="is_pcd" style="cursor:pointer;" />
                                                         <label class="form-check-label fw-bold text-primary m-0" for="is_pcd" style="cursor:pointer;">
@@ -206,15 +206,15 @@
                                 <div class="row g-3">
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">WhatsApp/Celular</label>
-                                        <input type="text" id="phone_mobile" class="form-control bg-body border-0 shadow-none mask-phone" maxlength="15" placeholder="(00) 00000-0000" />
+                                        <input type="text" id="phone_mobile" class="form-control border-0 shadow-none mask-phone" maxlength="15" placeholder="(00) 00000-0000" />
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">Fixo (Opcional)</label>
-                                        <input type="text" id="phone_landline" class="form-control bg-body border-0 shadow-none mask-phone" maxlength="15" placeholder="(00) 0000-0000" />
+                                        <input type="text" id="phone_landline" class="form-control border-0 shadow-none mask-phone" maxlength="15" placeholder="(00) 0000-0000" />
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">E-mail</label>
-                                        <input type="email" id="email" class="form-control bg-body border-0 shadow-none" placeholder="email@exemplo.com" />
+                                        <input type="email" id="email" class="form-control border-0 shadow-none" placeholder="email@exemplo.com" />
                                     </div>
                                 </div>
                             </div>
@@ -227,29 +227,29 @@
                                     <div class="col-md-3">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">CEP</label>
                                         <div class="input-group">
-                                            <input type="text" id="zip_code" class="form-control bg-body border-0 shadow-none mask-cep" onblur="buscarCep(this.value)" maxlength="9" placeholder="00000-000" />
-                                            <span class="input-group-text bg-body border-0 text-primary cursor-pointer" onclick="buscarCep($('#zip_code').val())"><i class="fas fa-search"></i></span>
+                                            <input type="text" id="zip_code" class="form-control border-0 shadow-none mask-cep" onblur="buscarCep(this.value)" maxlength="9" placeholder="00000-000" />
+                                            <span class="input-group-text border-0 text-primary cursor-pointer" onclick="buscarCep($('#zip_code').val())"><i class="fas fa-search"></i></span>
                                         </div>
                                     </div>
                                     <div class="col-md-7">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">Logradouro</label>
-                                        <input type="text" id="address_street" class="form-control bg-body border-0 shadow-none" placeholder="Rua, Avenida..." />
+                                        <input type="text" id="address_street" class="form-control border-0 shadow-none" placeholder="Rua, Avenida..." />
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">Número</label>
-                                        <input type="text" id="address_number" class="form-control bg-body border-0 shadow-none" placeholder="Nº" />
+                                        <input type="text" id="address_number" class="form-control border-0 shadow-none" placeholder="Nº" />
                                     </div>
                                     <div class="col-md-5">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">Bairro</label>
-                                        <input type="text" id="address_district" class="form-control bg-body border-0 shadow-none" />
+                                        <input type="text" id="address_district" class="form-control border-0 shadow-none" />
                                     </div>
                                     <div class="col-md-5">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">Cidade</label>
-                                        <input type="text" id="address_city" class="form-control bg-body border-0 shadow-none" />
+                                        <input type="text" id="address_city" class="form-control border-0 shadow-none" />
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2">UF</label>
-                                        <input type="text" id="address_state" class="form-control bg-body border-0 shadow-none text-center" maxlength="2" placeholder="PE" />
+                                        <input type="text" id="address_state" class="form-control border-0 shadow-none text-center" maxlength="2" placeholder="PE" />
                                     </div>
                                 </div>
                             </div>
@@ -320,7 +320,7 @@
                         <div class="tab-pane fade" id="tab-familia" role="tabpanel">
                             <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 mb-4 shadow-inner">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2">Buscar e Vincular Parente</label>
-                                <select id="search_relative" class="form-control bg-body border-0 shadow-none" placeholder="Digite o nome do pai, mãe, filho..."></select>
+                                <select id="search_relative" class="form-control border-0 shadow-none" placeholder="Digite o nome do pai, mãe, filho..."></select>
                             </div>
 
                             <div class="d-flex flex-column gap-2" id="lista-familia-cards">
@@ -345,10 +345,10 @@
                                     <div id="baptism_details" class="ms-md-5 ms-3 ps-3 border-start border-2 border-primary d-none">
                                         <div class="row g-2">
                                             <div class="col-md-7">
-                                                <input type="text" class="form-control bg-body border-0 shadow-none" id="baptism_place" placeholder="Paróquia do Batismo" />
+                                                <input type="text" class="form-control border-0 shadow-none" id="baptism_place" placeholder="Paróquia do Batismo" />
                                             </div>
                                             <div class="col-md-5">
-                                                <input type="date" class="form-control bg-body border-0 shadow-none" id="baptism_date" />
+                                                <input type="date" class="form-control border-0 shadow-none" id="baptism_date" />
                                             </div>
                                         </div>
                                     </div>
@@ -362,10 +362,10 @@
                                     <div id="eucharist_details" class="ms-md-5 ms-3 ps-3 border-start border-2 border-warning d-none">
                                         <div class="row g-2">
                                             <div class="col-md-7">
-                                                <input type="text" class="form-control bg-body border-0 shadow-none" id="eucharist_place" placeholder="Paróquia da Eucaristia" />
+                                                <input type="text" class="form-control border-0 shadow-none" id="eucharist_place" placeholder="Paróquia da Eucaristia" />
                                             </div>
                                             <div class="col-md-5">
-                                                <input type="date" class="form-control bg-body border-0 shadow-none" id="eucharist_date" />
+                                                <input type="date" class="form-control border-0 shadow-none" id="eucharist_date" />
                                             </div>
                                         </div>
                                     </div>
@@ -375,13 +375,13 @@
 
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <div class="form-check form-switch d-flex align-items-center bg-body p-3 rounded-3 border border-secondary border-opacity-10">
+                                        <div class="form-check form-switch d-flex align-items-center p-3 rounded-3 border border-secondary border-opacity-10">
                                             <input class="form-check-input fs-4 shadow-none m-0 me-3" type="checkbox" id="has_confirmation" style="cursor:pointer;" />
                                             <label class="form-check-label fw-bold text-body m-0" for="has_confirmation" style="cursor:pointer;">Sacramento da Crisma</label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="form-check form-switch d-flex align-items-center bg-body p-3 rounded-3 border border-secondary border-opacity-10">
+                                        <div class="form-check form-switch d-flex align-items-center p-3 rounded-3 border border-secondary border-opacity-10">
                                             <input class="form-check-input fs-4 shadow-none m-0 me-3" type="checkbox" id="has_marriage" style="cursor:pointer;" />
                                             <label class="form-check-label fw-bold text-body m-0" for="has_marriage" style="cursor:pointer;">Casado(a) na Igreja</label>
                                         </div>
@@ -395,11 +395,11 @@
                                 <div class="row g-3 align-items-end">
                                     <div class="col-md-5">
                                         <label class="form-label small fw-bold text-uppercase text-primary mb-2">Descrição do Documento *</label>
-                                        <input type="text" id="new_attachment_desc" class="form-control bg-body border-0 shadow-none" placeholder="Ex: Certidão de Batismo, RG..." />
+                                        <input type="text" id="new_attachment_desc" class="form-control border-0 shadow-none" placeholder="Ex: Certidão de Batismo, RG..." />
                                     </div>
                                     <div class="col-md-5">
                                         <label class="form-label small fw-bold text-uppercase text-primary mb-2">Selecionar Arquivo *</label>
-                                        <input type="file" id="new_attachment_file" class="form-control bg-body border-0 shadow-none" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx" />
+                                        <input type="file" id="new_attachment_file" class="form-control border-0 shadow-none" accept=".pdf, .jpg, .jpeg, .png, .doc, .docx" />
                                     </div>
                                     <div class="col-md-2">
                                         <button class="btn btn-primary w-100 fw-bold shadow-sm rounded-3 py-2" onclick="uploadAttachment(this)">

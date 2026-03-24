@@ -221,13 +221,13 @@ const renderTableClasses = (data) => {
 
           <div class="d-flex flex-column gap-2 mt-3 p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner">
               <div class="d-flex align-items-center text-body">
-                  <div class="bg-body shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
+                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
                       <i class="fas fa-user-tie" style="font-size: 0.7rem;"></i>
                   </div>
                   <span class="text-truncate ms-2 fw-medium small">${item.coordinator_name || "Sem coordenador"}</span>
               </div>    
               <div class="d-flex align-items-center text-body mt-1">
-                  <div class="bg-body shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
+                  <div class="shadow-sm rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 26px; height: 26px; flex-shrink: 0;">
                       <i class="far fa-clock" style="font-size: 0.7rem;"></i>
                   </div>
                   <span class="text-truncate ms-2 fw-medium small">${item.schedule_summary || "Sem horário"}</span>

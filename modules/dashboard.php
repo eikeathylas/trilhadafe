@@ -9,14 +9,12 @@
 </head>
 
 <body>
-
     <div id="sidebar-only" class="sidebar-only">
         <?php include "./assets/components/Sidebar.php"; ?>
     </div>
 
     <div class="main-only">
-
-        <div class="align-items-center mb-4 mt-4">
+        <div class="align-items-center mb-1 mt-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body ml-3" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px; margin-left: 20px;">
@@ -25,14 +23,12 @@
                 </ol>
             </nav>
         </div>
-
-        <div class="list-commanded mt-3">
-
+        <div class="list-commanded mt-0 mt-md-3 mb-5">
             <div class="ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
                 <div class="row g-3">
 
                     <div class="col-6 col-lg">
-                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 bg-body h-100 transition-all hover-lift">
+                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
@@ -48,7 +44,7 @@
                     </div>
 
                     <div class="col-6 col-lg">
-                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 bg-body h-100 transition-all hover-lift">
+                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
@@ -64,7 +60,7 @@
                     </div>
 
                     <div class="col-6 col-lg permission-admin">
-                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 bg-body h-100 transition-all hover-lift">
+                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
@@ -80,7 +76,7 @@
                     </div>
 
                     <div class="col-6 col-lg permission-admin">
-                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 bg-body h-100 transition-all hover-lift">
+                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
@@ -96,7 +92,7 @@
                     </div>
 
                     <div class="col-12 col-xl-auto permission-finance d-none">
-                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 bg-body h-100 transition-all hover-lift" style="min-width: 250px;">
+                        <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift" style="min-width: 250px;">
                             <div class="card-body p-3 p-md-4">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
@@ -114,84 +110,76 @@
                 </div>
             </div>
 
-            <div class="row ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
+            <div class="ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
+                <div class="row g-3">
 
-                <div class="col-12 col-lg-4 mt-3 mt-md-0">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
-                        <div class="card-header bg-body border-bottom border-secondary border-opacity-10 py-3 px-4">
-                            <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
-                                <i class="fa-solid fa-bullhorn me-2 text-info fs-5"></i> Mural de Avisos
-                            </h6>
-                        </div>
-                        <div class="card-body p-3 p-md-4 bg-secondary bg-opacity-10 rounded-bottom-4 shadow-inner">
-                            <div id="lista-avisos">
-                                <div class="text-center py-5 text-muted small opacity-75">
-                                    <div class="spinner-border text-info border-2" style="width: 2rem; height: 2rem;" role="status"></div>
-                                    <p class="mt-3 mb-0 fw-medium">Buscando informes...</p>
+                    <div class="col-12 col-lg-4 mt-3 mt-md-0">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
+                            <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4">
+                                <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
+                                    <i class="fa-solid fa-bullhorn me-2 text-info fs-5"></i> Mural de Avisos
+                                </h6>
+                            </div>
+                            <div class="card-body p-3 p-md-4 bg-secondary bg-opacity-10 rounded-bottom-4 shadow-inner">
+                                <div id="lista-avisos">
+                                    <div class="text-center py-5 text-muted small opacity-75">
+                                        <div class="spinner-border text-info border-2" style="width: 2rem; height: 2rem;" role="status"></div>
+                                        <p class="mt-3 mb-0 fw-medium">Buscando informes...</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-12 col-lg-4 mt-3 mt-md-0">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
-                        <div class="card-header bg-body border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
-                            <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
-                                <i class="fas fa-calendar-alt me-2 text-primary fs-5"></i> Agenda da Paróquia
-                            </h6>
-                            <button class="btn btn-sm btn-light bg-secondary bg-opacity-10 text-primary fw-bold text-decoration-none border-0 shadow-none px-3 rounded-pill transition-all" style="font-size: 0.75rem;" onclick="window.location.href='eventos.php'">Ver Todos</button>
-                        </div>
-                        <div class="card-body p-3 p-md-4 bg-secondary bg-opacity-10 rounded-bottom-4 shadow-inner">
-                            <div id="lista-eventos">
-                                <div class="text-center py-5 text-muted small opacity-75">
-                                    <div class="spinner-border text-primary border-2" style="width: 2rem; height: 2rem;" role="status"></div>
-                                    <p class="mt-3 mb-0 fw-medium">Carregando calendário...</p>
+                    <div class="col-12 col-lg-4 mt-3 mt-md-0">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
+                            <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
+                                    <i class="fas fa-calendar-alt me-2 text-primary fs-5"></i> Agenda da Paróquia
+                                </h6>
+                                <button class="btn btn-sm btn-light bg-secondary bg-opacity-10 text-primary fw-bold text-decoration-none border-0 shadow-none px-3 rounded-pill transition-all" style="font-size: 0.75rem;" onclick="window.location.href='eventos.php'">Ver Todos</button>
+                            </div>
+                            <div class="card-body p-3 p-md-4 bg-secondary bg-opacity-10 rounded-bottom-4 shadow-inner">
+                                <div id="lista-eventos">
+                                    <div class="text-center py-5 text-muted small opacity-75">
+                                        <div class="spinner-border text-primary border-2" style="width: 2rem; height: 2rem;" role="status"></div>
+                                        <p class="mt-3 mb-0 fw-medium">Carregando calendário...</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-12 col-lg-4 mt-3 mt-md-0">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
-                        <div class="card-header bg-body border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
-                            <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
-                                <i class="fas fa-gift me-2 text-danger fs-5"></i> Aniversariantes
-                            </h6>
-                            <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.7rem;">Este Mês</span>
-                        </div>
-                        <div class="card-body p-3 p-md-4 bg-secondary bg-opacity-10 rounded-bottom-4 shadow-inner">
-                            <div id="lista-aniversariantes">
-                                <div class="text-center py-5 text-muted small opacity-75">
-                                    <div class="spinner-border text-danger border-2" style="width: 2rem; height: 2rem;" role="status"></div>
-                                    <p class="mt-3 mb-0 fw-medium">Gerando felicitações...</p>
+                    <div class="col-12 col-lg-4 mt-3 mt-md-0">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
+                            <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
+                                    <i class="fas fa-gift me-2 text-danger fs-5"></i> Aniversariantes
+                                </h6>
+                                <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.7rem;">Este Mês</span>
+                            </div>
+                            <div class="card-body p-3 p-md-4 bg-secondary bg-opacity-10 rounded-bottom-4 shadow-inner">
+                                <div id="lista-aniversariantes">
+                                    <div class="text-center py-5 text-muted small opacity-75">
+                                        <div class="spinner-border text-danger border-2" style="width: 2rem; height: 2rem;" role="status"></div>
+                                        <p class="mt-3 mb-0 fw-medium">Gerando felicitações...</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
+                </div>
+                <div class="row mb-5 mt-5 g-3 d-flex d-md-none">
+                </div>
             </div>
-
         </div>
-
         <?php include "./assets/components/Footer.php"; ?>
-
     </div>
 
     <?php include "./assets/components/Modal-Faqs.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>
-
     <script src="assets/js/dashboard.js?v=<?php echo time(); ?>"></script>
-
-    <style>
-        .hover-lift:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .08) !important;
-        }
-    </style>
-
 </body>
 
 </html>

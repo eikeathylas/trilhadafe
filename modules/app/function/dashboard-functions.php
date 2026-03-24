@@ -73,7 +73,7 @@ function getDashboardStatsData($data)
             $stats['aniversariantes'][] = [
                 'name' => $aniv['full_name'],
                 'birth_date' => $aniv['birth_fmt'],
-                'photo_url' => $aniv['profile_photo_url'] ?: 'assets/img/default-avatar.png'
+                'photo_url' => $aniv['profile_photo_url']
             ];
         }
 

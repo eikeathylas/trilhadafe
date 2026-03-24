@@ -1,25 +1,24 @@
-<div class="d-md-none position-fixed top-0 start-0 w-100 mobile-top-header d-flex align-items-center justify-content-between px-3"
-    style="z-index: 1040; height: 75px; background-color: var(--fundo); box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding-top: env(safe-area-inset-top); border-radius: 0 0 16px 16px;">
-
+<div class="mobile-top-header">
     <div class="d-flex align-items-center gap-3">
-        <div class="user-avatar-container shadow-sm border border-secondary border-opacity-25 rounded-circle overflow-hidden position-relative flex-shrink-0"
-            style="width: 48px; height: 48px; cursor: pointer; padding: 2px; background: var(--body);"
+        <div class="user-avatar-container shadow-sm border border-secondary border-opacity-25 rounded-circle overflow-hidden flex-shrink-0 hover-scale"
+            style="width: 44px; height: 44px; cursor: pointer;"
             onclick="window.zoomAvatar(window.defaultApp.userInfo.img_user, 'Minha Foto')">
             <img src="./assets/img/trilhadafe.png" alt="User" class="user-avatar-img rounded-circle" id="sidebar-user-photo" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
+
         <div class="d-flex flex-column justify-content-center">
-            <span id="user-greeting" class="text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px; margin-bottom: -2px;">Olá,</span>
-            <span id="user-name-display" class="fw-bold text-body text-truncate" style="font-size: 1.15rem; letter-spacing: -0.5px; max-width: 160px;">Bem-vindo</span>
+            <span id="user-greeting" class="text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.8px; color: var(--descricao); margin-bottom: 2px;">Boa tarde,</span>
+            <span id="user-name-display" class="fw-bolder text-body text-truncate" style="font-size: 1.15rem; letter-spacing: -0.5px; line-height: 1; max-width: 180px;">Bem-vindo</span>
         </div>
     </div>
 
-    <div class="d-flex align-items-center gap-2">
-        <div class="position-relative d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded-circle transition-all"
+    <div class="d-flex align-items-center">
+        <button class="position-relative d-flex align-items-center justify-content-center border-0 transition-all hover-scale"
             data-bs-toggle="offcanvas" data-bs-target="#offcanvasNotifications"
-            style="cursor: pointer; width: 44px; height: 44px;">
-            <span class="material-symbols-outlined text-body" style="font-size: 24px;">notifications</span>
+            style="width: 44px; height: 44px; border-radius: 50%; background-color: var(--padrao-suave); color: var(--padrao);">
+            <span class="material-symbols-outlined" style="font-size: 24px;">notifications</span>
             <span class="badge-app-feel d-none" id="mob-notif-badge"></span>
-        </div>
+        </button>
     </div>
 </div>
 
@@ -121,9 +120,9 @@
             </div>
         </div>
 
-        <div class="mt-auto">
+        <div class="nav-only">
             <div class="menu-only border-top border-white border-opacity-10 pt-3">
-                <ul style="padding: 0; margin-bottom: 70px !important;">
+                <ul style="padding: 0; margin-bottom: 0px !important;">
                     <li>
                         <a href="#" onclick="showFaqModal()" data-tooltip="Ajuda">
                             <span class="material-symbols-outlined icon-only">help</span>
@@ -144,6 +143,10 @@
                     </li>
                 </ul>
             </div>
+        </div>
+
+        <div class="d-md-none mobile-micro-footer mb-5">
+            <span class="brand-text">Trilha da Fé &copy; <?php echo date("Y"); ?> <span class="build-text">Build v1.0.0 &bull; EaCode</span></span>
         </div>
     </div>
 </div>
@@ -199,7 +202,7 @@
         <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
 
-    <div class="offcanvas-body p-0 d-flex flex-column bg-body">
+    <div class="offcanvas-body p-0 d-flex flex-column">
 
         <div class="p-3 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center bg-transparent">
             <div>
@@ -222,7 +225,7 @@
         </div>
     </div>
 
-    <div class="offcanvas-footer p-4 d-grid gap-2 border-top border-secondary border-opacity-10 dock-glass bg-body">
+    <div class="offcanvas-footer p-4 d-grid gap-2 border-top border-secondary border-opacity-10 dock-glass">
         <button class="btn btn-primary fw-bold py-3 shadow-sm rounded-pill" onclick="window.markAllAsRead()" style="font-size: 1rem;">
             Marcar todas como lidas
         </button>

@@ -1,75 +1,174 @@
-/* Reset */
-
+/* ============================================================
+   MOTOR DE IMPRESSÃO E PAGINAÇÃO (REPORT ENGINE)
+   ============================================================ */
 :root {
   --bg-canvas: #525659;
-  --page-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Tela */
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
 
+body {
+  margin: 0;
+  font-family: "Inter", Arial, sans-serif;
+  background-color: var(--bg-canvas);
+}
+
+/* ====================================================
+   ESTRUTURA DA PÁGINA A4 (Base para o JS Calcular)
+   ==================================================== */
+.page {
+  width: 210mm;
+  height: 297mm; /* Fixo para o JS calcular a quebra de página */
+  display: flex;
+  flex-direction: column;
+  padding: 15mm; /* Respiro interno oficial do documento */
+  background: #ffffff;
+  position: relative;
+}
+
+.page-header {
+  flex: 0 0 auto;
+}
+.page-body {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+.page-footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+
+/* ====================================================
+   VISUALIZAÇÃO EM TELA (Simulador de PDF)
+   ==================================================== */
 @media screen {
   body {
-    background-color: #525659;
     padding: 40px 0;
-    font-family: "Inter", Arial, sans-serif;
-    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
   }
-  .a4-wrapper {
-    background-color: white;
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0 auto;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    padding: 15mm;
-    box-sizing: border-box;
-    position: relative;
+  .page {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 4px; /* Leve arredondamento apenas visual na tela */
   }
 }
 
-/* Print */
+/* ====================================================
+   IMPRESSÃO REAL (Clean & Precise)
+   ==================================================== */
 @media print {
-  .no-print {
-    display: none !important;
-  }
   @page {
     size: A4 portrait;
+    margin: 0 !important; /* MATA as margens do navegador para evitar quebra dupla */
   }
+
   body {
-    background: white;
-    margin: 0;
+    background-color: transparent;
     padding: 0;
-    font-family: "Inter", Arial, sans-serif;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    counter-reset: page;
   }
-  .a4-wrapper {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-    background: none;
+
+  .page {
+    margin: 0 !important;
+    padding: 16mm !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    page-break-inside: avoid;
+    page-break-after: always;
+  }
+
+  .page:last-child {
+    page-break-after: auto; /* Evita uma página em branco no final */
   }
 
   .no-print,
   .fab-print {
     display: none !important;
   }
-
-  .page {
-    margin: 0;
-    padding: 0;
-    box-shadow: none;
-  }
-
-  tfoot {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-  }
 }
 
-/* =============================== Botão Flutuante (Apenas Tela) =============================== */
+/* ====================================================
+   ELEMENTOS INTERNOS DO RELATÓRIO
+   ==================================================== */
+.report-header-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr 150px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.header-column-left .report-logo {
+  max-height: 80px;
+  max-width: 150px;
+  object-fit: contain;
+}
+
+.header-column-center {
+  text-align: center;
+}
+
+.org-name {
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.org-info {
+  font-size: 11px;
+  color: #333;
+}
+
+.report-title-section {
+  text-align: center;
+  border-top: 1px solid #eee;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.report-subtitle {
+  font-size: 13px;
+  color: #555;
+}
+
+.report-footer {
+  font-size: 10px;
+  width: 100%;
+  padding-top: 10px;
+  color: #333;
+}
+
+.footer-line {
+  border-top: 1px solid #ccc;
+  margin-bottom: 5px;
+}
+
+.report-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: end;
+  width: 100%;
+}
+
+.footer-left {
+  text-align: left;
+}
+.footer-center {
+  text-align: center;
+}
+.footer-right {
+  text-align: right;
+}
+.page-number {
+  font-weight: bold;
+}
+
+/* Botão Flutuante de Imprimir (Apenas Tela) */
 .fab-print {
   position: fixed;
   bottom: 30px;
@@ -80,7 +179,6 @@
   border-radius: 50px;
   padding: 12px 24px;
   font-size: 16px;
-  font-family: "Inter", Arial, sans-serif;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -88,178 +186,12 @@
   align-items: center;
   gap: 8px;
   z-index: 1000;
-  transition: background-color 0.2s;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
 }
+
 .fab-print:hover {
   background-color: #0b5ed7;
-}
-
-/* ==================================================== 3. MASTER TABLE — MOTOR DE PAGINAÇÃO ==================================================== */
-.master-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-thead {
-  display: table-header-group;
-}
-tfoot {
-  display: table-footer-group;
-}
-
-.master-table thead td {
-  padding-bottom: 12px;
-}
-.master-table tfoot td {
-  padding-top: 12px;
-}
-
-.miolo-relatorio {
-  padding: 0;
-}
-
-/* ==================================================== 4. CONTROLE DE QUEBRA — ANTI BUG ==================================================== */
-th,
-img,
-.report-header,
-.report-footer,
-.keep-together {
-  page-break-inside: avoid;
-}
-
-td,
-p,
-div {
-  page-break-inside: auto;
-}
-/* ==================================================== 5. HEADER LAYOUT ==================================================== */
-.report-header {
-  width: 100%;
-}
-.report-header-top {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.report-header-logo img {
-  max-height: 70px;
-  max-width: 140px;
-  object-fit: contain;
-}
-.report-header-org-nome {
-  font-weight: 700;
-  font-size: 16px;
-}
-.report-header-org-cnpj,
-.report-header-org-endereco {
-  font-size: 12px;
-  color: #444;
-}
-.report-header-titulo {
-  margin-top: 10px;
-  text-align: center;
-}
-.report-header-titulo h2 {
-  margin: 0;
-  font-size: 20px;
-}
-.report-header-subtitulo {
-  font-size: 13px;
-  color: #555;
-}
-/* ==================================================== 6. FOOTER — 3 COLUNAS FIXAS ==================================================== */
-.report-footer {
-  font-size: 10px;
-  width: 100%;
-  padding-top: 10px;
-}
-.report-footer-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-items: end;
-  width: 100%;
-}
-.report-footer-left {
-  text-align: left;
-}
-.report-footer-center {
-  text-align: center;
-}
-.report-footer-right {
-  text-align: right;
-}
-/* ==================================================== 7. PAGINAÇÃO JS ==================================================== */
-.page-number {
-  font-weight: bold;
-}
-/* ==================================================== PÁGINA A4 REAL — MOTOR WORD-LIKE ==================================================== */
-.page {
-  width: 210mm;
-  height: 297mm;
-  margin: 0 auto 20px auto;
-  background: #fff;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  padding: 15mm;
-}
-
-.page-header {
-  flex: 0 0 auto;
-}
-
-.page-body {
-  flex: 1 1 auto;
-  overflow: hidden;
-}
-
-.page-footer {
-  flex: 0 0 auto;
-  margin-top: auto;
-}
-
-.report-header-grid {
-  display: grid;
-  grid-template-columns: 150px 1fr 150px;
-  align-items: center;
-  margin-bottom: 15px;
-}
-.header-column-left .report-logo {
-  max-height: 80px;
-  max-width: 150px;
-  object-fit: contain;
-}
-.header-column-center {
-  text-align: center;
-}
-.org-name {
-  font-weight: bold;
-  font-size: 16px;
-  text-transform: uppercase;
-}
-.org-info {
-  font-size: 11px;
-  color: #333;
-}
-.report-title-section {
-  text-align: center;
-  border-top: 1px solid #eee;
-  margin-top: 10px;
-  padding-top: 10px;
-}
-
-.footer-line {
-  border-top: 1px solid #ccc;
-  margin-bottom: 5px;
-}
-.footer-center {
-  text-align: center;
-}
-.footer-right {
-  text-align: right;
-}
-
-.page:last-child {
-  page-break-after: auto;
+  transform: scale(1.05);
 }

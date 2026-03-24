@@ -53,7 +53,7 @@
   .sidebar-only {
     left: -320px;
     width: 280px;
-    height: 95vh;
+    height: 100vh;
     border-radius: 0 24px 24px 0;
     top: 0;
     bottom: 0;

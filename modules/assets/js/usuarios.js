@@ -486,7 +486,7 @@ window.openHistoryModal = async (id, name, btn) => {
                   <div class="d-flex justify-content-between align-items-start mb-1 gap-2 flex-wrap flex-md-nowrap">
                       <h6 class="fw-bold mb-0 text-body d-flex flex-column flex-md-row align-items-md-center">
                         ${h.title}
-                        <a data-bs-toggle="collapse" href="#collapseLog${index}" class="btn btn-sm btn-light bg-body border-secondary border-opacity-25 rounded-circle mt-2 mt-md-0 ms-md-3 text-primary p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;" title="Ver detalhes">
+                        <a data-bs-toggle="collapse" href="#collapseLog${index}" class="btn btn-sm btn-light border-secondary border-opacity-25 rounded-circle mt-2 mt-md-0 ms-md-3 text-primary p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;" title="Ver detalhes">
                             <i class="fas fa-chevron-down toggle-chevron" style="font-size: 0.8rem; transition: transform 0.3s ease;"></i>
                         </a>
                       </h6>
@@ -494,7 +494,7 @@ window.openHistoryModal = async (id, name, btn) => {
                   </div>
                   
                   <div class="collapse mt-3" id="collapseLog${index}">
-                      <div class="card card-body bg-body border border-secondary border-opacity-25 p-3 rounded-4 shadow-sm">
+                      <div class="card card-body border border-secondary border-opacity-25 p-3 rounded-4 shadow-sm">
                           ${detailHtml}
                       </div>
                   </div>

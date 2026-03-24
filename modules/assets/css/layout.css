@@ -42,7 +42,7 @@
    ============================================================ */
 .list-commanded {
   position: relative;
-  height: 100%;
+  height: 70vh;
 }
 
 /* Grid de visualização em formato de Cards (Dashboard/Relatórios) */
@@ -63,6 +63,10 @@
 }
 
 @media (max-width: 768px) {
+  .list-commanded {
+    position: relative;
+    height: 72vh;
+  }
   .list-commanded.cards-view {
     display: grid;
     grid-template-columns: repeat(1, 1fr);

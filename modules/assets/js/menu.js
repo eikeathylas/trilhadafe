@@ -74,15 +74,15 @@ const renderUserHeader = () => {
 
   // --- LÓGICA DE SAUDAÇÃO PREMIUM ---
   const hour = new Date().getHours();
-  let saudacao = "Boa noite";
-  if (hour >= 5 && hour < 12) saudacao = "Bom dia";
-  else if (hour >= 12 && hour < 18) saudacao = "Boa tarde";
+  let saudacao = "Boa noite, Paz e Bem";
+  if (hour >= 5 && hour < 12) saudacao = "Bom dia, Paz e Bem";
+  else if (hour >= 12 && hour < 18) saudacao = "Boa tarde, Paz e Bem";
 
   // Extrai apenas o primeiro nome
-  const firstName = defaults.header.name.split(" ")[0];
+  const firstName = defaults.header.name;
 
   // 1. Atualiza o Top Header Mobile (IDs do Sidebar.php)
-  if ($("#user-greeting").length) $("#user-greeting").text(saudacao + ",");
+  if ($("#user-greeting").length) $("#user-greeting").text(saudacao);
   if ($("#user-name-display").length) $("#user-name-display").text(firstName);
 
   // 2. Atualiza a Sidebar Desktop (.head-only) mantendo o Padrão Apple HIG
@@ -94,7 +94,7 @@ const renderUserHeader = () => {
               <img src="${userImg}" alt="User" class="user-avatar-img rounded-circle" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='./assets/img/trilhadafe.png'">
           </div>
           <div class="user-info-text d-flex flex-column justify-content-center ms-3 overflow-hidden">
-              <span class="text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px; margin-bottom: -2px;">${saudacao},</span>
+              <span class="text-secondary fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px; margin-bottom: -2px;">${saudacao}</span>
               <h6 class="fw-bold text-body text-truncate mb-0" style="font-size: 1.05rem; letter-spacing: -0.3px; max-width: 150px;">${firstName}</h6>
               <span class="text-primary fw-bold text-truncate mt-1" style="font-size: 0.75rem;">${defaults.header.office}</span>
           </div>

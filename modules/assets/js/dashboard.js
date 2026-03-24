@@ -12,10 +12,7 @@ $(document).ready(() => {
 });
 
 async function initDashboardLoad() {
-  await Promise.all([
-    getDashboardStats(),
-    getUpcomingEvents()
-  ]);
+  await Promise.all([getDashboardStats(), getUpcomingEvents()]);
 }
 
 // =========================================================
@@ -122,9 +119,9 @@ function renderAvisos(avisos) {
   }
 
   avisos.forEach((aviso) => {
-    // Uso de bg-body garante compatibilidade com Dark Mode
+    // Uso de  garante compatibilidade com Dark Mode
     const html = `
-            <div class="d-flex align-items-center p-3 mb-3 bg-body rounded-3 border-start border-4 border-info shadow-xs transition-hover">
+            <div class="d-flex align-items-center p-3 mb-3  rounded-3 border-start border-4 border-info shadow-xs transition-hover">
                 <div class="flex-grow-1 overflow-hidden">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <h6 class="fw-bold mb-0 text-truncate text-body">${aviso.title}</h6>
@@ -147,23 +144,23 @@ function renderEvents(events) {
   }
 
   // Identifica se a data do evento é hoje
-  const hojeStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  const hojeStr = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
   events.forEach((ev) => {
-    const isHoje = (ev.date_fmt === hojeStr);
+    const isHoje = ev.date_fmt === hojeStr;
     const isBlocker = ev.is_academic_blocker;
 
     // Cores adaptáveis ao tema
     const borderClass = isBlocker ? "border-danger" : "border-primary";
-    const bgClass = isBlocker ? "bg-danger-subtle" : "bg-body";
+    const bgClass = isBlocker ? "bg-danger-subtle" : "";
     const titleColor = isBlocker ? "text-danger" : "text-body";
     const dateColor = isBlocker ? "text-danger" : "text-body-secondary";
 
     // Tooltip restaurado e melhorado
-    const tooltipText = isBlocker ? 'Feriado ou Bloqueio Acadêmico' : 'Evento padrão';
+    const tooltipText = isBlocker ? "Feriado ou Bloqueio Acadêmico" : "Evento padrão";
 
     // Badge "Hoje" se for a data atual
-    const badgeHoje = isHoje ? `<span class="badge bg-primary text-white ms-2" style="font-size: 0.65rem;">HOJE</span>` : '';
+    const badgeHoje = isHoje ? `<span class="badge bg-primary text-white ms-2" style="font-size: 0.65rem;">HOJE</span>` : "";
 
     const html = `
             <div class="d-flex align-items-center p-3 mb-3 ${bgClass} rounded-3 border-start border-4 ${borderClass} shadow-xs" title="${tooltipText}">
@@ -195,26 +192,37 @@ function renderAniversariantes(aniversariantes) {
   }
 
   aniversariantes.forEach((p) => {
-    const photo = p.photo_url || 'assets/img/default-avatar.png';
     const safeName = p.name.replace(/'/g, "\\'");
+    let avatarHtml = "";
 
-    // bg-body substitui o bg-white. Zoom e hover restaurados.
+    // Verifica se tem foto. Se tiver, monta a tag de imagem. Se não, monta as iniciais.
+    if (p.photo_url) {
+      avatarHtml = `<img src="${p.photo_url}" class="rounded-circle border border-secondary border-opacity-25 me-3" 
+                         style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                         onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${p.photo_url}', '${safeName}')"
+                         onmouseover="this.style.transform='scale(1.15)'" 
+                         onmouseout="this.style.transform='scale(1)'"
+                         title="Ver foto">`;
+    } else {
+      const nameParts = p.name.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+
+      avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold me-3" 
+                         style="width:42px; height:42px; font-size: 1rem;">${initials}</div>`;
+    }
+
+    //  substitui o bg-white. Zoom e hover restaurados na foto.
     const html = `
-            <div class="d-flex align-items-center p-2 mb-2 bg-body rounded-3 shadow-xs border border-secondary border-opacity-10">
-                <img src="${photo}" class="rounded-circle border border-secondary border-opacity-25 me-3" 
-                     style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
-                     onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${photo}', '${safeName}')"
-                     onmouseover="this.style.transform='scale(1.15)'" 
-                     onmouseout="this.style.transform='scale(1)'"
-                     title="Ver foto">
-                <div class="flex-grow-1">
-                    <h6 class="fw-bold mb-0 small text-body">${p.name}</h6>
-                    <small class="text-body-secondary"><i class="fas fa-birthday-cake text-danger me-1 small"></i> ${p.birth_date}</small>
-                </div>
-                <div class="ms-2">
-                    <span class="badge bg-danger-subtle text-danger rounded-pill px-2" title="Aniversariante">🎉</span>
-                </div>
-            </div>`;
+        <div class="d-flex align-items-center p-2 mb-2  rounded-3 shadow-xs border border-secondary border-opacity-10">
+            ${avatarHtml}
+            <div class="flex-grow-1">
+                <h6 class="fw-bold mb-0 small text-body">${p.name}</h6>
+                <small class="text-body-secondary"><i class="fas fa-birthday-cake text-danger me-1 small"></i> ${p.birth_date}</small>
+            </div>
+            <div class="ms-2">
+                <span class="badge bg-danger-subtle text-danger rounded-pill px-2" title="Aniversariante">🎉</span>
+            </div>
+        </div>`;
     container.append(html);
   });
 }

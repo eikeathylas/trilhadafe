@@ -23,10 +23,3 @@
         </div>
     </div>
 </footer>
-
-<div class="d-md-none mobile-micro-footer text-center w-100 pb-5 mb-4 mt-2">
-    <div class="d-flex flex-column align-items-center opacity-50">
-        <span class="fw-bold text-muted" style="font-size: 0.8rem;">Trilha da Fé &copy; <?php echo date("Y"); ?></span>
-        <small class="text-muted" style="font-size: 0.65rem;">Build v1.0.0 • EaCode</small>
-    </div>
-</div>
