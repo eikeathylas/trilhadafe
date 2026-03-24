@@ -1,6 +1,6 @@
 const defaultPeople = {
   currentPage: 1,
-  rowsPerPage: 10,
+  rowsPerPage: 7,
   totalPages: 1,
 };
 

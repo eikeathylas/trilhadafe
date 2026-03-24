@@ -67,7 +67,7 @@
                         <p class="mt-3 small fw-medium">Sincronizando banco de dados...</p>
                     </div>
                 </div>
-                <div class="pagination paginationButtons pagination-cursos mt-4 pb-4 pb-md-0 w-100 justify-content-center"></div>
+                <div class="pagination-cursos pagination paginationButtons mt-4 pb-5 mb-5 text-center justify-content-center w-100"></div>
             </div>
         </div>
 
