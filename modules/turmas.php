@@ -189,13 +189,18 @@
                         <div class="tab-pane fade" id="tab-alunos" role="tabpanel">
                             <div class="bg-primary bg-opacity-10 p-3 rounded-4 mb-4 border border-primary border-opacity-10" data-slug="turmas.enroll">
                                 <label class="form-label small fw-bold text-primary text-uppercase mb-2 ms-1">Efetuar Matrícula</label>
-                                <div class="d-flex gap-2">
-                                    <div class="flex-grow-1">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-12 col-md-6 flex-grow-1">
                                         <select id="sel_new_student" class="form-control"></select>
                                     </div>
-                                    <button class="btn btn-primary px-3 rounded-3 shadow-sm" onclick="matricularAluno(this)" style="height: 48px;">
-                                        <i class="fas fa-user-plus"></i>
-                                    </button>
+                                    <div class="col-8 col-md-3 position-relative" style="z-index: 1060;">
+                                        <input type="date" id="enrollment_date" class="form-control shadow-none border-0 px-3 fw-bold text-body cursor-pointer" style="height: 48px; border-radius: 12px; background-color: var(--bs-body-bg);" title="Data da Matrícula" value="<?php echo date('Y-m-d'); ?>" onclick="this.showPicker()">
+                                    </div>
+                                    <div class="col-4 col-md-auto d-grid">
+                                        <button class="btn btn-primary px-3 rounded-3 shadow-sm h-100 d-flex align-items-center justify-content-center" onclick="matricularAluno(this)" style="min-height: 48px; border-radius: 12px;">
+                                            <i class="fas fa-user-plus"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div id="lista-alunos" class="d-flex flex-column gap-2" style="max-height: 350px; overflow-y: auto;"></div>

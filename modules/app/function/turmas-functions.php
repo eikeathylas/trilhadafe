@@ -1,6 +1,5 @@
 <?php
 
-
 function getAllClasses($data)
 {
     try {
@@ -86,11 +85,41 @@ function getClassData($id)
 
         if (!$class) return failure("Turma não encontrada.");
 
-        // Busca horários
-        $sqlSched = "SELECT schedule_id, day_of_week, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id FROM education.class_schedules WHERE class_id = :id AND is_active IS TRUE ORDER BY day_of_week, start_time";
+        $sqlYear = "SELECT start_date, end_date FROM education.academic_years WHERE year_id = :yid";
+        $stmtYear = $conect->prepare($sqlYear);
+        $stmtYear->execute(['yid' => $class['year_id']]);
+        $yearData = $stmtYear->fetch(PDO::FETCH_ASSOC);
+
+        $sqlSched = "SELECT schedule_id, day_of_week, TO_CHAR(start_time, 'HH24:MI') as start_time, TO_CHAR(end_time, 'HH24:MI') as end_time, location_id 
+                     FROM education.class_schedules 
+                     WHERE class_id = :id AND is_active IS TRUE 
+                     ORDER BY day_of_week, start_time";
         $stmtSched = $conect->prepare($sqlSched);
         $stmtSched->execute(['id' => $id]);
-        $class['schedules'] = $stmtSched->fetchAll(PDO::FETCH_ASSOC);
+        $schedules = $stmtSched->fetchAll(PDO::FETCH_ASSOC);
+
+        if ($yearData && $yearData['start_date'] && $yearData['end_date']) {
+            foreach ($schedules as &$sch) {
+                $sqlGen = "SELECT COUNT(*) FROM generate_series(:sd::date, :ed::date, '1 day'::interval) serie(d) WHERE EXTRACT(DOW FROM serie.d) = :dow";
+                $stmtGen = $conect->prepare($sqlGen);
+                $stmtGen->execute([
+                    'sd' => $yearData['start_date'],
+                    'ed' => $yearData['end_date'],
+                    'dow' => $sch['day_of_week']
+                ]);
+                $sch['total_classes'] = $stmtGen->fetchColumn();
+
+                $sqlRec = "SELECT COUNT(*) FROM education.class_sessions WHERE class_id = :cid AND EXTRACT(DOW FROM session_date) = :dow AND deleted IS FALSE";
+                $stmtRec = $conect->prepare($sqlRec);
+                $stmtRec->execute([
+                    'cid' => $id,
+                    'dow' => $sch['day_of_week']
+                ]);
+                $sch['recorded_classes'] = $stmtRec->fetchColumn();
+            }
+        }
+
+        $class['schedules'] = $schedules;
 
         return success("Dados carregados.", $class);
     } catch (Exception $e) {
@@ -289,8 +318,7 @@ function enrollStudentF($data)
             return failure("Este catequizando já está matriculado nesta turma.");
         }
 
-        // Validação Capacidade
-        $sqlCap = "SELECT max_capacity, (SELECT COUNT(*) FROM education.enrollments WHERE class_id = :cid AND status = 'ACTIVE' AND deleted IS FALSE) as total FROM education.classes WHERE class_id = :cid";
+        $sqlCap = "SELECT max_capacity, org_id, name as class_name, coordinator_id, (SELECT COUNT(*) FROM education.enrollments WHERE class_id = :cid AND status = 'ACTIVE' AND deleted IS FALSE) as total FROM education.classes WHERE class_id = :cid";
         $stmtCap = $conect->prepare($sqlCap);
         $stmtCap->execute(['cid' => $data['class_id']]);
         $capInfo = $stmtCap->fetch(PDO::FETCH_ASSOC);
@@ -300,13 +328,48 @@ function enrollStudentF($data)
             return failure("A turma atingiu a capacidade máxima.");
         }
 
-        $sql = "INSERT INTO education.enrollments (class_id, student_id, status) VALUES (:cid, :sid, 'ACTIVE') RETURNING enrollment_id";
+        $enrollDate = !empty($data['enrollment_date']) ? $data['enrollment_date'] : date('Y-m-d');
+
+        $sql = "INSERT INTO education.enrollments (class_id, student_id, status, enrollment_date) VALUES (:cid, :sid, 'ACTIVE', :ed) RETURNING enrollment_id";
         $stmt = $conect->prepare($sql);
-        $stmt->execute(['cid' => $data['class_id'], 'sid' => $data['student_id']]);
+        $stmt->execute([
+            'cid' => $data['class_id'],
+            'sid' => $data['student_id'],
+            'ed'  => $enrollDate
+        ]);
         $enrollId = $stmt->fetchColumn();
 
         $sqlHist = "INSERT INTO education.enrollment_history (enrollment_id, action_type, observation, created_by_user_id) VALUES (:eid, 'ENROLLED', 'Matrícula Inicial', :uid)";
         $conect->prepare($sqlHist)->execute(['eid' => $enrollId, 'uid' => $data['user_id']]);
+
+        // =========================================================
+        // NOTIFICAÇÃO DE SISTEMA (AVISA O PROFESSOR DA TURMA)
+        // =========================================================
+        if ($capInfo && !empty($capInfo['coordinator_id'])) {
+            $stmtS = $conect->prepare("SELECT full_name FROM people.persons WHERE person_id = :sid");
+            $stmtS->execute(['sid' => $data['student_id']]);
+            $studentName = $stmtS->fetchColumn();
+
+            $msg = "O aluno(a) {$studentName} foi matriculado(a) na sua turma: {$capInfo['class_name']}.";
+
+            $sqlNotif = "INSERT INTO communication.notifications (org_id, title, message, type, action_url, module_context) 
+                         VALUES (:oid, 'Novo Aluno Matriculado', :msg, 'INFO', '#', 'SYSTEM') RETURNING notification_id";
+            $stmtNotif = $conect->prepare($sqlNotif);
+            $stmtNotif->execute([
+                'oid' => $capInfo['org_id'],
+                'msg' => $msg
+            ]);
+            $notifId = $stmtNotif->fetchColumn();
+
+            if ($notifId) {
+                $sqlTarget = "INSERT INTO communication.notification_targets (notification_id, target_type, target_val) 
+                              VALUES (:nid, 'PERSON', :tval)";
+                $conect->prepare($sqlTarget)->execute([
+                    'nid' => $notifId,
+                    'tval' => $capInfo['coordinator_id']
+                ]);
+            }
+        }
 
         $conect->commit();
         return success("Catequizando matriculado com sucesso!");
@@ -327,7 +390,7 @@ function deleteEnrollmentF($data)
             $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
         }
 
-        $sql = "UPDATE education.enrollments SET deleted = TRUE, status = 'DROPPED' WHERE enrollment_id = :id";
+        $sql = "UPDATE education.enrollments SET deleted = TRUE, status = 'DROPPED', updated_at = CURRENT_TIMESTAMP WHERE enrollment_id = :id";
         $conect->prepare($sql)->execute(['id' => $data['id']]);
 
         $conect->commit();
@@ -345,18 +408,57 @@ function getEnrollmentHistoryF($data)
         $conect = $GLOBALS["local"];
         $conectStaff = getStaff();
 
-        $sql = <<<'SQL'
-            SELECT 
-                h.*,
-                TO_CHAR(h.action_date, 'DD/MM/YYYY') as action_date_fmt,
-                h.created_by_user_id
-            FROM education.enrollment_history h
-            WHERE h.enrollment_id = :eid AND h.deleted IS FALSE
-            ORDER BY h.created_at DESC
-        SQL;
-        $stmt = $conect->prepare($sql);
-        $stmt->execute(['eid' => $data['enrollment_id']]);
-        $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $enrollmentId = $data['enrollment_id'];
+
+        $stmtEnc = $conect->prepare("SELECT student_id, class_id FROM education.enrollments WHERE enrollment_id = :eid");
+        $stmtEnc->execute(['eid' => $enrollmentId]);
+        $encData = $stmtEnc->fetch(PDO::FETCH_ASSOC);
+
+        if (!$encData) return failure("Matrícula não encontrada.");
+
+        // 1. Busca os lançamentos normais de matrícula
+        $sqlHist = "SELECT 
+                        h.history_id,
+                        h.action_type,
+                        h.observation,
+                        h.created_at as action_date,
+                        h.created_by_user_id,
+                        'HISTORY' as source_table,
+                        NULL as subject_name
+                    FROM education.enrollment_history h
+                    WHERE h.enrollment_id = :eid AND h.deleted IS FALSE";
+        $stmtH = $conect->prepare($sqlHist);
+        $stmtH->execute(['eid' => $enrollmentId]);
+        $historyRecords = $stmtH->fetchAll(PDO::FETCH_ASSOC);
+
+        // 2. Busca as FALTAS no diário de classe
+        $sqlAbs = "SELECT 
+                        a.session_id as history_id,
+                        'ABSENCE' as action_type,
+                        COALESCE(a.justification, 'Falta não justificada') as observation,
+                        s.session_date as action_date,
+                        s.signed_by_user_id as created_by_user_id,
+                        'ATTENDANCE' as source_table,
+                        sub.name as subject_name
+                    FROM education.attendance a
+                    JOIN education.class_sessions s ON a.session_id = s.session_id
+                    LEFT JOIN education.subjects sub ON s.subject_id = sub.subject_id
+                    WHERE a.student_id = :sid 
+                      AND s.class_id = :cid 
+                      AND a.is_present IS FALSE 
+                      AND s.deleted IS FALSE";
+        $stmtA = $conect->prepare($sqlAbs);
+        $stmtA->execute([
+            'sid' => $encData['student_id'],
+            'cid' => $encData['class_id']
+        ]);
+        $absenceRecords = $stmtA->fetchAll(PDO::FETCH_ASSOC);
+
+        // Mescla e ordena por data descrescente (Mais recente no topo)
+        $logs = array_merge($historyRecords, $absenceRecords);
+        usort($logs, function ($a, $b) {
+            return strtotime($b['action_date']) - strtotime($a['action_date']);
+        });
 
         $userIds = array_unique(array_filter(array_column($logs, 'created_by_user_id')));
         $usersMap = [];
@@ -371,7 +473,13 @@ function getEnrollmentHistoryF($data)
         }
 
         foreach ($logs as &$log) {
-            $log['user_name'] = $usersMap[$log['created_by_user_id']] ?? 'Sistema';
+            $log['user_name'] = $usersMap[$log['created_by_user_id']] ?? 'Sistema / Professor';
+            $log['action_date_fmt'] = date('d/m/Y', strtotime($log['action_date']));
+
+            if ($log['action_type'] === 'ABSENCE') {
+                $subj = $log['subject_name'] ? " ({$log['subject_name']})" : "";
+                $log['observation'] = "Falta registrada no diário" . $subj . " - Motivo: " . $log['observation'];
+            }
         }
 
         return success("Histórico carregado.", $logs);
@@ -398,9 +506,13 @@ function addEnrollmentHistoryF($data)
             'uid' => $data['user_id']
         ]);
 
+        // Grava ativamente a observação na tabela principal para Forçar o Log Visual da Auditoria
         if ($data['action_type'] !== 'COMMENT') {
-            $sqlUp = "UPDATE education.enrollments SET status = :st WHERE enrollment_id = :eid";
-            $conect->prepare($sqlUp)->execute(['st' => $data['action_type'], 'eid' => $data['enrollment_id']]);
+            $sqlUp = "UPDATE education.enrollments SET status = :st, updated_at = CURRENT_TIMESTAMP, notes = :obs WHERE enrollment_id = :eid";
+            $conect->prepare($sqlUp)->execute(['st' => $data['action_type'], 'obs' => $data['observation'], 'eid' => $data['enrollment_id']]);
+        } else {
+            $sqlUp = "UPDATE education.enrollments SET updated_at = CURRENT_TIMESTAMP, notes = :obs WHERE enrollment_id = :eid";
+            $conect->prepare($sqlUp)->execute(['obs' => $data['observation'], 'eid' => $data['enrollment_id']]);
         }
 
         $conect->commit();
@@ -415,8 +527,16 @@ function deleteEnrollmentHistoryF($data)
 {
     try {
         $conect = $GLOBALS["local"];
-        $sql = "UPDATE education.enrollment_history SET deleted = TRUE WHERE history_id = :id";
-        $conect->prepare($sql)->execute(['id' => $data['id']]);
+
+        $sql = "UPDATE education.enrollment_history SET deleted = TRUE WHERE history_id = :id RETURNING enrollment_id";
+        $stmt = $conect->prepare($sql);
+        $stmt->execute(['id' => $data['id']]);
+        $enrollmentId = $stmt->fetchColumn();
+
+        if ($enrollmentId) {
+            $conect->prepare("UPDATE education.enrollments SET updated_at = CURRENT_TIMESTAMP, notes = 'Uma ocorrência/observação foi removida do histórico.' WHERE enrollment_id = :eid")->execute(['eid' => $enrollmentId]);
+        }
+
         return success("Item apagado.");
     } catch (Exception $e) {
         return failure("Erro ao apagar registro.");

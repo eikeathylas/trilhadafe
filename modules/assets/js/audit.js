@@ -106,6 +106,8 @@ const formatKey = (key) => {
     curriculum_id: "Grade Curricular",
     is_academic_blocker: "Bloqueio de Calendário (Feriado)",
     description: "Descrição",
+    enrollment_date: "Data da Matrícula",
+    notes: "Observações / Notas",
 
     // Pessoal e Identidade
     name: "Nome de Registro",
@@ -222,13 +224,17 @@ const formatValue = (val, key = "") => {
   if (key === "content" && typeof val === "string" && (val.includes("Oculto") || val.includes("<p>"))) return `<span class="text-secondary fst-italic"><i class="fas fa-code me-1"></i> Documento Rico (HTML)</span>`;
 
   const statusMap = {
-    ACTIVE: `<span class="text-success fw-bold">Operacional</span>`,
+    ACTIVE: `<span class="text-success fw-bold">Ativo / Operacional</span>`,
     PLANNED: `<span class="text-info fw-bold">Planejado</span>`,
     FINISHED: `<span class="text-secondary fw-bold">Encerrado</span>`,
     CANCELLED: `<span class="text-danger fw-bold">Cancelado</span>`,
     PENDING: `<span class="text-warning fw-bold">Pendente</span>`,
     PUBLISHED: `<span class="text-primary fw-bold"><i class="fas fa-bullhorn me-1"></i> Publicado</span>`,
     DRAFT: `<span class="text-secondary fw-bold"><i class="fas fa-file-alt me-1"></i> Rascunho</span>`,
+    COMPLETED: `<span class="text-success fw-bold"><i class="fas fa-graduation-cap me-1"></i> Concluído</span>`,
+    DROPPED: `<span class="text-danger fw-bold">Desistente / Abandono</span>`,
+    SUSPENDED: `<span class="text-warning fw-bold">Suspenso</span>`,
+    TRANSFERRED: `<span class="text-info fw-bold">Transferido</span>`,
   };
   if (typeof val === "string" && statusMap[val.toUpperCase()]) return statusMap[val.toUpperCase()];
 
@@ -262,6 +268,7 @@ const renderTimeline = (logs, container) => {
     return;
   }
 
+  // ATENÇÃO: Removido "notes" da Blacklist para que apareçam as observações editadas
   const globalBlacklist = [
     "updated_at",
     "created_at",
@@ -273,7 +280,6 @@ const renderTimeline = (logs, container) => {
     "link_id",
     "tie_id",
     "plan_id",
-    "notes",
     "start_date",
     "end_date",
     "person_id",
@@ -345,6 +351,7 @@ const renderTimeline = (logs, container) => {
         curriculum: "Estrutura Curricular",
         curriculum_plans: "Planejamento Estratégico",
         person_attachments: "Anexação de Documentos",
+        enrollments: "Matrícula / Vínculo de Aluno",
       };
       if (labelsMap[mainLog.table_name]) headerText = labelsMap[mainLog.table_name];
     }
@@ -373,7 +380,6 @@ const renderTimeline = (logs, container) => {
         let valNew = newVal["Presença"] || newVal["presença"] || (newVal.is_present !== undefined ? formatValue(newVal.is_present, "is_present") : null);
         let valOld = oldVal["Presença"] || oldVal["presença"] || (oldVal.is_present !== undefined ? formatValue(oldVal.is_present, "is_present") : null);
 
-        // Se for UPDATE e não houve mudança real no texto da presença, ignora este aluno no log
         if (logOp === "UPDATE" && valNew === valOld) return;
 
         attCount++;
@@ -459,7 +465,14 @@ const renderTimeline = (logs, container) => {
           </div>`;
     }
 
-    if (diffHtml !== "") hasVisibleChanges = true;
+    // FALLBACK INTELIGENTE: Se foi Update mas não tem fields visíveis, mostra o toque na matrícula
+    if (generalFieldsHTML === "" && attendanceHTML === "" && isUpdate) {
+      diffHtml = `<div class="text-muted small fw-medium fst-italic py-2"><i class="fas fa-info-circle me-1 opacity-50"></i> Atualização de metadados, status sistêmico ou registro de nova ocorrência na matrícula.</div>`;
+      hasVisibleChanges = true;
+    } else if (diffHtml !== "") {
+      hasVisibleChanges = true;
+    }
+
     if (!hasVisibleChanges) return;
 
     visibleLogsCount++;
