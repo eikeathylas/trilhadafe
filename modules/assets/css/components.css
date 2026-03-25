@@ -1317,3 +1317,56 @@ label {
 [data-theme="escuro"] .flatpickr-day.flatpickr-disabled {
   opacity: 0.3 !important;
 }
+
+#accordionDuvidas .accordion-item {
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: 14px !important;
+  margin-bottom: 12px;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  transition: all 0.3s ease;
+}
+
+[data-theme="escuro"] #accordionDuvidas .accordion-item {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+#accordionDuvidas .accordion-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+#accordionDuvidas .accordion-button {
+  background: transparent !important;
+  box-shadow: none !important;
+  font-weight: 600;
+  padding: 1.25rem;
+  color: var(--bs-body-color);
+  display: flex;
+  align-items: center;
+}
+
+#accordionDuvidas .accordion-button:not(.collapsed) {
+  color: var(--bs-primary);
+  background: rgba(var(--bs-primary-rgb), 0.03) !important;
+}
+
+#accordionDuvidas .accordion-button::after {
+  background-size: 1rem;
+  margin-left: 15px;
+}
+
+#accordionDuvidas .accordion-body {
+  padding-top: 0;
+  padding-bottom: 1.5rem;
+  color: var(--bs-secondary-color);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.badge-perfil {
+  font-size: 0.65rem;
+  letter-spacing: 0.5px;
+  padding: 0.35em 0.65em;
+}
