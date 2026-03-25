@@ -167,6 +167,7 @@ CREATE TABLE people.persons (
     email VARCHAR(150),
     phone_mobile VARCHAR(20),
     phone_landline VARCHAR(20),
+    wants_whatsapp_group BOOLEAN DEFAULT FALSE,
     
     zip_code VARCHAR(20),
     address_street VARCHAR(255),

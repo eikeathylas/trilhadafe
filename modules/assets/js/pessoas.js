@@ -1,14 +1,54 @@
 const defaultPeople = {
   currentPage: 1,
-  rowsPerPage: 7,
+  rowsPerPage: 20,
   totalPages: 1,
 };
 
 let currentFamilyList = [];
 let currentAttachmentsList = [];
 
+// ==========================================
+// MÁSCARAS E FUNÇÕES GLOBAIS
+// ==========================================
+window.initMasks = () => {
+  const SPMaskBehavior = function (val) {
+      return val.replace(/\D/g, "").length === 11 ? "(00) 00000-0000" : "(00) 0000-00009";
+    },
+    spOptions = {
+      onKeyPress: function (val, e, field, options) {
+        field.mask(SPMaskBehavior.apply({}, arguments), options);
+      },
+    };
+
+  $("#tax_id").unmask().mask("000.000.000-00", { reverse: true });
+  $("#zip_code").unmask().mask("00000-000");
+  $("#phone_main, #phone_secondary, #phone_mobile, #phone_landline").unmask().mask(SPMaskBehavior, spOptions);
+};
+
+window.copyEmail = (email) => {
+  navigator.clipboard.writeText(email).then(() => {
+    Swal.fire({ toast: true, position: "top-end", icon: "success", title: "E-mail copiado!", showConfirmButton: false, timer: 2000 });
+  });
+};
+
+window.zoomAvatar = (url, name) => {
+  Swal.fire({
+    title: name,
+    imageUrl: url,
+    imageWidth: 200,
+    imageHeight: 200,
+    imageAlt: `Foto de perfil de ${name}`,
+    showConfirmButton: false,
+    showCloseButton: true,
+    customClass: { image: "rounded-circle object-fit-cover shadow-sm border border-4 border-white" },
+  });
+};
+
 window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Estado atualizado.", `.status-text-person-${id}`, getPessoas);
 
+// ==========================================
+// MOTOR DA LISTAGEM DE PESSOAS
+// ==========================================
 const getPessoas = async () => {
   try {
     const page = Math.max(0, defaultPeople.currentPage - 1);
@@ -56,7 +96,6 @@ const getPessoas = async () => {
             </button>
         </div>
     `);
-
     window.alertErrorWithSupport("Listar Pessoas", errorMessage);
   }
 };
@@ -66,17 +105,16 @@ const renderTablePeople = (data) => {
 
   if (data.length === 0) {
     container.html(`
-            <div class="text-center py-5">
-                <i class="fas fa-users fa-3x text-muted mb-3 opacity-25"></i>
-                <p class="text-muted">Nenhum registro encontrado.</p>
-            </div>
-        `);
+        <div class="text-center py-5 opacity-50">
+            <span class="material-symbols-outlined" style="font-size: 56px;">person_off</span>
+            <p class="mt-3 fw-medium text-body">Nenhum registro encontrado com estes filtros.</p>
+        </div>
+    `);
+    $(".pagination-pessoas").empty();
     return;
   }
 
-  // ==========================================
-  // LÓGICA DE PERMISSÕES (RBAC)
-  // ==========================================
+  // --- Permissões RBAC ---
   let allowedSlugs = [];
   try {
     let access = localStorage.getItem("tf_access");
@@ -89,72 +127,102 @@ const renderTablePeople = (data) => {
     console.warn("Erro ao ler permissões", e);
   }
 
-  const canEdit = allowedSlugs.includes("pessoas.save");
+  const canEdit = allowedSlugs.includes("pessoas.edit") || allowedSlugs.includes("pessoas.save");
   const canHistory = allowedSlugs.includes("pessoas.history");
   const canDelete = allowedSlugs.includes("pessoas.delete");
 
-  // ==========================================
-  // HELPERS COMUNS
-  // ==========================================
+  // --- Helpers ---
   const formatCPF = (cpf) => (cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "Não informado");
   const formatDateBR = (dateStr) => (!dateStr || dateStr === "0000-00-00" ? "Não informada" : dateStr.split("-").reverse().join("/"));
-
   const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
   const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
 
   // --- VISÃO DESKTOP ---
-  let desktopRows = data
+  const desktopRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
       const nameParts = item.full_name.trim().split(" ");
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
       const avatarHtml = item.profile_photo_url
-        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm" style="width:42px; height:42px; object-fit:cover; cursor: pointer;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
-        : `<div class="rounded-circle d-flex align-items-center justify-content-center text-secondary border fw-bold shadow-sm" style="width:42px; height:42px; background-color: var(--fundo); font-size: 0.8rem;">${initials}</div>`;
+        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 42px; height: 42px; cursor: zoom-in;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 0.9rem;">${initials}</div>`;
 
       let rolesHtml = "";
-      if (item.roles_array) {
+      if (item.roles_array && item.roles_array.length > 0) {
         item.roles_array.forEach((r) => {
-          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "light text-secondary border"} me-1" style="font-size: 0.65rem;">${roleNames[r] || r}</span>`;
+          if (r) rolesHtml += `<span class="badge bg-${roleColors[r] || "secondary"} bg-opacity-10 text-${roleColors[r] || "secondary"} border border-${roleColors[r] || "secondary"} border-opacity-25 rounded-pill mt-1 me-1" style="font-size: 0.65rem;">${roleNames[r] || r}</span>`;
         });
       }
 
-      let contactHtml = "";
+      let quickActionsHtml = "";
       if (item.phone_mobile) {
-        contactHtml += `<a href="https://wa.me/55${item.phone_mobile.replace(/\D/g, "")}" target="_blank" class="text-success me-2 text-decoration-none"><i class="fab fa-whatsapp fs-5"></i></a>`;
-      }
-      contactHtml += item.email ? `<span class="text-body small">${item.email}</span>` : '<span class="text-muted small">-</span>';
+        const cleanPhone = item.phone_mobile.replace(/\D/g, "");
 
-      // Ações Desktop Condicionais
+        const hour = new Date().getHours();
+        let saudacao = "Olá, boa noite! Paz e Bem!";
+        if (hour >= 5 && hour < 12) saudacao = "Olá, bom dia! Paz e Bem!";
+        else if (hour >= 12 && hour < 18) saudacao = "Olá, boa tarde! Paz e Bem!";
+
+        const waMsg = encodeURIComponent(saudacao);
+        quickActionsHtml += `<a href="https://wa.me/55${cleanPhone}?text=${waMsg}" target="_blank" class="btn btn-sm text-success bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" title="WhatsApp"><i class="fab fa-whatsapp" style="font-size: 1rem;"></i></a>`;
+      }
+      if (item.email) {
+        quickActionsHtml += `<button class="btn btn-sm text-info bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="copyEmail('${item.email}')" title="Copiar E-mail"><i class="fas fa-envelope" style="font-size: 0.85rem;"></i></button>`;
+      }
+
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
-        <tr>
-            <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
-            <td class="align-middle">
-                <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.full_name}</div>
-                <div class="text-muted small mt-1">CPF: ${formatCPF(item.tax_id)} &nbsp;|&nbsp; Nasc.: ${formatDateBR(item.birth_date)}</div>
-            </td>
-            <td class="align-middle">${rolesHtml}</td>
-            <td class="align-middle">${contactHtml}</td>
-            <td class="text-center align-middle">
-                <div class="form-check form-switch mb-0 d-inline-block">
-                    <input class="form-check-input shadow-sm" type="checkbox" ${isActive ? "checked" : ""} 
-                           ${canEdit ? `onchange="togglePerson(${item.person_id}, this)"` : "disabled"} style="cursor: ${canEdit ? "pointer" : "default"};">
-                </div>
-            </td>
-            <td class="text-end align-middle pe-3">
-                <div class="d-flex justify-content-end gap-1">
-                    ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50"></i>'}
-                </div>
-            </td>
-        </tr>`;
+      <tr>
+          <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
+          <td class="align-middle" style="min-width: 250px;">
+              <div class="fw-bold text-body text-truncate" style="font-size: 0.95rem;">${item.full_name}</div>
+              <div class="text-muted small mt-1">CPF: ${formatCPF(item.tax_id)} &nbsp;|&nbsp; Nasc.: ${formatDateBR(item.birth_date)}</div>
+              <div>${rolesHtml}</div>
+          </td>
+          <td class="align-middle">
+              <div class="fw-bold text-body small mb-1"><i class="fas fa-mobile-alt me-1 opacity-50"></i> ${item.phone_mobile || "Sem celular"}</div>
+              <div class="text-muted small"><i class="fas fa-envelope me-1 opacity-50"></i> ${item.email || "Sem e-mail"}</div>
+          </td>
+          <td class="text-center align-middle" style="width: 100px;">
+              <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
+                  <input class="form-check-input m-0 shadow-none border-secondary" type="checkbox" ${isActive ? "checked" : ""} 
+                         ${canEdit ? `onchange="togglePerson(${item.person_id}, this)"` : "disabled"} 
+                         style="cursor: ${canEdit ? "pointer" : "default"}; width: 44px; height: 24px;">
+              </div>
+          </td>
+          <td class="text-end align-middle pe-4 text-nowrap">
+              <div class="d-flex justify-content-end align-items-center flex-nowrap">
+                ${quickActionsHtml}
+                ${quickActionsHtml && actionsHtml ? `<div class="vr mx-2 opacity-25" style="min-height: 24px;"></div>` : ""}
+                ${actionsHtml || (!quickActionsHtml ? '<i class="fas fa-lock text-muted opacity-50" title="Acesso restrito"></i>' : "")}
+              </div>
+          </td>
+      </tr>`;
     })
     .join("");
+
+  const desktopHtml = `
+  <div class="d-none d-md-block table-responsive w-100">
+      <table class="table-custom mb-0">
+          <thead>
+              <tr>
+                  <th colspan="2" class="ps-3 text-uppercase small opacity-75">Pessoa</th>
+                  <th class="text-uppercase small opacity-75">Contato</th>
+                  <th class="text-center text-uppercase small opacity-75">Estado</th>
+                  <th class="text-end pe-4 text-uppercase small opacity-75">Ações</th>
+              </tr>
+          </thead>
+          <tbody>${desktopRows}</tbody>
+      </table>
+  </div>`;
 
   // --- VISÃO MOBILE ---
   const mobileRows = data
@@ -164,124 +232,149 @@ const renderTablePeople = (data) => {
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
       const avatarHtml = item.profile_photo_url
-        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25" style="width:48px; height:48px; object-fit:cover;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
-        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
+        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle object-fit-cover shadow-sm border border-secondary border-opacity-25" style="width: 48px; height: 48px; cursor: zoom-in;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center fw-bold border border-secondary border-opacity-25 shadow-sm" style="width: 48px; height: 48px; font-size: 1rem;">${initials}</div>`;
 
-      const role = item.roles_array && item.roles_array[0] ? item.roles_array[0] : null;
-      const roleHtml = role ? `<span class="badge bg-${roleColors[role] || "secondary"} bg-opacity-10 text-${roleColors[role] || "secondary"} fw-bold px-2 py-1" style="font-size: 0.5rem; border-radius: 6px;">${roleNames[role] || role}</span>` : "";
+      let roleHtml = "";
+      if (item.roles_array && item.roles_array[0]) {
+        const role = item.roles_array[0];
+        roleHtml = `<span class="badge bg-${roleColors[role] || "secondary"} bg-opacity-10 text-${roleColors[role] || "secondary"} border border-${roleColors[role] || "secondary"} border-opacity-25 rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">${roleNames[role] || role}</span>`;
+      }
 
-      let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('people.persons', ${item.person_id}, this)"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalPessoa(${item.person_id}, this)"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deletePerson(${item.person_id})"><i class="fas fa-trash"></i></button>`;
+      let quickActionsHtml = "";
+      if (item.phone_mobile) {
+        const cleanPhone = item.phone_mobile.replace(/\D/g, "");
+        const hour = new Date().getHours();
+        let saudacao = "Olá, boa noite! Paz e Bem!";
+        if (hour >= 5 && hour < 12) saudacao = "Olá, bom dia! Paz e Bem!";
+        else if (hour >= 12 && hour < 18) saudacao = "Olá, boa tarde! Paz e Bem!";
+
+        const waMsg = encodeURIComponent(saudacao);
+        quickActionsHtml += `<a href="https://wa.me/55${cleanPhone}?text=${waMsg}" target="_blank" class="btn btn-sm text-success bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" title="WhatsApp"><i class="fab fa-whatsapp" style="font-size: 1rem;"></i></a>`;
+      }
+      if (item.email) {
+        quickActionsHtml += `<button class="btn btn-sm text-info bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="copyEmail('${item.email}')" title="Copiar E-mail"><i class="fas fa-envelope" style="font-size: 0.85rem;"></i></button>`;
+      }
+
+      let actionsHtml = "";
+      if (canHistory)
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
-      <div class="ios-list-item">
-          <div class="me-3">${avatarHtml}</div>
-          <div class="flex-grow-1 py-1" style="min-width: 0;">
-              <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                  <h6 class="fw-bold text-body m-0" style="font-size: 0.85rem;">${item.full_name}</h6>
-                  ${roleHtml}
-              </div>
-              <span class="text-muted d-block" style="font-size: 0.65rem;">CPF: ${formatCPF(item.tax_id)}</span>
-          </div>
-          <div class="d-flex flex-column align-items-end ms-2 gap-3" style="min-width: 90px;">
-              <div class="form-check form-switch m-0 p-0">
-                  <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
-                         ${canEdit ? `onchange="togglePerson(${item.person_id}, this)"` : "disabled"} style="width: 44px; height: 24px;">
-              </div>
-              <div class="d-flex gap-2">${mobActionsHtml}</div>
-          </div>
-      </div>`;
+    <div class="ios-list-item flex-column align-items-stretch mb-2 p-3">
+        <div class="d-flex w-100 align-items-center mb-2">
+            <div class="me-3 flex-shrink-0">${avatarHtml}</div>
+            <div class="flex-grow-1" style="min-width: 0;">
+                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                    <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem;">${item.full_name}</h6>
+                </div>
+                <div class="small text-muted fw-medium d-flex align-items-center mt-1" style="font-size: 0.75rem;">
+                    CPF: ${formatCPF(item.tax_id)}
+                </div>
+                <div class="mt-1">${roleHtml}</div>
+            </div>
+            <div class="form-check form-switch m-0 p-0 d-flex align-items-center flex-shrink-0 ms-2">
+                <input class="form-check-input m-0 shadow-none border-secondary" type="checkbox" ${isActive ? "checked" : ""} 
+                       ${canEdit ? `onchange="togglePerson(${item.person_id}, this)"` : "disabled"} 
+                       style="cursor: ${canEdit ? "pointer" : "default"}; width: 44px; height: 24px;">
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center pt-2 mt-2 border-top border-secondary border-opacity-10 w-100 flex-nowrap">
+            <div class="d-flex flex-nowrap">${quickActionsHtml}</div>
+            <div class="d-flex flex-nowrap">${actionsHtml}</div>
+        </div>
+    </div>`;
     })
     .join("");
 
-  container.html(`
-    <div class="d-none d-md-block table-responsive">
-        <table class="table-custom">
-            <thead>
-                <tr>
-                    <th colspan="2" class="ps-3 opacity-75 small">PESSOA</th>
-                    <th class="opacity-75 small">VÍNCULOS</th>
-                    <th class="opacity-75 small">CONTATO</th>
-                    <th class="text-center opacity-75 small">ATIVO</th>
-                    <th class="text-end pe-4 opacity-75 small">AÇÕES</th>
-                </tr>
-            </thead>
-            <tbody>${desktopRows}</tbody>
-        </table>
-    </div>
-    <div class="d-md-none ios-list-container">${mobileRows}</div>
-  `);
-
+  const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
+  container.html(desktopHtml + mobileHtml);
   _generatePaginationButtons("pagination-pessoas", "currentPage", "totalPages", "changePage", defaultPeople);
 };
 
-window.modalPessoa = (id = null, btn = null) => {
+// ==========================================
+// CONTROLES DO MODAL (FICHA)
+// ==========================================
+window.modalPessoa = (id = null, btn = false) => {
   const modal = $("#modalPessoa");
-
-  if (btn) btn = $(btn);
-
   $("#person_id").val("");
-  modal.find("input[type=text], input[type=email], input[type=date], select, textarea").val("");
-  modal.find("input[type=checkbox]").prop("checked", false);
+  $("#full_name").val("");
+  $("#birth_date").val("");
+  $("#tax_id").val("");
+  $("#national_id").val("");
+  $("#gender").val("");
+  $("#phone_mobile").val("");
+  $("#wants_whatsapp_group").prop("checked", false);
+  $("#email_contact").val("");
+  $("#zip_code").val("");
+  $("#address_street").val("");
+  $("#address_number").val("");
+  $("#address_district").val("");
+  $("#address_city").val("");
+  $("#address_state").val("");
 
-  $("#img-preview").attr("src", "").hide();
-  $("#placeholder-foto").show();
-  $("#btn-remove-foto").addClass("d-none");
-  $("#person_photo").val("");
+  $("#profile_photo").val("");
+  $("#preview_photo").attr("src", "assets/img/avatar-placeholder.png");
+  $("#is_pcd").prop("checked", false).trigger("change");
+  $("#pcd_details").val("");
 
-  $("#new_attachment_desc").val("");
-  $("#new_attachment_file").val("");
+  $("#role_student").prop("checked", false);
+  $("#role_catechist").prop("checked", false);
+  $("#role_priest").prop("checked", false);
+  $("#role_parent").prop("checked", false);
+
+  $("#has_baptism").prop("checked", false).trigger("change");
+  $("#baptism_date").val("");
+  $("#baptism_place").val("");
+  $("#has_eucharist").prop("checked", false).trigger("change");
+  $("#eucharist_date").val("");
+  $("#eucharist_place").val("");
+  $("#has_chrism").prop("checked", false).trigger("change");
+  $("#chrism_date").val("");
+  $("#chrism_place").val("");
+  $("#has_matrimony").prop("checked", false).trigger("change");
+  $("#matrimony_date").val("");
+  $("#matrimony_place").val("");
 
   currentFamilyList = [];
   currentAttachmentsList = [];
+  if ($("#sel_relative")[0] && $("#sel_relative")[0].selectize) {
+    $("#sel_relative")[0].selectize.clear();
+  }
+
   renderFamilyTable();
-  renderAttachmentsTable([]);
+  renderAttachmentsTable();
+  initMasks();
 
-  if ($("#search_relative")[0]?.selectize) $("#search_relative")[0].selectize.clear();
-
-  $("#pcd_details").addClass("d-none");
-  $("#baptism_details").addClass("d-none");
-  $("#eucharist_details").addClass("d-none");
-
-  $("#pessoaTab button:first").tab("show");
-
+  if (btn) btn = $(btn);
   if (id) {
     loadPersonData(id, btn);
-    $("#tab-anexos").removeClass("disabled");
   } else {
-    $("#modalPessoaLabel").text("Nova Pessoa");
-    $("#tab-anexos").addClass("disabled");
+    $("#modalLabel").html('<i class="fas fa-user-plus me-3 opacity-75"></i> Cadastrar Nova Pessoa');
     modal.modal("show");
-    initSelectRelatives();
-    if (window.initMasks) window.initMasks();
   }
 };
 
 const loadPersonData = async (id, btn) => {
   try {
     window.setButton(true, btn, "");
-    const result = await window.ajaxValidator({
-      validator: "getPerson",
-      token: defaultApp.userInfo.token,
-      id: id,
-    });
+    const result = await window.ajaxValidator({ validator: "getPerson", token: window.defaultApp.userInfo.token, id: id });
 
     if (result.status) {
       const d = result.data;
-
       $("#person_id").val(d.person_id);
       $("#full_name").val(d.full_name);
-      $("#religious_name").val(d.religious_name);
       $("#birth_date").val(d.birth_date);
       $("#tax_id").val(d.tax_id);
-      $("#gender").val(d.gender);
       $("#national_id").val(d.national_id);
-      $("#email").val(d.email);
+      $("#gender").val(d.gender);
       $("#phone_mobile").val(d.phone_mobile);
-      $("#phone_landline").val(d.phone_landline);
-
+      $("#wants_whatsapp_group").prop("checked", d.wants_whatsapp_group === true || d.wants_whatsapp_group === "t");
+      $("#email_contact").val(d.email);
       $("#zip_code").val(d.zip_code);
       $("#address_street").val(d.address_street);
       $("#address_number").val(d.address_number);
@@ -289,465 +382,137 @@ const loadPersonData = async (id, btn) => {
       $("#address_city").val(d.address_city);
       $("#address_state").val(d.address_state);
 
-      $("#is_pcd").prop("checked", d.is_pcd);
-      if (d.is_pcd) $("#pcd_details").removeClass("d-none").val(d.pcd_details);
+      if (d.profile_photo_url) $("#preview_photo").attr("src", d.profile_photo_url);
+      $("#is_pcd")
+        .prop("checked", d.is_pcd === true || d.is_pcd === "t")
+        .trigger("change");
+      $("#pcd_details").val(d.pcd_details);
 
-      if (d.profile_photo_url) {
-        $("#img-preview").attr("src", d.profile_photo_url).show();
-        $("#placeholder-foto").hide();
-        $("#btn-remove-foto").removeClass("d-none");
+      const roles = d.roles_array || [];
+      $("#role_student").prop("checked", roles.includes("STUDENT"));
+      $("#role_catechist").prop("checked", roles.includes("CATECHIST"));
+      $("#role_priest").prop("checked", roles.includes("PRIEST"));
+      $("#role_parent").prop("checked", roles.includes("PARENT"));
+
+      if (d.sacraments_info) {
+        let sac = {};
+        try {
+          sac = JSON.parse(d.sacraments_info);
+        } catch (e) {}
+        if (sac.baptism && sac.baptism.has) {
+          $("#has_baptism").prop("checked", true).trigger("change");
+          $("#baptism_date").val(sac.baptism.date);
+          $("#baptism_place").val(sac.baptism.place);
+        }
+        if (sac.eucharist && sac.eucharist.has) {
+          $("#has_eucharist").prop("checked", true).trigger("change");
+          $("#eucharist_date").val(sac.eucharist.date);
+          $("#eucharist_place").val(sac.eucharist.place);
+        }
+        if (sac.chrism && sac.chrism.has) {
+          $("#has_chrism").prop("checked", true).trigger("change");
+          $("#chrism_date").val(sac.chrism.date);
+          $("#chrism_place").val(sac.chrism.place);
+        }
+        if (sac.matrimony && sac.matrimony.has) {
+          $("#has_matrimony").prop("checked", true).trigger("change");
+          $("#matrimony_date").val(sac.matrimony.date);
+          $("#matrimony_place").val(sac.matrimony.place);
+        }
       }
 
-      if (d.roles) {
-        if (d.roles.includes("STUDENT")) $("#role_student").prop("checked", true);
-        if (d.roles.includes("CATECHIST")) $("#role_catechist").prop("checked", true);
-        if (d.roles.includes("PRIEST")) $("#role_priest").prop("checked", true);
-        if (d.roles.includes("PARENT")) $("#role_parent").prop("checked", true);
-      }
-
-      const sac = d.sacraments_info || {};
-
-      $("#has_baptism")
-        .prop("checked", sac.baptism === true || sac.baptism === "true")
-        .trigger("change");
-      $("#baptism_date").val(sac.baptism_date);
-      $("#baptism_place").val(sac.baptism_place);
-
-      $("#has_eucharist")
-        .prop("checked", sac.eucharist === true || sac.eucharist === "true")
-        .trigger("change");
-      $("#eucharist_date").val(sac.eucharist_date);
-      $("#eucharist_place").val(sac.eucharist_place);
-
-      $("#has_confirmation").prop("checked", sac.confirmation === true || sac.confirmation === "true");
-      $("#has_marriage").prop("checked", sac.marriage === true || sac.marriage === "true");
-
-      currentFamilyList = d.family || [];
+      currentFamilyList = Array.isArray(d.family) ? d.family : [];
+      currentAttachmentsList = Array.isArray(d.attachments) ? d.attachments : [];
       renderFamilyTable();
+      renderAttachmentsTable();
+      initMasks();
 
-      currentAttachmentsList = d.attachments || [];
-      renderAttachmentsTable(currentAttachmentsList);
-
-      initSelectRelatives();
-
-      $("#modalPessoaLabel").text("Editar Pessoa");
-
-      $("#tax_id, #phone_mobile, #phone_landline, #zip_code").trigger("input");
+      $("#modalLabel").html(`
+          <div class="d-flex align-items-center justify-content-center gap-3">
+              <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                  <i class="fas fa-user text-white" style="font-size: 0.9rem;"></i>
+              </div>
+              <span class="fw-bold tracking-tight">${d.full_name}</span>
+          </div>
+      `);
 
       $("#modalPessoa").modal("show");
     } else {
-      throw new Error(result.alert || "Erro inesperado ao carregar os dados deste cadastro.");
+      throw new Error(result.alert || "O servidor não retornou os dados.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha na comunicação com o servidor ao tentar carregar o cadastro.";
-    window.alertErrorWithSupport(`Abrir Cadastro de Pessoa`, errorMessage);
+    window.alertErrorWithSupport(`Abrir Ficha de Pessoa`, e.message);
   } finally {
     window.setButton(false, btn);
   }
-};
-
-$("#image-upload-container")
-  .off("click")
-  .on("click", function (e) {
-    if ($(e.target).is("#person_photo")) return;
-    $("#person_photo")[0].click();
-  });
-
-$("#person_photo")
-  .off("click")
-  .on("click", function (e) {
-    e.stopPropagation();
-  });
-
-$("#person_photo").change(function () {
-  if (this.files && this.files[0]) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      $("#img-preview").attr("src", e.target.result).show();
-      $("#placeholder-foto").hide();
-      $("#btn-remove-foto").removeClass("d-none");
-    };
-    reader.readAsDataURL(this.files[0]);
-  }
-});
-
-window.removeFoto = () => {
-  $("#person_photo").val("");
-  $("#img-preview").attr("src", "").hide();
-  $("#placeholder-foto").show();
-  $("#btn-remove-foto").addClass("d-none");
-};
-
-// --- GESTÃO DE FAMÍLIA ---
-const initSelectRelatives = () => {
-  const $select = $("#search_relative");
-  if ($select[0]?.selectize) $select[0].selectize.destroy();
-
-  $select.selectize({
-    valueField: "id",
-    labelField: "title",
-    searchField: ["title", "tax_id"],
-    placeholder: "Busque o parente pelo nome...",
-    create: false,
-    load: function (query, callback) {
-      if (!query.length) return callback();
-      $.ajax({
-        url: defaultApp.validator,
-        type: "POST",
-        dataType: "json",
-        data: { validator: "getRelativesList", token: defaultApp.userInfo.token, search: query },
-        success: function (res) {
-          callback(res.data);
-        },
-        error: function () {
-          callback();
-        },
-      });
-    },
-    onChange: function (value) {
-      if (value && this.options[value]) {
-        promptAddRelative(value, this.options[value].title);
-      }
-    },
-  });
-};
-
-const promptAddRelative = (id, name) => {
-  $("#modalPessoa").modal("hide");
-  Swal.fire({
-    title: `Vincular ${name}`,
-    html: `
-            <div class="text-start">
-                <label class="form-label fw-bold">Grau de Parentesco:</label>
-                <select id="swal-rel-type" class="form-control mb-3">
-                    <option value="" disabled selected>Selecione...</option>
-                    <option value="FATHER">Pai</option>
-                    <option value="MOTHER">Mãe</option>
-                    <option value="SIBLING">Irmão(ã)</option>
-                    <option value="GRANDPARENT">Avô(ó)</option>
-                    <option value="SPOUSE">Esposo(a)</option>
-                    <option value="GUARDIAN">Tutor Legal</option>
-                </select>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="swal-fin">
-                    <label class="form-check-label" for="swal-fin">Responsável Financeiro?</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="swal-legal">
-                    <label class="form-check-label" for="swal-legal">Responsável Legal (Pode retirar o catequizando)?</label>
-                </div>
-            </div>
-        `,
-    showCancelButton: true,
-    confirmButtonText: "Adicionar Vínculo",
-    focusConfirm: false,
-    preConfirm: () => {
-      const type = document.getElementById("swal-rel-type").value;
-      if (!type) {
-        Swal.showValidationMessage("Por favor, selecione o grau de parentesco.");
-        return false;
-      }
-      return {
-        type: type,
-        fin: document.getElementById("swal-fin").checked,
-        legal: document.getElementById("swal-legal").checked,
-      };
-    },
-  }).then((result) => {
-    $("#modalPessoa").modal("show");
-    if (result.isConfirmed) {
-      addRelativeToList(id, name, result.value);
-      const selectize = $("#search_relative")[0].selectize;
-      if (selectize) selectize.clear();
-    } else {
-      const selectize = $("#search_relative")[0].selectize;
-      if (selectize) selectize.clear();
-    }
-  });
-};
-
-const addRelativeToList = (id, name, details) => {
-  if (currentFamilyList.some((f) => f.relative_id == id)) return window.alertDefault("Essa pessoa já está vinculada.", "warning");
-  currentFamilyList.push({
-    relative_id: id,
-    relative_name: name,
-    relationship_type: details.type,
-    is_financial_responsible: details.fin,
-    is_legal_guardian: details.legal,
-  });
-  renderFamilyTable();
-};
-
-window.removeRelative = (index) => {
-  currentFamilyList.splice(index, 1);
-  renderFamilyTable();
-};
-
-const renderFamilyTable = () => {
-  const container = $("#lista-familia-cards"); // Ajustado para bater com o ID do PHP
-  container.empty();
-
-  if (currentFamilyList.length === 0) {
-    container.html('<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">family_restroom</span><p class="mt-2 small mb-0 fw-medium">Nenhum familiar vinculado.</p></div>');
-    return;
-  }
-
-  // Permissão para gerir família
-  let allowedSlugs = [];
-  try {
-    access = JSON.parse(localStorage.getItem("tf_access"));
-    allowedSlugs = access.map((a) => a.slug);
-  } catch (e) {}
-  const canFamily = allowedSlugs.includes("pessoas.family");
-
-  const typeMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô(ó)", SPOUSE: "Cônjuge", GUARDIAN: "Tutor" };
-
-  const html = currentFamilyList
-    .map((fam, index) => {
-      let badges = "";
-      if (fam.is_financial_responsible) badges += '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-0 fw-bold me-1" style="font-size: 0.6rem;">$ FINAN</span>';
-      if (fam.is_legal_guardian) badges += '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;">LEGAL</span>';
-
-      return `
-      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner transition-all">
-          <div class="flex-grow-1 pe-2">
-              <div class="fw-bold text-body small">${fam.relative_name}</div>
-              <div class="d-flex align-items-center gap-2 mt-1">
-                  <span class="text-muted small fw-bold">${typeMap[fam.relationship_type] || fam.relationship_type}</span>
-                  ${badges}
-              </div>
-          </div>
-          ${
-            canFamily
-              ? `
-          <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 32px; height: 32px; padding: 0;" onclick="removeRelative(${index})" title="Remover Vínculo">
-              <i class="fas fa-times" style="font-size: 0.85rem;"></i>
-          </button>`
-              : ""
-          }
-      </div>`;
-    })
-    .join("");
-
-  container.html(html);
-};
-
-const renderAttachmentsTable = (data) => {
-  const container = $("#lista-anexos-cards");
-  if (!data || data.length === 0) {
-    container.html('<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">folder_open</span><p class="mt-2 small mb-0 fw-medium">Nenhum documento anexado.</p></div>');
-    return;
-  }
-
-  // Permissão para gerir anexos
-  let allowedSlugs = [];
-  try {
-    access = JSON.parse(localStorage.getItem("tf_access"));
-    allowedSlugs = access.map((a) => a.slug);
-  } catch (e) {}
-  const canManageFiles = allowedSlugs.includes("pessoas.attachments");
-
-  const getFileIcon = (filename) => {
-    const ext = filename.split(".").pop().toLowerCase();
-    if (["pdf"].includes(ext)) return { icon: "picture_as_pdf", color: "text-danger", bg: "bg-danger" };
-    if (["jpg", "jpeg", "png", "webp"].includes(ext)) return { icon: "image", color: "text-primary", bg: "bg-primary" };
-    if (["doc", "docx"].includes(ext)) return { icon: "description", color: "text-info", bg: "bg-info" };
-    return { icon: "insert_drive_file", color: "text-secondary", bg: "bg-secondary" };
-  };
-
-  const html = data
-    .map((item) => {
-      const style = getFileIcon(item.file_name);
-      return `
-      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 mb-2 shadow-inner transition-all">
-          <div class="d-flex align-items-center gap-3">
-              <div class="${style.bg} bg-opacity-10 ${style.color} rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px;">
-                  <span class="material-symbols-outlined">${style.icon}</span>
-              </div>
-              <div>
-                  <div class="fw-bold text-body small text-truncate" style="max-width: 200px;">${item.file_name}</div>
-                  <div class="text-muted small lh-1 opacity-75">${item.description || "Sem descrição"}</div>
-              </div>
-          </div>
-          <div class="d-flex gap-2 ms-3">
-              <a href="${item.file_path}" target="_blank" class="ios-action-pill text-info bg-info bg-opacity-10" title="Ver"><i class="fas fa-eye"></i></a>
-              <a href="${item.file_path}" download="${item.file_name}" class="ios-action-pill text-primary bg-primary bg-opacity-10" title="Baixar"><i class="fas fa-download"></i></a>
-              ${
-                canManageFiles
-                  ? `
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="removeAttachment(${item.attachment_id})" title="Excluir"><i class="fas fa-trash"></i></button>`
-                  : ""
-              }
-          </div>
-      </div>`;
-    })
-    .join("");
-
-  container.html(html);
-};
-
-window.uploadAttachment = async (btn) => {
-  const personId = $("#person_id").val();
-  const fileInput = $("#new_attachment_file")[0];
-  const desc = $("#new_attachment_desc").val().trim();
-
-  if (!personId) return window.alertDefault("Salve o cadastro da pessoa antes de adicionar anexos.", "warning");
-  if (!fileInput.files || fileInput.files.length === 0) return window.alertDefault("Selecione um arquivo.", "warning");
-  if (!desc) return window.alertDefault("Informe uma descrição para o documento.", "warning");
-
-  btn = $(btn);
-  window.setButton(true, btn, "Enviando...");
-
-  const formData = new FormData();
-  formData.append("validator", "uploadAttachment");
-  formData.append("token", defaultApp.userInfo.token);
-  formData.append("id_client", defaultApp.userInfo.id_client);
-  formData.append("person_id", personId);
-  formData.append("description", desc);
-  formData.append("file", fileInput.files[0]);
-
-  try {
-    const result = await (window.ajaxValidatorFoto
-      ? window.ajaxValidatorFoto(formData)
-      : $.ajax({
-          url: defaultApp.validator,
-          data: formData,
-          type: "POST",
-          processData: false,
-          contentType: false,
-          dataType: "json",
-        }));
-
-    const res = result.status !== undefined ? result : JSON.parse(result);
-    if (res.status) {
-      window.alertDefault("Arquivo anexado com sucesso!", "success");
-      $("#new_attachment_file").val("");
-      $("#new_attachment_desc").val("");
-      loadPersonData(personId);
-    } else {
-      window.alertDefault(res.alert, "error");
-    }
-  } catch (e) {
-    window.alertDefault("Erro no upload.", "error");
-  } finally {
-    window.setButton(false, btn);
-  }
-};
-
-window.removeAttachment = (id) => {
-  Swal.fire({
-    title: "Excluir documento?",
-    text: "O registro será movido para a lixeira do sistema.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Sim, excluir",
-    cancelButtonText: "Cancelar",
-  }).then(async (r) => {
-    if (r.isConfirmed) {
-      try {
-        const res = await window.ajaxValidator({
-          validator: "removeAttachment",
-          token: defaultApp.userInfo.token,
-          id: id,
-        });
-
-        if (res.status) {
-          window.alertDefault("Documento removido com sucesso.", "success");
-
-          const currentPersonId = $("#person_id").val();
-          if (currentPersonId) loadPersonData(currentPersonId);
-        } else {
-          throw new Error(res.alert || "Erro inesperado ao remover o arquivo no servidor.");
-        }
-      } catch (e) {
-        const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar excluir o documento.";
-        window.alertErrorWithSupport(`Excluir Documento/Anexo`, errorMessage);
-      }
-    }
-  });
 };
 
 window.salvarPessoa = async (btn) => {
-  const name = $("#full_name").val();
-  if (!name) return window.alertDefault("Nome Completo é obrigatório.", "warning");
+  const name = $("#full_name").val()?.trim();
+  const id = $("#person_id").val();
+  btn = $(btn);
 
-  window.setButton(true, btn, " Salvando...");
+  if (!name) return window.alertDefault("O nome da pessoa é obrigatório.", "warning");
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
 
   const formData = new FormData();
   formData.append("validator", "savePerson");
-  formData.append("token", defaultApp.userInfo.token);
-  formData.append("id_client", defaultApp.userInfo.id_client);
+  formData.append("token", window.defaultApp.userInfo.token);
+  formData.append("person_id", id);
   formData.append("org_id", localStorage.getItem("tf_active_parish"));
 
-  const fields = ["person_id", "religious_name", "birth_date", "tax_id", "national_id", "gender", "email", "phone_mobile", "phone_landline", "zip_code", "address_street", "address_number", "address_district", "address_city", "address_state", "pcd_details"];
-  formData.append("full_name", name);
-  fields.forEach((f) => formData.append(f, $(`#${f}`).val()));
+  const txtFields = ["full_name", "birth_date", "tax_id", "national_id", "gender", "phone_mobile", "zip_code", "address_street", "address_number", "address_district", "address_city", "address_state", "pcd_details"];
+  txtFields.forEach((f) => formData.append(f, $(`#${f}`).val() || ""));
 
+  formData.append("email", $("#email_contact").val() || "");
+  formData.append("wants_whatsapp_group", $("#wants_whatsapp_group").is(":checked"));
   formData.append("is_pcd", $("#is_pcd").is(":checked"));
-  const roles = ["student", "catechist", "parent", "priest"];
-  roles.forEach((r) => formData.append(`role_${r}`, $(`#role_${r}`).is(":checked")));
 
+  // Vínculos Sistêmicos
+  formData.append("role_student", $("#role_student").is(":checked"));
+  formData.append("role_catechist", $("#role_catechist").is(":checked"));
+  formData.append("role_priest", $("#role_priest").is(":checked"));
+  formData.append("role_parent", $("#role_parent").is(":checked"));
+
+  // [CORREÇÃO] Envio da lista de familiares que estava faltando
   formData.append("family_json", JSON.stringify(currentFamilyList));
+
   formData.append(
-    "sacraments_info",
+    "sacraments_json",
     JSON.stringify({
-      baptism: $("#has_baptism").is(":checked"),
-      baptism_date: $("#baptism_date").val(),
-      baptism_place: $("#baptism_place").val(),
-      eucharist: $("#has_eucharist").is(":checked"),
-      eucharist_date: $("#eucharist_date").val(),
-      eucharist_place: $("#eucharist_place").val(),
-      confirmation: $("#has_confirmation").is(":checked"),
-      marriage: $("#has_marriage").is(":checked"),
+      baptism: { has: $("#has_baptism").is(":checked"), date: $("#baptism_date").val(), place: $("#baptism_place").val() },
+      eucharist: { has: $("#has_eucharist").is(":checked"), date: $("#eucharist_date").val(), place: $("#eucharist_place").val() },
+      chrism: { has: $("#has_chrism").is(":checked"), date: $("#chrism_date").val(), place: $("#chrism_place").val() },
+      matrimony: { has: $("#has_matrimony").is(":checked"), date: $("#matrimony_date").val(), place: $("#matrimony_place").val() },
     }),
   );
 
-  const fileInput = $("#person_photo")[0];
-  if (fileInput.files && fileInput.files[0]) formData.append("profile_photo", fileInput.files[0]);
+  const fileInput = $("#profile_photo")[0];
+  if (fileInput && fileInput.files.length > 0) formData.append("profile_photo", fileInput.files[0]);
 
   try {
-    const result = await (window.ajaxValidatorFoto
-      ? window.ajaxValidatorFoto(formData)
-      : $.ajax({
-          url: defaultApp.validator,
-          data: formData,
-          type: "POST",
-          processData: false,
-          contentType: false,
-          dataType: "json",
-        }));
-    const res = result.status !== undefined ? result : JSON.parse(result);
-    if (res.status) {
+    const result = await $.ajax({
+      url: window.defaultApp.validator,
+      type: "POST",
+      data: formData,
+      processData: false,
+      contentType: false,
+    });
+
+    console.log(result);
+
+    if (result.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");
       $("#modalPessoa").modal("hide");
-      getPessoas();
+      if (typeof getPessoas === "function") getPessoas();
     } else {
-      window.alertDefault(res.alert, "error");
+      // Exibe o erro exato retornado pelo PHP para facilitar o suporte
+      throw new Error(result.alert || "O servidor recusou o salvamento.");
     }
   } catch (e) {
-    window.alertDefault("Erro ao salvar.", "error");
+    window.alertErrorWithSupport(id ? `Editar Pessoa` : "Criar Nova Pessoa", e.message);
   } finally {
     window.setButton(false, btn);
-  }
-};
-
-window.buscarCep = (valor) => {
-  var cep = valor.replace(/\D/g, "");
-  if (cep != "" && /^[0-9]{8}$/.test(cep)) {
-    $("#address_street, #address_district, #address_city, #address_state").prop("disabled", true).val("...");
-    $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (d) {
-      if (!("erro" in d)) {
-        $("#address_street").val(d.logradouro);
-        $("#address_district").val(d.bairro);
-        $("#address_city").val(d.localidade);
-        $("#address_state").val(d.uf);
-        $("#address_number").focus();
-      } else {
-        window.alertDefault("CEP não encontrado.", "warning");
-      }
-    }).always(() => $("#address_street, #address_district, #address_city, #address_state").prop("disabled", false));
   }
 };
 
@@ -764,12 +529,7 @@ window.deletePerson = (id) => {
   }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        const res = await window.ajaxValidator({
-          validator: "deletePerson",
-          token: defaultApp.userInfo.token,
-          id: id,
-        });
-
+        const res = await window.ajaxValidator({ validator: "deletePerson", token: defaultApp.userInfo.token, id: id });
         if (res.status) {
           window.alertDefault("Cadastro movido para a lixeira com sucesso.", "success");
           getPessoas();
@@ -777,26 +537,303 @@ window.deletePerson = (id) => {
           throw new Error(res.alert || "O servidor recusou a exclusão deste cadastro.");
         }
       } catch (e) {
-        const errorMessage = e.message || "Falha de comunicação com o servidor ao tentar excluir a pessoa.";
-        window.alertErrorWithSupport(`Excluir Pessoa`, errorMessage);
+        window.alertErrorWithSupport(`Excluir Pessoa`, e.message || "Falha de comunicação.");
       }
     }
   });
 };
 
-$("#is_pcd").change(function () {
-  if ($(this).is(":checked")) $("#pcd_details").removeClass("d-none").focus();
-  else $("#pcd_details").addClass("d-none");
-});
+// ==========================================
+// ABA: FAMÍLIA (NOVO DESIGN PREMIUM)
+// ==========================================
+window.addRelative = () => {
+  const rootPersonId = $("#person_id").val();
+  // Se for um novo cadastro (sem ID), o sistema impede o vínculo até que a pessoa seja salva uma vez
+  if (!rootPersonId) return window.alertDefault("Por favor, salve a ficha da pessoa antes de vincular familiares.", "warning");
 
+  const relativeId = $("#sel_relative").val();
+  if (!relativeId) return window.alertDefault("Selecione um familiar no campo de busca.", "warning");
+
+  const relationship = $("#sel_relationship").val();
+  const isGuardian = $("#is_legal_guardian").is(":checked");
+
+  // Captura o nome diretamente do Selectize
+  const selectize = $("#sel_relative")[0].selectize;
+  const relName = selectize.options[relativeId].title;
+
+  if (currentFamilyList.some((i) => i.relative_id == relativeId)) {
+    return window.alertDefault("Esta pessoa já está vinculada.", "warning");
+  }
+
+  currentFamilyList.push({
+    relative_id: relativeId,
+    relative_name: relName,
+    relationship_type: relationship,
+    is_legal_guardian: isGuardian, // Mapeado para o PHP interpretar como TRUE/FALSE
+  });
+
+  renderFamilyTable();
+  selectize.clear();
+  $("#is_legal_guardian").prop("checked", false);
+};
+
+window.removeRelative = (index) => {
+  currentFamilyList.splice(index, 1);
+  renderFamilyTable();
+};
+
+const renderFamilyTable = () => {
+  const container = $("#lista-familiares");
+  container.empty();
+
+  if (currentFamilyList.length === 0) {
+    container.html(`
+        <div class="text-center py-4 opacity-50">
+            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px;">
+                <i class="fas fa-users fs-5"></i>
+            </div>
+            <p class="small fw-medium mb-0">Nenhum familiar vinculado.</p>
+        </div>
+    `);
+    return;
+  }
+
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {}
+  const canEdit = allowedSlugs.includes("pessoas.edit") || allowedSlugs.includes("pessoas.save");
+  const typeMap = { FATHER: "Pai", MOTHER: "Mãe", SIBLING: "Irmão(ã)", GRANDPARENT: "Avô/Avó", SPOUSE: "Cônjuge", OTHER: "Outro" };
+
+  const html = currentFamilyList
+    .map((fam, index) => {
+      let badges = "";
+      if (fam.is_legal_guardian || fam.is_financial_responsible) {
+        badges += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold ms-2" style="font-size: 0.65rem;"><i class="fas fa-balance-scale me-1"></i> Responsável Legal/Financeiro</span>`;
+      }
+
+      return `
+    <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-white border border-secondary border-opacity-10 shadow-sm mb-2 transition-all hover-scale">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                <i class="fas fa-user" style="font-size: 1rem;"></i>
+            </div>
+            <div>
+                <div class="fw-bold text-body" style="font-size: 0.95rem;">${fam.relative_name}</div>
+                <div class="d-flex align-items-center mt-1">
+                    <span class="text-muted fw-bold small text-uppercase" style="letter-spacing: 0.5px;">${typeMap[fam.relationship_type] || fam.relationship_type}</span>
+                    ${badges}
+                </div>
+            </div>
+        </div>
+        ${
+          canEdit
+            ? `
+        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" onclick="removeRelative(${index})" title="Remover Vínculo">
+            <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
+        </button>`
+            : ""
+        }
+    </div>`;
+    })
+    .join("");
+
+  container.html(html);
+};
+
+// ==========================================
+// ABA: DOCUMENTOS E ANEXOS (PREMIUM)
+// ==========================================
+const renderAttachmentsTable = () => {
+  const container = $("#lista-anexos-cards");
+  container.empty();
+
+  if (currentAttachmentsList.length === 0) {
+    container.html(`
+        <div class="text-center py-4 opacity-50">
+            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px;">
+                <i class="fas fa-folder-open fs-5"></i>
+            </div>
+            <p class="small fw-medium mb-0">Nenhum documento anexado.</p>
+        </div>
+    `);
+    return;
+  }
+
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {}
+  const canDelete = allowedSlugs.includes("pessoas.delete") || allowedSlugs.includes("pessoas.edit");
+
+  const html = currentAttachmentsList
+    .map(
+      (item) => `
+    <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-white border border-secondary border-opacity-10 shadow-sm mb-2 transition-all hover-scale">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                <i class="fas fa-file-alt" style="font-size: 1rem;"></i>
+            </div>
+            <div>
+                <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.description || item.file_name}</div>
+                <div class="text-muted fw-medium mt-1 d-flex align-items-center flex-wrap gap-2" style="font-size: 0.75rem;">
+                    <span class="bg-secondary bg-opacity-10 px-2 py-1 rounded-pill"><i class="far fa-clock me-1"></i> ${item.created_at_fmt || "Recente"}</span>
+                    ${item.uploader_name ? `<span class="bg-info bg-opacity-10 text-info px-2 py-1 rounded-pill"><i class="fas fa-user-shield me-1"></i> Por: ${item.uploader_name}</span>` : ""}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="${item.file_path}" target="_blank" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" title="Ver Documento">
+                <i class="fas fa-external-link-alt" style="font-size: 0.85rem;"></i>
+            </a>
+            ${
+              canDelete
+                ? `
+            <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" onclick="removeAttachment(${item.attachment_id})" title="Excluir">
+                <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
+            </button>`
+                : ""
+            }
+        </div>
+    </div>`,
+    )
+    .join("");
+
+  container.html(html);
+};
+
+window.uploadAttachment = async (btn) => {
+  const personId = $("#person_id").val();
+  const fileInput = $("#attachment_file")[0];
+  const desc = $("#attachment_desc").val().trim();
+
+  if (!personId) return window.alertDefault("Salve a ficha da pessoa antes de adicionar documentos.", "warning");
+  if (!fileInput.files || fileInput.files.length === 0) return window.alertDefault("Selecione um arquivo.", "warning");
+  if (!desc) return window.alertDefault("Informe uma descrição para o documento.", "warning");
+
+  btn = $(btn);
+  window.setButton(true, btn, "Enviando...");
+
+  const formData = new FormData();
+  formData.append("validator", "uploadAttachment");
+  formData.append("token", defaultApp.userInfo.token);
+  formData.append("id_client", defaultApp.userInfo.id_client);
+  formData.append("person_id", personId);
+  formData.append("description", desc);
+  formData.append("file", fileInput.files[0]);
+
+  try {
+    const result = await $.ajax({
+      url: window.defaultApp.validator,
+      data: formData,
+      type: "POST",
+      processData: false,
+      contentType: false,
+    });
+
+    const res = typeof result === "string" ? JSON.parse(result) : result;
+    if (res.status) {
+      window.alertDefault("Documento anexado com sucesso!", "success");
+      $("#attachment_file").val("");
+      $("#attachment_desc").val("");
+      loadPersonData(personId, null);
+    } else {
+      window.alertDefault(res.alert, "error");
+    }
+  } catch (e) {
+    window.alertDefault("Erro no upload do documento.", "error");
+  } finally {
+    window.setButton(false, btn);
+  }
+};
+
+window.removeAttachment = (id) => {
+  Swal.fire({
+    title: "Excluir documento?",
+    text: "O registro será permanentemente desvinculado.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sim, excluir",
+    cancelButtonText: "Cancelar",
+  }).then(async (r) => {
+    if (r.isConfirmed) {
+      try {
+        const res = await window.ajaxValidator({ validator: "removeAttachment", token: defaultApp.userInfo.token, id: id });
+        if (res.status) {
+          window.alertDefault("Documento removido com sucesso.", "success");
+          const currentPersonId = $("#person_id").val();
+          if (currentPersonId) loadPersonData(currentPersonId);
+        } else {
+          throw new Error(res.alert || "Erro inesperado ao remover o arquivo.");
+        }
+      } catch (e) {
+        window.alertErrorWithSupport(`Excluir Documento`, e.message);
+      }
+    }
+  });
+};
+
+// ==========================================
+// FUNÇÕES AUXILIARES E EVENTOS GLOBAIS
+// ==========================================
+window.buscarCep = (cep) => {
+  cep = cep.replace(/\D/g, "");
+  if (cep.length === 8) {
+    Swal.fire({ title: "Buscando CEP...", didOpen: () => Swal.showLoading() });
+    $.getJSON(`https://viacep.com.br/ws/${cep}/json/`, (data) => {
+      Swal.close();
+      if (!data.erro) {
+        $("#address_street").val(data.logradouro);
+        $("#address_district").val(data.bairro);
+        $("#address_city").val(data.localidade);
+        $("#address_state").val(data.uf);
+        $("#address_number").focus();
+      } else {
+        window.alertDefault("CEP não encontrado.", "warning");
+      }
+    }).fail(() => Swal.close());
+  }
+};
+
+window.previewImage = (input) => {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = (e) => $("#preview_photo").attr("src", e.target.result);
+    reader.readAsDataURL(input.files[0]);
+  }
+};
+
+$("#is_pcd").change(function () {
+  if ($(this).is(":checked")) $("#pcd_details").removeClass("d-none");
+  else $("#pcd_details").addClass("d-none").val("");
+});
 $("#has_baptism").change(function () {
   if ($(this).is(":checked")) $("#baptism_details").removeClass("d-none");
   else $("#baptism_details").addClass("d-none");
 });
-
 $("#has_eucharist").change(function () {
   if ($(this).is(":checked")) $("#eucharist_details").removeClass("d-none");
   else $("#eucharist_details").addClass("d-none");
+});
+$("#has_chrism").change(function () {
+  if ($(this).is(":checked")) $("#chrism_details").removeClass("d-none");
+  else $("#chrism_details").addClass("d-none");
+});
+$("#has_matrimony").change(function () {
+  if ($(this).is(":checked")) $("#matrimony_details").removeClass("d-none");
+  else $("#matrimony_details").addClass("d-none");
 });
 
 $("#filtro-role, #busca-texto").on("change keyup", function () {
@@ -812,23 +849,63 @@ window.changePage = (page) => {
   getPessoas();
 };
 
-window.getPessoas = getPessoas;
-
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);
   container.empty();
+
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
 
-  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary">Primeira</button>`;
-  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 3); p++) {
-    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"}">${p}</button>`;
+  let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+  html += `<button onclick="${funcName}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior"><i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i></button>`;
+
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
+    if (p === current) {
+      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
+    } else {
+      html += `<button onclick="${funcName}(${p})" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
+    }
   }
-  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary">Última</button>`;
+
+  html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
+  html += `</div>`;
   container.html(html);
 };
 
+// ==========================================
+// INICIALIZAÇÃO DE COMPONENTES
+// ==========================================
 $(document).ready(() => {
-  if (window.initMasks) window.initMasks();
+  if ($("#sel_relative").length && !$("#sel_relative")[0].selectize) {
+    $("#sel_relative").selectize({
+      valueField: "id",
+      labelField: "title",
+      searchField: "title",
+      placeholder: "Buscar familiar...",
+      preload: true,
+      dropdownParent: "body",
+      onInitialize: function () {
+        this.$control.css({ border: "none", "background-color": "rgba(100, 116, 139, 0.1)", "border-radius": "14px", padding: "12px 16px", "font-size": "0.95rem", "font-weight": "600", "box-shadow": "inset 0 1px 2px rgba(0,0,0,0.05)" });
+      },
+      render: {
+        option: (item, escape) => {
+          const photo = item.profile_photo_url
+            ? `<img src="${escape(item.profile_photo_url)}" class="rounded-circle object-fit-cover border border-secondary border-opacity-25" style="width: 38px; height: 38px;">`
+            : `<div class="rounded-circle bg-secondary bg-opacity-25 border border-secondary border-opacity-10 d-flex align-items-center justify-content-center text-body fw-bold" style="width: 38px; height: 38px; font-size: 0.9rem;">${escape(item.title).charAt(0)}</div>`;
+          return `
+             <div class="d-flex align-items-center py-2 px-3 border-bottom border-secondary border-opacity-10">
+                 <div class="me-3 flex-shrink-0">${photo}</div>
+                 <div class="flex-grow-1" style="min-width: 0;">
+                     <div class="fw-bold text-body text-truncate" style="font-size: 0.95rem;">${escape(item.title)}</div>
+                     <div class="text-muted fw-medium text-truncate" style="font-size: 0.75rem;">${item.tax_id ? `CPF: ${escape(item.tax_id)}` : "Sem documento"}</div>
+                 </div>
+             </div>`;
+        },
+      },
+      load: (q, cb) => {
+        $.ajax({ url: defaultApp.validator, type: "POST", dataType: "json", data: { validator: "getRelativesList", token: defaultApp.userInfo.token, search: q, limit: 30 }, success: (r) => cb(r.data), error: () => cb() });
+      },
+    });
+  }
   getPessoas();
 });

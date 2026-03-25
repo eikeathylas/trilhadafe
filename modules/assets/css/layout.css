@@ -41,8 +41,9 @@
    2. CONTAINERS ESPECÍFICOS DE PÁGINA (GRIDS E LISTAS)
    ============================================================ */
 .list-commanded {
-  position: relative;
-  height: 70vh;
+  position: relative !important;
+  min-height: 60vh !important;
+  height: auto !important;
 }
 
 /* Grid de visualização em formato de Cards (Dashboard/Relatórios) */

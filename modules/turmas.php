@@ -65,7 +65,7 @@
                     </div>
                 </div>
 
-                <div class="pagination-turmas pagination paginationButtons mt-4 pb-5 mb-5 text-center justify-content-center w-100"></div>
+                <div class="pagination-turmas pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
             </div>
         </div>
     </div>

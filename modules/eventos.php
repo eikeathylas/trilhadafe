@@ -67,7 +67,7 @@
                         <p class="mt-3 fw-medium">Carregando calendário de eventos...</p>
                     </div>
                 </div>
-                <div class="pagination-events pagination paginationButtons mt-4 pb-5 mb-5 text-center justify-content-center w-100"></div>
+                <div class="pagination-events pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
             </div>
         </div>
 
