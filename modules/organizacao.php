@@ -63,13 +63,15 @@
 
                         <div id="pane-btn-diocese" class="pane-btn d-block text-center text-md-end" data-slug="organizacao.create">
                             <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4 w-100 w-md-auto transition-all hover-scale" style="height: 48px;" onclick="modalDiocese()">
-                                <i class="fas fa-plus me-2"></i> Nova Diocese
+                                <i class="fas fa-plus-circle me-2"></i>
+                                <span>Nova Diocese</span>
                             </button>
                         </div>
 
                         <div id="pane-btn-paroquia" class="pane-btn d-none text-center text-md-end" data-slug="organizacao.create">
                             <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4 w-100 w-md-auto transition-all hover-scale" style="height: 48px;" onclick="modalInstituicao()">
-                                <i class="fas fa-plus me-2"></i> Nova Paróquia
+                                <i class="fas fa-plus-circle me-2"></i>
+                                <span>Nova Paróquia</span>
                             </button>
                         </div>
 
@@ -81,7 +83,8 @@
                                 </div>
                                 <div class="col-12 col-md-5 text-center text-md-end" data-slug="organizacao.create">
                                     <button class="btn btn-primary fw-bold shadow-sm rounded-4 px-4 w-100 transition-all hover-scale" style="height: 48px;" onclick="modalLocal()">
-                                        <i class="fas fa-plus me-2"></i> Novo Local
+                                        <i class="fas fa-plus-circle me-2"></i>
+                                        <span>Novo Local</span>
                                     </button>
                                 </div>
                             </div>
@@ -121,119 +124,100 @@
     </div>
 
     <div class="modal fade" id="modalInstituicao" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-lg-down">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
-                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
-                    <h5 class="modal-title fw-bold text-white d-flex align-items-center m-0" id="modalInstituicaoLabel" style="letter-spacing: -0.5px;">
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center m-0 text-center" id="modalInstituicaoLabel" style="letter-spacing: -0.5px;">
                         <i class="fas fa-church me-3 opacity-75"></i> Cadastro Institucional
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="modal-body p-0 modal-body-scrollable">
+                <div class="modal-body p-0 modal-body-scrollable bg-body">
                     <input type="hidden" id="org_id">
 
-                    <div class="p-4">
-                        <div class="row g-4">
-                            <div class="col-12 col-md-3 d-flex flex-column align-items-center pt-2">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-3" style="letter-spacing: 0.5px;">Brasão / Logo</label>
-                                <div id="image-upload-container-org" class="border border-2 border-secondary border-opacity-25 p-1 rounded-circle bg-secondary bg-opacity-10 position-relative shadow-sm transition-all hover-scale" style="cursor: pointer; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden;" data-slug="organizacao.save">
-                                    <div id="placeholder-logo-org" class="text-center">
-                                        <i class="fas fa-camera fa-2x text-primary opacity-50 mb-2"></i>
-                                        <p class="text-muted small mb-0 lh-1 fw-bold text-uppercase" style="font-size: 0.7rem;">Adicionar</p>
-                                    </div>
-                                    <img id="img-preview-org" src="" class="img-fluid w-100 h-100 object-fit-cover rounded-circle position-absolute top-0 start-0" style="display: none; z-index: 2;" />
-                                    <input type="file" id="org_photo" class="d-none" accept="image/*" />
+                    <div class="p-4 p-md-5">
+
+                        <div class="col-12 d-flex flex-column align-items-center mb-5">
+                            <label class="form-label small fw-bold text-uppercase text-muted mb-3" style="letter-spacing: 0.5px;">Brasão / Logo</label>
+                            <div id="image-upload-container-org" class="border border-2 border-secondary border-opacity-25 p-1 rounded-circle bg-secondary bg-opacity-10 position-relative shadow-sm transition-all hover-scale" style="cursor: pointer; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden;" data-slug="organizacao.save">
+                                <div id="placeholder-logo-org" class="text-center">
+                                    <i class="fas fa-camera fa-2x text-primary opacity-50 mb-2"></i>
+                                    <p class="text-muted small mb-0 lh-1 fw-bold text-uppercase" style="font-size: 0.7rem;">Adicionar</p>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-outline-danger mt-3 rounded-pill px-3 d-none fw-bold shadow-sm transition-all hover-scale" id="btn-remove-logo" onclick="removeLogoOrg()" data-slug="organizacao.save">
-                                    <i class="fas fa-trash-can me-1"></i> Remover
-                                </button>
+                                <img id="img-preview-org" src="" class="img-fluid w-100 h-100 object-fit-cover rounded-circle position-absolute top-0 start-0" style="display: none; z-index: 2;" />
+                                <input type="file" id="org_photo" class="d-none" accept="image/*" />
                             </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger mt-3 rounded-pill px-3 d-none fw-bold shadow-sm transition-all hover-scale" id="btn-remove-logo" onclick="removeLogoOrg()" data-slug="organizacao.save">
+                                <i class="fas fa-trash-can me-1"></i> Remover
+                            </button>
+                        </div>
 
-                            <div class="col-12 col-md-9">
-                                <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner mb-4">
-                                    <h6 class="fw-bold text-primary mb-4 d-flex align-items-center"><i class="fas fa-id-card me-2 opacity-75"></i> Identificação</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-8">
-                                            <div class="form-floating">
-                                                <input type="text" id="org_display_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body" placeholder="Ex: Paróquia São José" />
-                                                <label class="text-muted fw-bold small text-uppercase">Nome Fantasia <span class="text-danger">*</span></label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-floating">
-                                                <select id="org_type" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body">
-                                                    <option value="DIOCESE">Diocese</option>
-                                                    <option value="PARISH">Paróquia</option>
-                                                </select>
-                                                <label class="text-muted fw-bold small text-uppercase">Tipo</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-floating">
-                                                <input type="text" id="org_legal_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body" placeholder="Razão Social" />
-                                                <label class="text-muted fw-bold small text-uppercase">Razão Social / Mitra</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-floating">
-                                                <input type="text" id="org_tax_id" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body mask-cnpj" placeholder="00.000.000/0000-00" />
-                                                <label class="text-muted fw-bold small text-uppercase">CNPJ</label>
-                                            </div>
-                                        </div>
-                                    </div>
+                        <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner mb-4">
+                            <h6 class="fw-bold text-primary mb-4 d-flex align-items-center"><i class="fas fa-id-card me-2 opacity-75"></i> Identificação</h6>
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Nome Fantasia <span class="text-danger">*</span></label>
+                                    <input type="text" id="org_display_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3" placeholder="Ex: Paróquia São José" style="height: 52px;" />
                                 </div>
-
-                                <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner">
-                                    <h6 class="fw-bold text-primary mb-4 d-flex align-items-center"><i class="fas fa-map-location-dot me-2 opacity-75"></i> Endereço e Contato</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-4">
-                                            <div class="form-floating position-relative">
-                                                <input type="text" id="org_zip" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold mask-cep" onblur="buscarCep(this.value)" placeholder="00000-000" />
-                                                <label class="text-muted fw-bold small text-uppercase">CEP</label>
-                                                <i class="fas fa-search position-absolute top-50 end-0 translate-middle-y me-4 text-primary opacity-50 cursor-pointer" onclick="buscarCep($('#org_zip').val())"></i>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-floating">
-                                                <input type="text" id="org_street" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium" placeholder=" " />
-                                                <label class="text-muted fw-bold small text-uppercase">Rua / Logradouro</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <div class="form-floating">
-                                                <input type="text" id="org_district" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium" placeholder=" " />
-                                                <label class="text-muted fw-bold small text-uppercase">Bairro</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <div class="form-floating">
-                                                <input type="text" id="org_city" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium" placeholder=" " />
-                                                <label class="text-muted fw-bold small text-uppercase">Cidade</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <div class="form-floating">
-                                                <input type="text" id="org_state" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-uppercase" maxlength="2" placeholder=" " />
-                                                <label class="text-muted fw-bold small text-uppercase">UF</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="text" id="org_phone" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold mask-phone" placeholder="(00) 0000-0000" />
-                                                <label class="text-muted fw-bold small text-uppercase">Telefone</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="email" id="org_email" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium" placeholder="contato@paroquia.com" />
-                                                <label class="text-muted fw-bold small text-uppercase">E-mail</label>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Tipo</label>
+                                    <select id="org_type" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3" style="height: 52px;">
+                                        <option value="DIOCESE" disabled>Diocese</option>
+                                        <option value="PARISH">Paróquia</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8 mt-3">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Razão Social / Mitra</label>
+                                    <input type="text" id="org_legal_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" placeholder="Razão Social completa..." style="height: 52px;" />
+                                </div>
+                                <div class="col-md-4 mt-3">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">CNPJ</label>
+                                    <input type="text" id="org_tax_id" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3 mask-cnpj" placeholder="00.000.000/0000-00" style="height: 52px;" />
                                 </div>
                             </div>
                         </div>
+
+                        <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner">
+                            <h6 class="fw-bold text-primary mb-4 d-flex align-items-center"><i class="fas fa-map-location-dot me-2 opacity-75"></i> Endereço e Contato</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">CEP</label>
+                                    <div class="input-group bg-white rounded-4 shadow-none border-0 overflow-hidden">
+                                        <input type="text" id="org_zip" class="form-control border-0 shadow-none bg-transparent fw-bold text-body px-3 mask-cep" onblur="buscarCep(this.value)" placeholder="00000-000" style="height: 52px;" />
+                                        <span class="input-group-text border-0 bg-transparent pe-3 cursor-pointer transition-all hover-scale" onclick="buscarCep($('#org_zip').val())">
+                                            <i class="fas fa-search text-primary opacity-50"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Rua / Logradouro</label>
+                                    <input type="text" id="org_street" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" style="height: 52px;" />
+                                </div>
+                                <div class="col-md-5 mt-3">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Bairro</label>
+                                    <input type="text" id="org_district" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" style="height: 52px;" />
+                                </div>
+                                <div class="col-md-5 mt-3">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Cidade</label>
+                                    <input type="text" id="org_city" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" style="height: 52px;" />
+                                </div>
+                                <div class="col-md-2 mt-3">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">UF</label>
+                                    <input type="text" id="org_state" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-uppercase text-body px-3" maxlength="2" style="height: 52px;" />
+                                </div>
+                                <div class="col-12 border-top border-secondary border-opacity-10 mt-4 pt-4"></div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Telefone</label>
+                                    <input type="text" id="org_phone" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3 mask-phone" placeholder="(00) 0000-0000" style="height: 52px;" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">E-mail</label>
+                                    <input type="email" id="org_email" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" placeholder="contato@paroquia.com" style="height: 52px;" />
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -248,39 +232,35 @@
     </div>
 
     <div class="modal fade" id="modalLocal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
-                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
-                    <h5 class="modal-title fw-bold text-white d-flex align-items-center m-0" style="letter-spacing: -0.5px;">
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center m-0 text-center" style="letter-spacing: -0.5px;">
                         <i class="fas fa-door-open me-3 opacity-75"></i> Espaço / Sala
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 p-md-5 bg-body">
                     <input type="hidden" id="loc_id">
 
                     <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 mb-4 shadow-inner">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Vincular à Paróquia <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Vincular à Paróquia <span class="text-danger">*</span></label>
                                 <select id="loc_org_id" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3 select-orgs-modal" style="height: 48px;"></select>
                             </div>
-                            <div class="col-12">
-                                <div class="form-floating mt-2">
-                                    <input type="text" id="loc_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body" />
-                                    <label class="text-muted fw-bold small text-uppercase">Nome do Espaço <span class="text-danger">*</span></label>
-                                </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Nome do Espaço <span class="text-danger">*</span></label>
+                                <input type="text" id="loc_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3" style="height: 52px;" />
                             </div>
-                            <div class="col-12 col-md-8">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 mt-2" style="letter-spacing: 0.5px;">Responsável Pelo Espaço</label>
+                            <div class="col-12 col-md-8 mt-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Responsável Pelo Espaço</label>
                                 <select id="loc_responsible" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 48px;"></select>
                             </div>
-                            <div class="col-12 col-md-4">
-                                <div class="form-floating mt-2">
-                                    <input type="number" id="loc_capacity" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-center" placeholder="0" />
-                                    <label class="text-muted fw-bold small text-uppercase">Lotação Max.</label>
-                                </div>
+                            <div class="col-12 col-md-4 mt-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Lotação Max.</label>
+                                <input type="number" id="loc_capacity" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body text-center px-3" placeholder="0" style="height: 52px;" />
                             </div>
                         </div>
                     </div>
@@ -301,7 +281,7 @@
                                 'projector' => ['label' => 'Projetor', 'icon' => 'fas fa-video text-secondary'],
                                 'sound' => ['label' => 'Som', 'icon' => 'fas fa-volume-up text-warning'],
                                 'computer' => ['label' => 'Computador', 'icon' => 'fas fa-desktop text-secondary'],
-                                'whiteboard' => ['label' => 'Lousa', 'icon' => 'fas fa-chalkboard text-dark'],
+                                'whiteboard' => ['label' => 'Lousa', 'icon' => 'fas fa-chalkboard text-secondary'],
                             ];
                             foreach ($recursos as $id => $data): ?>
                                 <div class="col-6 col-md-4 col-lg-3">
@@ -325,7 +305,7 @@
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarLocal(this)" data-slug="organizacao.save" style="height: 48px;">
-                        <i class="fas fa-save me-2 opacity-75"></i> Salvar
+                        <i class="fas fa-save me-2 opacity-75"></i> Salvar Local
                     </button>
                 </div>
             </div>

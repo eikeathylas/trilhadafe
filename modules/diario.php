@@ -20,10 +20,13 @@
 
     <div class="main-only">
 
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px;">
+                    <li class="breadcrumb-item active fw-bold text-body d-flex align-items-center" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px;">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
+                            <i class="fas fa-book-open-reader" style="font-size: 1.1rem;"></i>
+                        </div>
                         Diário de Classe
                     </li>
                 </ol>
@@ -87,15 +90,12 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-white bg-opacity-25 d-flex align-items-center justify-content-center rounded-circle me-3" style="width: 48px; height: 48px;">
-                            <i class="fas fa-book-open text-white fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="modal-title fw-bold text-white mb-0 lh-1" id="modalSessionLabel" style="letter-spacing: -0.5px;">Diário de Classe</h5>
-                            <div class="small text-white opacity-75 mt-1 fw-medium">Registro de conteúdo e frequência</div>
-                        </div>
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
+                    <div class="d-flex align-items-center justify-content-center flex-column">
+                        <h5 class="modal-title fw-bold text-white mb-0 d-flex align-items-center text-center m-0" id="modalSessionLabel" style="letter-spacing: -0.5px;">
+                            <i class="fas fa-book-open me-3 opacity-75"></i> Diário de Classe
+                        </h5>
+                        <small class="text-white opacity-75 mt-1 fw-medium">Registro de conteúdo e frequência</small>
                     </div>
                     <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -129,7 +129,7 @@
 
                                 <div class="card-body p-3 p-md-4 pt-0 d-flex flex-column">
                                     <div class="summernote-wrapper flex-grow-1">
-                                        <textarea id="diario_content" class="w-100"></textarea>
+                                        <textarea id="diario_content" class="w-100 form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body p-3"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -164,7 +164,7 @@
 
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                     <button class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
-                    <button class="btn btn-primary shadow-sm rounded-4 fw-bold px-5 d-flex align-items-center justify-content-center transition-all w-100 w-md-auto hover-scale" onclick="salvarDiario(this)" style="height: 48px; min-width: 220px;" data-slug="diario.save">
+                    <button class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="salvarDiario(this)" data-slug="diario.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>

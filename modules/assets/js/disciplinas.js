@@ -187,8 +187,8 @@ const renderTableSubjects = (data) => {
       <div class="ios-list-item flex-column align-items-stretch mb-2 p-3">
           <div class="d-flex justify-content-between align-items-center mb-2">
               <div class="d-flex align-items-center gap-2" style="min-width: 0;">
-                  <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;"><i class="fas fa-book me-1"></i> DISCIPLINA</span>
-                  <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem;">${item.name}</h6>
+                <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem;">${item.name}</h6>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-0 fw-bold" style="font-size: 0.6rem;"><i class="fas fa-book m-1"></i></span>
               </div>
               <div class="form-check form-switch m-0 p-0 d-flex align-items-center flex-shrink-0 ms-2">
                   <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 

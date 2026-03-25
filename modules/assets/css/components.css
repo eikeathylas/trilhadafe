@@ -1370,3 +1370,7 @@ label {
   letter-spacing: 0.5px;
   padding: 0.35em 0.65em;
 }
+
+textarea {
+  min-height: 250px !important;
+}

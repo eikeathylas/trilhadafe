@@ -28,18 +28,27 @@
             </nav>
         </div>
 
-        <div class="ios-search-container border-0 shadow-sm mb-0 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+        <div class="ios-search-container border-0 shadow-sm mb-3 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+
             <div class="card-body p-3 p-md-4">
-                <div class="row g-3 align-items-end">
+                <div class="row g-2 g-md-3 align-items-end">
+
+
+                    <div class="col-12 d-md-none mb-2 mt-2">
+                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Buscar Pessoa</h5>
+                    </div>
+
                     <div class="col-12 col-md flex-grow-1">
-                        <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" for="busca-texto" style="letter-spacing: 0.5px;">
-                            <i class="fas fa-search opacity-50 me-2 mt-1"></i> Localizar Pessoa
+
+
+                        <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
+                            <i class="fas fa-search opacity-50 me-1"></i> Localizar Pessoa
                         </label>
-                        <div class="input-group bg-fundo rounded-4 overflow-hidden border-0">
-                            <span class="input-group-text border-0 bg-transparent ps-4">
-                                <i class="fas fa-search text-muted opacity-75"></i>
+                        <div class="input-group bg-fundo rounded-3 overflow-hidden border-0">
+                            <input type="text" id="busca-texto" class="form-control shadow-sm" placeholder="Buscar por Nome, CPF, E-mail ou Telefone..." style="border-radius: 12px 0 0 12px !important; height: 48px;">
+                            <span class="input-group-text border-0 ps-3 d-flex d-md-none bg-primary bg-opacity-25">
+                                <i class="fas fa-search text-muted"></i>
                             </span>
-                            <input type="text" id="busca-texto" class="form-control border-0 bg-transparent shadow-none fw-medium" placeholder="Buscar por Nome, CPF, E-mail ou Telefone..." style="height: 52px;">
                         </div>
                     </div>
 
@@ -57,15 +66,18 @@
                         </select>
                     </div>
 
-                    <div class="col-12 col-md-auto d-grid" data-slug="pessoas.create">
-                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="modalPessoa()" style="height: 52px; border-radius: 14px; min-width: 170px;">
-                            <i class="fas fa-user-plus me-2"></i>
+                    <div class="col-12 col-md-auto d-grid mt-3 mt-md-0" data-slug="pessoas.create">
+                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="modalPessoa()" style="height: 48px; border-radius: 12px; min-width: 160px;">
+                            <i class="fas fa-plus-circle me-2"></i>
                             <span>Nova Pessoa</span>
                         </button>
                     </div>
+
                 </div>
             </div>
+
         </div>
+
 
         <div class="card list-commanded mb-0 mb-md-4 border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4">
             <div class="card-body p-0 p-md-4">
@@ -90,13 +102,13 @@
                     <h4 class="modal-title fw-bold text-white d-flex align-items-center m-0 text-center" id="modalLabel" style="letter-spacing: -0.5px;">
                         <i class="fas fa-user-edit me-3 opacity-75"></i> Ficha da Pessoa
                     </h4>
-                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body p-0 bg-body">
                     <input type="hidden" id="person_id">
 
-                    <div class="px-2 pt-3 pb-2 border-bottom border-secondary border-opacity-10 bg-white shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
+                    <div class="px-2 pt-1 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
                         <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
                             <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="pessoaTab" role="tablist">
                                 <li class="nav-item">
@@ -121,208 +133,190 @@
                     <div class="tab-content p-4 p-md-5">
 
                         <div class="tab-pane fade show active" id="tab-dados">
-                            <div class="row g-3">
+                            <div class="col-12 d-flex flex-column align-items-center mb-5">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-3" style="letter-spacing: 0.5px;">Foto de Perfil</label>
+                                <div id="image-upload-container-person" class="border border-2 border-secondary border-opacity-25 p-1 rounded-circle bg-secondary bg-opacity-10 position-relative shadow-sm transition-all hover-scale" style="cursor: pointer; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden;" data-slug="pessoas.save">
+                                    <div id="placeholder-logo-person" class="text-center">
+                                        <i class="fas fa-camera fa-2x text-primary opacity-50 mb-2"></i>
+                                        <p class="text-muted small mb-0 lh-1 fw-bold text-uppercase" style="font-size: 0.7rem;">Adicionar</p>
+                                    </div>
+                                    <img id="preview_photo" src="" class="img-fluid w-100 h-100 object-fit-cover rounded-circle position-absolute top-0 start-0" style="display: none; z-index: 2;" />
+                                    <input type="file" id="profile_photo" class="d-none" accept="image/*" />
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-3 rounded-pill px-3 d-none fw-bold shadow-sm transition-all hover-scale" id="btn-remove-photo" onclick="removePhotoPerson()" data-slug="pessoas.save">
+                                    <i class="fas fa-trash-can me-1"></i> Remover
+                                </button>
+                            </div>
 
-                                <div class="col-12 d-flex flex-column align-items-center mb-4">
-                                    <label class="form-label small fw-bold text-uppercase text-muted mb-3" style="letter-spacing: 0.5px;">Foto de Perfil</label>
-                                    <div id="image-upload-container-person" class="border border-2 border-secondary border-opacity-25 p-1 rounded-circle bg-secondary bg-opacity-10 position-relative shadow-sm transition-all hover-scale" style="cursor: pointer; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden;" data-slug="pessoas.save">
-                                        <div id="placeholder-logo-person" class="text-center">
-                                            <i class="fas fa-camera fa-2x text-primary opacity-50 mb-2"></i>
-                                            <p class="text-muted small mb-0 lh-1 fw-bold text-uppercase" style="font-size: 0.7rem;">Adicionar</p>
-                                        </div>
-                                        <img id="preview_photo" src="" class="img-fluid w-100 h-100 object-fit-cover rounded-circle position-absolute top-0 start-0" style="display: none; z-index: 2;" />
-                                        <input type="file" id="profile_photo" class="d-none" accept="image/*" />
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner mb-4">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-8">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Nome Completo <span class="text-danger">*</span></label>
+                                        <input type="text" id="full_name" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger mt-3 rounded-pill px-3 d-none fw-bold shadow-sm transition-all hover-scale" id="btn-remove-photo" onclick="removePhotoPerson()" data-slug="pessoas.save">
-                                        <i class="fas fa-trash-can me-1"></i> Remover
-                                    </button>
-                                </div>
-
-                                <div class="col-12 col-md-8">
-                                    <div class="form-floating">
-                                        <input type="text" id="full_name" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">Nome Completo *</label>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Data de Nascimento *</label>
+                                        <input type="date" id="birth_date" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-uppercase text-body px-3 cursor-pointer" style="height: 52px;" onclick="this.showPicker()">
                                     </div>
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="form-floating">
-                                        <input type="date" id="birth_date" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-uppercase text-body cursor-pointer" onclick="this.showPicker()">
-                                        <label class="text-muted fw-bold small text-uppercase">Data de Nascimento *</label>
+                                    <div class="col-12 col-md-4 mt-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">CPF</label>
+                                        <input type="text" id="tax_id" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" placeholder="000.000.000-00" style="height: 52px;">
                                     </div>
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="form-floating">
-                                        <input type="text" id="tax_id" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">CPF</label>
+                                    <div class="col-12 col-md-4 mt-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">RG / Documento</label>
+                                        <input type="text" id="national_id" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                     </div>
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="form-floating">
-                                        <input type="text" id="national_id" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">RG / Documento</label>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="form-floating">
-                                        <select id="gender" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body">
-                                            <option value="">Selecione...</option>
+                                    <div class="col-12 col-md-4 mt-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Sexo Biológico *</label>
+                                        <select id="gender" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
+                                            <option value="" selected disabled>Selecione...</option>
                                             <option value="M">Masculino</option>
                                             <option value="F">Feminino</option>
                                         </select>
-                                        <label class="text-muted fw-bold small text-uppercase">Sexo Biológico *</label>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="col-12 mt-4 pt-4 border-top border-secondary border-opacity-10">
-                                    <div class="form-check form-switch m-0 d-flex align-items-center bg-info bg-opacity-10 p-3 rounded-4 shadow-sm border border-info border-opacity-25 transition-all hover-bg-light">
-                                        <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 42px; height: 42px;">
-                                            <i class="fas fa-wheelchair fs-6"></i>
-                                        </div>
-                                        <div class="d-flex flex-column flex-grow-1">
-                                            <label class="form-check-label fw-bold text-body mb-0 cursor-pointer" for="is_pcd">Pessoa com Deficiência / Necessidade Especial</label>
-                                            <span class="text-muted opacity-75 lh-sm" style="font-size: 0.75rem;">Habilite para registrar restrições médicas ou necessidades de acessibilidade</span>
-                                        </div>
-                                        <div class="ms-3">
-                                            <input class="form-check-input shadow-none m-0 border-info cursor-pointer" type="checkbox" id="is_pcd" style="width: 48px; height: 26px;">
-                                        </div>
+                            <div class="card border-0 rounded-4 bg-info bg-opacity-10 p-4 shadow-inner mb-4 transition-all">
+                                <div class="m-0 d-flex align-items-center">
+                                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
+                                        <i class="fas fa-wheelchair" style="font-size: 0.9rem;"></i>
                                     </div>
-                                    <input type="text" id="pcd_details" class="form-control border-0 bg-white rounded-4 shadow-none d-none mt-3 fw-bold text-body" placeholder="Descreva laudos, restrições médicas ou acessibilidade necessária..." style="height: 54px;">
+                                    <div class="d-flex flex-column flex-grow-1">
+                                        <label class="form-check-label fw-bold text-body mb-0 cursor-pointer" for="is_pcd">Pessoa com Deficiência / Necessidade Especial</label>
+                                        <span class="text-muted opacity-75 lh-sm" style="font-size: 0.75rem;">Habilite para registrar restrições médicas ou necessidades de acessibilidade</span>
+                                    </div>
+                                    <div class="ms-3 form-switch" style="margin-left: 0 !important; padding-left: 0 !important;">
+                                        <input class="form-check-input shadow-none m-0 border-info cursor-pointer" type="checkbox" id="is_pcd" style="width: 48px; height: 26px;">
+                                    </div>
                                 </div>
+                                <input type="text" id="pcd_details" class="form-control border-0 bg-white rounded-4 shadow-none d-none mt-4 fw-bold text-body px-3" placeholder="Descreva laudos, restrições médicas ou acessibilidade necessária..." style="height: 52px;">
+                            </div>
 
-                                <div class="col-12 mt-4 pt-4 border-top border-secondary border-opacity-10">
-                                    <h6 class="fw-bold text-body mb-4 d-flex align-items-center">
-                                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                            <i class="fas fa-tags" style="font-size: 0.85rem;"></i>
-                                        </div>
-                                        Vínculos no Sistema
-                                    </h6>
-
-                                    <div class="row g-3 px-1">
-                                        <div class="col-6 col-md-3">
-                                            <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
-                                                <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
-                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
-                                                        <i class="fas fa-book-reader fs-5"></i>
-                                                    </div>
-                                                    <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_student">Catequizando</label>
-                                                    <div class="form-check form-switch m-0 p-0">
-                                                        <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_student" style="width: 42px; height: 22px; position: relative; z-index: 2;">
-                                                    </div>
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner">
+                                <h6 class="fw-bold text-body mb-4 d-flex align-items-center">
+                                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
+                                        <i class="fas fa-tags" style="font-size: 0.9rem;"></i>
+                                    </div>
+                                    Vínculos no Sistema
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-3">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
+                                            <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
+                                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
+                                                    <i class="fas fa-book-reader fs-5"></i>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6 col-md-3">
-                                            <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
-                                                <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
-                                                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
-                                                        <i class="fas fa-chalkboard-teacher fs-5"></i>
-                                                    </div>
-                                                    <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_catechist">Catequista</label>
-                                                    <div class="form-check form-switch m-0 p-0">
-                                                        <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_catechist" style="width: 42px; height: 22px; position: relative; z-index: 2;">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6 col-md-3">
-                                            <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
-                                                <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
-                                                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
-                                                        <i class="fas fa-cross fs-5"></i>
-                                                    </div>
-                                                    <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_priest">Clero</label>
-                                                    <div class="form-check form-switch m-0 p-0">
-                                                        <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_priest" style="width: 42px; height: 22px; position: relative; z-index: 2;">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-6 col-md-3">
-                                            <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
-                                                <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
-                                                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
-                                                        <i class="fas fa-user-shield fs-5"></i>
-                                                    </div>
-                                                    <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_parent">Responsável</label>
-                                                    <div class="form-check form-switch m-0 p-0">
-                                                        <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_parent" style="width: 42px; height: 22px; position: relative; z-index: 2;">
-                                                    </div>
+                                                <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_student">Catequizando</label>
+                                                <div class="form-check form-switch m-0 p-0">
+                                                    <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_student" style="width: 42px; height: 22px; position: relative; z-index: 2;">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
+                                            <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
+                                                <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
+                                                    <i class="fas fa-chalkboard-teacher fs-5"></i>
+                                                </div>
+                                                <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_catechist">Catequista</label>
+                                                <div class="form-check form-switch m-0 p-0">
+                                                    <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_catechist" style="width: 42px; height: 22px; position: relative; z-index: 2;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
+                                            <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
+                                                <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
+                                                    <i class="fas fa-cross fs-5"></i>
+                                                </div>
+                                                <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_priest">Clero</label>
+                                                <div class="form-check form-switch m-0 p-0">
+                                                    <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_priest" style="width: 42px; height: 22px; position: relative; z-index: 2;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
+                                            <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
+                                                <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
+                                                    <i class="fas fa-user-shield fs-5"></i>
+                                                </div>
+                                                <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_parent">Responsável</label>
+                                                <div class="form-check form-switch m-0 p-0">
+                                                    <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_parent" style="width: 42px; height: 22px; position: relative; z-index: 2;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-
                             </div>
                         </div>
 
                         <div class="tab-pane fade" id="tab-contato">
-                            <div class="row g-3">
-                                <div class="col-12 col-md-6">
-                                    <div class="form-floating mb-3">
-                                        <input type="text" id="phone_mobile" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">Celular / WhatsApp *</label>
-                                    </div>
-                                    <div class="form-check form-switch m-0 d-flex align-items-center p-3 bg-success bg-opacity-10 rounded-4 border border-success border-opacity-25 shadow-inner">
-                                        <i class="fab fa-whatsapp text-success fs-3 me-3"></i>
-                                        <div class="d-flex flex-column">
-                                            <label class="form-check-label small fw-bold text-success mb-1" for="wants_whatsapp_group" style="cursor: pointer;">Grupo de WhatsApp</label>
-                                            <span class="text-success opacity-75 lh-sm" style="font-size: 0.75rem;">Autoriza ser adicionado aos grupos da paróquia</span>
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner mb-4">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Celular / WhatsApp *</label>
+                                        <input type="text" id="phone_mobile" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3 mask-phone" style="height: 52px;">
+                                        <div class="form-check form-switch mt-3 d-flex align-items-center p-3 bg-success bg-opacity-10 rounded-4 border border-success border-opacity-25 shadow-inner">
+                                            <i class="fab fa-whatsapp text-success fs-3 me-3"></i>
+                                            <div class="d-flex flex-column">
+                                                <label class="form-check-label small fw-bold text-success mb-1" for="wants_whatsapp_group" style="cursor: pointer;">Grupo de WhatsApp</label>
+                                                <span class="text-success opacity-75 lh-sm" style="font-size: 0.75rem;">Autoriza ser adicionado aos grupos da paróquia</span>
+                                            </div>
+                                            <div class="ms-auto ps-3">
+                                                <input class="form-check-input shadow-none m-0 border-success" type="checkbox" id="wants_whatsapp_group" style="width: 44px; height: 24px; cursor: pointer;">
+                                            </div>
                                         </div>
-                                        <div class="ms-auto ps-3">
-                                            <input class="form-check-input shadow-none m-0 border-success" type="checkbox" id="wants_whatsapp_group" style="width: 44px; height: 24px; cursor: pointer;">
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">E-mail Principal</label>
+                                        <input type="email" id="email_contact" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner">
+                                <h6 class="fw-bold text-body mb-4 d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
+                                        <i class="fas fa-map-marker-alt" style="font-size: 0.9rem;"></i>
+                                    </div>
+                                    Endereço Residencial
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">CEP</label>
+                                        <div class="input-group bg-white rounded-4 shadow-none border-0 overflow-hidden">
+                                            <input type="text" id="zip_code" class="form-control border-0 bg-transparent shadow-none fw-bold text-body px-3 mask-cep" onblur="buscarCep(this.value)" placeholder="00000-000" style="height: 52px;">
+                                            <span class="input-group-text border-0 bg-transparent pe-3 cursor-pointer transition-all hover-scale" onclick="buscarCep($('#zip_code').val())">
+                                                <i class="fas fa-search text-primary opacity-50"></i>
+                                            </span>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <div class="form-floating">
-                                        <input type="email" id="email_contact" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">E-mail Principal</label>
+                                    <div class="col-12 col-md-7">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Logradouro (Rua, Av)</label>
+                                        <input type="text" id="address_street" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                     </div>
-                                </div>
-                                <div class="col-12 mt-5 pt-4 border-top border-secondary border-opacity-10">
-                                    <h6 class="fw-bold text-body mb-3 d-flex align-items-center">
-                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                            <i class="fas fa-map-marker-alt" style="font-size: 0.85rem;"></i>
-                                        </div>
-                                        Endereço Residencial
-                                    </h6>
-                                </div>
-                                <div class="col-12 col-md-3">
-                                    <div class="form-floating position-relative">
-                                        <input type="text" id="zip_code" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" " onblur="buscarCep(this.value)">
-                                        <label class="text-muted fw-bold small text-uppercase">CEP</label>
-                                        <i class="fas fa-search position-absolute top-50 end-0 translate-middle-y me-4 text-primary opacity-50 cursor-pointer" onclick="buscarCep($('#zip_code').val())"></i>
+                                    <div class="col-12 col-md-2">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Número</label>
+                                        <input type="text" id="address_number" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                     </div>
-                                </div>
-                                <div class="col-12 col-md-7">
-                                    <div class="form-floating">
-                                        <input type="text" id="address_street" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">Logradouro (Rua, Av)</label>
+                                    <div class="col-12 col-md-5 mt-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Bairro</label>
+                                        <input type="text" id="address_district" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                     </div>
-                                </div>
-                                <div class="col-12 col-md-2">
-                                    <div class="form-floating">
-                                        <input type="text" id="address_number" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">Número</label>
+                                    <div class="col-12 col-md-5 mt-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Cidade</label>
+                                        <input type="text" id="address_city" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                     </div>
-                                </div>
-                                <div class="col-12 col-md-5">
-                                    <div class="form-floating">
-                                        <input type="text" id="address_district" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">Bairro</label>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-5">
-                                    <div class="form-floating">
-                                        <input type="text" id="address_city" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">Cidade</label>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-2">
-                                    <div class="form-floating">
-                                        <input type="text" id="address_state" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-uppercase text-body" placeholder=" ">
-                                        <label class="text-muted fw-bold small text-uppercase">UF</label>
+                                    <div class="col-12 col-md-2 mt-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">UF</label>
+                                        <input type="text" id="address_state" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-uppercase text-body px-3" maxlength="2" style="height: 52px;">
                                     </div>
                                 </div>
                             </div>
@@ -336,34 +330,29 @@
                                     </div>
                                     Vincular Novo Familiar
                                 </h6>
-                                <div class="row g-3 align-items-center">
+                                <div class="row g-3 align-items-end">
                                     <div class="col-12 col-md-6">
-                                        <div class="bg-white rounded-4 shadow-sm border border-secondary border-opacity-10 px-2 py-1 h-100 d-flex align-items-center" style="min-height: 58px;">
-                                            <div class="w-100">
-                                                <select id="sel_relative" class="form-control shadow-none border-0 bg-transparent fw-bold text-body"></select>
-                                            </div>
-                                        </div>
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Familiar / Pessoa Cadastrada</label>
+                                        <select id="sel_relative" class="form-control bg-white rounded-4 border-0 shadow-none px-3" style="height: 52px;"></select>
                                     </div>
                                     <div class="col-12 col-md-4">
-                                        <div class="form-floating">
-                                            <select id="sel_relationship" class="form-select border-0 shadow-sm rounded-4 fw-bold text-body bg-white" style="height: 58px;">
-                                                <option value="MOTHER">Mãe</option>
-                                                <option value="FATHER">Pai</option>
-                                                <option value="GRANDPARENT">Avô / Avó</option>
-                                                <option value="UNCLE">Tio / Tia</option>
-                                                <option value="SIBLING">Irmão / Irmã</option>
-                                                <option value="SPOUSE">Cônjuge</option>
-                                                <option value="OTHER">Outro</option>
-                                            </select>
-                                            <label class="text-muted fw-bold small text-uppercase">Grau de Parentesco</label>
-                                        </div>
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Grau de Parentesco</label>
+                                        <select id="sel_relationship" class="form-select border-0 shadow-none rounded-4 bg-white fw-bold text-body px-3" style="height: 52px;">
+                                            <option value="MOTHER">Mãe</option>
+                                            <option value="FATHER">Pai</option>
+                                            <option value="GRANDPARENT">Avô / Avó</option>
+                                            <option value="UNCLE">Tio / Tia</option>
+                                            <option value="SIBLING">Irmão / Irmã</option>
+                                            <option value="SPOUSE">Cônjuge</option>
+                                            <option value="OTHER">Outro</option>
+                                        </select>
                                     </div>
                                     <div class="col-12 col-md-2 d-grid">
-                                        <button class="btn btn-primary px-4 rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-center transition-all hover-scale" onclick="addRelative()" style="min-height: 58px;">
-                                            <i class="fas fa-plus me-2 d-none d-md-inline"></i> Vincular
+                                        <button class="btn btn-primary px-4 rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-center transition-all hover-scale" onclick="addRelative()" style="min-height: 52px;">
+                                            <i class="fas fa-plus-circle me-2 d-none d-md-inline"></i> Vincular
                                         </button>
                                     </div>
-                                    <div class="col-12 mt-3">
+                                    <div class="col-12 mt-4">
                                         <div class="form-check form-switch m-0 d-flex align-items-center bg-white p-3 rounded-4 shadow-sm border border-secondary border-opacity-10 transition-all hover-bg-light">
                                             <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
                                                 <i class="fas fa-balance-scale fs-6"></i>
@@ -403,10 +392,12 @@
                                         <div id="baptism_details" class="d-none mt-4 pt-3 border-top border-secondary border-opacity-10">
                                             <div class="row g-2">
                                                 <div class="col-12 col-md-5">
-                                                    <input type="date" id="baptism_date" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body text-uppercase small" title="Data do Batismo">
+                                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Data</label>
+                                                    <input type="date" id="baptism_date" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body text-uppercase px-3" style="height: 48px;">
                                                 </div>
                                                 <div class="col-12 col-md-7">
-                                                    <input type="text" id="baptism_place" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body" placeholder="Paróquia ou Local">
+                                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Local da Celebração</label>
+                                                    <input type="text" id="baptism_place" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body px-3" placeholder="Paróquia ou Local" style="height: 48px;">
                                                 </div>
                                             </div>
                                         </div>
@@ -432,10 +423,12 @@
                                         <div id="eucharist_details" class="d-none mt-4 pt-3 border-top border-secondary border-opacity-10">
                                             <div class="row g-2">
                                                 <div class="col-12 col-md-5">
-                                                    <input type="date" id="eucharist_date" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body text-uppercase small" title="Data da Eucaristia">
+                                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Data</label>
+                                                    <input type="date" id="eucharist_date" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body text-uppercase px-3" style="height: 48px;">
                                                 </div>
                                                 <div class="col-12 col-md-7">
-                                                    <input type="text" id="eucharist_place" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body" placeholder="Paróquia ou Local">
+                                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Local da Celebração</label>
+                                                    <input type="text" id="eucharist_place" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body px-3" placeholder="Paróquia ou Local" style="height: 48px;">
                                                 </div>
                                             </div>
                                         </div>
@@ -486,15 +479,17 @@
 
                         <div class="tab-pane fade" id="tab-anexos">
                             <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 mb-4 shadow-inner">
-                                <h6 class="fw-bold text-body mb-3 d-flex align-items-center">
+                                <h6 class="fw-bold text-body mb-4 d-flex align-items-center">
                                     <i class="fas fa-cloud-upload-alt me-2 text-primary opacity-75"></i> Enviar Novo Documento
                                 </h6>
-                                <div class="row g-3 align-items-center">
+                                <div class="row g-3 align-items-end">
                                     <div class="col-12 col-md-5">
-                                        <input type="text" id="attachment_desc" class="form-control border-0 shadow-sm rounded-4 fw-bold text-body bg-white" placeholder="Descrição (Ex: RG, Foto, Laudo...)" style="height: 52px;">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Descrição</label>
+                                        <input type="text" id="attachment_desc" class="form-control border-0 shadow-sm rounded-4 fw-bold text-body bg-white px-3" placeholder="Ex: RG, Foto, Laudo..." style="height: 52px;">
                                     </div>
                                     <div class="col-12 col-md-5">
-                                        <input type="file" id="attachment_file" class="form-control border-0 shadow-sm rounded-4 bg-white text-muted fw-bold text-body" style="height: 52px; line-height: 38px;">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Selecione o Arquivo</label>
+                                        <input type="file" id="attachment_file" class="form-control border-0 shadow-sm rounded-4 bg-white text-muted fw-bold text-body px-3" style="height: 52px; line-height: 38px;">
                                     </div>
                                     <div class="col-12 col-md-2 d-grid">
                                         <button class="btn btn-primary fw-bold shadow-sm rounded-4 d-flex align-items-center justify-content-center transition-all hover-scale" onclick="uploadAttachment(this)" style="height: 52px;">
@@ -510,8 +505,8 @@
                 </div>
 
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="salvarPessoa(this)" data-slug="pessoas.save" style="height: 48px;">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarPessoa(this)" data-slug="pessoas.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>

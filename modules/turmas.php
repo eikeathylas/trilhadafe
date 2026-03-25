@@ -15,10 +15,13 @@
 
     <div class="main-only">
 
-        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px;">
+                    <li class="breadcrumb-item active fw-bold text-body d-flex align-items-center" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px;">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
+                            <i class="fas fa-graduation-cap" style="font-size: 1.1rem;"></i>
+                        </div>
                         Gestão de Turmas
                     </li>
                 </ol>
@@ -26,34 +29,42 @@
         </div>
 
         <div class="ios-search-container border-0 shadow-sm mb-3 mb-md-4 rounded-sm-0 rounded-md-4 bg-transparent-card">
+
             <div class="card-body p-3 p-md-4">
                 <div class="row g-2 g-md-3 align-items-end">
 
-                    <div class="col-12 d-md-none mb-2">
+
+                    <div class="col-12 d-md-none mb-2 mt-2">
                         <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Turmas</h5>
                     </div>
 
                     <div class="col-12 col-md flex-grow-1">
+
+
                         <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
                             <i class="fas fa-search opacity-50 me-1"></i> Localizar Turma
                         </label>
+
                         <div class="input-group bg-fundo rounded-3 overflow-hidden border-0">
-                            <span class="input-group-text border-0 bg-transparent ps-3">
+                            <input type="text" id="reportSearch" class="form-control shadow-sm" placeholder="Nome da turma, curso ou local..." style="border-radius: 12px 0 0 12px !important; height: 48px;">
+                            <span class="input-group-text border-0 ps-3 d-flex d-md-none bg-primary bg-opacity-25">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
-                            <input type="text" id="busca-texto" class="form-control border-0 bg-transparent shadow-none" placeholder="Nome da turma, curso ou local..." style="height: 48px;">
                         </div>
                     </div>
 
-                    <div class="col-12 col-md-auto d-grid" data-slug="turmas.create">
+
+                    <div class="col-12 col-md-auto d-grid mt-3 mt-md-0" data-slug="turmas.create">
                         <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="modalTurma()" style="height: 48px; border-radius: 12px; min-width: 160px;">
                             <i class="fas fa-plus-circle me-2"></i>
                             <span>Nova Turma</span>
                         </button>
                     </div>
 
+
                 </div>
             </div>
+
         </div>
 
         <div class="card list-commanded border-0 shadow-none shadow-md-sm rounded-sm-0 rounded-md-4 bg-transparent-card overflow-hidden">
@@ -73,7 +84,7 @@
     <?php include "./assets/components/Footer.php"; ?>
 
     <div class="modal fade" id="modalTurma" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-lg-down">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
                 <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
@@ -83,9 +94,9 @@
                     <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 z-2 shadow-sm text-center">
-                    <div class="modern-tabs-wrapper">
-                        <ul class="nav nav-pills gap-2 justify-content-center" id="turmaTab" role="tablist" style="flex-wrap: nowrap;">
+                <div class="px-2 pt-1 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
+                    <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
+                        <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="turmaTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active fw-bold px-4 rounded-pill" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab" aria-selected="true">
                                     <i class="fas fa-id-card me-2 opacity-75"></i> Geral
@@ -110,47 +121,45 @@
 
                     <div class="tab-content p-4 p-md-5">
                         <div class="tab-pane fade show active" id="tab-dados" role="tabpanel">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <div class="form-floating">
-                                        <input type="text" id="class_name" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" " style="height: 58px;">
-                                        <label class="text-muted fw-bold small text-uppercase">Nome da Turma *</label>
+
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner mb-4">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Nome da Turma <span class="text-danger">*</span></label>
+                                        <input type="text" id="class_name" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                     </div>
-                                </div>
-                                <div class="col-12 mt-4">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1" style="letter-spacing: 0.5px;">Curso / Catequese</label>
-                                    <select id="sel_course" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" style="height: 48px;"></select>
-                                </div>
-                                <div class="col-md-6 mt-4">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1" style="letter-spacing: 0.5px;">Coordenador Principal</label>
-                                    <select id="sel_coordinator" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body" style="height: 48px;"></select>
-                                </div>
-                                <div class="col-md-6 mt-4">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1" style="letter-spacing: 0.5px;">Auxiliar</label>
-                                    <select id="sel_assistant" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body" style="height: 48px;"></select>
-                                </div>
-                                <div class="col-12 border-top border-secondary border-opacity-10 mt-4 pt-4"></div>
-                                <div class="col-6">
-                                    <div class="form-floating">
-                                        <input type="number" id="class_capacity" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body text-center" placeholder=" " style="height: 58px;">
-                                        <label class="text-muted fw-bold small text-uppercase">Capacidade</label>
+                                    <div class="col-12 mt-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Curso / Catequese</label>
+                                        <select id="sel_course" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;"></select>
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-floating">
-                                        <select id="class_status" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body" style="height: 58px;">
+                                    <div class="col-md-6 mt-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Coordenador Principal</label>
+                                        <select id="sel_coordinator" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body px-3" style="height: 52px;"></select>
+                                    </div>
+                                    <div class="col-md-6 mt-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Auxiliar</label>
+                                        <select id="sel_assistant" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body px-3" style="height: 52px;"></select>
+                                    </div>
+                                    <div class="col-12 border-top border-secondary border-opacity-10 mt-4 pt-4"></div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Capacidade</label>
+                                        <input type="number" id="class_capacity" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body text-center px-3" placeholder="Ex: 30" style="height: 52px;">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Estado Atual</label>
+                                        <select id="class_status" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                             <option value="ACTIVE">Ativa</option>
                                             <option value="PLANNED">Planejada</option>
                                             <option value="FINISHED">Encerrada</option>
                                         </select>
-                                        <label class="text-muted fw-bold small text-uppercase">Estado Atual</label>
+                                    </div>
+                                    <div class="col-12 mt-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Sala Padrão da Turma</label>
+                                        <select id="sel_location" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body px-3" style="height: 52px;"></select>
                                     </div>
                                 </div>
-                                <div class="col-12 mt-4">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1" style="letter-spacing: 0.5px;">Sala Padrão da Turma</label>
-                                    <select id="sel_location" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body" style="height: 48px;"></select>
-                                </div>
                             </div>
+
                         </div>
 
                         <div class="tab-pane fade" id="tab-horarios" role="tabpanel">
@@ -158,7 +167,8 @@
                                 <label class="form-label small fw-bold text-primary text-uppercase mb-3 ms-1"><i class="fas fa-plus-circle me-2"></i> Adicionar Período</label>
                                 <div class="row g-3">
                                     <div class="col-12 col-md-4">
-                                        <select id="sched_day" class="form-select border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3" style="height: 48px;">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Dia da Semana</label>
+                                        <select id="sched_day" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                             <option value="6">Sábado</option>
                                             <option value="0">Domingo</option>
                                             <option value="1">Segunda</option>
@@ -169,18 +179,21 @@
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-3">
-                                        <input type="time" id="sched_start" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body text-center" style="height: 48px;">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Início</label>
+                                        <input type="time" id="sched_start" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body text-center px-3" style="height: 52px;">
                                     </div>
                                     <div class="col-6 col-md-3">
-                                        <input type="time" id="sched_end" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body text-center" style="height: 48px;">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Término</label>
+                                        <input type="time" id="sched_end" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body text-center px-3" style="height: 52px;">
                                     </div>
-                                    <div class="col-12 col-md-2">
-                                        <button class="btn btn-primary w-100 fw-bold rounded-4 shadow-sm h-100 transition-all hover-scale" onclick="addSchedule()">
+                                    <div class="col-12 col-md-2 d-flex align-items-end">
+                                        <button class="btn btn-primary w-100 fw-bold rounded-4 shadow-sm transition-all hover-scale" onclick="addSchedule()" style="height: 52px;">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
-                                    <div class="col-12">
-                                        <select id="sel_location_sched" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" style="height: 48px;"></select>
+                                    <div class="col-12 mt-3">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Local (Opcional)</label>
+                                        <select id="sel_location_sched" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body px-3" style="height: 52px;"></select>
                                     </div>
                                 </div>
                             </div>
@@ -190,15 +203,17 @@
                         <div class="tab-pane fade" id="tab-alunos" role="tabpanel">
                             <div class="bg-primary bg-opacity-10 p-4 rounded-4 mb-4 border border-primary border-opacity-10 shadow-inner" data-slug="turmas.enroll">
                                 <label class="form-label small fw-bold text-primary text-uppercase mb-3 ms-1"><i class="fas fa-user-plus me-2"></i> Efetuar Matrícula</label>
-                                <div class="row g-3 align-items-center">
+                                <div class="row g-3 align-items-end">
                                     <div class="col-12 col-md-6 flex-grow-1">
-                                        <select id="sel_new_student" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body" style="height: 48px;"></select>
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Buscar Aluno</label>
+                                        <select id="sel_new_student" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;"></select>
                                     </div>
                                     <div class="col-8 col-md-3 position-relative" style="z-index: 1060;">
-                                        <input type="date" id="enrollment_date" class="form-control shadow-none border-0 rounded-4 bg-white px-3 fw-bold text-body cursor-pointer text-center" style="height: 48px;" title="Data da Matrícula" value="<?php echo date('Y-m-d'); ?>" onclick="this.showPicker()">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Data</label>
+                                        <input type="date" id="enrollment_date" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body text-center cursor-pointer px-3" style="height: 52px;" title="Data da Matrícula" value="<?php echo date('Y-m-d'); ?>" onclick="this.showPicker()">
                                     </div>
                                     <div class="col-4 col-md-auto d-grid">
-                                        <button class="btn btn-primary px-4 rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-center transition-all hover-scale" onclick="matricularAluno(this)" style="min-height: 48px;">
+                                        <button class="btn btn-primary px-4 rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-center transition-all hover-scale" onclick="matricularAluno(this)" style="min-height: 52px;">
                                             <i class="fas fa-user-plus"></i>
                                         </button>
                                     </div>
@@ -210,7 +225,9 @@
                 </div>
 
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">
+                        Fechar
+                    </button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="salvarTurma(this)" data-slug="turmas.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
@@ -223,18 +240,18 @@
     <div class="modal fade no-print" id="modalHistoricoAluno" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
-                <div class="modal-header border-0 bg-secondary bg-opacity-75 py-3 px-4 text-white">
-                    <h5 class="modal-title fw-bold d-flex align-items-center">
-                        <i class="fas fa-clock-rotate-left me-3"></i> Histórico: <span id="hist_student_name" class="ms-1 fw-light text-white"></span>
+                <div class="modal-header border-0 bg-secondary bg-opacity-75 py-4 px-4 shadow-sm position-relative w-100 d-flex justify-content-center">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center m-0 text-center" style="letter-spacing: -0.5px;">
+                        <i class="fas fa-clock-rotate-left me-3 opacity-75"></i> Histórico: <span id="hist_student_name" class="ms-1 fw-light text-white"></span>
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none hover-scale" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4 bg-body">
                     <input type="hidden" id="hist_enrollment_id">
 
-                    <div class="bg-secondary bg-opacity-10 p-4 rounded-4 mb-4 border border-secondary border-opacity-10 shadow-inner" data-slug="turmas.enroll">
+                    <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner mb-4" data-slug="turmas.enroll">
                         <label class="form-label small fw-bold text-uppercase text-primary mb-3"><i class="fas fa-plus-circle me-1"></i> Nova Ocorrência</label>
-                        <select id="hist_action" class="form-select mb-3 shadow-none border-0 rounded-4 bg-white fw-bold text-body px-3" style="height: 48px;">
+                        <select id="hist_action" class="form-select mb-3 border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                             <option value="COMMENT">Apenas Observação</option>
                             <option value="SUSPENDED">Suspender</option>
                             <option value="DROPPED">Desistência / Abandono</option>
@@ -243,7 +260,7 @@
                             <option value="COMPLETED">Concluiu o Curso</option>
                         </select>
                         <div class="input-group bg-white rounded-4 shadow-none border-0 overflow-hidden">
-                            <input type="text" id="hist_obs" class="form-control border-0 shadow-none bg-transparent fw-medium text-body px-3" placeholder="Motivo ou detalhe..." style="height: 48px;">
+                            <input type="text" id="hist_obs" class="form-control border-0 bg-transparent shadow-none fw-medium text-body px-3" placeholder="Motivo ou detalhe..." style="height: 52px;">
                             <button class="btn btn-primary px-4 shadow-none fw-bold transition-all hover-scale" onclick="addHistoryItem(this)"><i class="fas fa-check"></i></button>
                         </div>
                     </div>
