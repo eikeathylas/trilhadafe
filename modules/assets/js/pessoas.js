@@ -1,6 +1,6 @@
 const defaultPeople = {
   currentPage: 1,
-  rowsPerPage: 10,
+  rowsPerPage: 20,
   totalPages: 1,
 };
 
@@ -28,6 +28,19 @@ window.initMasks = () => {
 window.copyEmail = (email) => {
   navigator.clipboard.writeText(email).then(() => {
     Swal.fire({ toast: true, position: "top-end", icon: "success", title: "E-mail copiado!", showConfirmButton: false, timer: 2000 });
+  });
+};
+
+window.zoomAvatar = (url, name) => {
+  Swal.fire({
+    title: name,
+    imageUrl: url,
+    imageWidth: 200,
+    imageHeight: 200,
+    imageAlt: `Foto de perfil de ${name}`,
+    showConfirmButton: false,
+    showCloseButton: true,
+    customClass: { image: "rounded-circle object-fit-cover shadow-sm border border-4 border-white" },
   });
 };
 
@@ -101,7 +114,6 @@ const renderTablePeople = (data) => {
     return;
   }
 
-  // --- Permissões RBAC ---
   let allowedSlugs = [];
   try {
     let access = localStorage.getItem("tf_access");
@@ -110,21 +122,17 @@ const renderTablePeople = (data) => {
       if (typeof parsed === "string") parsed = JSON.parse(parsed);
       allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
     }
-  } catch (e) {
-    console.warn("Erro ao ler permissões", e);
-  }
+  } catch (e) {}
 
   const canEdit = allowedSlugs.includes("pessoas.edit") || allowedSlugs.includes("pessoas.save");
   const canHistory = allowedSlugs.includes("pessoas.history");
   const canDelete = allowedSlugs.includes("pessoas.delete");
 
-  // --- Helpers ---
   const formatCPF = (cpf) => (cpf ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "Não informado");
   const formatDateBR = (dateStr) => (!dateStr || dateStr === "0000-00-00" ? "Não informada" : dateStr.split("-").reverse().join("/"));
   const roleColors = { STUDENT: "primary", CATECHIST: "warning", PRIEST: "secondary", PARENT: "success", DONOR: "info", VENDOR: "danger", SECRETARY: "secondary" };
   const roleNames = { STUDENT: "Catequizando", CATECHIST: "Catequista", PRIEST: "Clero", PARENT: "Responsável", DONOR: "Dizimista", VENDOR: "Barraqueiro", SECRETARY: "Secretária(o)" };
 
-  // --- VISÃO DESKTOP ---
   const desktopRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
@@ -132,8 +140,8 @@ const renderTablePeople = (data) => {
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
       const avatarHtml = item.profile_photo_url
-        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 48px; height: 48px; cursor: zoom-in;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
-        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 48px; height: 48px; font-size: 1rem;">${initials}</div>`;
+        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 42px; height: 42px; cursor: zoom-in;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 0.9rem;">${initials}</div>`;
 
       let rolesHtml = "";
       if (item.roles_array && item.roles_array.length > 0) {
@@ -145,12 +153,10 @@ const renderTablePeople = (data) => {
       let quickActionsHtml = "";
       if (item.phone_mobile) {
         const cleanPhone = item.phone_mobile.replace(/\D/g, "");
-
         const hour = new Date().getHours();
         let saudacao = "Olá, boa noite! Paz e Bem!";
         if (hour >= 5 && hour < 12) saudacao = "Olá, bom dia! Paz e Bem!";
         else if (hour >= 12 && hour < 18) saudacao = "Olá, boa tarde! Paz e Bem!";
-
         const waMsg = encodeURIComponent(saudacao);
         quickActionsHtml += `<a href="https://wa.me/55${cleanPhone}?text=${waMsg}" target="_blank" class="btn btn-sm text-success bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" title="WhatsApp"><i class="fab fa-whatsapp" style="font-size: 1rem;"></i></a>`;
       }
@@ -170,7 +176,7 @@ const renderTablePeople = (data) => {
       <tr>
           <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
           <td class="align-middle" style="min-width: 250px;">
-              <div class="fw-bold text-body text-truncate" style="font-size: 0.95rem;">${item.full_name}sdadasdasrf</div>
+              <div class="fw-bold text-body text-truncate" style="font-size: 0.95rem;">${item.full_name}</div>
               <div class="text-muted small mt-1">CPF: ${formatCPF(item.tax_id)} &nbsp;|&nbsp; Nasc.: ${formatDateBR(item.birth_date)}</div>
               <div>${rolesHtml}</div>
           </td>
@@ -211,7 +217,6 @@ const renderTablePeople = (data) => {
       </table>
   </div>`;
 
-  // --- VISÃO MOBILE ---
   const mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
@@ -235,7 +240,6 @@ const renderTablePeople = (data) => {
         let saudacao = "Olá, boa noite! Paz e Bem!";
         if (hour >= 5 && hour < 12) saudacao = "Olá, bom dia! Paz e Bem!";
         else if (hour >= 12 && hour < 18) saudacao = "Olá, boa tarde! Paz e Bem!";
-
         const waMsg = encodeURIComponent(saudacao);
         quickActionsHtml += `<a href="https://wa.me/55${cleanPhone}?text=${waMsg}" target="_blank" class="btn btn-sm text-success bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" title="WhatsApp"><i class="fab fa-whatsapp" style="font-size: 1rem;"></i></a>`;
       }
@@ -284,6 +288,41 @@ const renderTablePeople = (data) => {
 };
 
 // ==========================================
+// 2. LÓGICA DE FOTO/LOGO PREMIUM (PESSOAS)
+// ==========================================
+$("#image-upload-container-person")
+  .off("click")
+  .on("click", function (e) {
+    if ($(e.target).is("#profile_photo") || $(e.target).closest("#btn-remove-photo").length) return;
+    $("#profile_photo")[0].click();
+  });
+
+$("#profile_photo")
+  .off("click")
+  .on("click", function (e) {
+    e.stopPropagation();
+  });
+
+$("#profile_photo").change(function () {
+  if (this.files && this.files[0]) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      $("#preview_photo").attr("src", e.target.result).show();
+      $("#placeholder-logo-person").hide();
+      $("#btn-remove-photo").removeClass("d-none");
+    };
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
+window.removePhotoPerson = () => {
+  $("#profile_photo").val("");
+  $("#preview_photo").attr("src", "").hide();
+  $("#placeholder-logo-person").show();
+  $("#btn-remove-photo").addClass("d-none");
+};
+
+// ==========================================
 // CONTROLES DO MODAL (FICHA)
 // ==========================================
 window.modalPessoa = (id = null, btn = false) => {
@@ -304,8 +343,8 @@ window.modalPessoa = (id = null, btn = false) => {
   $("#address_city").val("");
   $("#address_state").val("");
 
-  $("#profile_photo").val("");
-  $("#preview_photo").attr("src", "assets/img/avatar-placeholder.png");
+  removePhotoPerson();
+
   $("#is_pcd").prop("checked", false).trigger("change");
   $("#pcd_details").val("");
 
@@ -369,13 +408,18 @@ const loadPersonData = async (id, btn) => {
       $("#address_city").val(d.address_city);
       $("#address_state").val(d.address_state);
 
-      if (d.profile_photo_url) $("#preview_photo").attr("src", d.profile_photo_url);
+      if (d.profile_photo_url) {
+        $("#preview_photo").attr("src", d.profile_photo_url).show();
+        $("#placeholder-logo-person").hide();
+        $("#btn-remove-photo").removeClass("d-none");
+      }
+
       $("#is_pcd")
         .prop("checked", d.is_pcd === true || d.is_pcd === "t")
         .trigger("change");
       $("#pcd_details").val(d.pcd_details);
 
-      const roles = d.roles || [];
+      const roles = d.roles_array || [];
       $("#role_student").prop("checked", roles.includes("STUDENT"));
       $("#role_catechist").prop("checked", roles.includes("CATECHIST"));
       $("#role_priest").prop("checked", roles.includes("PRIEST"));
@@ -450,18 +494,14 @@ window.salvarPessoa = async (btn) => {
 
   const txtFields = ["full_name", "birth_date", "tax_id", "national_id", "gender", "phone_mobile", "zip_code", "address_street", "address_number", "address_district", "address_city", "address_state", "pcd_details"];
   txtFields.forEach((f) => formData.append(f, $(`#${f}`).val() || ""));
-
   formData.append("email", $("#email_contact").val() || "");
   formData.append("wants_whatsapp_group", $("#wants_whatsapp_group").is(":checked"));
   formData.append("is_pcd", $("#is_pcd").is(":checked"));
-
-  // Vínculos Sistêmicos
   formData.append("role_student", $("#role_student").is(":checked"));
   formData.append("role_catechist", $("#role_catechist").is(":checked"));
   formData.append("role_priest", $("#role_priest").is(":checked"));
   formData.append("role_parent", $("#role_parent").is(":checked"));
 
-  // [CORREÇÃO] Envio da lista de familiares que estava faltando
   formData.append("family_json", JSON.stringify(currentFamilyList));
 
   formData.append(
@@ -484,15 +524,14 @@ window.salvarPessoa = async (btn) => {
       data: formData,
       processData: false,
       contentType: false,
+      dataType: "json",
     });
 
-    const res = typeof result === "string" ? JSON.parse(result) : result;
-    if (res.status) {
+    if (result.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");
       $("#modalPessoa").modal("hide");
       if (typeof getPessoas === "function") getPessoas();
     } else {
-      // Exibe o erro exato retornado pelo PHP para facilitar o suporte
       throw new Error(result.alert || "O servidor recusou o salvamento.");
     }
   } catch (e) {
@@ -529,19 +568,31 @@ window.deletePerson = (id) => {
   });
 };
 
+// ==========================================
+// ABA: FAMÍLIA (NOVO DESIGN PREMIUM)
+// ==========================================
 window.addRelative = () => {
-  // ... validações de ID de pessoa ...
-  const relativeId = $("#sel_relative").val();
-  const selectize = $("#sel_relative")[0].selectize;
-  const selectedData = selectize.options[relativeId]; // Captura o objeto completo do item selecionado
+  const rootPersonId = $("#person_id").val();
+  if (!rootPersonId) return window.alertDefault("Por favor, guarde a ficha da pessoa antes de tentar vincular familiares.", "warning");
 
-  // [AJUSTE] Agora incluímos a foto no objeto da lista local
+  const relativeId = $("#sel_relative").val();
+  if (!relativeId) return window.alertDefault("Selecione um familiar no campo de busca.", "warning");
+
+  const relationship = $("#sel_relationship").val();
+  const isGuardian = $("#is_legal_guardian").is(":checked");
+  const selectize = $("#sel_relative")[0].selectize;
+  const selectedData = selectize.options[relativeId];
+
+  if (currentFamilyList.some((i) => i.relative_id == relativeId)) {
+    return window.alertDefault("Esta pessoa já está vinculada.", "warning");
+  }
+
   currentFamilyList.push({
     relative_id: relativeId,
     relative_name: selectedData.title,
-    profile_photo_url: selectedData.profile_photo_url, // Armazena a foto para renderizar na hora
-    relationship_type: $("#sel_relationship").val(),
-    is_legal_guardian: $("#is_legal_guardian").is(":checked"),
+    profile_photo_url: selectedData.profile_photo_url,
+    relationship_type: relationship,
+    is_legal_guardian: isGuardian,
   });
 
   renderFamilyTable();
@@ -584,21 +635,21 @@ const renderFamilyTable = () => {
 
   const html = currentFamilyList
     .map((fam, index) => {
-      // [NOVO] Lógica de Foto para a Lista de Família
       const initials = fam.relative_name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .substring(0, 2)
-        .toUpperCase();
-
+        ? fam.relative_name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .substring(0, 2)
+            .toUpperCase()
+        : "?";
       const avatarHtml = fam.profile_photo_url
-        ? `<img src="${fam.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 48px; height: 48px; cursor: zoom-in;" onclick="zoomAvatar('${fam.profile_photo_url}', '${fam.relative_name.replace(/'/g, "\\'")}')">`
-        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 48px; height: 48px; font-size: 1rem;">${initials}</div>`;
+        ? `<img src="${fam.profile_photo_url}" class="rounded-circle object-fit-cover shadow-sm border border-secondary border-opacity-25" style="width: 42px; height: 42px;">`
+        : `<div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center fw-bold shadow-sm border border-secondary border-opacity-25" style="width: 42px; height: 42px; font-size: 0.9rem;">${initials}</div>`;
 
       let badges = "";
       if (fam.is_legal_guardian || fam.is_financial_responsible) {
-        badges += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold ms-2" style="font-size: 0.65rem;"><i class="fas fa-balance-scale me-1"></i> Responsável</span>`;
+        badges += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold ms-2" style="font-size: 0.65rem;"><i class="fas fa-balance-scale me-1"></i> Responsável Legal/Financeiro</span>`;
       }
 
       return `
@@ -613,7 +664,14 @@ const renderFamilyTable = () => {
                 </div>
             </div>
         </div>
-        ${canEdit ? `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="removeRelative(${index})" style="font-size: 0.85rem;"><i class="fas fa-trash-can"></i></button>` : ""}
+        ${
+          canEdit
+            ? `
+        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" onclick="removeRelative(${index})" title="Remover Vínculo">
+            <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
+        </button>`
+            : ""
+        }
     </div>`;
     })
     .join("");
@@ -714,6 +772,7 @@ window.uploadAttachment = async (btn) => {
       type: "POST",
       processData: false,
       contentType: false,
+      dataType: "json",
     });
 
     const res = typeof result === "string" ? JSON.parse(result) : result;

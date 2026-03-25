@@ -106,12 +106,12 @@
 
                     <div class="tab-pane fade" id="instituicoes" role="tabpanel">
                         <div class="table-responsive list-table-orgs"></div>
-                        <div class="pagination-orgs pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
+                        <div class="pagination paginationButtons pagination-orgs mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
                     </div>
 
                     <div class="tab-pane fade" id="locais" role="tabpanel">
                         <div class="table-responsive list-table-locais"></div>
-                        <div class="pagination-locais pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
+                        <div class="pagination paginationButtons pagination-locais mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
                     </div>
                 </div>
             </div>
@@ -238,7 +238,7 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarInstituicao(this)" data-slug="organizacao.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Gravar Cadastro
@@ -323,7 +323,7 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarLocal(this)" data-slug="organizacao.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Salvar Local

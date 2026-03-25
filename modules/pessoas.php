@@ -509,7 +509,7 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarPessoa(this)" data-slug="pessoas.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Salvar

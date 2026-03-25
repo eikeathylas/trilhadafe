@@ -71,7 +71,6 @@ const isEffectivelyEmpty = (val) => {
 const formatKey = (key) => {
   const kLow = String(key).toLowerCase();
   const map = {
-    // Acadêmico e Diário
     meeting_number: "Nº do Encontro/Aula",
     title: "Tema / Título",
     content: "Conteúdo Programático",
@@ -109,7 +108,6 @@ const formatKey = (key) => {
     enrollment_date: "Data da Matrícula",
     notes: "Observações / Notas",
 
-    // Pessoal e Identidade
     name: "Nome de Registro",
     full_name: "Nome Completo",
     religious_name: "Nome Social / Religioso",
@@ -124,7 +122,18 @@ const formatKey = (key) => {
     eucharist_date: "Data da Eucaristia",
     eucharist_place: "Local da Eucaristia",
 
-    // Contatos e Endereços
+    // [NOVO] Adicionado traduções vitais que estavam faltando
+    photo_url: "URL da Foto / Avatar",
+    uploaded_at: "Data de Upload",
+    deceased: "Em Memória (Falecido)",
+    death_date: "Data de Falecimento",
+    nationality: "Nacionalidade",
+    wants_whatsapp_group: "Grupo de WhatsApp",
+    workload_hours: "Carga Horária",
+    max_age: "Idade Máxima",
+    min_age: "Idade Mínima",
+    total_workload_hours: "Carga Horária Total",
+
     phone_main: "Telefone Primário",
     phone_secondary: "Telefone Secundário",
     phone_mobile: "Celular / WhatsApp",
@@ -138,7 +147,6 @@ const formatKey = (key) => {
     address_state: "Unidade Federativa (UF)",
     zip_code: "Código Postal (CEP)",
 
-    // Organizacional e Infraestrutura
     is_active: "Estado Operacional",
     active: "Status Geral",
     deleted: "Lixeira (Soft Delete)",
@@ -161,7 +169,6 @@ const formatKey = (key) => {
     resources_detail: "Inventário de Recursos",
     responsible_id: "Responsável Legal",
 
-    // Vínculos e Segurança
     vinculo: "Função Desempenhada",
     relationship_type: "Grau de Parentesco",
     is_financial_responsible: "Titular Financeiro",
@@ -177,7 +184,8 @@ const formatKey = (key) => {
 };
 
 const formatValue = (val, key = "") => {
-  const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory", "is_academic_blocker", "force_password_change", "is_financial_responsible", "is_legal_guardian", "is_sacred", "is_lodging"];
+  // [NOVO] Adicionado "deceased" e "wants_whatsapp_group" para renderizar botões Sim/Não
+  const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory", "is_academic_blocker", "force_password_change", "is_financial_responsible", "is_legal_guardian", "is_sacred", "is_lodging", "deceased", "wants_whatsapp_group"];
 
   if (key === "is_present" || key.toLowerCase() === "presença" || key === "presenca" || key === "is_present") {
     if (val === true || val === "t" || val === "true" || val === "Presente" || val === 1) return `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="fas fa-check me-1"></i> Presente</span>`;
@@ -324,9 +332,13 @@ const renderTimeline = (logs, container) => {
   let html = "";
   let visibleLogsCount = 0;
 
+  // [NOVO] Prioridade de tabelas para impedir falsos positivos no cabeçalho
+  const priorityTables = ["persons", "organizations", "classes", "courses", "subjects"];
+
   groupedTransactions.forEach((group, index) => {
     let sessionLog = group.items.find((l) => l.table_name === "class_sessions");
-    let mainLog = sessionLog || group.items[0];
+    // O mainLog agora procura primeiro por tabelas "Pai"
+    let mainLog = sessionLog || group.items.find((l) => priorityTables.includes(l.table_name)) || group.items[0];
 
     let mainOp = (mainLog.operation || "").toUpperCase().trim();
     let isInsert = mainOp === "INSERT" || mainOp === "ADD VÍNCULO";
@@ -337,10 +349,16 @@ const renderTimeline = (logs, container) => {
     let colorClass = isInsert ? "success" : isDelete ? "danger" : "primary";
 
     let headerText = "Modificação de Dados";
+
+    // Tratamento de Cabeçalhos
     if (sessionLog) {
       headerText = isInsert ? "Registro de Aula Criado" : isDelete ? "Registro de Aula Removido" : "Registro de Aula Atualizado";
     } else if (group.items.some((l) => l.table_name === "attendance")) {
       headerText = isInsert ? "Lançamento de Frequência" : isDelete ? "Remoção de Frequência" : "Atualização de Frequência";
+    } else if (mainLog.table_name === "persons") {
+      headerText = isInsert ? "Cadastro de Pessoa Criado" : isDelete ? "Cadastro Removido" : "Edição de Cadastro de Pessoa";
+    } else if (mainLog.table_name === "organizations") {
+      headerText = isInsert ? "Organização Criada" : isDelete ? "Organização Removida" : "Edição de Organização";
     } else {
       const labelsMap = {
         person_roles: "Atribuição de Cargo/Função",
@@ -415,8 +433,7 @@ const renderTimeline = (logs, container) => {
           let displayOld = formatValue(rawOld, key);
           let displayNew = formatValue(rawNew, key);
 
-          // [NOVO] Diferenciador Dinâmico para Texto Rico:
-          // Se o validador transformou ambos em "Documento Rico" mas eles eram de fato diferentes no banco:
+          // Diferenciador Dinâmico para Texto Rico
           if (displayOld === displayNew && rawOld !== rawNew) {
             displayOld = `<span class="text-muted"><i class="fas fa-file-code me-1"></i> Versão Anterior</span>`;
             displayNew = `<span class="text-primary fw-bold"><i class="fas fa-file-code me-1"></i> Nova Versão Atualizada</span>`;
@@ -482,7 +499,6 @@ const renderTimeline = (logs, container) => {
     }
 
     let p = false;
-    // FALLBACK INTELIGENTE
     if (generalFieldsHTML === "" && attendanceHTML === "" && isUpdate) {
       diffHtml = `<div class="text-muted small fw-medium fst-italic py-2"><i class="fas fa-info-circle me-1 opacity-50"></i> Clicou em <b>Salvar</b> sem mudar nenhuma informação.</div>`;
       p = true;
