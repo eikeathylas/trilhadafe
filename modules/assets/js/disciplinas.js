@@ -292,7 +292,7 @@ window.salvarDisciplina = async (btn) => {
 window.deleteSubject = (id) => {
   Swal.fire({
     title: "Excluir Disciplina?",
-    text: "O registo será movido para a lixeira do sistema.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",

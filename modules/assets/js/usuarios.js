@@ -377,7 +377,7 @@ window.openEditModal = async (id, btn) => {
 window.deleteUsuario = async (id) => {
   const confirm = await Swal.fire({
     title: "Remover Usuário?",
-    text: "O usuário perderá totalmente o acesso ao sistema. Esta ação não pode ser desfeita.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Sim, remover",

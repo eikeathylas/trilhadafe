@@ -763,7 +763,7 @@ const renderSchedulesTable = () => {
 };
 
 window.deleteTurma = (id) => {
-  Swal.fire({ title: "Excluir?", text: "A turma irá para a lixeira.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
+  Swal.fire({ title: "Excluir?", text: "O registro será movido para a lixeira do sistema.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
     if (r.isConfirmed) {
       try {
         const res = await window.ajaxValidator({ validator: "deleteClass", token: defaultApp.userInfo.token, id });

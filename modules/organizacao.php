@@ -106,12 +106,12 @@
 
                     <div class="tab-pane fade" id="instituicoes" role="tabpanel">
                         <div class="table-responsive list-table-orgs"></div>
-                        <div class="pagination paginationButtons pagination-orgs mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
+                        <div class="pagination-orgs pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
                     </div>
 
                     <div class="tab-pane fade" id="locais" role="tabpanel">
                         <div class="table-responsive list-table-locais"></div>
-                        <div class="pagination paginationButtons pagination-locais mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
+                        <div class="pagination-locais pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
                     </div>
                 </div>
             </div>
@@ -238,7 +238,7 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
+                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarInstituicao(this)" data-slug="organizacao.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Gravar Cadastro
@@ -288,24 +288,34 @@
 
                     <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner">
                         <h6 class="fw-bold text-primary mb-4 d-flex align-items-center"><i class="fas fa-cubes me-2 opacity-75"></i> Infraestrutura e Recursos</h6>
-                        <div class="row g-2">
+                        <div class="row g-3">
                             <?php
                             $recursos = [
-                                'wifi' => 'Wi-Fi',
-                                'ac' => 'Ar-Condic.',
-                                'projector' => 'Projetor',
-                                'sound' => 'Som',
-                                'whiteboard' => 'Lousa',
-                                'access' => 'Acessíb.',
-                                'sacred' => 'Sagrado',
-                                'kitchen' => 'Cozinha',
-                                'parking' => 'Vagas'
+                                'wifi' => ['label' => 'Wi-Fi', 'icon' => 'fas fa-wifi text-primary'],
+                                'ac' => ['label' => 'Ar-Condic.', 'icon' => 'fas fa-snowflake text-info'],
+                                'projector' => ['label' => 'Projetor', 'icon' => 'fas fa-video text-secondary'],
+                                'sound' => ['label' => 'Som', 'icon' => 'fas fa-volume-up text-warning'],
+                                'whiteboard' => ['label' => 'Lousa', 'icon' => 'fas fa-chalkboard text-dark'],
+                                'access' => ['label' => 'Acessíb.', 'icon' => 'fas fa-wheelchair text-success'],
+                                'sacred' => ['label' => 'Sagrado', 'icon' => 'fas fa-cross text-danger'],
+                                'kitchen' => ['label' => 'Cozinha', 'icon' => 'fas fa-utensils text-warning'],
+                                'parking' => ['label' => 'Vagas', 'icon' => 'fas fa-car text-secondary'],
+                                'fan' => ['label' => 'Ventilador', 'icon' => 'fas fa-fan text-info'],
+                                'water' => ['label' => 'Água/Bebedouro', 'icon' => 'fas fa-tint text-primary'],
+                                'computer' => ['label' => 'Computador', 'icon' => 'fas fa-desktop text-secondary']
                             ];
-                            foreach ($recursos as $id => $label): ?>
-                                <div class="col-6 col-md-4">
-                                    <div class="form-check form-switch d-flex align-items-center p-3 rounded-4 border border-secondary border-opacity-10 bg-white transition-all hover-scale cursor-pointer shadow-sm">
-                                        <input class="form-check-input shadow-none m-0 me-3 border-secondary" type="checkbox" id="loc_<?php echo $id; ?>" style="cursor:pointer; width: 40px; height: 20px;">
-                                        <label class="form-check-label small fw-bold text-body m-0" for="loc_<?php echo $id; ?>" style="cursor:pointer;"><?php echo $label; ?></label>
+                            foreach ($recursos as $id => $data): ?>
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
+                                        <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 40px; height: 40px; background-color: rgba(0,0,0,0.03);">
+                                                <i class="<?php echo $data['icon']; ?> fs-5"></i>
+                                            </div>
+                                            <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="loc_<?php echo $id; ?>"><?php echo $data['label']; ?></label>
+                                            <div class="form-check form-switch m-0 p-0">
+                                                <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="loc_<?php echo $id; ?>" style="width: 38px; height: 20px; position: relative; z-index: 2;">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -313,7 +323,7 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
+                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarLocal(this)" data-slug="organizacao.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Salvar Local

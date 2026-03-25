@@ -7,32 +7,17 @@ const defaultOrg = {
   locTotalPages: 1,
 };
 
-/**
- * PROTOCOLO DUAL STATUS (PADRÃO PREMIUM)
- * Garante feedback visual instantâneo sem recarregar a lista
- */
 window.toggleDio = (id, element) => handleToggle("toggleOrganization", id, element, "Estado atualizado.", `.status-text-org-${id}`, getDiocese);
 window.toggleOrg = (id, element) => handleToggle("toggleOrganization", id, element, "Estado atualizado.", `.status-text-org-${id}`, getOrganizacoes);
 window.toggleLoc = (id, element) => handleToggle("toggleLocation", id, element, "Estado atualizado.", `.status-text-loc-${id}`, getLocais);
-
-// =========================================================
-// 1. HELPERS DE INTERFACE (LOGO, ZOOM E CEP)
-// =========================================================
 
 const _renderLogoCircle = (url, name, id, isMobile = false) => {
   const size = isMobile ? "46px" : "42px";
   const nameEscaped = name ? name.replace(/'/g, "\\'") : "Instituição";
 
   if (url && url.trim() !== "") {
-    return `<img src="${url}?v=${new Date().getTime()}"
-                 class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" 
-                 style="width:${size}; height:${size}; cursor: zoom-in; transition: transform 0.2s;"
-                 onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${url}', '${nameEscaped}')"
-                 onmouseover="this.style.transform='scale(1.15)'" 
-                 onmouseout="this.style.transform='scale(1)'"
-                 title="Ver logo">`;
+    return `<img src="${url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width:${size}; height:${size}; cursor: zoom-in; transition: transform 0.2s;" onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${url}', '${nameEscaped}')" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'" title="Ver logo">`;
   }
-
   const initials = name
     ? name
         .split(" ")
@@ -44,10 +29,7 @@ const _renderLogoCircle = (url, name, id, isMobile = false) => {
   const colors = ["bg-primary", "bg-success", "bg-info", "bg-warning", "bg-danger", "bg-secondary"];
   const colorClass = colors[id % colors.length];
 
-  return `<div class="rounded-circle d-flex align-items-center justify-content-center ${colorClass} bg-opacity-10 text-${colorClass.replace("bg-", "")} shadow-sm fw-bold border border-${colorClass.replace("bg-", "")} border-opacity-25" 
-               style="width:${size}; height:${size}; font-size: ${isMobile ? "1.1rem" : "0.9rem"}; letter-spacing: -0.5px; cursor: help;">
-               ${initials}
-          </div>`;
+  return `<div class="rounded-circle d-flex align-items-center justify-content-center ${colorClass} bg-opacity-10 text-${colorClass.replace("bg-", "")} shadow-sm fw-bold border border-${colorClass.replace("bg-", "")} border-opacity-25" style="width:${size}; height:${size}; font-size: ${isMobile ? "1.1rem" : "0.9rem"}; letter-spacing: -0.5px; cursor: help;">${initials}</div>`;
 };
 
 window.buscarCep = (valor) => {
@@ -76,10 +58,6 @@ const limpa_formulário_cep = () => {
   $("#org_street, #org_district, #org_city, #org_state").val("").prop("disabled", false);
 };
 
-// =========================================================
-// 2. GESTÃO DE INSTITUIÇÕES (DIOCESES E PARÓQUIAS)
-// =========================================================
-
 window.getDiocese = async () => {
   const container = $(".list-table-diocese");
   try {
@@ -106,9 +84,7 @@ const renderTableDiocese = (data) => {
       if (typeof parsed === "string") parsed = JSON.parse(parsed);
       allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
     }
-  } catch (e) {
-    console.warn("Erro ao ler permissões", e);
-  }
+  } catch (e) {}
 
   const canHistory = allowedSlugs.includes("organizacao.view");
   const canEdit = allowedSlugs.includes("organizacao.edit");
@@ -117,7 +93,6 @@ const renderTableDiocese = (data) => {
   const desktopRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-
       let actionsHtml = "";
       if (canHistory)
         actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
@@ -154,7 +129,6 @@ const renderTableDiocese = (data) => {
   const mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-
       let mobActionsHtml = "";
       if (canHistory)
         mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
@@ -231,9 +205,7 @@ const renderTableOrgs = (data) => {
       if (typeof parsed === "string") parsed = JSON.parse(parsed);
       allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
     }
-  } catch (e) {
-    console.warn("Erro ao ler permissões", e);
-  }
+  } catch (e) {}
 
   const canHistory = allowedSlugs.includes("organizacao.view_paroc");
   const canEdit = allowedSlugs.includes("organizacao.edit_paroc");
@@ -242,7 +214,6 @@ const renderTableOrgs = (data) => {
   const desktopRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-
       let actionsHtml = "";
       if (canHistory)
         actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
@@ -279,7 +250,6 @@ const renderTableOrgs = (data) => {
   const mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
-
       let mobActionsHtml = "";
       if (canHistory)
         mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
@@ -329,10 +299,6 @@ const renderTableOrgs = (data) => {
   _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes", defaultOrg);
 };
 
-// =========================================================
-// 3. GESTÃO DE LOCAIS / ESPAÇOS
-// =========================================================
-
 window.getLocais = async () => {
   const container = $(".list-table-locais");
   try {
@@ -365,9 +331,7 @@ const renderTableLocais = (data) => {
       if (typeof parsed === "string") parsed = JSON.parse(parsed);
       allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
     }
-  } catch (e) {
-    console.warn("Erro ao ler permissões", e);
-  }
+  } catch (e) {}
   const canEdit = allowedSlugs.includes("organizacao.edit_loc");
   const canHistory = allowedSlugs.includes("organizacao.view_loc");
   const canDelete = allowedSlugs.includes("organizacao.save_loc");
@@ -486,7 +450,7 @@ const renderTableLocais = (data) => {
 };
 
 // =========================================================
-// 4. LÓGICA DE FOTO/LOGO (PADRÃO PESSOAS.JS)
+// 4. LÓGICA DE FOTO/LOGO
 // =========================================================
 
 $("#image-upload-container-org")
@@ -530,7 +494,7 @@ window.salvarInstituicao = async (btn) => {
   if (!nome) return window.alertDefault("Nome Fantasia é obrigatório.", "warning");
 
   btn = $(btn);
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
   const orgId = $("#org_id").val();
 
   const formData = new FormData();
@@ -577,7 +541,7 @@ window.salvarInstituicao = async (btn) => {
       $("#modalInstituicao").modal("hide");
       getDiocese();
       getOrganizacoes();
-      initOrgSelects(); // Recarrega os filtros
+      initOrgSelects();
     } else throw new Error(result.alert || "Erro ao salvar.");
   } catch (e) {
     window.alertErrorWithSupport(orgId ? `Editar Org` : "Criar Org", e.message);
@@ -605,9 +569,10 @@ window.salvarLocal = async (btn) => {
   const orgId = $("#loc_org_id").val();
   if (!nome || !orgId) return window.alertDefault("Nome e Paróquia são obrigatórios.", "warning");
   btn = $(btn);
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   try {
+    // [CORREÇÃO CRÍTICA] Envio de variáveis planas para bater com o PHP
     const data = {
       location_id: $("#loc_id").val(),
       org_id: orgId,
@@ -617,17 +582,15 @@ window.salvarLocal = async (btn) => {
       has_ac: $("#loc_ac").is(":checked"),
       is_accessible: $("#loc_access").is(":checked"),
       is_consecrated: $("#loc_sacred").is(":checked"),
-      resources: JSON.stringify({
-        whiteboard: $("#loc_whiteboard").is(":checked"),
-        projector: $("#loc_projector").is(":checked"),
-        sound: $("#loc_sound").is(":checked"),
-        wifi: $("#loc_wifi").is(":checked"),
-        kitchen: $("#loc_kitchen").is(":checked"),
-        parking: $("#loc_parking").is(":checked"),
-        fan: $("#loc_fan").is(":checked"),
-        water: $("#loc_water").is(":checked"),
-        computer: $("#loc_computer").is(":checked"),
-      }),
+      has_whiteboard: $("#loc_whiteboard").is(":checked"),
+      has_projector: $("#loc_projector").is(":checked"),
+      has_sound: $("#loc_sound").is(":checked"),
+      has_wifi: $("#loc_wifi").is(":checked"),
+      has_kitchen: $("#loc_kitchen").is(":checked"),
+      has_parking: $("#loc_parking").is(":checked"),
+      has_fan: $("#loc_fan").is(":checked"),
+      has_water: $("#loc_water").is(":checked"),
+      has_computer: $("#loc_computer").is(":checked"),
       address_zip: $("#loc_zip").val(),
       address_street: $("#loc_street").val(),
       address_number: $("#loc_number").val(),
@@ -739,6 +702,8 @@ const editarLocalObj = (item, btn) => {
       $(`#loc_${r}`).prop("checked", res[r]);
     });
     $("#loc_ac").prop("checked", item.has_ac);
+    $("#loc_access").prop("checked", item.is_accessible);
+    $("#loc_sacred").prop("checked", item.is_consecrated);
     $("#loc_zip").val(item.address_zip);
     $("#loc_street").val(item.address_street);
     $("#loc_number").val(item.address_number);
@@ -760,13 +725,12 @@ window.modalLocal = (id = null) => {
   });
 };
 
-// [CORREÇÃO] A função loadResponsibles agora aponta para getResponsiblesList e processa a foto
 const loadResponsibles = async () => {
   try {
     const res = await window.ajaxValidator({ validator: "getResponsiblesList", token: window.defaultApp.userInfo.token });
     if (res.status) {
       const ops = (res.data || []).map((p) => ({
-        id: p.person_id || p.id, // Mapeamento flexível
+        id: p.person_id || p.id,
         title: p.full_name || p.title,
         profile_photo_url: p.profile_photo_url || null,
       }));
@@ -844,10 +808,10 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
 
 const initOrgSelects = async () => {
   try {
-    const [resOrg] = await Promise.all([window.ajaxValidator({ validator: "getOrganizations", token: window.defaultApp.userInfo.token, limit: 1000, page: 0, type: "org" })]);
+    const [resDio, resOrg] = await Promise.all([window.ajaxValidator({ validator: "getDiocese", token: window.defaultApp.userInfo.token, type: "dio" }), window.ajaxValidator({ validator: "getOrganizations", token: window.defaultApp.userInfo.token, limit: 1000, page: 0, type: "org" })]);
 
     let options = [];
-    // if (resDio.status && resDio.data) options = options.concat(resDio.data);
+    if (resDio.status && resDio.data) options = options.concat(resDio.data);
     if (resOrg.status && resOrg.data) options = options.concat(resOrg.data);
 
     const formattedOptions = options.map((org) => ({

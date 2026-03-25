@@ -98,7 +98,7 @@
 
                     <div class="px-2 pt-3 pb-2 border-bottom border-secondary border-opacity-10 bg-white shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
                         <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
-                            <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center" id="pessoaTab" role="tablist">
+                            <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="pessoaTab" role="tablist">
                                 <li class="nav-item">
                                     <button class="nav-link active fw-bold px-4 rounded-pill" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button"><i class="fas fa-id-card me-2 opacity-75"></i> Pessoal</button>
                                 </li>
@@ -124,13 +124,18 @@
                             <div class="row g-3">
 
                                 <div class="col-12 d-flex flex-column align-items-center mb-4">
-                                    <label for="profile_photo" class="position-relative d-inline-block m-0" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                        <img id="preview_photo" src="assets/img/avatar-placeholder.png" class="rounded-circle object-fit-cover shadow border border-4 border-white" style="width: 120px; height: 120px; background: #f8f9fa;">
-                                        <div class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg border border-2 border-white" style="width: 38px; height: 38px;">
-                                            <i class="fas fa-camera" style="font-size: 0.9rem;"></i>
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-3" style="letter-spacing: 0.5px;">Foto de Perfil</label>
+                                    <div id="image-upload-container-person" class="border border-2 border-secondary border-opacity-25 p-1 rounded-circle bg-secondary bg-opacity-10 position-relative shadow-sm transition-all hover-scale" style="cursor: pointer; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden;" data-slug="pessoas.save">
+                                        <div id="placeholder-logo-person" class="text-center">
+                                            <i class="fas fa-camera fa-2x text-primary opacity-50 mb-2"></i>
+                                            <p class="text-muted small mb-0 lh-1 fw-bold text-uppercase" style="font-size: 0.7rem;">Adicionar</p>
                                         </div>
-                                    </label>
-                                    <input type="file" id="profile_photo" class="d-none" accept="image/*" onchange="previewImage(this)">
+                                        <img id="preview_photo" src="" class="img-fluid w-100 h-100 object-fit-cover rounded-circle position-absolute top-0 start-0" style="display: none; z-index: 2;" />
+                                        <input type="file" id="profile_photo" class="d-none" accept="image/*" />
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-3 rounded-pill px-3 d-none fw-bold shadow-sm transition-all hover-scale" id="btn-remove-photo" onclick="removePhotoPerson()" data-slug="pessoas.save">
+                                        <i class="fas fa-trash-can me-1"></i> Remover
+                                    </button>
                                 </div>
 
                                 <div class="col-12 col-md-8">
@@ -169,16 +174,19 @@
                                 </div>
 
                                 <div class="col-12 mt-4 pt-4 border-top border-secondary border-opacity-10">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
-                                            <i class="fas fa-wheelchair" style="font-size: 1rem;"></i>
+                                    <div class="form-check form-switch m-0 d-flex align-items-center bg-info bg-opacity-10 p-3 rounded-4 shadow-sm border border-info border-opacity-25 transition-all hover-bg-light">
+                                        <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 42px; height: 42px;">
+                                            <i class="fas fa-wheelchair fs-6"></i>
                                         </div>
-                                        <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                                            <input class="form-check-input m-0 shadow-none me-3" type="checkbox" id="is_pcd" style="width: 48px; height: 26px; cursor: pointer;">
-                                            <label class="fw-bold text-body small text-uppercase mb-0" for="is_pcd" style="cursor: pointer; padding-top: 3px; letter-spacing: 0.5px;">Pessoa com Deficiência (PCD) / Necessidade Especial</label>
+                                        <div class="d-flex flex-column flex-grow-1">
+                                            <label class="form-check-label fw-bold text-body mb-0 cursor-pointer" for="is_pcd">Pessoa com Deficiência / Necessidade Especial</label>
+                                            <span class="text-muted opacity-75 lh-sm" style="font-size: 0.75rem;">Habilite para registrar restrições médicas ou necessidades de acessibilidade</span>
+                                        </div>
+                                        <div class="ms-3">
+                                            <input class="form-check-input shadow-none m-0 border-info cursor-pointer" type="checkbox" id="is_pcd" style="width: 48px; height: 26px;">
                                         </div>
                                     </div>
-                                    <input type="text" id="pcd_details" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none d-none mt-2 fw-medium" placeholder="Descreva laudos, restrições médicas ou acessibilidade necessária..." style="height: 54px;">
+                                    <input type="text" id="pcd_details" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none d-none mt-3 fw-medium" placeholder="Descreva laudos, restrições médicas ou acessibilidade necessária..." style="height: 54px;">
                                 </div>
 
                                 <div class="col-12 mt-4 pt-4 border-top border-secondary border-opacity-10">

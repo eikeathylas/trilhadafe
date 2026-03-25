@@ -771,7 +771,7 @@ window.salvarDiario = async (btn) => {
 window.deleteSession = (sessionId) => {
   Swal.fire({
     title: "Excluir Diário?",
-    text: "O registro de conteúdo e frequência será apagado.",
+    text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
