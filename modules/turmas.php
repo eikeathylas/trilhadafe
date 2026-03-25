@@ -46,7 +46,7 @@
                     </div>
 
                     <div class="col-12 col-md-auto d-grid" data-slug="turmas.create">
-                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center" onclick="modalTurma()" style="height: 48px; border-radius: 12px; min-width: 160px;">
+                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="modalTurma()" style="height: 48px; border-radius: 12px; min-width: 160px;">
                             <i class="fas fa-plus-circle me-2"></i>
                             <span>Nova Turma</span>
                         </button>
@@ -76,29 +76,29 @@
         <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-lg-down">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
-                    <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5" id="modalLabel">
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5 text-center m-0" id="modalLabel" style="letter-spacing: -0.5px;">
                         <i class="fas fa-layer-group me-3 opacity-75"></i> Configurar Turma
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="px-4 pt-3 pb-2 border-bottom border-secondary border-opacity-10 z-2 shadow-sm text-center">
                     <div class="modern-tabs-wrapper">
-                        <ul class="nav nav-pills gap-1" id="turmaTab" role="tablist" style="flex-wrap: nowrap;">
+                        <ul class="nav nav-pills gap-2 justify-content-center" id="turmaTab" role="tablist" style="flex-wrap: nowrap;">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active fw-medium" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab" aria-selected="true">
-                                    <i class="fas fa-id-card me-2"></i> Geral
+                                <button class="nav-link active fw-bold px-4 rounded-pill" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button" role="tab" aria-selected="true">
+                                    <i class="fas fa-id-card me-2 opacity-75"></i> Geral
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-medium" id="horario-tab" data-bs-toggle="tab" data-bs-target="#tab-horarios" type="button" role="tab" aria-selected="false" tabindex="-1">
-                                    <i class="fas fa-clock me-2"></i> Grade
+                                <button class="nav-link fw-bold px-4 rounded-pill" id="horario-tab" data-bs-toggle="tab" data-bs-target="#tab-horarios" type="button" role="tab" aria-selected="false" tabindex="-1">
+                                    <i class="fas fa-clock me-2 opacity-75"></i> Grade
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-medium" id="alunos-tab" data-bs-toggle="tab" data-bs-target="#tab-alunos" type="button" role="tab" aria-selected="false" tabindex="-1">
-                                    <i class="fas fa-users-viewfinder me-2"></i> Alunos
+                                <button class="nav-link fw-bold px-4 rounded-pill" id="alunos-tab" data-bs-toggle="tab" data-bs-target="#tab-alunos" type="button" role="tab" aria-selected="false" tabindex="-1">
+                                    <i class="fas fa-users-viewfinder me-2 opacity-75"></i> Alunos
                                 </button>
                             </li>
                         </ul>
@@ -108,36 +108,37 @@
                 <div class="modal-body p-0 modal-body-scrollable bg-body">
                     <input type="hidden" id="class_id">
 
-                    <div class="tab-content p-4">
+                    <div class="tab-content p-4 p-md-5">
                         <div class="tab-pane fade show active" id="tab-dados" role="tabpanel">
                             <div class="row g-3">
                                 <div class="col-12">
                                     <div class="form-floating">
-                                        <input type="text" id="class_name" class="form-control border-0 bg-secondary bg-opacity-10 rounded-3 shadow-none" placeholder=" " style="height: 58px;">
+                                        <input type="text" id="class_name" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" " style="height: 58px;">
                                         <label class="text-muted fw-bold small text-uppercase">Nome da Turma *</label>
                                     </div>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-1 ms-1">Curso / Catequese</label>
-                                    <select id="sel_course" class="form-control"></select>
+                                <div class="col-12 mt-4">
+                                    <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1" style="letter-spacing: 0.5px;">Curso / Catequese</label>
+                                    <select id="sel_course" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" style="height: 48px;"></select>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-1 ms-1">Coordenador Principal</label>
-                                    <select id="sel_coordinator" class="form-control"></select>
+                                <div class="col-md-6 mt-4">
+                                    <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1" style="letter-spacing: 0.5px;">Coordenador Principal</label>
+                                    <select id="sel_coordinator" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body" style="height: 48px;"></select>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-1 ms-1">Auxiliar</label>
-                                    <select id="sel_assistant" class="form-control"></select>
+                                <div class="col-md-6 mt-4">
+                                    <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1" style="letter-spacing: 0.5px;">Auxiliar</label>
+                                    <select id="sel_assistant" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body" style="height: 48px;"></select>
                                 </div>
+                                <div class="col-12 border-top border-secondary border-opacity-10 mt-4 pt-4"></div>
                                 <div class="col-6">
                                     <div class="form-floating">
-                                        <input type="number" id="class_capacity" class="form-control border-0 bg-secondary bg-opacity-10 rounded-3 shadow-none" placeholder=" " style="height: 58px;">
+                                        <input type="number" id="class_capacity" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body text-center" placeholder=" " style="height: 58px;">
                                         <label class="text-muted fw-bold small text-uppercase">Capacidade</label>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-floating">
-                                        <select id="class_status" class="form-select border-0 bg-secondary bg-opacity-10 rounded-3 shadow-none" style="height: 58px;">
+                                        <select id="class_status" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body" style="height: 58px;">
                                             <option value="ACTIVE">Ativa</option>
                                             <option value="PLANNED">Planejada</option>
                                             <option value="FINISHED">Encerrada</option>
@@ -145,19 +146,19 @@
                                         <label class="text-muted fw-bold small text-uppercase">Estado Atual</label>
                                     </div>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold text-muted text-uppercase mb-1 ms-1">Sala Padrão da Turma</label>
-                                    <select id="sel_location" class="form-control"></select>
+                                <div class="col-12 mt-4">
+                                    <label class="form-label small fw-bold text-muted text-uppercase mb-2 ms-1" style="letter-spacing: 0.5px;">Sala Padrão da Turma</label>
+                                    <select id="sel_location" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body" style="height: 48px;"></select>
                                 </div>
                             </div>
                         </div>
 
                         <div class="tab-pane fade" id="tab-horarios" role="tabpanel">
-                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 mb-3 shadow-inner" data-slug="turmas.edit">
-                                <label class="form-label small fw-bold text-primary text-uppercase mb-3 ms-1">Adicionar Período</label>
-                                <div class="row g-2">
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 mb-4 shadow-inner" data-slug="turmas.edit">
+                                <label class="form-label small fw-bold text-primary text-uppercase mb-3 ms-1"><i class="fas fa-plus-circle me-2"></i> Adicionar Período</label>
+                                <div class="row g-3">
                                     <div class="col-12 col-md-4">
-                                        <select id="sched_day" class="form-select border-0 rounded-3 shadow-sm px-2" style="height: 48px;">
+                                        <select id="sched_day" class="form-select border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3" style="height: 48px;">
                                             <option value="6">Sábado</option>
                                             <option value="0">Domingo</option>
                                             <option value="1">Segunda</option>
@@ -168,18 +169,18 @@
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-3">
-                                        <input type="time" id="sched_start" class="form-control border-0 rounded-3 shadow-sm" style="height: 48px;">
+                                        <input type="time" id="sched_start" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body text-center" style="height: 48px;">
                                     </div>
                                     <div class="col-6 col-md-3">
-                                        <input type="time" id="sched_end" class="form-control border-0 rounded-3 shadow-sm" style="height: 48px;">
+                                        <input type="time" id="sched_end" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body text-center" style="height: 48px;">
                                     </div>
                                     <div class="col-12 col-md-2">
-                                        <button class="btn btn-primary w-100 fw-bold rounded-3 shadow-sm h-100" onclick="addSchedule()">
+                                        <button class="btn btn-primary w-100 fw-bold rounded-4 shadow-sm h-100 transition-all hover-scale" onclick="addSchedule()">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
-                                    <div class="col-12 mt-2">
-                                        <select id="sel_location_sched" class="form-control"></select>
+                                    <div class="col-12">
+                                        <select id="sel_location_sched" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" style="height: 48px;"></select>
                                     </div>
                                 </div>
                             </div>
@@ -187,17 +188,17 @@
                         </div>
 
                         <div class="tab-pane fade" id="tab-alunos" role="tabpanel">
-                            <div class="bg-primary bg-opacity-10 p-3 rounded-4 mb-4 border border-primary border-opacity-10" data-slug="turmas.enroll">
-                                <label class="form-label small fw-bold text-primary text-uppercase mb-2 ms-1">Efetuar Matrícula</label>
-                                <div class="row g-2 align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-4 rounded-4 mb-4 border border-primary border-opacity-10 shadow-inner" data-slug="turmas.enroll">
+                                <label class="form-label small fw-bold text-primary text-uppercase mb-3 ms-1"><i class="fas fa-user-plus me-2"></i> Efetuar Matrícula</label>
+                                <div class="row g-3 align-items-center">
                                     <div class="col-12 col-md-6 flex-grow-1">
-                                        <select id="sel_new_student" class="form-control"></select>
+                                        <select id="sel_new_student" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body" style="height: 48px;"></select>
                                     </div>
                                     <div class="col-8 col-md-3 position-relative" style="z-index: 1060;">
-                                        <input type="date" id="enrollment_date" class="form-control shadow-none border-0 px-3 fw-bold text-body cursor-pointer" style="height: 48px; border-radius: 12px; background-color: var(--bs-body-bg);" title="Data da Matrícula" value="<?php echo date('Y-m-d'); ?>" onclick="this.showPicker()">
+                                        <input type="date" id="enrollment_date" class="form-control shadow-none border-0 rounded-4 bg-white px-3 fw-bold text-body cursor-pointer text-center" style="height: 48px;" title="Data da Matrícula" value="<?php echo date('Y-m-d'); ?>" onclick="this.showPicker()">
                                     </div>
                                     <div class="col-4 col-md-auto d-grid">
-                                        <button class="btn btn-primary px-3 rounded-3 shadow-sm h-100 d-flex align-items-center justify-content-center" onclick="matricularAluno(this)" style="min-height: 48px; border-radius: 12px;">
+                                        <button class="btn btn-primary px-4 rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-center transition-all hover-scale" onclick="matricularAluno(this)" style="min-height: 48px;">
                                             <i class="fas fa-user-plus"></i>
                                         </button>
                                     </div>
@@ -209,9 +210,9 @@
                 </div>
 
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="salvarTurma(this)" data-slug="turmas.save">
-                        <i class="fas fa-save me-2"></i> Salvar
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="salvarTurma(this)" data-slug="turmas.save" style="height: 48px;">
+                        <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>
 
@@ -226,14 +227,14 @@
                     <h5 class="modal-title fw-bold d-flex align-items-center">
                         <i class="fas fa-clock-rotate-left me-3"></i> Histórico: <span id="hist_student_name" class="ms-1 fw-light text-white"></span>
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none hover-scale" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4 bg-body">
                     <input type="hidden" id="hist_enrollment_id">
 
-                    <div class="bg-secondary bg-opacity-10 p-3 rounded-4 mb-4 border border-secondary border-opacity-10" data-slug="turmas.enroll">
-                        <label class="form-label small fw-bold text-uppercase text-primary mb-2">Nova Ocorrência</label>
-                        <select id="hist_action" class="form-control mb-2 shadow-sm border-0" style="height: 45px;">
+                    <div class="bg-secondary bg-opacity-10 p-4 rounded-4 mb-4 border border-secondary border-opacity-10 shadow-inner" data-slug="turmas.enroll">
+                        <label class="form-label small fw-bold text-uppercase text-primary mb-3"><i class="fas fa-plus-circle me-1"></i> Nova Ocorrência</label>
+                        <select id="hist_action" class="form-select mb-3 shadow-none border-0 rounded-4 bg-white fw-bold text-body px-3" style="height: 48px;">
                             <option value="COMMENT">Apenas Observação</option>
                             <option value="SUSPENDED">Suspender</option>
                             <option value="DROPPED">Desistência / Abandono</option>
@@ -241,9 +242,9 @@
                             <option value="ACTIVE">Reativar Matrícula</option>
                             <option value="COMPLETED">Concluiu o Curso</option>
                         </select>
-                        <div class="input-group">
-                            <input type="text" id="hist_obs" class="form-control border-0 shadow-sm" placeholder="Motivo ou detalhe..." style="height: 45px;">
-                            <button class="btn btn-primary px-3 shadow-sm" onclick="addHistoryItem(this)"><i class="fas fa-check"></i></button>
+                        <div class="input-group bg-white rounded-4 shadow-none border-0 overflow-hidden">
+                            <input type="text" id="hist_obs" class="form-control border-0 shadow-none bg-transparent fw-medium text-body px-3" placeholder="Motivo ou detalhe..." style="height: 48px;">
+                            <button class="btn btn-primary px-4 shadow-none fw-bold transition-all hover-scale" onclick="addHistoryItem(this)"><i class="fas fa-check"></i></button>
                         </div>
                     </div>
 

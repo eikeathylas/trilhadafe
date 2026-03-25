@@ -50,7 +50,7 @@
                     </div>
 
                     <div class="col-12 col-md-auto d-grid" data-slug="eventos.create">
-                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center" onclick="openEventModal()" style="height: 48px; border-radius: 12px; min-width: 160px;">
+                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="openEventModal()" style="height: 48px; border-radius: 12px; min-width: 160px;">
                             <i class="fas fa-plus-circle me-2"></i>
                             <span>Novo Evento</span>
                         </button>
@@ -75,65 +75,65 @@
     </div>
 
     <div class="modal fade" id="modalEvent" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-lg-down">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-lg-down">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
-                    <h5 class="modal-title fw-bold text-white d-flex align-items-center" id="modalEventTitle">
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center m-0" id="modalEventTitle" style="letter-spacing: -0.5px;">
                         <i class="fas fa-calendar-plus me-3 opacity-75"></i> Novo Evento
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-body">
                     <form id="formEvent">
                         <input type="hidden" id="event_id">
 
-                        <div class="card border-0 shadow-sm mb-4 rounded-4 bg-secondary bg-opacity-10">
-                            <div class="card-body p-3 p-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
+                        <div class="card border-0 shadow-inner mb-4 rounded-4 bg-secondary bg-opacity-10">
+                            <div class="card-body p-4">
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">
                                         Título do Evento <span class="text-danger">*</span>
                                     </label>
-                                    <input type="text" id="evt_title" class="form-control text-body border-0 shadow-none" required placeholder="Ex: Festa do Padroeiro, Feriado...">
+                                    <input type="text" id="evt_title" class="form-control bg-white text-body border-0 shadow-none rounded-4 fw-bold px-3" required placeholder="Ex: Festa do Padroeiro, Feriado..." style="height: 52px;">
                                 </div>
                                 <div class="mb-0">
-                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Descrição / Anotações</label>
-                                    <textarea id="evt_desc" class="form-control text-body border-0 shadow-none" rows="2" placeholder="Informações adicionais (opcional)..."></textarea>
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Descrição / Anotações</label>
+                                    <textarea id="evt_desc" class="form-control bg-white text-body border-0 shadow-none rounded-4 fw-medium p-3" rows="3" style="min-height: 250px;" placeholder="Informações adicionais (opcional)..."></textarea>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card border-0 shadow-sm mb-4 rounded-4 bg-secondary bg-opacity-10">
-                            <div class="card-body p-3 p-md-4">
+                        <div class="card border-0 shadow-inner mb-4 rounded-4 bg-secondary bg-opacity-10">
+                            <div class="card-body p-4">
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
-                                            <i class="far fa-calendar me-1"></i> Data Selecionada *
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">
+                                            <i class="far fa-calendar me-1 opacity-75"></i> Data Selecionada *
                                         </label>
-                                        <input type="text" id="evt_date" class="form-control text-body border-0 fw-bold shadow-none" readonly required placeholder="Selecione o dia...">
+                                        <input type="text" id="evt_date" class="form-control bg-white text-body border-0 fw-bold shadow-none rounded-4 px-3 cursor-pointer" readonly required placeholder="Selecione o dia..." style="height: 52px;">
                                     </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Início</label>
-                                        <input type="time" id="evt_start" class="form-control text-body border-0 shadow-none">
+                                    <div class="col-12 col-md-6 mt-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Horário Início</label>
+                                        <input type="time" id="evt_start" class="form-control bg-white text-body border-0 shadow-none rounded-4 fw-medium text-center" style="height: 52px;">
                                     </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Fim</label>
-                                        <input type="time" id="evt_end" class="form-control text-body border-0 shadow-none">
+                                    <div class="col-12 col-md-6 mt-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Horário Fim</label>
+                                        <input type="time" id="evt_end" class="form-control bg-white text-body border-0 shadow-none rounded-4 fw-medium text-center" style="height: 52px;">
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card border-0 shadow-sm border-start border-4 border-danger rounded-4 bg-danger bg-opacity-10">
+                        <div class="card border-0 shadow-sm border-start border-4 border-danger rounded-4 bg-danger bg-opacity-10 transition-all hover-bg-light">
                             <div class="card-body p-3 p-md-4">
                                 <div class="form-check form-switch mb-2 d-flex align-items-center">
-                                    <input class="form-check-input shadow-none fs-4 m-0 me-3" type="checkbox" id="evt_blocker" style="cursor: pointer;">
+                                    <input class="form-check-input shadow-none fs-4 m-0 me-3 border-danger" type="checkbox" id="evt_blocker" style="cursor: pointer;">
                                     <label class="form-check-label fw-bold text-danger m-0" for="evt_blocker" style="cursor: pointer;">
                                         Bloquear Calendário Acadêmico?
                                     </label>
                                 </div>
-                                <p class="text-danger opacity-75 small mb-0 lh-sm ms-md-5 ms-4 ps-2">
+                                <p class="text-danger opacity-75 small mb-0 lh-sm ms-md-5 ms-4 ps-3">
                                     <i class="fas fa-circle-info me-1"></i> Se marcado, o sistema impedirá o lançamento de chamadas, diários e aulas neste dia específico (Feriado ou Recesso letivo).
                                 </p>
                             </div>
@@ -142,9 +142,9 @@
                 </div>
 
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm" onclick="saveEvent(this)" data-slug="eventos.save">
-                        <i class="fas fa-save me-2"></i> Salvar
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="saveEvent(this)" data-slug="eventos.save" style="height: 48px;">
+                        <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>
             </div>

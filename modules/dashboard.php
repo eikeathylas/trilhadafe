@@ -14,18 +14,22 @@
     </div>
 
     <div class="main-only">
-        <div class="align-items-center mb-1 mt-4">
+        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item active fw-bold text-body ml-3" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px; margin-left: 20px;">
+                    <li class="breadcrumb-item active fw-bold text-body d-flex align-items-center" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px;">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
+                            <i class="fas fa-chart-pie" style="font-size: 1.1rem;"></i>
+                        </div>
                         Visão Geral do Sistema
                     </li>
                 </ol>
             </nav>
         </div>
+
         <div class="list-commanded mt-0 mt-md-3 mb-5">
             <div class="ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
-                <div class="row g-1">
+                <div class="row g-3">
 
                     <div class="col-6 col-lg">
                         <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
@@ -111,11 +115,11 @@
             </div>
 
             <div class="ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card p-3 p-md-4">
-                <div class="row g-1">
+                <div class="row g-3">
 
-                    <div class="col-12 col-lg-4 mt-3 mt-md-0">
+                    <div class="col-12 col-lg-4">
                         <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
-                            <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4">
+                            <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
                                 <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
                                     <i class="fa-solid fa-bullhorn me-2 text-info fs-5"></i> Mural de Avisos
                                 </h6>
@@ -131,7 +135,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-lg-4 mt-3 mt-md-0">
+                    <div class="col-12 col-lg-4">
                         <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
                             <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
                                 <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
@@ -150,7 +154,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-lg-4 mt-3 mt-md-0">
+                    <div class="col-12 col-lg-4">
                         <div class="card border-0 shadow-sm rounded-4 h-100 bg-transparent-card overflow-hidden">
                             <div class="card-header border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex justify-content-between align-items-center">
                                 <h6 class="m-0 fw-bold text-body d-flex align-items-center" style="letter-spacing: -0.3px;">
@@ -172,11 +176,13 @@
                 </div>
             </div>
         </div>
+
         <?php include "./assets/components/Footer.php"; ?>
     </div>
 
     <?php include "./assets/components/Modal-Faqs.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>
+
     <script src="assets/js/dashboard.js?v=<?php echo time(); ?>"></script>
 </body>
 

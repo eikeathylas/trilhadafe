@@ -367,9 +367,12 @@ const renderTableHistory = (data) => {
       const badgeStyle = pct < 70 ? "bg-danger text-white" : pct < 90 ? "bg-warning text-dark" : "bg-success text-white";
 
       let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('education.class_sessions', ${item.session_id}, this)"><i class="fas fa-history"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteSession(${item.session_id})"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSession(${item.session_id}" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <div class="ios-list-item flex-column align-items-stretch position-relative" style="padding: 12px 16px;">

@@ -16,7 +16,7 @@
 
     <div class="main-only px-0 px-md-3">
 
-        <div class="d-none d-md-flex align-items-center mb-4">
+        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page" style="font-size: 1.5rem; letter-spacing: -0.8px;">
@@ -29,7 +29,7 @@
         <div class="ios-search-container border-0 shadow-sm mb-4 rounded-sm-0 rounded-md-4 bg-transparent-card no-print">
             <div class="card-body p-3 p-md-4">
 
-                <div class="col-12 d-md-none mb-3">
+                <div class="col-12 d-md-none mb-3 mt-2">
                     <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Central de Relatórios</h5>
                 </div>
 
@@ -38,13 +38,13 @@
                         <label class="form-label small fw-bold text-uppercase text-muted mb-2 d-none d-md-block" for="reportSearch" style="letter-spacing: 0.5px;">
                             <i class="fas fa-search me-1 opacity-50"></i> O que você procura?
                         </label>
-                        <div class="input-group shadow-sm" style="border-radius: 12px; overflow: hidden;">
-                            <span class="input-group-text border-end-0 border-secondary border-opacity-25 text-muted d-md-none">
-                                <i class="fas fa-search"></i>
+                        <div class="input-group bg-fundo rounded-4 overflow-hidden border-0 shadow-none">
+                            <span class="input-group-text border-0 bg-transparent ps-4">
+                                <i class="fas fa-search text-muted opacity-75"></i>
                             </span>
-                            <input type="text" id="reportSearch" class="form-control border-start-0 border-end-0 border-secondary border-opacity-25 shadow-none" placeholder="Buscar por nome ou descrição..." style="height: 45px;">
-                            <span class="input-group-text border-start-0 border-secondary border-opacity-25 clear-search-btn d-none" id="clearSearchBtn" title="Limpar busca" style="cursor: pointer; transition: opacity 0.2s;">
-                                <i class="fas fa-times-circle text-secondary opacity-50"></i>
+                            <input type="text" id="reportSearch" class="form-control border-0 bg-transparent shadow-none fw-medium text-body" placeholder="Buscar por nome ou descrição..." style="height: 52px;">
+                            <span class="input-group-text border-0 bg-transparent pe-4 clear-search-btn d-none" id="clearSearchBtn" title="Limpar busca" style="cursor: pointer; transition: opacity 0.2s;">
+                                <i class="fas fa-times-circle text-secondary opacity-50 transition-all hover-scale"></i>
                             </span>
                         </div>
                     </div>
@@ -76,25 +76,26 @@
         <div class="modal-dialog modal-dialog-centered modal-md">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="modal-title fw-bold text-body fs-4" id="reportTitle" style="letter-spacing: -0.5px;">
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5 m-0" id="reportTitle" style="letter-spacing: -0.5px;">
                     </h5>
-                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="modal-body pt-2 px-4 pb-4">
-                    <p id="reportDesc" class="text-secondary small mb-4 lh-sm opacity-75"></p>
+                <div class="modal-body p-4 bg-body">
+                    <p id="reportDesc" class="text-muted small mb-4 lh-sm fw-medium"></p>
 
                     <form id="formReport">
-                        <div id="reportFiltersArea" class="rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 p-4 shadow-inner mb-4">
-                        </div>
-
-                        <div class="d-grid mt-2">
-                            <button type="button" class="btn btn-primary fw-bold shadow-sm rounded-pill py-2 d-flex align-items-center justify-content-center" id="btnGenerateReport" style="height: 48px;" data-slug="relatorios.export">
-                                <i class="fas fa-file-invoice me-2"></i> Gerar Relatório
-                            </button>
+                        <div id="reportFiltersArea" class="rounded-4 bg-secondary bg-opacity-10 border-0 p-4 shadow-inner mb-0">
                         </div>
                     </form>
+                </div>
+
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" id="btnGenerateReport" style="height: 48px;" data-slug="relatorios.export">
+                        <i class="fas fa-file-invoice me-2 opacity-75"></i> Gerar Relatório
+                    </button>
                 </div>
 
             </div>

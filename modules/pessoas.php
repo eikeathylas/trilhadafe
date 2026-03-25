@@ -140,31 +140,31 @@
 
                                 <div class="col-12 col-md-8">
                                     <div class="form-floating">
-                                        <input type="text" id="full_name" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-bold text-body" placeholder=" ">
+                                        <input type="text" id="full_name" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">Nome Completo *</label>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <div class="form-floating">
-                                        <input type="date" id="birth_date" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-medium text-uppercase cursor-pointer" onclick="this.showPicker()">
+                                        <input type="date" id="birth_date" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-uppercase text-body cursor-pointer" onclick="this.showPicker()">
                                         <label class="text-muted fw-bold small text-uppercase">Data de Nascimento *</label>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <div class="form-floating">
-                                        <input type="text" id="tax_id" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-medium" placeholder=" ">
+                                        <input type="text" id="tax_id" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">CPF</label>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <div class="form-floating">
-                                        <input type="text" id="national_id" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-medium" placeholder=" ">
+                                        <input type="text" id="national_id" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">RG / Documento</label>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <div class="form-floating">
-                                        <select id="gender" class="form-select border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-medium text-body">
+                                        <select id="gender" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body">
                                             <option value="">Selecione...</option>
                                             <option value="M">Masculino</option>
                                             <option value="F">Feminino</option>
@@ -186,7 +186,7 @@
                                             <input class="form-check-input shadow-none m-0 border-info cursor-pointer" type="checkbox" id="is_pcd" style="width: 48px; height: 26px;">
                                         </div>
                                     </div>
-                                    <input type="text" id="pcd_details" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none d-none mt-3 fw-medium" placeholder="Descreva laudos, restrições médicas ou acessibilidade necessária..." style="height: 54px;">
+                                    <input type="text" id="pcd_details" class="form-control border-0 bg-white rounded-4 shadow-none d-none mt-3 fw-bold text-body" placeholder="Descreva laudos, restrições médicas ou acessibilidade necessária..." style="height: 54px;">
                                 </div>
 
                                 <div class="col-12 mt-4 pt-4 border-top border-secondary border-opacity-10">
@@ -260,7 +260,7 @@
                             <div class="row g-3">
                                 <div class="col-12 col-md-6">
                                     <div class="form-floating mb-3">
-                                        <input type="text" id="phone_mobile" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-bold text-body" placeholder=" ">
+                                        <input type="text" id="phone_mobile" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">Celular / WhatsApp *</label>
                                     </div>
                                     <div class="form-check form-switch m-0 d-flex align-items-center p-3 bg-success bg-opacity-10 rounded-4 border border-success border-opacity-25 shadow-inner">
@@ -276,7 +276,7 @@
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <div class="form-floating">
-                                        <input type="email" id="email_contact" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-medium" placeholder=" ">
+                                        <input type="email" id="email_contact" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">E-mail Principal</label>
                                     </div>
                                 </div>
@@ -290,38 +290,38 @@
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <div class="form-floating position-relative">
-                                        <input type="text" id="zip_code" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-bold" placeholder=" " onblur="buscarCep(this.value)">
+                                        <input type="text" id="zip_code" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" " onblur="buscarCep(this.value)">
                                         <label class="text-muted fw-bold small text-uppercase">CEP</label>
-                                        <i class="fas fa-search position-absolute top-50 end-0 translate-middle-y me-4 text-primary opacity-50"></i>
+                                        <i class="fas fa-search position-absolute top-50 end-0 translate-middle-y me-4 text-primary opacity-50 cursor-pointer" onclick="buscarCep($('#zip_code').val())"></i>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-7">
                                     <div class="form-floating">
-                                        <input type="text" id="address_street" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-medium" placeholder=" ">
+                                        <input type="text" id="address_street" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">Logradouro (Rua, Av)</label>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-2">
                                     <div class="form-floating">
-                                        <input type="text" id="address_number" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-bold" placeholder=" ">
+                                        <input type="text" id="address_number" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">Número</label>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-5">
                                     <div class="form-floating">
-                                        <input type="text" id="address_district" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-medium" placeholder=" ">
+                                        <input type="text" id="address_district" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">Bairro</label>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-5">
                                     <div class="form-floating">
-                                        <input type="text" id="address_city" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-medium" placeholder=" ">
+                                        <input type="text" id="address_city" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">Cidade</label>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-2">
                                     <div class="form-floating">
-                                        <input type="text" id="address_state" class="form-control border-0 bg-secondary bg-opacity-10 rounded-4 shadow-none fw-bold text-uppercase" placeholder=" ">
+                                        <input type="text" id="address_state" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-uppercase text-body" placeholder=" ">
                                         <label class="text-muted fw-bold small text-uppercase">UF</label>
                                     </div>
                                 </div>
@@ -340,13 +340,13 @@
                                     <div class="col-12 col-md-6">
                                         <div class="bg-white rounded-4 shadow-sm border border-secondary border-opacity-10 px-2 py-1 h-100 d-flex align-items-center" style="min-height: 58px;">
                                             <div class="w-100">
-                                                <select id="sel_relative" class="form-control shadow-none border-0"></select>
+                                                <select id="sel_relative" class="form-control shadow-none border-0 bg-transparent fw-bold text-body"></select>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-4">
                                         <div class="form-floating">
-                                            <select id="sel_relationship" class="form-select border-0 shadow-sm rounded-4 fw-bold text-body" style="height: 58px;">
+                                            <select id="sel_relationship" class="form-select border-0 shadow-sm rounded-4 fw-bold text-body bg-white" style="height: 58px;">
                                                 <option value="MOTHER">Mãe</option>
                                                 <option value="FATHER">Pai</option>
                                                 <option value="GRANDPARENT">Avô / Avó</option>
@@ -397,16 +397,16 @@
                                                 </div>
                                             </div>
                                             <div class="form-check form-switch m-0 p-0">
-                                                <input class="form-check-input shadow-none m-0 cursor-pointer" type="checkbox" id="has_baptism" style="width: 48px; height: 26px;">
+                                                <input class="form-check-input shadow-none m-0 cursor-pointer border-secondary" type="checkbox" id="has_baptism" style="width: 48px; height: 26px;">
                                             </div>
                                         </div>
                                         <div id="baptism_details" class="d-none mt-4 pt-3 border-top border-secondary border-opacity-10">
                                             <div class="row g-2">
                                                 <div class="col-12 col-md-5">
-                                                    <input type="date" id="baptism_date" class="form-control border-0 shadow-sm rounded-3 text-muted text-uppercase small" title="Data do Batismo">
+                                                    <input type="date" id="baptism_date" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body text-uppercase small" title="Data do Batismo">
                                                 </div>
                                                 <div class="col-12 col-md-7">
-                                                    <input type="text" id="baptism_place" class="form-control border-0 shadow-sm rounded-3" placeholder="Paróquia ou Local">
+                                                    <input type="text" id="baptism_place" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body" placeholder="Paróquia ou Local">
                                                 </div>
                                             </div>
                                         </div>
@@ -426,16 +426,16 @@
                                                 </div>
                                             </div>
                                             <div class="form-check form-switch m-0 p-0">
-                                                <input class="form-check-input shadow-none m-0 cursor-pointer" type="checkbox" id="has_eucharist" style="width: 48px; height: 26px;">
+                                                <input class="form-check-input shadow-none m-0 cursor-pointer border-secondary" type="checkbox" id="has_eucharist" style="width: 48px; height: 26px;">
                                             </div>
                                         </div>
                                         <div id="eucharist_details" class="d-none mt-4 pt-3 border-top border-secondary border-opacity-10">
                                             <div class="row g-2">
                                                 <div class="col-12 col-md-5">
-                                                    <input type="date" id="eucharist_date" class="form-control border-0 shadow-sm rounded-3 text-muted text-uppercase small" title="Data da Eucaristia">
+                                                    <input type="date" id="eucharist_date" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body text-uppercase small" title="Data da Eucaristia">
                                                 </div>
                                                 <div class="col-12 col-md-7">
-                                                    <input type="text" id="eucharist_place" class="form-control border-0 shadow-sm rounded-3" placeholder="Paróquia ou Local">
+                                                    <input type="text" id="eucharist_place" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body" placeholder="Paróquia ou Local">
                                                 </div>
                                             </div>
                                         </div>
@@ -455,7 +455,7 @@
                                                 </div>
                                             </div>
                                             <div class="form-check form-switch m-0 p-0">
-                                                <input class="form-check-input shadow-none m-0 cursor-pointer" type="checkbox" id="has_chrism" style="width: 48px; height: 26px;">
+                                                <input class="form-check-input shadow-none m-0 cursor-pointer border-secondary" type="checkbox" id="has_chrism" style="width: 48px; height: 26px;">
                                                 <input type="hidden" id="chrism_date"><input type="hidden" id="chrism_place">
                                             </div>
                                         </div>
@@ -475,7 +475,7 @@
                                                 </div>
                                             </div>
                                             <div class="form-check form-switch m-0 p-0">
-                                                <input class="form-check-input shadow-none m-0 cursor-pointer" type="checkbox" id="has_matrimony" style="width: 48px; height: 26px;">
+                                                <input class="form-check-input shadow-none m-0 cursor-pointer border-secondary" type="checkbox" id="has_matrimony" style="width: 48px; height: 26px;">
                                                 <input type="hidden" id="matrimony_date"><input type="hidden" id="matrimony_place">
                                             </div>
                                         </div>
@@ -491,10 +491,10 @@
                                 </h6>
                                 <div class="row g-3 align-items-center">
                                     <div class="col-12 col-md-5">
-                                        <input type="text" id="attachment_desc" class="form-control border-0 shadow-sm rounded-4 fw-medium" placeholder="Descrição (Ex: RG, Foto, Laudo...)" style="height: 52px;">
+                                        <input type="text" id="attachment_desc" class="form-control border-0 shadow-sm rounded-4 fw-bold text-body bg-white" placeholder="Descrição (Ex: RG, Foto, Laudo...)" style="height: 52px;">
                                     </div>
                                     <div class="col-12 col-md-5">
-                                        <input type="file" id="attachment_file" class="form-control border-0 shadow-sm rounded-4 bg-white text-muted fw-medium" style="height: 52px; line-height: 38px;">
+                                        <input type="file" id="attachment_file" class="form-control border-0 shadow-sm rounded-4 bg-white text-muted fw-bold text-body" style="height: 52px; line-height: 38px;">
                                     </div>
                                     <div class="col-12 col-md-2 d-grid">
                                         <button class="btn btn-primary fw-bold shadow-sm rounded-4 d-flex align-items-center justify-content-center transition-all hover-scale" onclick="uploadAttachment(this)" style="height: 52px;">
@@ -510,8 +510,8 @@
                 </div>
 
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarPessoa(this)" data-slug="pessoas.save" style="height: 48px;">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="salvarPessoa(this)" data-slug="pessoas.save" style="height: 48px;">
                         <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>

@@ -57,7 +57,7 @@
                     </div>
 
                     <div class="col-12 mt-3 mt-md-0 col-md-2 d-grid d-md-block" data-slug="diario.create">
-                        <button id="btn_new_session" class="btn btn-primary fw-bold w-100 shadow-sm d-flex align-items-center justify-content-center" disabled onclick="openSessionModal()" style="height: 48px; border-radius: 12px;">
+                        <button id="btn_new_session" class="btn btn-primary fw-bold w-100 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" disabled onclick="openSessionModal()" style="height: 48px; border-radius: 12px;">
                             <i class="fas fa-plus-circle me-2"></i>
                             <span>Nova Aula</span>
                         </button>
@@ -87,9 +87,9 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
                     <div class="d-flex align-items-center">
-                        <div class="bg-white bg-opacity-25 d-flex align-items-center justify-content-center rounded-circle me-3" style="width: 44px; height: 44px;">
+                        <div class="bg-white bg-opacity-25 d-flex align-items-center justify-content-center rounded-circle me-3" style="width: 48px; height: 48px;">
                             <i class="fas fa-book-open text-white fs-5"></i>
                         </div>
                         <div>
@@ -97,7 +97,7 @@
                             <div class="small text-white opacity-75 mt-1 fw-medium">Registro de conteúdo e frequência</div>
                         </div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white shadow-none hover-scale" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body p-3 p-md-4 bg-body">
@@ -110,14 +110,14 @@
                                 <div class="card-header bg-transparent border-0 pt-4 px-4 pb-3">
                                     <div class="row align-items-center">
                                         <div class="col-md-7">
-                                            <label class="form-label small fw-bold text-uppercase text-muted mb-2" for="diario_date" style="letter-spacing: 0.5px;">
+                                            <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" for="diario_date" style="letter-spacing: 0.5px;">
                                                 <i class="far fa-calendar-check opacity-50 me-1"></i> Data e Hora da Aula
                                             </label>
-                                            <div class="input-group bg-fundo shadow-sm rounded-3 overflow-hidden">
-                                                <input type="text" id="diario_date" class="form-control fw-bold border-0 text-body shadow-none px-3" placeholder="Toque para selecionar..." readonly style="height: 50px; cursor: pointer;">
-                                                <span class="input-group-text border-0 bg-transparent px-3" id="date-status-icon"></span>
+                                            <div class="input-group bg-white shadow-sm rounded-4 overflow-hidden border-0">
+                                                <input type="text" id="diario_date" class="form-control fw-bold border-0 text-body shadow-none px-4 bg-transparent" placeholder="Toque para selecionar..." readonly style="height: 52px; cursor: pointer;">
+                                                <span class="input-group-text border-0 bg-transparent px-3 pe-4" id="date-status-icon"></span>
                                             </div>
-                                            <small id="date-msg" class="d-block mt-2 fw-bold text-truncate text-body" style="font-size: 0.75rem;"></small>
+                                            <small id="date-msg" class="d-block mt-2 fw-bold text-truncate text-body ms-2" style="font-size: 0.75rem;"></small>
                                         </div>
                                         <div class="col-md-5 text-end d-none d-md-block mt-4">
                                             <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill fw-bold">
@@ -162,9 +162,10 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-3 p-md-4 bg-body text-center justify-content-center justify-content-md-end">
-                    <button class="btn btn-primary shadow-sm rounded-3 fw-bold d-flex align-items-center justify-content-center transition-all w-100 w-md-auto hover-scale" onclick="salvarDiario(this)" style="height: 50px; min-width: 220px;" data-slug="diario.save">
-                        <i class="fas fa-plus-circle me-2"></i> Salvar
+                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
+                    <button class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
+                    <button class="btn btn-primary shadow-sm rounded-4 fw-bold px-5 d-flex align-items-center justify-content-center transition-all w-100 w-md-auto hover-scale" onclick="salvarDiario(this)" style="height: 48px; min-width: 220px;" data-slug="diario.save">
+                        <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>
 

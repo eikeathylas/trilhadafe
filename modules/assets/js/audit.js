@@ -73,7 +73,7 @@ const formatKey = (key) => {
   const map = {
     meeting_number: "Nº do Encontro/Aula",
     title: "Tema / Título",
-    content: "Conteúdo Programático",
+    content: "Conteúdo / Detalhes",
     session_date: "Data e Hora da Sessão",
     content_type: "Tipo de Metodologia",
     signed_at: "Assinatura Digital em",
@@ -122,7 +122,6 @@ const formatKey = (key) => {
     eucharist_date: "Data da Eucaristia",
     eucharist_place: "Local da Eucaristia",
 
-    // [NOVO] Adicionado traduções vitais que estavam faltando
     photo_url: "URL da Foto / Avatar",
     uploaded_at: "Data de Upload",
     deceased: "Em Memória (Falecido)",
@@ -179,12 +178,32 @@ const formatKey = (key) => {
     status: "Status do Sistema",
     file_name: "Nomenclatura do Arquivo",
     file_path: "Diretório de Armazenamento",
+
+    closure_date: "Data de Encerramento",
+    geo_coordinates: "Coordenadas Geográficas",
+    event_date: "Data do Evento",
+    wifi: "Wi-Fi",
+    ac: "Ar-Condicionado",
+    projector: "Projetor",
+    sound: "Equipamento de Som",
+    whiteboard: "Lousa / Quadro",
+    access: "Acessibilidade",
+    sacred: "Espaço Sagrado",
+    kitchen: "Cozinha",
+    parking: "Estacionamento",
+    fan: "Ventilador",
+    water: "Água / Bebedouro",
+    computer: "Computador",
+
+    baptism: "Batismo",
+    eucharist: "1ª Eucaristia",
+    chrism: "Crisma",
+    matrimony: "Casamento na Igreja",
   };
   return map[kLow] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 const formatValue = (val, key = "") => {
-  // [NOVO] Adicionado "deceased" e "wants_whatsapp_group" para renderizar botões Sim/Não
   const boolKeys = ["is_active", "active", "deleted", "is_pcd", "has_ac", "is_accessible", "is_consecrated", "is_mandatory", "is_academic_blocker", "force_password_change", "is_financial_responsible", "is_legal_guardian", "is_sacred", "is_lodging", "deceased", "wants_whatsapp_group"];
 
   if (key === "is_present" || key.toLowerCase() === "presença" || key === "presenca" || key === "is_present") {
@@ -227,9 +246,6 @@ const formatValue = (val, key = "") => {
     if (val === true || val === "t" || val === "true" || val === 1) return `<span class="badge bg-success text-white px-2 py-1"><i class="fas fa-check-circle me-1"></i> Sim</span>`;
     if (val === false || val === "f" || val === "false" || val === 0) return `<span class="badge bg-secondary text-white px-2 py-1"><i class="fas fa-minus-circle me-1"></i> Não</span>`;
   }
-
-  // Permite que o Documento Rico chegue ao sistema de Diferenças
-  if (key === "content" && typeof val === "string" && (val.includes("Oculto") || val.includes("<p>"))) return `<span class="text-secondary fst-italic"><i class="fas fa-code me-1"></i> Documento Rico (HTML)</span>`;
 
   const statusMap = {
     ACTIVE: `<span class="text-success fw-bold">Ativo / Operacional</span>`,
@@ -332,12 +348,10 @@ const renderTimeline = (logs, container) => {
   let html = "";
   let visibleLogsCount = 0;
 
-  // [NOVO] Prioridade de tabelas para impedir falsos positivos no cabeçalho
-  const priorityTables = ["persons", "organizations", "classes", "courses", "subjects"];
+  const priorityTables = ["persons", "organizations", "classes", "courses", "subjects", "events"];
 
   groupedTransactions.forEach((group, index) => {
     let sessionLog = group.items.find((l) => l.table_name === "class_sessions");
-    // O mainLog agora procura primeiro por tabelas "Pai"
     let mainLog = sessionLog || group.items.find((l) => priorityTables.includes(l.table_name)) || group.items[0];
 
     let mainOp = (mainLog.operation || "").toUpperCase().trim();
@@ -350,7 +364,6 @@ const renderTimeline = (logs, container) => {
 
     let headerText = "Modificação de Dados";
 
-    // Tratamento de Cabeçalhos
     if (sessionLog) {
       headerText = isInsert ? "Registro de Aula Criado" : isDelete ? "Registro de Aula Removido" : "Registro de Aula Atualizado";
     } else if (group.items.some((l) => l.table_name === "attendance")) {
@@ -389,9 +402,6 @@ const renderTimeline = (logs, container) => {
 
       const logOp = (log.operation || "").toUpperCase().trim();
 
-      // ==========================================
-      // FILTRO DE FREQUÊNCIA (SÓ MOSTRA SE MUDOU)
-      // ==========================================
       if (log.table_name === "attendance") {
         let valNew = newVal["Presença"] || newVal["presença"] || (newVal.is_present !== undefined ? formatValue(newVal.is_present, "is_present") : null);
         let valOld = oldVal["Presença"] || oldVal["presença"] || (oldVal.is_present !== undefined ? formatValue(oldVal.is_present, "is_present") : null);
@@ -415,11 +425,7 @@ const renderTimeline = (logs, container) => {
                   <span class="text-body fw-bold" style="font-size: 0.85rem;">${sName}</span>
                   <div style="font-size: 0.85rem; display: flex; align-items: center;">${stDiff}</div>
               </div>`;
-      }
-      // ==========================================
-      // CAMPOS GERAIS
-      // ==========================================
-      else {
+      } else {
         const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
         allKeys.forEach((key) => {
           if (isBlockedKey(key)) return;
@@ -427,19 +433,111 @@ const renderTimeline = (logs, container) => {
           const rawOld = oldVal[key];
           const rawNew = newVal[key];
 
-          // Se a string raw do banco for idêntica e não for criação nova, ignorar.
+          // [NOVO] Filtro Anti-Ruído: ignora mudanças apenas entre "null" e "" ou "false" string.
+          if (isEffectivelyEmpty(rawOld) && isEffectivelyEmpty(rawNew)) return;
+
           if (rawOld === rawNew && logOp !== "INSERT") return;
+
+          // ========================================================
+          // LÓGICA DE EXPLOSÃO DE JSON PROFUNDA (EVITAR FALSOS POSITIVOS)
+          // ========================================================
+          if (key === "resources_detail" || key === "sacraments_info") {
+            let pOld = {};
+            let pNew = {};
+            try {
+              pOld = typeof rawOld === "string" ? JSON.parse(rawOld) : rawOld || {};
+            } catch (e) {}
+            try {
+              pNew = typeof rawNew === "string" ? JSON.parse(rawNew) : rawNew || {};
+            } catch (e) {}
+
+            // Ignora se for estritamente igual após conversão para string (Falso positivo de memória)
+            if (JSON.stringify(pOld) === JSON.stringify(pNew)) return;
+
+            let subKeys = new Set([...Object.keys(pOld), ...Object.keys(pNew)]);
+            let changesHTML = "";
+
+            subKeys.forEach((sk) => {
+              let vo = pOld[sk];
+              let vn = pNew[sk];
+
+              if (typeof vo === "object" || typeof vn === "object") {
+                if (JSON.stringify(vo) === JSON.stringify(vn)) return;
+                let lbl = formatKey(sk);
+                if (logOp === "INSERT" || isInsert) {
+                  if (vn && vn.has) changesHTML += `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-1"><i class="fas fa-check me-1"></i> ${lbl}</span>`;
+                } else {
+                  if (vn && vn.has && (!vo || !vo.has)) {
+                    changesHTML += `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-1"><i class="fas fa-plus me-1"></i> ${lbl} | Ativado</span>`;
+                  } else if ((!vn || !vn.has) && vo && vo.has) {
+                    changesHTML += `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 me-1 mb-1"><i class="fas fa-minus me-1"></i> ${lbl} | Removido</span>`;
+                  } else {
+                    changesHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 me-1 mb-1">${lbl} modificado</span>`;
+                  }
+                }
+              } else {
+                if (vo !== vn) {
+                  let lbl = formatKey(sk);
+                  if (logOp === "INSERT" || isInsert) {
+                    if (vn === true || String(vn) === "true") {
+                      changesHTML += `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-1"><i class="fas fa-check me-1"></i> ${lbl}</span>`;
+                    } else if (vn && vn !== false && String(vn) !== "false") {
+                      changesHTML += `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 me-1 mb-1">${lbl}: ${vn}</span>`;
+                    }
+                  } else {
+                    if ((vn === true || String(vn) === "true") && (vo === false || String(vo) === "false" || !vo)) {
+                      changesHTML += `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-1"><i class="fas fa-plus me-1"></i> ${lbl} | Ativado</span>`;
+                    } else if ((vn === false || String(vn) === "false" || !vn) && (vo === true || String(vo) === "true")) {
+                      changesHTML += `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 me-1 mb-1"><i class="fas fa-minus me-1"></i> ${lbl} | Removido</span>`;
+                    } else if (vn !== vo) {
+                      changesHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 me-1 mb-1">${lbl} modificado</span>`;
+                    }
+                  }
+                }
+              }
+            });
+
+            if (changesHTML === "") return;
+
+            if (logOp === "INSERT") {
+              generalFieldsHTML += `
+                  <div class="col-12 col-md-6 mb-3">
+                      <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                          <i class="fas fa-tag me-1 opacity-50"></i> ${formatKey(key)}
+                      </div>
+                      <div class="p-2 rounded-3 bg-white border border-secondary border-opacity-10 text-body" style="font-size: 0.85rem;">
+                          ${changesHTML}
+                      </div>
+                  </div>`;
+            } else {
+              generalFieldsHTML += `
+                   <div class="col-12 mb-3">
+                      <div class="text-muted fw-bolder mb-2" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;">
+                          <i class="fas fa-exchange-alt me-1 opacity-50"></i> ${formatKey(key)}
+                      </div>
+                      <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                          <div class="flex-fill p-2 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25 text-secondary d-flex flex-wrap align-items-start" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
+                              <span class="opacity-75 small"><i class="fas fa-history me-1"></i> Configuração anterior modificada</span>
+                          </div>
+                          <div class="d-flex align-items-center justify-content-center text-secondary opacity-25 px-1 py-1">
+                              <i class="fas fa-chevron-right d-none d-md-block"></i>
+                              <i class="fas fa-chevron-down d-block d-md-none"></i>
+                          </div>
+                          <div class="flex-fill p-2 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 text-primary fw-bold d-flex flex-wrap align-items-start shadow-sm gap-1" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
+                              ${changesHTML}
+                          </div>
+                      </div>
+                   </div>`;
+            }
+            return;
+          }
 
           let displayOld = formatValue(rawOld, key);
           let displayNew = formatValue(rawNew, key);
 
-          // Diferenciador Dinâmico para Texto Rico
-          if (displayOld === displayNew && rawOld !== rawNew) {
-            displayOld = `<span class="text-muted"><i class="fas fa-file-code me-1"></i> Versão Anterior</span>`;
-            displayNew = `<span class="text-primary fw-bold"><i class="fas fa-file-code me-1"></i> Nova Versão Atualizada</span>`;
-          }
+          // Impede a exibição de quadros se visualmente forem idênticos (Ex: ambos resultam em "Não informado")
+          if (displayOld === displayNew) return;
 
-          // Tratamento Elegante de Título Contextual para Roteiros e Subitens
           let fieldLabel = formatKey(key);
           if (log.target_name && log.table_name !== mainLog.table_name) {
             fieldLabel = `<span class="text-primary">${log.target_name}</span> <span class="opacity-50 mx-1">•</span> ${fieldLabel}`;
@@ -452,7 +550,7 @@ const renderTimeline = (logs, container) => {
                           <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">
                               <i class="fas fa-tag me-1 opacity-50"></i> ${fieldLabel}
                           </div>
-                          <div class="p-2 rounded-3 bg-white border border-secondary border-opacity-10 text-body" style="font-size: 0.85rem;">
+                          <div class="p-2 rounded-3 bg-white border border-secondary border-opacity-10 text-body" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
                               ${displayNew}
                           </div>
                       </div>`;
@@ -462,15 +560,15 @@ const renderTimeline = (logs, container) => {
                           <div class="text-muted fw-bolder mb-2" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;">
                               <i class="fas fa-exchange-alt me-1 opacity-50"></i> ${fieldLabel}
                           </div>
-                          <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center">
-                              <div class="flex-fill p-2 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger d-flex align-items-center" style="font-size: 0.85rem; min-height: 42px;">
+                          <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                              <div class="flex-fill p-2 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger d-flex align-items-start" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
                                   <del class="opacity-75 w-100">${displayOld}</del>
                               </div>
                               <div class="d-flex align-items-center justify-content-center text-secondary opacity-25 px-1 py-1">
                                   <i class="fas fa-chevron-right d-none d-md-block"></i>
                                   <i class="fas fa-chevron-down d-block d-md-none"></i>
                               </div>
-                              <div class="flex-fill p-2 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 text-success fw-bold d-flex align-items-center shadow-sm" style="font-size: 0.85rem; min-height: 42px;">
+                              <div class="flex-fill p-2 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 text-success fw-bold d-flex align-items-start shadow-sm" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
                                   ${displayNew}
                               </div>
                           </div>

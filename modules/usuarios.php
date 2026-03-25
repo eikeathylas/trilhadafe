@@ -17,7 +17,7 @@
 
     <div class="main-only px-0 px-md-3">
 
-        <div class="d-none d-md-flex align-items-center mb-4">
+        <div class="d-none d-md-flex align-items-center mb-4 mt-4">
             <nav aria-label="breadcrumb" class="w-100">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item active fw-bold text-body" aria-current="page"
@@ -41,8 +41,8 @@
                             style="letter-spacing: 0.5px;">
                             <i class="fas fa-search me-1 opacity-50"></i> Buscar Usuário
                         </label>
-                        <input type="text" id="busca-texto" class="form-control shadow-sm"
-                            placeholder="Nome ou e-mail...">
+                        <input type="text" id="busca-texto" class="form-control border-0 bg-fundo shadow-sm rounded-3 px-3"
+                            placeholder="Nome ou e-mail..." style="height: 48px;">
                     </div>
 
                     <div class="col-12 col-md-4">
@@ -50,7 +50,7 @@
                             style="letter-spacing: 0.5px;">
                             <i class="fas fa-filter me-1 opacity-50"></i> Perfil Mestre
                         </label>
-                        <select id="filtro-perfil" class="form-control shadow-sm">
+                        <select id="filtro-perfil" class="form-control border-0 bg-fundo shadow-sm rounded-3 px-3" style="height: 48px;">
                             <option value="">Todos os Perfis</option>
                             <option value="50">Pároco / Administrador</option>
                             <option value="40">Coordenador / Secretaria</option>
@@ -62,14 +62,14 @@
                     <div class="col-12 col-md-3 mt-3 mt-md-0">
                         <div class="d-flex justify-content-end gap-2 h-100">
                             <button
-                                class="btn btn-light border fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all"
-                                style="height: 42px; width: 42px; border-radius: 12px;" onclick="loadUsuarios()"
+                                class="btn btn-light border fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-bg-light"
+                                style="height: 48px; width: 48px; border-radius: 12px;" onclick="loadUsuarios()"
                                 title="Recarregar Lista">
                                 <i class="fas fa-sync-alt text-secondary"></i>
                             </button>
                             <button
-                                class="btn btn-primary fw-bold shadow-sm flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center px-4 transition-all"
-                                style="height: 42px; border-radius: 12px;" onclick="openCreateModal()" data-slug="usuarios.create">
+                                class="btn btn-primary fw-bold shadow-sm flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center px-4 transition-all hover-scale"
+                                style="height: 48px; border-radius: 12px;" onclick="openCreateModal()" data-slug="usuarios.create">
                                 <i class="fas fa-user-plus me-2"></i> Novo
                             </button>
                         </div>
@@ -100,60 +100,60 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-lg-down">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4">
-                    <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5" id="modalUsuarioTitle">
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5 m-0" id="modalUsuarioTitle" style="letter-spacing: -0.5px;">
                         <i class="fas fa-user-shield me-3 opacity-75"></i> Gerenciar Acesso
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none"
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale"
                         data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body p-4 modal-body-scrollable">
+                <div class="modal-body p-4 modal-body-scrollable bg-body">
                     <input type="hidden" id="edit_id_user" value="" />
 
-                    <div class="text-center mb-4" id="modal_photo_container">
+                    <div class="text-center mb-4 mt-2" id="modal_photo_container">
                         <img id="modal_user_photo" src="./assets/img/trilhadafe.png" alt="Foto de Perfil"
                             class="rounded-circle border border-secondary border-opacity-25 shadow-sm"
-                            style="width: 110px; height: 110px; object-fit: cover; cursor: pointer; transition: transform 0.2s;"
+                            style="width: 120px; height: 120px; object-fit: cover; cursor: pointer; transition: transform 0.2s;"
                             onclick="if(typeof zoomAvatar === 'function') zoomAvatar(this.src, 'Foto de Perfil')"
                             onmouseover="this.style.transform='scale(1.05)'"
                             onmouseout="this.style.transform='scale(1)'">
-                        <p class="text-muted small mt-2 mb-0"><i class="fas fa-info-circle me-1 opacity-50"></i> Foto
+                        <p class="text-muted small mt-3 mb-0 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fas fa-info-circle me-1 opacity-50"></i> Foto
                             vinculada ao diretório de Pessoas.</p>
                     </div>
 
-                    <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-3 p-md-4 shadow-inner mb-4">
+                    <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner mb-4">
                         <h6
                             class="fw-bold text-primary border-bottom border-secondary border-opacity-10 pb-3 mb-4 d-flex align-items-center">
                             <i class="fas fa-id-badge me-2 opacity-75"></i> Identidade e Permissões
                         </h6>
-                        <div class="row g-3">
+                        <div class="row g-4">
                             <div class="col-md-12" id="div_select_person" style="display: none;">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Vincular a uma
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Vincular a uma
                                     Pessoa <span class="text-danger">*</span></label>
-                                <select id="edit_person_id" class="form-control border-0 shadow-none"></select>
-                                <small class="text-muted d-block mt-1 opacity-75">Busque pelo nome ou CPF da pessoa já
+                                <select id="edit_person_id" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3" style="height: 48px;"></select>
+                                <small class="text-muted d-block mt-2 opacity-75 fw-medium ms-1" style="font-size: 0.75rem;">Busque pelo nome ou CPF da pessoa já
                                     cadastrada no sistema.</small>
                             </div>
 
                             <div class="col-md-12" id="div_input_name">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Nome
                                     Completo</label>
-                                <input type="text" id="edit_name" class="form-control border-0 shadow-none fw-medium"
-                                    disabled />
+                                <input type="text" id="edit_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3"
+                                    disabled style="height: 48px;" />
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">E-mail de Login
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">E-mail de Login
                                     <span class="text-danger">*</span></label>
-                                <input type="email" id="edit_email" class="form-control border-0 shadow-none"
-                                    placeholder="nome@exemplo.com" />
+                                <input type="email" id="edit_email" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3"
+                                    placeholder="nome@exemplo.com" style="height: 48px;" />
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Perfil Mestre
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Perfil Mestre
                                     <span class="text-danger">*</span></label>
-                                <select id="edit_profile" class="form-control border-0 shadow-none">
+                                <select id="edit_profile" class="form-select border-0 rounded-4 shadow-none bg-white fw-bold text-body px-3" style="height: 48px;">
                                     <option value="">Selecione...</option>
                                     <option value="50">Pároco / Administrador</option>
                                     <option value="40">Coordenador / Secretaria</option>
@@ -162,37 +162,37 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-12 mt-3">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2">Anos Letivos
+                            <div class="col-md-12 mt-2">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Anos Letivos
                                     Vinculados (Permissões de Turma)</label>
-                                <select id="edit_years" class="form-control border-0 shadow-none" multiple></select>
+                                <select id="edit_years" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" multiple style="min-height: 48px;"></select>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card border-0 rounded-4 bg-danger bg-opacity-10 p-3 p-md-4 border-start border-4 border-danger"
+                    <div class="card border-0 rounded-4 bg-danger bg-opacity-10 p-4 border-start border-4 border-danger transition-all hover-bg-light"
                         id="div_reset_password" data-slug="usuarios.password">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                             <div>
                                 <h6 class="fw-bold text-danger mb-1"><i class="fas fa-key me-2"></i> Segurança da Conta
                                 </h6>
-                                <small class="text-danger opacity-75">A senha será redefinida para o padrão temporário:
+                                <small class="text-danger opacity-75 fw-medium">A senha será redefinida para o padrão temporário:
                                     <strong>mudar123</strong></small>
                             </div>
-                            <button type="button" class="btn btn-danger fw-bold shadow-sm px-4"
-                                onclick="resetPassword(this)">
+                            <button type="button" class="btn btn-danger fw-bold shadow-sm rounded-pill px-4 transition-all hover-scale"
+                                onclick="resetPassword(this)" style="height: 42px;">
                                 <i class="fas fa-unlock-alt me-2"></i> Resetar Senha
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-4 pt-0 bg-transparent">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border"
-                        data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm"
-                        onclick="salvarUsuario(this)" data-slug="usuarios.save">
-                        <i class="fas fa-save me-2"></i> Salvar Acesso
+                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2"
+                        data-bs-dismiss="modal" style="height: 48px;">Cancelar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale"
+                        onclick="salvarUsuario(this)" data-slug="usuarios.save" style="height: 48px;">
+                        <i class="fas fa-save me-2 opacity-75"></i> Salvar Acesso
                     </button>
                 </div>
 
@@ -203,22 +203,22 @@
     <div class="modal fade" id="modalHistoricoUsuario" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
-                <div class="modal-header border-0 bg-secondary bg-opacity-75 py-3 px-4">
-                    <h5 class="modal-title fs-5 fw-bold text-white">
-                        <i class="fas fa-book-open-reader me-3"></i> Atividades do Usuário
+                <div class="modal-header border-0 bg-secondary bg-opacity-75 py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
+                    <h5 class="modal-title fs-5 fw-bold text-white m-0" style="letter-spacing: -0.5px;">
+                        <i class="fas fa-book-open-reader me-3 opacity-75"></i> Atividades do Usuário
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none"
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale"
                         data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-body">
                     <div id="lista-historico-timeline" class="d-flex flex-column gap-3">
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-4 pt-0 text-center justify-content-center">
-                    <button type="button" class="btn btn-light fw-bold px-5 rounded-3 border shadow-sm"
-                        data-bs-modal="modal">Fechar Histórico</button>
+                <div class="modal-footer border-0 p-4 pt-0 bg-transparent justify-content-center">
+                    <button type="button" class="btn btn-light fw-bold px-5 rounded-4 border shadow-sm transition-all hover-bg-light"
+                        data-bs-dismiss="modal" style="height: 48px;">Fechar Histórico</button>
                 </div>
             </div>
         </div>

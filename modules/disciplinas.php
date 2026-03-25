@@ -47,7 +47,7 @@
                     </div>
 
                     <div class="col-12 col-md-auto d-grid" data-slug="disciplinas.create">
-                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center" style="height: 48px; border-radius: 12px; min-width: 180px;" onclick="modalDisciplina()">
+                        <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" style="height: 48px; border-radius: 12px; min-width: 180px;" onclick="modalDisciplina()">
                             <i class="fas fa-plus-circle me-2"></i>
                             <span>Nova Disciplina</span>
                         </button>
@@ -72,30 +72,30 @@
     </div>
 
     <div class="modal fade" id="modalDisciplina" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-                <div class="modal-header border-0 bg-primary bg-gradient py-3 px-4 w-100 d-flex justify-content-center position-relative">
-                    <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5 text-center" id="modalLabel">
+                <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5 text-center m-0" id="modalLabel" style="letter-spacing: -0.5px;">
                         <i class="fas fa-book-open me-3 opacity-75"></i> Nova Disciplina
                     </h5>
-                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body p-4 bg-body">
                     <input type="hidden" id="subject_id">
 
-                    <div class="card border-0 shadow-inner mb-0 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
-                        <div class="card-body p-3 p-md-4">
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Nome da Matéria <span class="text-danger">*</span></label>
-                                <input type="text" id="subject_name" class="form-control border-0 shadow-sm rounded-3 bg-body" placeholder="Ex: Novo Testamento" style="height: 48px;">
+                    <div class="card border-0 shadow-inner mb-0 rounded-4 bg-secondary bg-opacity-10">
+                        <div class="card-body p-4">
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Nome da Matéria <span class="text-danger">*</span></label>
+                                <input type="text" id="subject_name" class="form-control border-0 shadow-none rounded-4 bg-white text-body fw-bold px-3" placeholder="Ex: Novo Testamento" style="height: 52px;">
                             </div>
 
                             <div class="mb-0">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Ementa / Resumo</label>
-                                <textarea id="subject_summary" class="form-control border-0 shadow-sm rounded-3 bg-body" rows="6" style="min-height: 250px;" placeholder="Descreva brevemente o que será ensinado..."></textarea>
-                                <small class="text-muted d-block mt-2 lh-sm opacity-75 fw-medium" style="font-size: 0.75rem;">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Ementa / Resumo</label>
+                                <textarea id="subject_summary" class="form-control border-0 shadow-none rounded-4 bg-white text-body fw-medium p-3" rows="6" style="min-height: 250px;" placeholder="Descreva brevemente o que será ensinado..."></textarea>
+                                <small class="text-muted d-block mt-3 lh-sm opacity-75 fw-medium ms-1" style="font-size: 0.75rem;">
                                     <i class="fas fa-circle-info me-1"></i> Esta ementa aparecerá no plano de ensino do curso.
                                 </small>
                             </div>
@@ -104,9 +104,9 @@
                 </div>
 
                 <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
-                    <button type="button" class="btn btn-light fw-bold px-4 rounded-3 border d-flex align-items-center justify-content-center" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
-                    <button type="button" class="btn btn-primary fw-bold px-4 rounded-3 shadow-sm d-flex align-items-center justify-content-center" onclick="salvarDisciplina(this)" data-slug="disciplinas.save" style="height: 48px;">
-                        <i class="fas fa-save me-2"></i> Salvar
+                    <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="salvarDisciplina(this)" data-slug="disciplinas.save" style="height: 48px;">
+                        <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>
             </div>

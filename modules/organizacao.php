@@ -237,10 +237,10 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
+                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarInstituicao(this)" data-slug="organizacao.save" style="height: 48px;">
-                        <i class="fas fa-save me-2 opacity-75"></i> Gravar Cadastro
+                        <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>
             </div>
@@ -264,7 +264,7 @@
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">Vincular à Paróquia <span class="text-danger">*</span></label>
-                                <select id="loc_org_id" class="form-control border-0 shadow-none select-orgs-modal"></select>
+                                <select id="loc_org_id" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3 select-orgs-modal" style="height: 48px;"></select>
                             </div>
                             <div class="col-12">
                                 <div class="form-floating mt-2">
@@ -274,7 +274,7 @@
                             </div>
                             <div class="col-12 col-md-8">
                                 <label class="form-label small fw-bold text-uppercase text-muted mb-2 mt-2" style="letter-spacing: 0.5px;">Responsável Pelo Espaço</label>
-                                <select id="loc_responsible" class="form-control border-0 shadow-none"></select>
+                                <select id="loc_responsible" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 48px;"></select>
                             </div>
                             <div class="col-12 col-md-4">
                                 <div class="form-floating mt-2">
@@ -322,10 +322,10 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
+                <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                     <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm d-flex align-items-center justify-content-center me-2 transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="salvarLocal(this)" data-slug="organizacao.save" style="height: 48px;">
-                        <i class="fas fa-save me-2 opacity-75"></i> Salvar Local
+                        <i class="fas fa-save me-2 opacity-75"></i> Salvar
                     </button>
                 </div>
             </div>
