@@ -1,6 +1,6 @@
 const defaultPeople = {
   currentPage: 1,
-  rowsPerPage: 20,
+  rowsPerPage: 10,
   totalPages: 1,
 };
 
@@ -28,19 +28,6 @@ window.initMasks = () => {
 window.copyEmail = (email) => {
   navigator.clipboard.writeText(email).then(() => {
     Swal.fire({ toast: true, position: "top-end", icon: "success", title: "E-mail copiado!", showConfirmButton: false, timer: 2000 });
-  });
-};
-
-window.zoomAvatar = (url, name) => {
-  Swal.fire({
-    title: name,
-    imageUrl: url,
-    imageWidth: 200,
-    imageHeight: 200,
-    imageAlt: `Foto de perfil de ${name}`,
-    showConfirmButton: false,
-    showCloseButton: true,
-    customClass: { image: "rounded-circle object-fit-cover shadow-sm border border-4 border-white" },
   });
 };
 
@@ -145,8 +132,8 @@ const renderTablePeople = (data) => {
       const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
       const avatarHtml = item.profile_photo_url
-        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 42px; height: 42px; cursor: zoom-in;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
-        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 0.9rem;">${initials}</div>`;
+        ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 48px; height: 48px; cursor: zoom-in;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 48px; height: 48px; font-size: 1rem;">${initials}</div>`;
 
       let rolesHtml = "";
       if (item.roles_array && item.roles_array.length > 0) {
@@ -183,7 +170,7 @@ const renderTablePeople = (data) => {
       <tr>
           <td class="text-center align-middle ps-3" style="width: 60px;">${avatarHtml}</td>
           <td class="align-middle" style="min-width: 250px;">
-              <div class="fw-bold text-body text-truncate" style="font-size: 0.95rem;">${item.full_name}</div>
+              <div class="fw-bold text-body text-truncate" style="font-size: 0.95rem;">${item.full_name}sdadasdasrf</div>
               <div class="text-muted small mt-1">CPF: ${formatCPF(item.tax_id)} &nbsp;|&nbsp; Nasc.: ${formatDateBR(item.birth_date)}</div>
               <div>${rolesHtml}</div>
           </td>
@@ -388,7 +375,7 @@ const loadPersonData = async (id, btn) => {
         .trigger("change");
       $("#pcd_details").val(d.pcd_details);
 
-      const roles = d.roles_array || [];
+      const roles = d.roles || [];
       $("#role_student").prop("checked", roles.includes("STUDENT"));
       $("#role_catechist").prop("checked", roles.includes("CATECHIST"));
       $("#role_priest").prop("checked", roles.includes("PRIEST"));
@@ -453,7 +440,7 @@ window.salvarPessoa = async (btn) => {
   btn = $(btn);
 
   if (!name) return window.alertDefault("O nome da pessoa é obrigatório.", "warning");
-  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
 
   const formData = new FormData();
   formData.append("validator", "savePerson");
@@ -499,9 +486,8 @@ window.salvarPessoa = async (btn) => {
       contentType: false,
     });
 
-    console.log(result);
-
-    if (result.status) {
+    const res = typeof result === "string" ? JSON.parse(result) : result;
+    if (res.status) {
       window.alertDefault("Cadastro salvo com sucesso!", "success");
       $("#modalPessoa").modal("hide");
       if (typeof getPessoas === "function") getPessoas();
@@ -543,33 +529,19 @@ window.deletePerson = (id) => {
   });
 };
 
-// ==========================================
-// ABA: FAMÍLIA (NOVO DESIGN PREMIUM)
-// ==========================================
 window.addRelative = () => {
-  const rootPersonId = $("#person_id").val();
-  // Se for um novo cadastro (sem ID), o sistema impede o vínculo até que a pessoa seja salva uma vez
-  if (!rootPersonId) return window.alertDefault("Por favor, salve a ficha da pessoa antes de vincular familiares.", "warning");
-
+  // ... validações de ID de pessoa ...
   const relativeId = $("#sel_relative").val();
-  if (!relativeId) return window.alertDefault("Selecione um familiar no campo de busca.", "warning");
-
-  const relationship = $("#sel_relationship").val();
-  const isGuardian = $("#is_legal_guardian").is(":checked");
-
-  // Captura o nome diretamente do Selectize
   const selectize = $("#sel_relative")[0].selectize;
-  const relName = selectize.options[relativeId].title;
+  const selectedData = selectize.options[relativeId]; // Captura o objeto completo do item selecionado
 
-  if (currentFamilyList.some((i) => i.relative_id == relativeId)) {
-    return window.alertDefault("Esta pessoa já está vinculada.", "warning");
-  }
-
+  // [AJUSTE] Agora incluímos a foto no objeto da lista local
   currentFamilyList.push({
     relative_id: relativeId,
-    relative_name: relName,
-    relationship_type: relationship,
-    is_legal_guardian: isGuardian, // Mapeado para o PHP interpretar como TRUE/FALSE
+    relative_name: selectedData.title,
+    profile_photo_url: selectedData.profile_photo_url, // Armazena a foto para renderizar na hora
+    relationship_type: $("#sel_relationship").val(),
+    is_legal_guardian: $("#is_legal_guardian").is(":checked"),
   });
 
   renderFamilyTable();
@@ -612,17 +584,27 @@ const renderFamilyTable = () => {
 
   const html = currentFamilyList
     .map((fam, index) => {
+      // [NOVO] Lógica de Foto para a Lista de Família
+      const initials = fam.relative_name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
+
+      const avatarHtml = fam.profile_photo_url
+        ? `<img src="${fam.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 48px; height: 48px; cursor: zoom-in;" onclick="zoomAvatar('${fam.profile_photo_url}', '${fam.relative_name.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 48px; height: 48px; font-size: 1rem;">${initials}</div>`;
+
       let badges = "";
       if (fam.is_legal_guardian || fam.is_financial_responsible) {
-        badges += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold ms-2" style="font-size: 0.65rem;"><i class="fas fa-balance-scale me-1"></i> Responsável Legal/Financeiro</span>`;
+        badges += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold ms-2" style="font-size: 0.65rem;"><i class="fas fa-balance-scale me-1"></i> Responsável</span>`;
       }
 
       return `
     <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-white border border-secondary border-opacity-10 shadow-sm mb-2 transition-all hover-scale">
         <div class="d-flex align-items-center gap-3">
-            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                <i class="fas fa-user" style="font-size: 1rem;"></i>
-            </div>
+            <div class="flex-shrink-0">${avatarHtml}</div>
             <div>
                 <div class="fw-bold text-body" style="font-size: 0.95rem;">${fam.relative_name}</div>
                 <div class="d-flex align-items-center mt-1">
@@ -631,14 +613,7 @@ const renderFamilyTable = () => {
                 </div>
             </div>
         </div>
-        ${
-          canEdit
-            ? `
-        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" onclick="removeRelative(${index})" title="Remover Vínculo">
-            <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
-        </button>`
-            : ""
-        }
+        ${canEdit ? `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="removeRelative(${index})" style="font-size: 0.85rem;"><i class="fas fa-trash-can"></i></button>` : ""}
     </div>`;
     })
     .join("");

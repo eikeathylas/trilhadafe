@@ -98,236 +98,6 @@ function getAllPeople($data)
     }
 }
 
-// function getPersonData($personId)
-// {
-//     try {
-//         $conect = $GLOBALS["local"];
-
-//         $stmt = $conect->prepare("SELECT * FROM people.persons WHERE person_id = :id AND deleted IS FALSE LIMIT 1");
-//         $stmt->execute(['id' => $personId]);
-//         $person = $stmt->fetch(PDO::FETCH_ASSOC);
-
-//         if (!$person) return failure("Pessoa não encontrada.");
-
-//         // Busca Cargos
-//         $sqlRoles = "SELECT DISTINCT r.role_name, r.role_id, r.description_pt 
-//                      FROM people.person_roles pr
-//                      JOIN people.roles r ON pr.role_id = r.role_id
-//                      WHERE pr.person_id = :id AND pr.deleted IS FALSE AND pr.is_active IS TRUE";
-//         $stmtRoles = $conect->prepare($sqlRoles);
-//         $stmtRoles->execute(['id' => $personId]);
-//         $person['roles_data'] = $stmtRoles->fetchAll(PDO::FETCH_ASSOC);
-//         $person['roles'] = array_column($person['roles_data'], 'role_name');
-
-//         // Busca Família
-//         $sqlFamily = "SELECT ft.tie_id, ft.relative_id, ft.relationship_type, ft.is_financial_responsible, ft.is_legal_guardian, p.full_name as relative_name
-//                       FROM people.family_ties ft
-//                       JOIN people.persons p ON p.person_id = ft.relative_id
-//                       WHERE ft.person_id = :id AND ft.deleted IS FALSE";
-//         $stmtFamily = $conect->prepare($sqlFamily);
-//         $stmtFamily->execute(['id' => $personId]);
-//         $person['family'] = $stmtFamily->fetchAll(PDO::FETCH_ASSOC);
-
-//         // [AJUSTE] Busca Anexos com Data Formatada (DD/MM/YYYY HH:mm)
-//         $sqlAttach = "SELECT 
-//                         attachment_id, 
-//                         file_name, 
-//                         file_path, 
-//                         description, 
-//                         TO_CHAR(uploaded_at, 'DD/MM/YYYY HH24:MI') as uploaded_at 
-//                       FROM people.person_attachments 
-//                       WHERE person_id = :id AND deleted IS FALSE 
-//                       ORDER BY uploaded_at DESC";
-
-//         $stmtAttach = $conect->prepare($sqlAttach);
-//         $stmtAttach->execute(['id' => $personId]);
-//         $person['attachments'] = $stmtAttach->fetchAll(PDO::FETCH_ASSOC);
-
-//         // Buscar Anexos (Com Auditoria de Usuário)
-//         $sqlAtt = "SELECT a.attachment_id, a.file_name, a.file_path, a.description, TO_CHAR(a.uploaded_at, 'DD/MM/YYYY HH24:MI') as created_at_fmt, u.name as uploader_name
-//                    FROM people.person_attachments a
-//                    LEFT JOIN security.users u ON a.uploaded_by = u.user_id
-//                    WHERE a.person_id = :id AND a.deleted IS FALSE ORDER BY a.uploaded_at DESC";
-//         $stmtAtt = $conect->prepare($sqlAtt);
-//         $stmtAtt->execute(['id' => $personId]);
-//         $person['attachments'] = $stmtAtt->fetchAll(PDO::FETCH_ASSOC);
-
-//         // Castings e JSONs
-//         $person['is_pcd'] = (bool)$person['is_pcd'];
-//         $person['sacraments_info'] = json_decode($person['sacraments_info'] ?? '{}', true);
-
-//         if (!isset($person['sacraments_info']['eucharist_date']) && !empty($person['eucharist_date'])) {
-//             $person['sacraments_info']['eucharist_date'] = $person['eucharist_date'];
-//         }
-//         if (!isset($person['sacraments_info']['eucharist_place']) && !empty($person['eucharist_place'])) {
-//             $person['sacraments_info']['eucharist_place'] = $person['eucharist_place'];
-//         }
-
-//         foreach ($person['family'] as &$fam) {
-//             $fam['is_financial_responsible'] = (bool)$fam['is_financial_responsible'];
-//             $fam['is_legal_guardian'] = (bool)$fam['is_legal_guardian'];
-//         }
-
-//         return success("Dados carregados.", $person);
-//     } catch (Exception $e) {
-//         logSystemError("painel", "people", "getPersonData", "sql", $e->getMessage(), ['id' => $personId]);
-//         return failure("Erro ao carregar cadastro.", null, false, 500);
-//     }
-// }
-
-// function upsertPerson($data, $files = [])
-// {
-//     try {
-//         $conect = $GLOBALS["local"];
-//         $conect->beginTransaction();
-
-//         // 1. Configuração de Auditoria (PostgreSQL Session)
-//         if (!empty($data['user_id'])) {
-//             $stmtAudit = $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)");
-//             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
-//         }
-
-//         $sanitize = function ($val) {
-//             if (is_string($val)) {
-//                 $val = trim(preg_replace('/\s+/', ' ', $val));
-//                 return ($val === '' || $val === 'null') ? null : $val;
-//             }
-//             return $val;
-//         };
-
-//         // 2. Processamento de Sacramentos (JSON vindo do JS)
-//         $sacramentsJsonRaw = $data['sacraments_json'] ?? '{}';
-//         $sacArray = json_decode($sacramentsJsonRaw, true) ?? [];
-
-//         // Eucaristia possui colunas dedicadas no banco
-//         $eucDate = $sacArray['eucharist']['date'] ?? null;
-//         $eucPlace = $sanitize($sacArray['eucharist']['place'] ?? null);
-
-//         // 3. Captura de Booleanos com Tipagem Segura para SQL
-//         $wantsWa = (isset($data['wants_whatsapp_group']) && ($data['wants_whatsapp_group'] === 'true' || $data['wants_whatsapp_group'] === true)) ? 'TRUE' : 'FALSE';
-//         $isPcd = (isset($data['is_pcd']) && ($data['is_pcd'] === 'true' || $data['is_pcd'] === true)) ? 'TRUE' : 'FALSE';
-
-//         $paramsPerson = [
-//             'full_name'         => $sanitize($data['full_name']),
-//             'religious_name'    => $sanitize($data['religious_name'] ?? null),
-//             'birth_date'        => !empty($data['birth_date']) ? $data['birth_date'] : null,
-//             'gender'            => $sanitize($data['gender'] ?? null),
-//             'tax_id'            => $sanitize($data['tax_id'] ?? null),
-//             'national_id'       => $sanitize($data['national_id'] ?? null),
-//             'email'             => $sanitize($data['email'] ?? null),
-//             'phone_mobile'      => $sanitize($data['phone_mobile'] ?? null),
-//             'phone_landline'    => $sanitize($data['phone_landline'] ?? null),
-//             'zip_code'          => $sanitize($data['zip_code'] ?? null),
-//             'address_street'    => $sanitize($data['address_street'] ?? null),
-//             'address_number'    => $sanitize($data['address_number'] ?? null),
-//             'address_district'  => $sanitize($data['address_district'] ?? null),
-//             'address_city'      => $sanitize($data['address_city'] ?? null),
-//             'address_state'     => $sanitize($data['address_state'] ?? null),
-//             'is_pcd'            => $isPcd,
-//             'pcd_details'       => $sanitize($data['pcd_details'] ?? null),
-//             'sacraments_info'   => json_encode($sacArray),
-//             'eucharist_date'    => !empty($eucDate) ? $eucDate : null,
-//             'eucharist_place'   => $eucPlace
-//         ];
-
-//         $personId = null;
-//         if (!empty($data['person_id'])) {
-//             // UPDATE
-//             $sql = "UPDATE people.persons SET full_name=:full_name, religious_name=:religious_name, birth_date=:birth_date, gender=:gender, tax_id=:tax_id, national_id=:national_id, email=:email, phone_mobile=:phone_mobile, wants_whatsapp_group=$wantsWa, phone_landline=:phone_landline, zip_code=:zip_code, address_street=:address_street, address_number=:address_number, address_district=:address_district, address_city=:address_city, address_state=:address_state, is_pcd=:is_pcd, pcd_details=:pcd_details, sacraments_info=:sacraments_info, eucharist_date=:eucharist_date, eucharist_place=:eucharist_place, updated_at=CURRENT_TIMESTAMP WHERE person_id = :person_id";
-//             $paramsPerson['person_id'] = $data['person_id'];
-//             $conect->prepare($sql)->execute($paramsPerson);
-//             $personId = $data['person_id'];
-//             $msg = "Cadastro atualizado!";
-//         } else {
-//             // INSERT
-//             if (empty($data['org_id'])) {
-//                 $conect->rollBack();
-//                 return failure("Organização de origem não definida.");
-//             }
-//             $sql = "INSERT INTO people.persons (org_id_origin, full_name, religious_name, birth_date, gender, tax_id, national_id, email, phone_mobile, wants_whatsapp_group, phone_landline, zip_code, address_street, address_number, address_district, address_city, address_state, is_pcd, pcd_details, sacraments_info, eucharist_date, eucharist_place) VALUES (:org_id, :full_name, :religious_name, :birth_date, :gender, :tax_id, :national_id, :email, :phone_mobile, $wantsWa, :phone_landline, :zip_code, :address_street, :address_number, :address_district, :address_city, :address_state, :is_pcd, :pcd_details, :sacraments_info, :eucharist_date, :eucharist_place) RETURNING person_id";
-//             $paramsPerson['org_id'] = $data['org_id'];
-//             $stmt = $conect->prepare($sql);
-//             $stmt->execute($paramsPerson);
-//             $personId = $stmt->fetchColumn();
-//             $msg = "Pessoa cadastrada com sucesso!";
-//         }
-
-//         // 4. Gestão de Foto de Perfil (Diretórios por Cliente/Pessoa)
-//         if (isset($files["profile_photo"]) && $files["profile_photo"]["error"] === UPLOAD_ERR_OK) {
-//             $clientId = $data['id_client'] ?? 1;
-//             if ($personId) {
-//                 $relativeDir = "assets/uploads/" . $clientId . "/" . $personId . "/perfil/";
-//                 $targetDir = __DIR__ . "/../../" . $relativeDir;
-//                 if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
-
-//                 $stmtOld = $conect->prepare("SELECT profile_photo_url FROM people.persons WHERE person_id = :id");
-//                 $stmtOld->execute(['id' => $personId]);
-//                 $oldPath = $stmtOld->fetchColumn();
-//                 if ($oldPath && file_exists(__DIR__ . "/../../" . $oldPath)) unlink(__DIR__ . "/../../" . $oldPath);
-
-//                 $ext = strtolower(pathinfo($files["profile_photo"]["name"], PATHINFO_EXTENSION));
-//                 $newFilename = time() . "_" . uniqid() . "." . $ext;
-//                 if (move_uploaded_file($files["profile_photo"]["tmp_name"], $targetDir . $newFilename)) {
-//                     $dbPath = $relativeDir . $newFilename;
-//                     $conect->prepare("UPDATE people.persons SET profile_photo_url = :url WHERE person_id = :id")->execute(['url' => $dbPath, 'id' => $personId]);
-//                 }
-//             }
-//         }
-
-//         // 5. Gestão de Vínculos (Roles)
-//         $rolesMap = ['role_student' => 'STUDENT', 'role_catechist' => 'CATECHIST', 'role_priest' => 'PRIEST', 'role_parent' => 'PARENT'];
-//         foreach ($rolesMap as $key => $roleName) {
-//             if (isset($data[$key])) {
-//                 $active = ($data[$key] === 'true' || $data[$key] === true);
-//                 $stmtRid = $conect->prepare("SELECT role_id FROM people.roles WHERE role_name = ?");
-//                 $stmtRid->execute([$roleName]);
-//                 $rid = $stmtRid->fetchColumn();
-//                 if ($rid) {
-//                     if ($active) {
-//                         $oid = $data['org_id'] ?? 1;
-//                         $conect->prepare("INSERT INTO people.person_roles (person_id, org_id, role_id, is_active, deleted) VALUES (:pid, :oid, :rid, TRUE, FALSE) ON CONFLICT (person_id, role_id) DO UPDATE SET is_active = TRUE, deleted = FALSE, updated_at = CURRENT_TIMESTAMP")->execute(['pid' => $personId, 'oid' => $oid, 'rid' => $rid]);
-//                     } else {
-//                         $conect->prepare("UPDATE people.person_roles SET is_active = FALSE, deleted = TRUE WHERE person_id = :pid AND role_id = :rid")->execute(['pid' => $personId, 'rid' => $rid]);
-//                     }
-//                 }
-//             }
-//         }
-
-//         // 6. Gestão de Família (Vem do JS como 'family_json')
-//         $newFamilyList = json_decode($data['family_json'] ?? '[]', true);
-//         $processedIds = [];
-//         foreach ($newFamilyList as $fam) {
-//             $relId = $fam['relative_id'];
-//             $processedIds[] = $relId;
-//             $isLeg = (isset($fam['is_legal_guardian']) && ($fam['is_legal_guardian'] === true || $fam['is_legal_guardian'] === 'true')) ? 'TRUE' : 'FALSE';
-
-//             $stmtCheck = $conect->prepare("SELECT tie_id FROM people.family_ties WHERE person_id = :pid AND relative_id = :rid");
-//             $stmtCheck->execute(['pid' => $personId, 'rid' => $relId]);
-//             $exists = $stmtCheck->fetchColumn();
-
-//             if ($exists) {
-//                 $conect->prepare("UPDATE people.family_ties SET relationship_type = :t, is_legal_guardian = :l, deleted = FALSE, updated_at = CURRENT_TIMESTAMP WHERE tie_id = :id")->execute(['t' => $fam['relationship_type'], 'l' => $isLeg, 'id' => $exists]);
-//             } else {
-//                 $conect->prepare("INSERT INTO people.family_ties (person_id, relative_id, relationship_type, is_legal_guardian) VALUES (:pid, :rid, :t, :l)")->execute(['pid' => $personId, 'rid' => $relId, 't' => $fam['relationship_type'], 'l' => $isLeg]);
-//             }
-//         }
-
-//         // Soft delete em familiares removidos
-//         $notIn = !empty($processedIds) ? "AND relative_id NOT IN (" . implode(',', array_map('intval', $processedIds)) . ")" : "";
-//         $conect->prepare("UPDATE people.family_ties SET deleted = TRUE, updated_at = CURRENT_TIMESTAMP WHERE person_id = :pid $notIn")->execute(['pid' => $personId]);
-
-//         $conect->commit();
-//         if (function_exists('syncUserLogin')) syncUserLogin($personId, $data['id_client'] ?? 1);
-
-//         return success($msg, ['person_id' => $personId]);
-//     } catch (Exception $e) {
-//         if ($conect->inTransaction()) $conect->rollBack();
-//         logSystemError("painel", "people", "upsertPerson", "sql", $e->getMessage(), $data);
-//         return failure("Erro ao salvar cadastro.", null, false, 500);
-//     }
-// }
-
-
 function getPersonData($personId)
 {
     try {
@@ -350,10 +120,11 @@ function getPersonData($personId)
         $person['roles'] = array_column($person['roles_data'], 'role_name');
 
         // Busca Família
-        $sqlFamily = "SELECT ft.tie_id, ft.relative_id, ft.relationship_type, ft.is_financial_responsible, ft.is_legal_guardian, p.full_name as relative_name
-                      FROM people.family_ties ft
-                      JOIN people.persons p ON p.person_id = ft.relative_id
-                      WHERE ft.person_id = :id AND ft.deleted IS FALSE";
+        $sqlFamily = "SELECT ft.tie_id, ft.relative_id, ft.relationship_type, ft.is_financial_responsible, ft.is_legal_guardian, 
+                     p.full_name as relative_name, p.profile_photo_url
+                    FROM people.family_ties ft
+                    JOIN people.persons p ON p.person_id = ft.relative_id
+                    WHERE ft.person_id = :id AND ft.deleted IS FALSE";
         $stmtFamily = $conect->prepare($sqlFamily);
         $stmtFamily->execute(['id' => $personId]);
         $person['family'] = $stmtFamily->fetchAll(PDO::FETCH_ASSOC);
@@ -504,11 +275,11 @@ function upsertPerson($data, $files = [])
 
         $conect->commit();
         if (function_exists('syncUserLogin')) syncUserLogin($personId, $data['id_client'] ?? 1);
-        return success($msg, ['person_id' => $personId]);
+        return success($msg);
     } catch (Exception $e) {
         if ($conect->inTransaction()) $conect->rollBack();
         logSystemError("painel", "people", "upsertPerson", "sql", $e->getMessage(), $data);
-        return failure("Erro ao salvar cadastro: " . $e->getMessage());
+        return failure("Erro ao salvar cadastro.", null, false, 500);
     }
 }
 
@@ -518,13 +289,16 @@ function savePersonAttachment($data, $files)
         $conect = $GLOBALS["local"];
         $conect->beginTransaction();
 
+        // Ensure user_id exists
+        $userId = !empty($data['user_id']) ? (int)$data['user_id'] : null;
+
         // [AUDITORIA] Garante que o banco saiba quem está inserindo
-        if (!empty($data['user_id'])) {
-            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
+        if ($userId) {
+            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$userId]);
         }
 
         $personId = $data['person_id'];
-        $clientId = isset($data['id_client']) ? (int)$data['id_client'] : 0;
+        $clientId = isset($data['id_client']) ? (int)$data['id_client'] : 1; // Default to 1 if not set
         $desc = $data['description'] ?? 'Documento sem título';
 
         if (!isset($files['file']) || $files['file']['error'] !== UPLOAD_ERR_OK) {
@@ -557,6 +331,7 @@ function savePersonAttachment($data, $files)
         $webPath = $relativeDir . $newName;
 
         if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+            // [FIX] Ensure :uid is mapped to $userId, even if null
             $sql = "INSERT INTO people.person_attachments (person_id, file_name, file_path, description, uploaded_by) 
                     VALUES (:pid, :name, :path, :desc, :uid)";
             $stmt = $conect->prepare($sql);
@@ -565,7 +340,7 @@ function savePersonAttachment($data, $files)
                 'name' => $file['name'],
                 'path' => $webPath,
                 'desc' => $desc,
-                'uid' => $data['user_id']
+                'uid' => $userId
             ]);
 
             $conect->commit();
@@ -694,7 +469,7 @@ function searchPeopleForSelect($search)
 {
     try {
         $conect = $GLOBALS["local"];
-        $sql = "SELECT person_id as id, full_name as title, tax_id FROM people.persons WHERE deleted IS FALSE AND (full_name ILIKE :s OR tax_id ILIKE :s) LIMIT 20";
+        $sql = "SELECT p.person_id as id, p.full_name as title, p.tax_id, p.profile_photo_url  FROM people.persons p WHERE p.deleted IS FALSE AND (p.full_name ILIKE :s OR p.tax_id ILIKE :s) ORDER BY p.full_name ASC LIMIT 20";
         $stmt = $conect->prepare($sql);
         $stmt->execute(['s' => "%$search%"]);
         return success("Busca ok", $stmt->fetchAll(PDO::FETCH_ASSOC));
@@ -708,7 +483,7 @@ function getStudentsForSelect($search)
 {
     try {
         $conect = $GLOBALS["local"];
-        $sql = "SELECT p.person_id as id, p.full_name as title, p.tax_id 
+        $sql = "SELECT p.person_id as id, p.full_name as title, p.tax_id, p.profile_photo_url 
                 FROM people.persons p 
                 JOIN people.person_roles pr ON p.person_id = pr.person_id
                 JOIN people.roles r ON pr.role_id = r.role_id
@@ -744,7 +519,7 @@ function getCatechistsForSelect($search = "")
             $params['search'] = "%" . $search . "%";
         }
 
-        $sql = "SELECT p.person_id as id, p.full_name as title FROM people.persons p $where ORDER BY p.full_name ASC LIMIT 20";
+        $sql = "SELECT p.person_id as id, p.full_name as title, p.profile_photo_url FROM people.persons p $where ORDER BY p.full_name ASC LIMIT 20";
         $stmt = $conect->prepare($sql);
         $stmt->execute($params);
 

@@ -25,8 +25,8 @@ const _renderLogoCircle = (url, name, id, isMobile = false) => {
 
   if (url && url.trim() !== "") {
     return `<img src="${url}?v=${new Date().getTime()}"
-                 class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-                 style="width:${size}; height:${size}; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
+                 class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" 
+                 style="width:${size}; height:${size}; cursor: zoom-in; transition: transform 0.2s;"
                  onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${url}', '${nameEscaped}')"
                  onmouseover="this.style.transform='scale(1.15)'" 
                  onmouseout="this.style.transform='scale(1)'"
@@ -44,7 +44,7 @@ const _renderLogoCircle = (url, name, id, isMobile = false) => {
   const colors = ["bg-primary", "bg-success", "bg-info", "bg-warning", "bg-danger", "bg-secondary"];
   const colorClass = colors[id % colors.length];
 
-  return `<div class="rounded-circle d-flex align-items-center justify-content-center ${colorClass} text-white shadow-sm fw-bold border border-white border-opacity-25" 
+  return `<div class="rounded-circle d-flex align-items-center justify-content-center ${colorClass} bg-opacity-10 text-${colorClass.replace("bg-", "")} shadow-sm fw-bold border border-${colorClass.replace("bg-", "")} border-opacity-25" 
                style="width:${size}; height:${size}; font-size: ${isMobile ? "1.1rem" : "0.9rem"}; letter-spacing: -0.5px; cursor: help;">
                ${initials}
           </div>`;
@@ -54,7 +54,10 @@ window.buscarCep = (valor) => {
   var cep = valor.replace(/\D/g, "");
   if (cep != "" && /^[0-9]{8}$/.test(cep)) {
     $("#org_street, #org_district, #org_city, #org_state").prop("disabled", true).val("...");
+    Swal.fire({ title: "Buscando CEP...", didOpen: () => Swal.showLoading() });
+
     $.getJSON(`https://viacep.com.br/ws/${cep}/json/?callback=?`, function (d) {
+      Swal.close();
       if (!("erro" in d)) {
         $("#org_street").val(d.logradouro);
         $("#org_district").val(d.bairro);
@@ -95,9 +98,6 @@ const renderTableDiocese = (data) => {
     return;
   }
 
-  // =========================================================
-  // LÓGICA DE PERMISSÕES (RBAC)
-  // =========================================================
   let allowedSlugs = [];
   try {
     let access = localStorage.getItem("tf_access");
@@ -114,15 +114,17 @@ const renderTableDiocese = (data) => {
   const canEdit = allowedSlugs.includes("organizacao.edit");
   const canDelete = allowedSlugs.includes("organizacao.save");
 
-  // --- VISÃO DESKTOP ---
   const desktopRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
@@ -131,17 +133,17 @@ const renderTableDiocese = (data) => {
               <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.display_name}</div>
               <div class="text-muted small mt-1">Contato: ${item.phone_main || "Não informado"}</div>
           </td>
-          <td class="text-center align-middle"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 shadow-sm">DIOCESE</span></td>
+          <td class="text-center align-middle"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 shadow-sm fw-bold">DIOCESE</span></td>
           <td class="align-middle text-body small fw-medium">${item.city_state || "-"}</td>
-          <td class="text-center align-middle" style="width: 130px;">
+          <td class="text-center align-middle" style="width: 100px;">
               <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
-                  <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} 
+                  <input class="form-check-input shadow-sm m-0 border-secondary" type="checkbox" ${isActive ? "checked" : ""} 
                          ${canEdit ? `onchange="toggleDio(${item.org_id}, this)"` : "disabled"} 
                          style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
               </div>
           </td>
-          <td class="text-end align-middle pe-3 text-nowrap">
-              <div class="d-flex justify-content-end gap-1">
+          <td class="text-end align-middle pe-4 text-nowrap">
+              <div class="d-flex justify-content-end align-items-center flex-nowrap">
                 ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50" title="Acesso restrito"></i>'}
               </div>
           </td>
@@ -149,39 +151,41 @@ const renderTableDiocese = (data) => {
     })
     .join("");
 
-  // --- VISÃO MOBILE ---
   const mobileRows = data
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.organizations', ${item.org_id}, this)"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalInstituicao(${item.org_id}, this)"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteOrg(${item.org_id})"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch">
+      <div class="ios-list-item flex-column align-items-stretch p-3 mb-2">
           <div class="d-flex w-100 align-items-center">
-              <div class="me-3">${_renderLogoCircle(item.logo_url, item.display_name, item.org_id, true)}</div>
+              <div class="me-3 flex-shrink-0">${_renderLogoCircle(item.logo_url, item.display_name, item.org_id, true)}</div>
               <div class="flex-grow-1" style="min-width: 0;">
                   <div class="fw-bold text-body text-truncate" style="font-size: 1rem;">${item.display_name}</div>
-                  <div class="small text-secondary mt-1 text-truncate"><i class="fas fa-map-marker-alt me-1 opacity-50"></i> ${item.city_state || "Sem local"}</div>
+                  <div class="small text-muted fw-medium mt-1 text-truncate"><i class="fas fa-map-marker-alt me-1 opacity-50"></i> ${item.city_state || "Sem local"}</div>
               </div>
-              <div class="ms-2">
+              <div class="ms-2 flex-shrink-0">
                   <div class="form-check form-switch m-0 p-0">
-                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                      <input class="form-check-input m-0 shadow-none border-secondary" type="checkbox" ${isActive ? "checked" : ""} 
                              ${canEdit ? `onchange="toggleDio(${item.org_id}, this)"` : "disabled"} 
-                             style="width: 50px; height: 28px;">
+                             style="width: 44px; height: 24px;">
                   </div>
               </div>
           </div>
-          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-1 pt-2 mt-2 border-top border-secondary border-opacity-10 w-100 flex-nowrap">${mobActionsHtml}</div>` : ""}
       </div>`;
     })
     .join("");
 
   container.html(`
-    <div class="d-none d-md-block table-responsive">
+    <div class="d-none d-md-block table-responsive" style="overflow-x: visible;">
         <table class="table-custom">
             <thead>
                 <tr>
@@ -202,7 +206,7 @@ window.getOrganizacoes = async () => {
   const container = $(".list-table-orgs");
   try {
     let page = Math.max(0, defaultOrg.orgCurrentPage - 1);
-    container.html(`<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3">Sincronizando paróquias...</p></div>`);
+    container.html(`<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium">Sincronizando paróquias...</p></div>`);
     const result = await window.ajaxValidator({ validator: "getOrganizations", token: window.defaultApp.userInfo.token, limit: defaultOrg.orgRowsPerPage, page: page * defaultOrg.orgRowsPerPage, type: "org" });
     if (result.status) {
       const dataArray = result.data || [];
@@ -219,7 +223,6 @@ window.getOrganizacoes = async () => {
 const renderTableOrgs = (data) => {
   const container = $(".list-table-orgs");
 
-  // Reutiliza a lógica de permissões
   let allowedSlugs = [];
   try {
     let access = localStorage.getItem("tf_access");
@@ -232,8 +235,6 @@ const renderTableOrgs = (data) => {
     console.warn("Erro ao ler permissões", e);
   }
 
-  console.log(allowedSlugs);
-
   const canHistory = allowedSlugs.includes("organizacao.view_paroc");
   const canEdit = allowedSlugs.includes("organizacao.edit_paroc");
   const canDelete = allowedSlugs.includes("organizacao.save_paroc");
@@ -243,29 +244,32 @@ const renderTableOrgs = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
           <td class="text-center align-middle ps-3" style="width: 60px;">${_renderLogoCircle(item.logo_url, item.display_name, item.org_id)}</td>
           <td class="align-middle">
               <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.display_name}</div>
-              <small class="text-secondary fw-medium">Contato: ${item.phone_main || "-"}</small>
+              <div class="text-muted small mt-1">Contato: ${item.phone_main || "-"}</div>
           </td>
-          <td class="text-center align-middle"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.65rem;">PARÓQUIA</span></td>
+          <td class="text-center align-middle"><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 fw-bold shadow-sm" style="font-size: 0.65rem;">PARÓQUIA</span></td>
           <td class="align-middle text-body small fw-medium">${item.city_state || "-"}</td>
-          <td class="text-center align-middle" style="width: 130px;">
+          <td class="text-center align-middle" style="width: 100px;">
               <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
-                  <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} 
+                  <input class="form-check-input shadow-sm m-0 border-secondary" type="checkbox" ${isActive ? "checked" : ""} 
                          ${canEdit ? `onchange="toggleOrg(${item.org_id}, this)"` : "disabled"} 
                          style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
               </div>
           </td>
-          <td class="text-end align-middle pe-3">
-              <div class="d-flex justify-content-end gap-1">
-                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50"></i>'}
+          <td class="text-end align-middle pe-4 text-nowrap">
+              <div class="d-flex justify-content-end align-items-center flex-nowrap">
+                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50" title="Acesso restrito"></i>'}
               </div>
           </td>
       </tr>`;
@@ -277,27 +281,30 @@ const renderTableOrgs = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.organizations', ${item.org_id}, this)"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="modalInstituicao(${item.org_id}, this)"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteOrg(${item.org_id})"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch">
+      <div class="ios-list-item flex-column align-items-stretch p-3 mb-2">
           <div class="d-flex w-100 align-items-center">
-              <div class="me-3">${_renderLogoCircle(item.logo_url, item.display_name, item.org_id, true)}</div>
+              <div class="me-3 flex-shrink-0">${_renderLogoCircle(item.logo_url, item.display_name, item.org_id, true)}</div>
               <div class="flex-grow-1" style="min-width: 0;">
                   <div class="fw-bold text-body text-truncate" style="font-size: 1rem;">${item.display_name}</div>
-                  <div class="small text-secondary mt-1 text-truncate"><i class="fas fa-map-marker-alt me-1 opacity-50"></i> ${item.city_state || "Sem local"}</div>
+                  <div class="small text-muted fw-medium mt-1 text-truncate"><i class="fas fa-map-marker-alt me-1 opacity-50"></i> ${item.city_state || "Sem local"}</div>
               </div>
-              <div class="ms-2">
+              <div class="ms-2 flex-shrink-0">
                   <div class="form-check form-switch m-0 p-0">
-                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                      <input class="form-check-input m-0 shadow-none border-secondary" type="checkbox" ${isActive ? "checked" : ""} 
                              ${canEdit ? `onchange="toggleOrg(${item.org_id}, this)"` : "disabled"} 
-                             style="width: 50px; height: 28px;">
+                             style="width: 44px; height: 24px;">
                   </div>
               </div>
           </div>
-          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-1 pt-2 mt-2 border-top border-secondary border-opacity-10 w-100 flex-nowrap">${mobActionsHtml}</div>` : ""}
       </div>`;
     })
     .join("");
@@ -319,7 +326,7 @@ const renderTableOrgs = (data) => {
     </div>
     <div class="d-md-none ios-list-container">${mobileRows}</div>`);
 
-  _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes", "org");
+  _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes", defaultOrg);
 };
 
 // =========================================================
@@ -350,7 +357,6 @@ window.getLocais = async () => {
 const renderTableLocais = (data) => {
   const container = $(".list-table-locais");
 
-  // Permissões
   let allowedSlugs = [];
   try {
     let access = localStorage.getItem("tf_access");
@@ -380,31 +386,34 @@ const renderTableLocais = (data) => {
       if (resObj.projector) icons += window.getResourceIcon("projector");
 
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
           <td class="text-center align-middle ps-3" style="width: 60px;">
-              <div class="icon-circle bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-10 shadow-sm" style="width: 42px; height: 42px;"><i class="fas fa-door-open"></i></div>
+              <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px;"><i class="fas fa-door-open fs-6"></i></div>
           </td>
           <td class="align-middle">
               <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.name}</div>
-              <small class="text-secondary fw-medium">${item.org_name || "Espaço Comum"}</small>
+              <div class="text-muted small mt-1">${item.org_name || "Espaço Comum"}</div>
           </td>
-          <td class="text-center align-middle"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">${item.capacity || 0}</span></td>
+          <td class="text-center align-middle"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-25 rounded-pill px-3 py-1 shadow-sm fw-bold" style="font-size: 0.75rem;">Cap: ${item.capacity || 0}</span></td>
           <td class="text-center align-middle"><div class="d-flex justify-content-center flex-wrap gap-1">${icons || "-"}</div></td>
-          <td class="text-center align-middle" style="width: 130px;">
+          <td class="text-center align-middle" style="width: 100px;">
               <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
-                  <input class="form-check-input shadow-sm m-0" type="checkbox" ${isActive ? "checked" : ""} 
+                  <input class="form-check-input shadow-sm m-0 border-secondary" type="checkbox" ${isActive ? "checked" : ""} 
                          ${canEdit ? `onchange="toggleLoc(${item.location_id}, this)"` : "disabled"} 
                          style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
               </div>
           </td>
-          <td class="text-end pe-3 align-middle">
-              <div class="d-flex justify-content-end gap-1">
-                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50"></i>'}
+          <td class="text-end pe-4 align-middle text-nowrap">
+              <div class="d-flex justify-content-end align-items-center flex-nowrap">
+                ${actionsHtml || '<i class="fas fa-lock text-muted opacity-50" title="Acesso restrito"></i>'}
               </div>
           </td>
       </tr>`;
@@ -425,30 +434,33 @@ const renderTableLocais = (data) => {
       if (resObj.projector) icons += window.getResourceIcon("projector");
 
       let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('organization.locations', ${item.location_id}, this)"><i class="fas fa-bolt"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)'><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteLoc(${item.location_id})"><i class="fas fa-trash"></i></button>`;
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch">
+      <div class="ios-list-item flex-column align-items-stretch p-3 mb-2">
           <div class="d-flex w-100 align-items-center">
-              <div class="me-3">
-                  <div class="icon-circle bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-10 shadow-sm" style="width:46px; height:46px;"><i class="fas fa-door-open fs-5"></i></div>
+              <div class="me-3 flex-shrink-0">
+                  <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center" style="width:46px; height:46px;"><i class="fas fa-door-open fs-5"></i></div>
               </div>
               <div class="flex-grow-1" style="min-width: 0;">
                   <div class="fw-bold text-body text-truncate" style="font-size: 1rem;">${item.name}</div>
-                  <div class="small text-secondary mt-1 text-truncate"><i class="fas fa-users me-1 opacity-50"></i> Cap: ${item.capacity || 0}</div>
+                  <div class="small text-muted fw-medium mt-1 text-truncate"><i class="fas fa-users me-1 opacity-50"></i> Cap: ${item.capacity || 0}</div>
               </div>
-              <div class="ms-2">
+              <div class="ms-2 flex-shrink-0">
                   <div class="form-check form-switch m-0 p-0">
-                      <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
+                      <input class="form-check-input m-0 shadow-none border-secondary" type="checkbox" ${isActive ? "checked" : ""} 
                              ${canEdit ? `onchange="toggleLoc(${item.location_id}, this)"` : "disabled"} 
-                             style="width: 50px; height: 28px;">
+                             style="width: 44px; height: 24px;">
                   </div>
               </div>
           </div>
-          ${icons ? `<div class="mt-3 p-2 px-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner d-flex flex-wrap gap-3">${icons}</div>` : ""}
-          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">${mobActionsHtml}</div>` : ""}
+          ${icons ? `<div class="mt-3 p-2 px-3 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-inner d-flex flex-wrap gap-2">${icons}</div>` : ""}
+          ${mobActionsHtml ? `<div class="d-flex justify-content-end gap-1 pt-2 mt-2 border-top border-secondary border-opacity-10 w-100 flex-nowrap">${mobActionsHtml}</div>` : ""}
       </div>`;
     })
     .join("");
@@ -470,7 +482,7 @@ const renderTableLocais = (data) => {
     </div>
     <div class="d-md-none ios-list-container">${mobileRows}</div>`);
 
-  _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "getLocais", "loc");
+  _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "getLocais", defaultOrg);
 };
 
 // =========================================================
@@ -521,7 +533,6 @@ window.salvarInstituicao = async (btn) => {
   window.setButton(true, btn, " Salvando...");
   const orgId = $("#org_id").val();
 
-  // Envio via FormData para suportar binário de imagem (Padrão pessoas.js)
   const formData = new FormData();
   formData.append("validator", "saveOrganization");
   formData.append("token", window.defaultApp.userInfo.token);
@@ -552,25 +563,22 @@ window.salvarInstituicao = async (btn) => {
   }
 
   try {
-    const result = await (window.ajaxValidatorFoto
-      ? window.ajaxValidatorFoto(formData)
-      : $.ajax({
-          url: defaultApp.validator,
-          data: formData,
-          type: "POST",
-          processData: false,
-          contentType: false,
-          dataType: "json",
-        }));
+    const result = await $.ajax({
+      url: defaultApp.validator,
+      data: formData,
+      type: "POST",
+      processData: false,
+      contentType: false,
+      dataType: "json",
+    });
 
-    const res = result.status !== undefined ? result : JSON.parse(result);
-
-    if (res.status) {
+    if (result.status) {
       window.alertDefault("Dados salvos com sucesso!", "success");
       $("#modalInstituicao").modal("hide");
       getDiocese();
       getOrganizacoes();
-    } else throw new Error(res.alert || "Erro ao salvar.");
+      initOrgSelects(); // Recarrega os filtros
+    } else throw new Error(result.alert || "Erro ao salvar.");
   } catch (e) {
     window.alertErrorWithSupport(orgId ? `Editar Org` : "Criar Org", e.message);
   } finally {
@@ -586,6 +594,7 @@ window.deleteOrg = (id) => {
         window.alertDefault("Removida com sucesso.", "success");
         getDiocese();
         getOrganizacoes();
+        initOrgSelects();
       } else window.alertErrorWithSupport("Excluir Org", res.alert);
     }
   });
@@ -751,16 +760,53 @@ window.modalLocal = (id = null) => {
   });
 };
 
+// [CORREÇÃO] A função loadResponsibles agora aponta para getResponsiblesList e processa a foto
 const loadResponsibles = async () => {
   try {
     const res = await window.ajaxValidator({ validator: "getResponsiblesList", token: window.defaultApp.userInfo.token });
     if (res.status) {
-      const ops = (res.data || []).map((p) => ({ id: p.person_id, title: p.full_name }));
+      const ops = (res.data || []).map((p) => ({
+        id: p.person_id || p.id, // Mapeamento flexível
+        title: p.full_name || p.title,
+        profile_photo_url: p.profile_photo_url || null,
+      }));
+
       if ($("#loc_responsible")[0]?.selectize) $("#loc_responsible")[0].selectize.destroy();
-      $("#loc_responsible").selectize({ valueField: "id", labelField: "title", searchField: ["title"], options: ops, placeholder: "Selecione..." });
+
+      $("#loc_responsible").selectize({
+        valueField: "id",
+        labelField: "title",
+        searchField: ["title"],
+        options: ops,
+        placeholder: "Selecione o responsável...",
+        dropdownParent: "body",
+        onInitialize: function () {
+          this.$control.css({ border: "none", "background-color": "rgba(100, 116, 139, 0.1)", "border-radius": "14px", padding: "12px 16px", "font-size": "0.95rem", "font-weight": "600", "box-shadow": "inset 0 1px 2px rgba(0,0,0,0.05)" });
+        },
+        render: {
+          option: (item, escape) => {
+            const parts = escape(item.title).split(" ");
+            const initials = parts
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .substring(0, 2);
+            const photo = item.profile_photo_url
+              ? `<img src="${escape(item.profile_photo_url)}" class="rounded-circle object-fit-cover border border-secondary border-opacity-25 shadow-sm" style="width: 38px; height: 38px;">`
+              : `<div class="rounded-circle bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 38px; height: 38px; font-size: 0.9rem;">${initials}</div>`;
+            return `
+                 <div class="d-flex align-items-center py-2 px-3 border-bottom border-secondary border-opacity-10">
+                     <div class="me-3 flex-shrink-0">${photo}</div>
+                     <div class="flex-grow-1" style="min-width: 0;">
+                         <div class="fw-bold text-body text-truncate" style="font-size: 0.95rem;">${escape(item.title)}</div>
+                     </div>
+                 </div>`;
+          },
+        },
+      });
     }
   } catch (e) {
-    console.error("Erro ao carregar responsáveis.");
+    console.error("Erro ao carregar responsáveis.", e);
   }
 };
 
@@ -775,55 +821,113 @@ window.changePage = (page, funcName, context) => {
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);
   container.empty();
+
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
   if (total <= 1) return;
 
-  let html = `<button onclick="changePage(1, '${funcName}', defaultOrg)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
-  for (let p = Math.max(1, current - 2); p <= Math.min(total, current + 2); p++) {
-    html += `<button onclick="changePage(${p}, '${funcName}', defaultOrg)" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
+  let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+  html += `<button onclick="changePage(${current - 1}, '${funcName}', defaultOrg)" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior"><i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i></button>`;
+
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
+    if (p === current) {
+      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
+    } else {
+      html += `<button onclick="changePage(${p}, '${funcName}', defaultOrg)" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
+    }
   }
-  html += `<button onclick="changePage(${total}, '${funcName}', defaultOrg)" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
+
+  html += `<button onclick="changePage(${current + 1}, '${funcName}', defaultOrg)" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
+  html += `</div>`;
   container.html(html);
 };
 
-const populateOrgSelects = (data) => {
-  const options = data.map((org) => ({ id: org.org_id, title: org.display_name }));
-  $(".select-orgs, .select-orgs-modal").each((_, el) => {
-    const $el = $(el);
-    if (el.selectize) el.selectize.destroy();
-    $el.selectize({
-      valueField: "id",
-      labelField: "title",
-      searchField: ["title"],
-      options: options,
-      placeholder: "Selecione...",
-      onChange: function () {
-        $el.trigger("change");
-      },
+const initOrgSelects = async () => {
+  try {
+    const [resOrg] = await Promise.all([window.ajaxValidator({ validator: "getOrganizations", token: window.defaultApp.userInfo.token, limit: 1000, page: 0, type: "org" })]);
+
+    let options = [];
+    // if (resDio.status && resDio.data) options = options.concat(resDio.data);
+    if (resOrg.status && resOrg.data) options = options.concat(resOrg.data);
+
+    const formattedOptions = options.map((org) => ({
+      id: org.org_id,
+      title: org.display_name,
+      logo_url: org.logo_url,
+    }));
+
+    $(".select-orgs, .select-orgs-modal").each((_, el) => {
+      const $el = $(el);
+      if (el.selectize) el.selectize.destroy();
+      $el.selectize({
+        valueField: "id",
+        labelField: "title",
+        searchField: ["title"],
+        options: formattedOptions,
+        placeholder: "Selecione a instituição...",
+        dropdownParent: "body",
+        onInitialize: function () {
+          this.$control.css({ border: "none", "background-color": "rgba(100, 116, 139, 0.1)", "border-radius": "14px", padding: "12px 16px", "font-size": "0.95rem", "font-weight": "600", "box-shadow": "inset 0 1px 2px rgba(0,0,0,0.05)" });
+        },
+        render: {
+          option: (item, escape) => {
+            const parts = escape(item.title).split(" ");
+            const initials = parts
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .substring(0, 2);
+            const photo = item.logo_url
+              ? `<img src="${escape(item.logo_url)}" class="rounded-circle object-fit-cover shadow-sm border border-secondary border-opacity-25" style="width: 38px; height: 38px;">`
+              : `<div class="rounded-circle bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 38px; height: 38px; font-size: 0.9rem;">${initials}</div>`;
+            return `
+                        <div class="d-flex align-items-center py-2 px-3 border-bottom border-secondary border-opacity-10">
+                            <div class="me-3 flex-shrink-0">${photo}</div>
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="fw-bold text-body text-truncate" style="font-size: 0.95rem;">${escape(item.title)}</div>
+                            </div>
+                        </div>`;
+          },
+        },
+        onChange: function () {
+          $el.trigger("change");
+        },
+      });
     });
-  });
+  } catch (e) {
+    console.error("Erro ao carregar organizações para os filtros", e);
+  }
 };
 
 $(document).ready(() => {
-  $("#org_type").selectize({ placeholder: "Tipo..." });
+  $("#org_type").selectize({ placeholder: "Tipo...", dropdownParent: "body" });
   if (window.initMasks) window.initMasks();
+
   getDiocese();
   getOrganizacoes();
+  initOrgSelects();
+
   $('button[data-bs-target="#locais"]').on("shown.bs.tab", () => getLocais());
+
   $("#filtro-org-locais").change(() => {
     defaultOrg.locCurrentPage = 1;
     getLocais();
   });
+
   $("#loc_zip").on("blur", function () {
     const valor = $(this).val().replace(/\D/g, "");
     if (valor.length === 8) {
       $("#loc_street, #loc_district").prop("disabled", true).val("...");
+      Swal.fire({ title: "Buscando CEP...", didOpen: () => Swal.showLoading() });
+
       $.getJSON(`https://viacep.com.br/ws/${valor}/json/?callback=?`, function (d) {
+        Swal.close();
         if (!("erro" in d)) {
           $("#loc_street").val(d.logradouro);
           $("#loc_district").val(d.bairro);
           $("#loc_number").focus();
+        } else {
+          window.alertDefault("CEP não encontrado.", "warning");
         }
       }).always(() => $("#loc_street, #loc_district").prop("disabled", false));
     }

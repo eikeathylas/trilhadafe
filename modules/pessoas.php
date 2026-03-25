@@ -206,7 +206,7 @@
                                         <div class="col-6 col-md-3">
                                             <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
                                                 <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
-                                                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
+                                                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
                                                         <i class="fas fa-chalkboard-teacher fs-5"></i>
                                                     </div>
                                                     <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_catechist">Catequista</label>

@@ -429,15 +429,11 @@ INSERT INTO public.profiles_actions (id_profile, id_action)
 SELECT 30, id FROM public.actions 
 WHERE id IN (
     -- Menus Permitidos
-    1, 4, 5, 8, 11,
-    -- Dashboard (Apenas Estatísticas de Alunos)
-    101,
+    2, 4, 11,
+    -- Eventos (Apenas Estatísticas de Alunos)
+    201,
     -- Diário (Gestão Total do Diário)
     401, 402, 403, 404, 405, 406, 407,
-    -- Turmas (Visualizar Lista e Modal, Sem Permissão de Edição/Matrícula)
-    501, 502,
-    -- Pessoas (Visualizar Lista, Modal e Abas Básicas. Sem Histórico Sensível ou Edição)
-    801, 802, 808, 809, 810,
     -- Ajuda (Apenas Professor)
     1102
 );

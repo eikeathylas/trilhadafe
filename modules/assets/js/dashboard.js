@@ -165,7 +165,7 @@ function renderEvents(events) {
     const html = `
             <div class="d-flex align-items-center p-3 mb-3 ${bgClass} rounded-3 border-start border-4 ${borderClass} shadow-xs" title="${tooltipText}">
                 <div class="text-center me-3 border-end border-secondary border-opacity-25 pe-3" style="min-width: 60px;">
-                    <h5 class="fw-bold mb-0 text-body">${ev.date_fmt.substr(0, 2)}</h5>
+                    <h6 class="fw-bold mb-0 text-body">${ev.date_fmt}</h6>
                     <small class="text-uppercase fw-bold ${dateColor}">${ev.day_week}</small>
                 </div>
                 <div class="flex-grow-1 overflow-hidden">

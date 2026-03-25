@@ -452,7 +452,23 @@ function getPeopleForSelect()
 {
     try {
         $conect = $GLOBALS["local"];
-        $sql = "SELECT person_id, full_name FROM people.persons WHERE deceased IS FALSE ORDER BY full_name ASC";
+        $sql = <<<'SQL'
+        SELECT
+            p.person_id,
+            p.full_name,
+            p.profile_photo_url
+        FROM
+            people.persons p
+        JOIN people.person_roles pr ON pr.person_id = p.person_id 
+        JOIN people.roles r ON r.role_id = pr.role_id 
+        WHERE
+            p.deceased IS FALSE
+            AND p.is_active IS TRUE
+            AND p.deleted IS FALSE
+            AND r.role_id IN (1,2,3)
+        ORDER BY
+            p.full_name ASC
+        SQL;
         $stmt = $conect->query($sql);
         return success("Pessoas listadas", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
