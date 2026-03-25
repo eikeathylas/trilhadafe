@@ -94,17 +94,17 @@ window.getResourceIcon = (key) => {
   const icons = {
     ac: '<i class="fas fa-snowflake text-info me-2" title="Ar-Condicionado"></i>',
     fan: '<i class="fas fa-fan text-info me-2" title="Ventilador"></i>',
-    water: '<i class="fas fa-glass-water text-info me-2" title="Bebedouro"></i>',
+    water: '<i class="fas fa-tint text-info me-2" title="Bebedouro"></i>',
 
     sacred: '<i class="fas fa-cross text-warning me-2" title="Local Sagrado / Altar"></i>',
-    kitchen: '<i class="fas fa-mug-hot text-danger me-2" title="Copa / Cozinha"></i>',
-    parking: '<i class="fas fa-square-parking text-success me-2" title="Estacionamento"></i>',
+    kitchen: '<i class="fas fa-utensils text-danger me-2" title="Copa / Cozinha"></i>',
+    parking: '<i class="fas fa-car text-success me-2" title="Estacionamento"></i>',
 
     access: '<i class="fas fa-wheelchair text-primary me-2" title="Acessibilidade"></i>',
     wifi: '<i class="fas fa-wifi text-primary me-2" title="Wi-Fi"></i>',
-    projector: '<i class="fas fa-display text-primary me-2" title="Projetor / TV"></i>',
-    sound: '<i class="fas fa-volume-high text-primary me-2" title="Som"></i>',
-    computer: '<i class="fas fa-laptop text-primary me-2" title="Computadores"></i>',
+    projector: '<i class="fas fa-video text-primary me-2" title="Projetor / TV"></i>',
+    sound: '<i class="fas fa-volume-up text-primary me-2" title="Som"></i>',
+    computer: '<i class="fas fa-desktop text-primary me-2" title="Computadores"></i>',
 
     whiteboard: '<i class="fas fa-chalkboard text-secondary me-2" title="Lousa / Quadro"></i>',
   };

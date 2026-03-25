@@ -94,12 +94,9 @@ const renderTableDiocese = (data) => {
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
       let actionsHtml = "";
-      if (canHistory)
-        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
-      if (canEdit)
-        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
-      if (canDelete)
-        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
@@ -215,12 +212,9 @@ const renderTableOrgs = (data) => {
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
       let actionsHtml = "";
-      if (canHistory)
-        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
-      if (canEdit)
-        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
-      if (canDelete)
-        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
@@ -342,20 +336,26 @@ const renderTableLocais = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       let icons = "";
+
       if (item.has_ac) icons += window.getResourceIcon("ac");
       if (item.is_accessible) icons += window.getResourceIcon("access");
       if (item.is_consecrated) icons += window.getResourceIcon("sacred");
+
       let resObj = typeof item.resources === "string" ? JSON.parse(item.resources || "{}") : item.resources || {};
       if (resObj.wifi) icons += window.getResourceIcon("wifi");
       if (resObj.projector) icons += window.getResourceIcon("projector");
+      if (resObj.computer) icons += window.getResourceIcon("computer");
+      if (resObj.fan) icons += window.getResourceIcon("fan");
+      if (resObj.kitchen) icons += window.getResourceIcon("kitchen");
+      if (resObj.parking) icons += window.getResourceIcon("parking");
+      if (resObj.sound) icons += window.getResourceIcon("sound");
+      if (resObj.water) icons += window.getResourceIcon("water");
+      if (resObj.whiteboard) icons += window.getResourceIcon("whiteboard");
 
       let actionsHtml = "";
-      if (canHistory)
-        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
-      if (canEdit)
-        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
-      if (canDelete)
-        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 mx-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
@@ -390,12 +390,21 @@ const renderTableLocais = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       let icons = "";
+
       if (item.has_ac) icons += window.getResourceIcon("ac");
       if (item.is_accessible) icons += window.getResourceIcon("access");
       if (item.is_consecrated) icons += window.getResourceIcon("sacred");
+
       let resObj = typeof item.resources === "string" ? JSON.parse(item.resources || "{}") : item.resources || {};
       if (resObj.wifi) icons += window.getResourceIcon("wifi");
       if (resObj.projector) icons += window.getResourceIcon("projector");
+      if (resObj.computer) icons += window.getResourceIcon("computer");
+      if (resObj.fan) icons += window.getResourceIcon("fan");
+      if (resObj.kitchen) icons += window.getResourceIcon("kitchen");
+      if (resObj.parking) icons += window.getResourceIcon("parking");
+      if (resObj.sound) icons += window.getResourceIcon("sound");
+      if (resObj.water) icons += window.getResourceIcon("water");
+      if (resObj.whiteboard) icons += window.getResourceIcon("whiteboard");
 
       let mobActionsHtml = "";
       if (canHistory)
@@ -808,10 +817,10 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
 
 const initOrgSelects = async () => {
   try {
-    const [resDio, resOrg] = await Promise.all([window.ajaxValidator({ validator: "getDiocese", token: window.defaultApp.userInfo.token, type: "dio" }), window.ajaxValidator({ validator: "getOrganizations", token: window.defaultApp.userInfo.token, limit: 1000, page: 0, type: "org" })]);
+    const [resOrg] = await Promise.all([window.ajaxValidator({ validator: "getOrganizations", token: window.defaultApp.userInfo.token, limit: 1000, page: 0, type: "org" })]);
 
     let options = [];
-    if (resDio.status && resDio.data) options = options.concat(resDio.data);
+    // if (resDio.status && resDio.data) options = options.concat(resDio.data);
     if (resOrg.status && resOrg.data) options = options.concat(resOrg.data);
 
     const formattedOptions = options.map((org) => ({

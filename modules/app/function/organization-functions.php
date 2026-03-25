@@ -111,7 +111,7 @@ function upsertOrganization($data)
         $conect = $GLOBALS["local"];
 
         // Decodifica os dados se vierem via FormData (JSON string) ou POST direto
-        $fields = is_string($data['data']) ? json_decode($data['data'], true) : $data;
+        $fields = $data;
 
         $conect->beginTransaction();
 

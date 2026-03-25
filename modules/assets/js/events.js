@@ -143,9 +143,9 @@ const renderTableEvents = (data) => {
 
       // Renderiza as ações condicionalmente
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning bg-warning bg-opacity-10 hover-scale shadow-none" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>`;
-      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary bg-primary bg-opacity-10 hover-scale shadow-none" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger bg-danger bg-opacity-10 hover-scale shadow-none" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
 
       return `
         <tr>

@@ -218,7 +218,6 @@
                                                 <label class="text-muted fw-bold small text-uppercase">UF</label>
                                             </div>
                                         </div>
-                                        <div class="col-12 border-top border-secondary border-opacity-10 mt-4 pt-4"></div>
                                         <div class="col-md-6">
                                             <div class="form-floating">
                                                 <input type="text" id="org_phone" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold mask-phone" placeholder="(00) 0000-0000" />
@@ -269,7 +268,7 @@
                             </div>
                             <div class="col-12">
                                 <div class="form-floating mt-2">
-                                    <input type="text" id="loc_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body" placeholder="Ex: Sala Catequese 01" />
+                                    <input type="text" id="loc_name" class="form-control border-0 rounded-4 shadow-none bg-white fw-bold text-body" />
                                     <label class="text-muted fw-bold small text-uppercase">Nome do Espaço <span class="text-danger">*</span></label>
                                 </div>
                             </div>
@@ -291,18 +290,18 @@
                         <div class="row g-3">
                             <?php
                             $recursos = [
-                                'wifi' => ['label' => 'Wi-Fi', 'icon' => 'fas fa-wifi text-primary'],
                                 'ac' => ['label' => 'Ar-Condic.', 'icon' => 'fas fa-snowflake text-info'],
-                                'projector' => ['label' => 'Projetor', 'icon' => 'fas fa-video text-secondary'],
-                                'sound' => ['label' => 'Som', 'icon' => 'fas fa-volume-up text-warning'],
-                                'whiteboard' => ['label' => 'Lousa', 'icon' => 'fas fa-chalkboard text-dark'],
-                                'access' => ['label' => 'Acessíb.', 'icon' => 'fas fa-wheelchair text-success'],
+                                'fan' => ['label' => 'Ventilador', 'icon' => 'fas fa-fan text-info'],
+                                'water' => ['label' => 'Água/Bebedouro', 'icon' => 'fas fa-tint text-primary'],
                                 'sacred' => ['label' => 'Sagrado', 'icon' => 'fas fa-cross text-danger'],
                                 'kitchen' => ['label' => 'Cozinha', 'icon' => 'fas fa-utensils text-warning'],
                                 'parking' => ['label' => 'Vagas', 'icon' => 'fas fa-car text-secondary'],
-                                'fan' => ['label' => 'Ventilador', 'icon' => 'fas fa-fan text-info'],
-                                'water' => ['label' => 'Água/Bebedouro', 'icon' => 'fas fa-tint text-primary'],
-                                'computer' => ['label' => 'Computador', 'icon' => 'fas fa-desktop text-secondary']
+                                'access' => ['label' => 'Acessíb.', 'icon' => 'fas fa-wheelchair text-success'],
+                                'wifi' => ['label' => 'Wi-Fi', 'icon' => 'fas fa-wifi text-primary'],
+                                'projector' => ['label' => 'Projetor', 'icon' => 'fas fa-video text-secondary'],
+                                'sound' => ['label' => 'Som', 'icon' => 'fas fa-volume-up text-warning'],
+                                'computer' => ['label' => 'Computador', 'icon' => 'fas fa-desktop text-secondary'],
+                                'whiteboard' => ['label' => 'Lousa', 'icon' => 'fas fa-chalkboard text-dark'],
                             ];
                             foreach ($recursos as $id => $data): ?>
                                 <div class="col-6 col-md-4 col-lg-3">

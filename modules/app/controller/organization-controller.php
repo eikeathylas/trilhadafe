@@ -40,7 +40,7 @@ function saveOrganization()
 {
     if (!verifyToken()) return;
 
-    $data = $_POST['data'] ?? [];
+    $data = json_decode($_POST['data'] ?? [], true);
 
     $data['user_id'] = getAuthUserId();
 
