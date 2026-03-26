@@ -87,7 +87,7 @@
                             <p class="mt-3 fw-medium">Sincronizando acessos...</p>
                         </div>
                     </div>
-                    <div class="pagination paginationButtons pagination-usuarios mt-3 pb-4 pb-md-0 text-center justify-content-center">
+                    <div class="pagination-usuarios pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100">
                     </div>
                 </div>
             </div>
@@ -210,7 +210,7 @@
                     <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
                         <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                         <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="salvarUsuario(this)" data-slug="usuarios.save" style="height: 48px;">
-                            <i class="fas fa-save me-2 opacity-75"></i> Salvar Acesso
+                            <i class="fas fa-save me-2 opacity-75"></i> Salvar
                         </button>
                     </div>
 

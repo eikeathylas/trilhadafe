@@ -109,12 +109,12 @@
 
                     <div class="tab-pane fade" id="instituicoes" role="tabpanel">
                         <div class="table-responsive list-table-orgs"></div>
-                        <div class="pagination paginationButtons pagination-orgs mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
+                        <div class="pagination-orgs pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
                     </div>
 
                     <div class="tab-pane fade" id="locais" role="tabpanel">
                         <div class="table-responsive list-table-locais"></div>
-                        <div class="pagination paginationButtons pagination-locais mt-3 pb-4 pb-md-0 text-center justify-content-center"></div>
+                        <div class="pagination-locais pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
                     </div>
                 </div>
             </div>
