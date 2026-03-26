@@ -166,7 +166,7 @@ const renderTableCourses = (data) => {
           </td>
           <td class="align-middle">
               <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.name}</div>
-              <div class="small opacity-75 text-body mt-1 d-flex align-items-center">
+              <div class="small opacity-75 text-muted mt-1 d-flex align-items-center">
                   <i class="fas fa-user-graduate me-1 opacity-50"></i> Faixa Etária: ${ageLabel}
               </div>
           </td>
