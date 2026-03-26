@@ -247,7 +247,7 @@ INSERT INTO public.settings (name, email, contact, city) VALUES ('Trilha da Fé'
 -- 3.2 Usuário Admin (DEV)
 INSERT INTO public.users (id, name, email, password, staff) VALUES
 (1, 'Eike Benízio', 'eike@dev', 'eikebenizio', TRUE),
-(2, 'Teste Dev', 'teste@dev', 'teste@dev', TRUE);
+(2, 'Geovane da Silva', 'geo@eu', '********', TRUE);
 
 -- 3.3 Cliente Inicial
 INSERT INTO public.clients (id, name, description) VALUES (1, 'Caruaru - PE', 'Diocese de Caruaru - PE');

@@ -345,10 +345,7 @@ const renderUsers = (data) => {
 
   container.html(desktopHtml + mobileHtml);
 
-  // Utiliza a função global do sistema (Garante a volta da paginação nativa)
-  if (typeof _generatePaginationButtons === "function") {
-    _generatePaginationButtons("pagination-usuarios", "currentPage", "totalPages", "changePage", defaultUsers);
-  }
+  _generatePaginationButtons("pagination-usuarios", "currentPage", "totalPages", "changePage", defaultUsers);
 };
 
 const translateLogKey = (key) => {
@@ -613,31 +610,37 @@ window.openHistoryModal = async (id, name, btn) => {
     if (res.status && res.data && res.data.length > 0) {
       const html = res.data
         .map((h, index) => {
-          const lineHtml = index !== res.data.length - 1 ? `<div class="position-absolute h-100 border-start border-2 border-secondary border-opacity-25" style="left: 19px; top: 40px; z-index: 1;"></div>` : ``;
+          const isLast = index === res.data.length - 1;
+          const lineHtml = !isLast ? `<div class="position-absolute border-start border-2 border-secondary border-opacity-10" style="left: 17px; top: 36px; bottom: -12px; z-index: 1;"></div>` : ``;
+          const toggleAttr = `data-bs-toggle="collapse" data-bs-target="#collapseLog${index}" style="cursor: pointer;"`;
+          const chevron = `<i class="fas fa-chevron-down text-secondary opacity-50 ms-2 toggle-chevron transition-all" style="font-size: 0.8rem;"></i>`;
           const detailHtml = parseAuditDetails(h.operation, h.old_values, h.new_values);
 
           return `
-          <div class="d-flex mb-4 position-relative">
+          <div class="d-flex position-relative mb-0 pb-4 transition-all hover-bg-light rounded-4" ${toggleAttr}>
               ${lineHtml}
-              <div class="flex-shrink-0 position-relative" style="z-index: 2;">
-                  <div class="rounded-circle bg-${h.color} bg-opacity-10 text-${h.color} d-flex align-items-center justify-content-center border border-${h.color} border-opacity-25 shadow-sm" style="width: 40px; height: 40px;">
-                      <i class="${h.icon}"></i>
+              <div class="flex-shrink-0 position-relative z-2">
+                  <div class="rounded-circle bg-${h.color} text-white d-flex align-items-center justify-content-center shadow-sm border border-${h.color} border-opacity-25" style="width: 36px; height: 36px;">
+                      <i class="${h.icon}" style="font-size: 0.85rem;"></i>
                   </div>
               </div>
               
-              <div class="flex-grow-1 ms-3 pt-1 w-100">
-                  <div class="d-flex justify-content-between align-items-start mb-1 gap-2 flex-wrap flex-md-nowrap">
-                      <h6 class="fw-bold mb-0 text-body d-flex flex-column flex-md-row align-items-md-center">
-                        ${h.title}
-                        <a data-bs-toggle="collapse" href="#collapseLog${index}" class="btn btn-sm btn-light border-secondary border-opacity-25 rounded-circle mt-2 mt-md-0 ms-md-3 text-primary p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;" title="Ver detalhes">
-                            <i class="fas fa-chevron-down toggle-chevron" style="font-size: 0.8rem; transition: transform 0.3s ease;"></i>
-                        </a>
-                      </h6>
-                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-normal text-nowrap" style="font-size: 0.75rem;"><i class="fas fa-clock me-1 opacity-50"></i> ${h.date_fmt}</span>
+              <div class="flex-grow-1 ms-3 w-100">
+                  <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                          <h6 class="fw-bold mb-0 text-body d-flex align-items-center" style="font-size: 0.95rem;">${h.title} ${chevron}</h6>
+                          <div class="text-secondary fw-medium mt-1 d-flex align-items-center gap-2" style="font-size: 0.75rem;">
+                              <span class="text-body fw-bold"><i class="fas fa-user-shield text-primary opacity-50 me-1"></i> Auditoria de Cadastro</span>
+                          </div>
+                      </div>
+                      <div class="text-end pe-1">
+                          <div class="fw-bold text-body" style="font-size: 0.8rem;">${(h.date_fmt || "").split(" ")[0]}</div>
+                          <div class="text-secondary opacity-75" style="font-size: 0.7rem;">${(h.date_fmt || "").split(" ")[1] || ""}</div>
+                      </div>
                   </div>
                   
                   <div class="collapse mt-3" id="collapseLog${index}">
-                      <div class="card card-body border border-secondary border-opacity-25 p-3 rounded-4 shadow-sm">
+                      <div class="card card-body bg-secondary bg-opacity-10 border-0 p-3 p-md-4 rounded-4 shadow-inner" onclick="event.stopPropagation();">
                           ${detailHtml}
                       </div>
                   </div>
@@ -668,6 +671,30 @@ window.openHistoryModal = async (id, name, btn) => {
 window.changePage = (p) => {
   defaultUsers.currentPage = p;
   loadUsuarios();
+};
+
+// MOTOR DE PAGINAÇÃO INTELIGENTE (Padrão Trilha da Fé)
+const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
+  let container = $(`.${containerClass}`);
+  container.empty();
+
+  let total = contextObj[totalPagesKey];
+  let current = contextObj[currentPageKey];
+
+  let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+  html += `<button onclick="${funcName}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior"><i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i></button>`;
+
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
+    if (p === current) {
+      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
+    } else {
+      html += `<button onclick="${funcName}(${p})" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
+    }
+  }
+
+  html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
+  html += `</div>`;
+  container.html(html);
 };
 
 $("#filtro-perfil, #busca-texto").on("change keyup", function () {

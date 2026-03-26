@@ -2,17 +2,6 @@
 
 ## Tela: Usuários
 
-[ ] Ajustar paginação da listagem  
-Objetivo:
-Padronizar paginação visual e funcional com o restante do sistema.
-
----
-
-[ ] Ajustar modal de ações do usuário  
-Objetivo:
-Deixar o modal idêntico ao modal de auditoria (mesmo padrão visual).
-
----
 
 [ ] Corrigir coluna `last_login`
 
@@ -23,15 +12,6 @@ Sugestão técnica:
 
 - Atualizar no momento da autenticação
 - Registrar timestamp no banco
-
----
-
-## Tela: Organização
-
-[ ] Corrigir paginação da listagem de organizações
-
-Objetivo:
-Padronizar paginação conforme padrão do sistema.
 
 ---
 

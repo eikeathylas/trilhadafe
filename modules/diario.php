@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
-    <title>Diário de Classe - Trilha da Fé</title>
+    <title>Diário de Encontros - Trilha da Fé</title>
     <?php include "./assets/components/Head.php"; ?>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -27,7 +27,7 @@
                         <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
                             <i class="fas fa-book-open-reader" style="font-size: 1.1rem;"></i>
                         </div>
-                        Diário de Classe
+                        Diário de Encontros
                     </li>
                 </ol>
             </nav>
@@ -38,7 +38,7 @@
                 <div class="row g-2 g-md-3 align-items-end">
 
                     <div class="col-12 d-md-none mb-0 mt-2">
-                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Diário de Classe</h5>
+                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Diário de Encontros</h5>
                     </div>
 
                     <div class="col-12 col-md-5 flex-grow-1">
@@ -52,7 +52,7 @@
 
                     <div class="col-12 col-md-5 flex-grow-1">
                         <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" for="sel_filter_subject" style="letter-spacing: 0.5px;">
-                            <i class="fas fa-book-open opacity-50 me-1"></i> 2. Selecione a Disciplina
+                            <i class="fas fa-book-open opacity-50 me-1"></i> 2. Selecione a Fase
                         </label>
                         <select id="sel_filter_subject" class="form-control shadow-sm" disabled style="height: 48px; border-radius: 12px;">
                             <option value="">Primeiro selecione a turma...</option>
@@ -62,7 +62,7 @@
                     <div class="col-12 mt-3 mt-md-0 col-md-2 d-grid d-md-block" data-slug="diario.create">
                         <button id="btn_new_session" class="btn btn-primary fw-bold w-100 shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" disabled onclick="openSessionModal()" style="height: 48px; border-radius: 12px;">
                             <i class="fas fa-plus-circle me-2"></i>
-                            <span>Nova Aula</span>
+                            <span>Novo encontro</span>
                         </button>
                     </div>
 
@@ -75,8 +75,8 @@
                 <div class="table-responsive list-table-diario" style="max-height: 70vh;" data-slug="diario.list">
                     <div class="text-center py-5 text-muted opacity-50">
                         <i class="fas fa-arrow-up mb-3 d-block" style="font-size: 2.5rem;"></i>
-                        <h6 class="fw-bold text-body">Selecione Turma e Disciplina</h6>
-                        <p class="small text-secondary">Utilize os filtros acima para visualizar ou lançar o diário.</p>
+                        <h6 class="fw-bold text-body">Selecione Turma e Fase</h6>
+                        <p class="small text-secondary">Utilize os filtros acima para visualizar ou registrar o encontro.</p>
                     </div>
                 </div>
                 <div class="pagination-diario pagination paginationButtons mt-4 pb-3 mb-5 mb-md-0 text-center justify-content-center w-100"></div>
@@ -93,7 +93,7 @@
                 <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
                     <div class="d-flex align-items-center justify-content-center flex-column">
                         <h5 class="modal-title fw-bold text-white mb-0 d-flex align-items-center text-center m-0" id="modalSessionLabel" style="letter-spacing: -0.5px;">
-                            <i class="fas fa-book-open me-3 opacity-75"></i> Diário de Classe
+                            <i class="fas fa-book-open me-3 opacity-75"></i> Diário de Encontros
                         </h5>
                         <small class="text-white opacity-75 mt-1 fw-medium">Registro de conteúdo e frequência</small>
                     </div>
@@ -111,7 +111,7 @@
                                     <div class="row align-items-center">
                                         <div class="col-md-7">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" for="diario_date" style="letter-spacing: 0.5px;">
-                                                <i class="far fa-calendar-check opacity-50 me-1"></i> Data e Hora da Aula
+                                                <i class="far fa-calendar-check opacity-50 me-1"></i> Data e Hora do Encontro
                                             </label>
                                             <div class="input-group bg-white shadow-sm rounded-4 overflow-hidden border-0">
                                                 <input type="text" id="diario_date" class="form-control fw-bold border-0 text-body shadow-none px-4 bg-transparent" placeholder="Toque para selecionar..." readonly style="height: 52px; cursor: pointer;">

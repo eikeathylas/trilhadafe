@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Disciplinas - Trilha da Fé</title>
+    <title>Fases - Trilha da Fé</title>
     <?php include "./assets/components/Head.php"; ?>
 </head>
 
@@ -22,7 +22,7 @@
                         <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
                             <i class="fas fa-book-open" style="font-size: 1.1rem;"></i>
                         </div>
-                        Gestão de Disciplinas
+                        Gestão de Fases
                     </li>
                 </ol>
             </nav>
@@ -35,14 +35,14 @@
 
 
                     <div class="col-12 d-md-none mb-2 mt-2">
-                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Buscar Disciplina</h5>
+                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Buscar Fase</h5>
                     </div>
 
                     <div class="col-12 col-md flex-grow-1">
 
 
                         <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
-                            <i class="fas fa-search opacity-50 me-1"></i> Localizar Disciplina
+                            <i class="fas fa-search opacity-50 me-1"></i> Localizar Fase
                         </label>
                         <div class="input-group bg-fundo rounded-3 overflow-hidden border-0">
                             <input type="text" id="busca-texto" class="form-control shadow-sm" placeholder="Ex: Bíblia, Liturgia, História da Igreja..." style="border-radius: 12px 0 0 12px !important; height: 48px;">
@@ -55,7 +55,7 @@
                     <div class="col-12 col-md-auto d-grid mt-3 mt-md-0" data-slug="disciplinas.create">
                         <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="modalDisciplina()" style="height: 48px; border-radius: 12px; min-width: 160px;">
                             <i class="fas fa-plus-circle me-2"></i>
-                            <span>Nova Disciplina</span>
+                            <span>Nova Fase</span>
                         </button>
                     </div>
 
@@ -85,7 +85,7 @@
 
                 <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
                     <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5 text-center m-0" id="modalLabel" style="letter-spacing: -0.5px;">
-                        <i class="fas fa-book-open me-3 opacity-75"></i> Nova Disciplina
+                        <i class="fas fa-book-open me-3 opacity-75"></i> Nova Fase
                     </h5>
                     <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                 </div>
@@ -96,8 +96,8 @@
                     <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner mb-0">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Nome da Matéria <span class="text-danger">*</span></label>
-                                <input type="text" id="subject_name" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" placeholder="Ex: Novo Testamento" style="height: 52px;">
+                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Nome da Fase <span class="text-danger">*</span></label>
+                                <input type="text" id="subject_name" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" placeholder="Ex: Querigma" style="height: 52px;">
                             </div>
 
                             <div class="col-12 mt-4">

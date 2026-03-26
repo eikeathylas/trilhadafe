@@ -113,7 +113,11 @@ const configureProfile = () => {
 
     const screen = slug || (href ? href.split(".")[0] : null);
 
-    if (screen && screen !== "index" && screen !== "dashboard" && !defaults.screensAllowed.includes(screen)) {
+    // if (screen && screen !== "index" && screen !== "dashboard" && !defaults.screensAllowed.includes(screen)) {
+    if (!defaults.screensAllowed.includes(screen)) {
+      if (href == defaults.pageActive){
+        window.location.href = defaults.screensAllowed.includes('diario') ? 'diario.php' : 'eventos.php'
+      } 
       $(this).remove();
     }
   });
@@ -127,7 +131,7 @@ const configureProfile = () => {
 
     const screen = slug || (href ? href.split(".")[0] : null);
 
-    if (screen && screen !== "index" && screen !== "dashboard" && !defaults.screensAllowed.includes(screen)) {
+    if (!defaults.screensAllowed.includes(screen)) {
       $(this).remove();
     }
   });
@@ -154,7 +158,8 @@ const configureProfile = () => {
     const slug = $(this).data("slug");
 
     // Verifica se a tag tem slug, não é página nativa e o usuário não possui a permissão
-    if (slug && slug !== "index" && slug !== "dashboard" && !defaults.screensAllowed.includes(slug)) {
+    // if (slug && slug !== "index" && slug !== "dashboard" && !defaults.screensAllowed.includes(slug)) {
+    if (!defaults.screensAllowed.includes(slug)) {
       // Inteligência de Grid Bootstrap: Verifica se o card é filho único de uma coluna (.col-*)
       const colParent = $(this).closest('[class*="col-"], .col');
 

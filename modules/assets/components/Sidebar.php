@@ -46,7 +46,7 @@
                 <p class="title-only">Visão Geral</p>
                 <ul style="padding: 0;">
                     <li data-slug="dashboard">
-                        <a href="dashboard.php" class="<?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : '' ?>" data-tooltip="Dashboard">
+                        <a href="dashboard.php" class="<?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : '' ?>" data-tooltip="Início">
                             <span class="material-symbols-outlined icon-only">dashboard</span>
                             <span class="text-only">Início</span>
                         </a>
@@ -72,7 +72,7 @@
                     <li data-slug="diario">
                         <a href="diario.php" class="<?= basename($_SERVER['PHP_SELF']) == 'diario.php' ? 'active' : '' ?>" data-tooltip="Diário">
                             <span class="material-symbols-outlined icon-only">menu_book</span>
-                            <span class="text-only">Diário de Classe</span>
+                            <span class="text-only">Diário de Encontros</span>
                         </a>
                     </li>
                     <li data-slug="turmas">
@@ -82,17 +82,17 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" onclick="return false;" class="<?= in_array(basename($_SERVER['PHP_SELF']), ['disciplinas.php', 'cursos.php']) ? 'active' : '' ?>" data-tooltip="Acadêmico">
+                        <a href="#" onclick="return false;" class="<?= in_array(basename($_SERVER['PHP_SELF']), ['fases.php', 'cursos.php']) ? 'active' : '' ?>" data-tooltip="Acadêmico">
                             <span class="material-symbols-outlined icon-only">settings_accessibility</span>
                             <span class="text-only">Config. Acadêmica</span>
                             <span class="material-symbols-outlined arrow-only ms-auto">expand_more</span>
                         </a>
-                        <ul class="sub-menu-only" style="<?= in_array(basename($_SERVER['PHP_SELF']), ['disciplinas.php', 'cursos.php']) ? 'display:block' : '' ?>">
+                        <ul class="sub-menu-only" style="<?= in_array(basename($_SERVER['PHP_SELF']), ['fases.php', 'cursos.php']) ? 'display:block' : '' ?>">
                             <li data-slug="cursos">
                                 <a href="cursos.php" class="<?= basename($_SERVER['PHP_SELF']) == 'cursos.php' ? 'fw-bold text-white' : '' ?>">Cursos</a>
                             </li>
                             <li data-slug="disciplinas">
-                                <a href="disciplinas.php" class="<?= basename($_SERVER['PHP_SELF']) == 'disciplinas.php' ? 'fw-bold text-white' : '' ?>">Disciplinas</a>
+                                <a href="fases.php" class="<?= basename($_SERVER['PHP_SELF']) == 'fases.php' ? 'fw-bold text-white' : '' ?>">Fases</a>
                             </li>
                         </ul>
                     </li>

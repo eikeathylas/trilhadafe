@@ -34,16 +34,16 @@ const getDisciplinas = async () => {
         container.html(`
             <div class="text-center py-5 opacity-50">
                 <span class="material-symbols-outlined fs-1 text-secondary">menu_book</span>
-                <p class="mt-3 fw-medium text-body">Nenhuma disciplina ou etapa encontrada.</p>
+                <p class="mt-3 fw-medium text-body">Nenhuma fase ou etapa encontrada.</p>
             </div>
         `);
         $(".pagination-disciplinas").empty();
       }
     } else {
-      throw new Error(result.alert || "O servidor não conseguiu processar a lista de disciplinas.");
+      throw new Error(result.alert || "O servidor não conseguiu processar a lista de fases.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar disciplinas.";
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar fases.";
 
     container.html(`
         <div class="text-center py-5">
@@ -57,7 +57,7 @@ const getDisciplinas = async () => {
         </div>
     `);
 
-    window.alertErrorWithSupport("Listar Disciplinas/Etapas", errorMessage);
+    window.alertErrorWithSupport("Listar Fases/Etapas", errorMessage);
   }
 };
 
@@ -145,7 +145,7 @@ const renderTableSubjects = (data) => {
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th colspan="2" class="ps-3 text-uppercase small opacity-75">Disciplina</th>
+                    <th colspan="2" class="ps-3 text-uppercase small opacity-75">Fase</th>
                     <th class="text-uppercase small opacity-75">Ementa / Resumo</th>
                     <th class="text-center text-uppercase small opacity-75">Estado</th>
                     <th class="text-end pe-4 text-uppercase small opacity-75">Ações</th>
@@ -212,7 +212,7 @@ window.modalDisciplina = (id = null, btn = false) => {
   if (id) {
     loadSubjectData(id, btn);
   } else {
-    $("#modalLabel").html('<i class="fas fa-book-open me-3 opacity-75"></i> Nova Disciplina');
+    $("#modalLabel").html('<i class="fas fa-book-open me-3 opacity-75"></i> Nova Fase');
     modal.modal("show");
   }
 };
@@ -233,14 +233,14 @@ const loadSubjectData = async (id, btn) => {
       $("#subject_name").val(d.name);
       $("#subject_summary").val(d.syllabus_summary);
 
-      $("#modalLabel").html('<i class="fas fa-pen me-3 opacity-75"></i> Editar Disciplina');
+      $("#modalLabel").html('<i class="fas fa-pen me-3 opacity-75"></i> Editar Fase');
       $("#modalDisciplina").modal("show");
     } else {
-      throw new Error(result.alert || "O servidor não retornou os dados desta disciplina.");
+      throw new Error(result.alert || "O servidor não retornou os dados desta fase.");
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar dados.";
-    window.alertErrorWithSupport(`Abrir Edição de Disciplina`, errorMessage);
+    window.alertErrorWithSupport(`Abrir Edição de Fase`, errorMessage);
   } finally {
     window.setButton(false, btn);
   }
@@ -251,7 +251,7 @@ window.salvarDisciplina = async (btn) => {
   const id = $("#subject_id").val();
   btn = $(btn);
 
-  if (!name) return window.alertDefault("O nome da disciplina é obrigatório.", "warning");
+  if (!name) return window.alertDefault("O nome da fase é obrigatório.", "warning");
 
   window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
 
@@ -270,16 +270,16 @@ window.salvarDisciplina = async (btn) => {
     });
 
     if (result.status) {
-      window.alertDefault("Disciplina guardada com sucesso!", "success");
+      window.alertDefault("Fase guardada com sucesso!", "success");
       $("#modalDisciplina").modal("hide");
 
       if (typeof getDisciplinas === "function") getDisciplinas();
     } else {
-      throw new Error(result.alert || "O servidor recusou o salvamento desta disciplina.");
+      throw new Error(result.alert || "O servidor recusou o salvamento desta fase.");
     }
   } catch (e) {
     const errorMessage = e.message || "Falha na comunicação com o servidor ao guardar.";
-    const acaoContexto = id ? `Editar Disciplina` : "Criar Nova Disciplina";
+    const acaoContexto = id ? `Editar Fase` : "Criar Nova Fase";
     window.alertErrorWithSupport(acaoContexto, errorMessage);
   } finally {
     window.setButton(false, btn);
@@ -288,7 +288,7 @@ window.salvarDisciplina = async (btn) => {
 
 window.deleteSubject = (id) => {
   Swal.fire({
-    title: "Excluir Disciplina?",
+    title: "Excluir Fase?",
     text: "O registro será movido para a lixeira do sistema.",
     icon: "warning",
     showCancelButton: true,
@@ -306,15 +306,15 @@ window.deleteSubject = (id) => {
         });
 
         if (res.status) {
-          window.alertDefault("Disciplina movida para a lixeira.", "success");
+          window.alertDefault("Fase movida para a lixeira.", "success");
 
           if (typeof getDisciplinas === "function") window.getDisciplinas();
         } else {
-          throw new Error(res.alert || "O banco de dados não permitiu a exclusão desta disciplina.");
+          throw new Error(res.alert || "O banco de dados não permitiu a exclusão desta fase.");
         }
       } catch (e) {
-        const errorMessage = e.message || "Falha de ligação ao tentar excluir a disciplina.";
-        window.alertErrorWithSupport(`Excluir Disciplina`, errorMessage);
+        const errorMessage = e.message || "Falha de ligação ao tentar excluir a fase.";
+        window.alertErrorWithSupport(`Excluir Fase`, errorMessage);
       }
     }
   });

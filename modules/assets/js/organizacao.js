@@ -290,7 +290,7 @@ const renderTableOrgs = (data) => {
     </div>
     <div class="d-md-none ios-list-container">${mobileRows}</div>`);
 
-  _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "getOrganizacoes", defaultOrg);
+  _generatePaginationButtons("pagination-orgs", "orgCurrentPage", "orgTotalPages", "changePageOrg", defaultOrg);
 };
 
 window.getLocais = async () => {
@@ -455,7 +455,7 @@ const renderTableLocais = (data) => {
     </div>
     <div class="d-md-none ios-list-container">${mobileRows}</div>`);
 
-  _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "getLocais", defaultOrg);
+  _generatePaginationButtons("pagination-locais", "locCurrentPage", "locTotalPages", "changePageLoc", defaultOrg);
 };
 
 // =========================================================
@@ -782,37 +782,35 @@ const loadResponsibles = async () => {
   }
 };
 
-window.changePage = (page, funcName, context) => {
-  if (context === defaultOrg) {
-    if (funcName === "getOrganizacoes") defaultOrg.orgCurrentPage = page;
-    else if (funcName === "getLocais") defaultOrg.locCurrentPage = page;
-  }
-  window[funcName]();
+window.changePageOrg = (page) => {
+  defaultOrg.orgCurrentPage = page;
+  getOrganizacoes();
 };
 
-// [AQUI: A PAGINAÇÃO CORRIGIDA NO PADRÃO GEOMÉTRICO EXATO]
+window.changePageLoc = (page) => {
+  defaultOrg.locCurrentPage = page;
+  getLocais();
+};
+
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);
   container.empty();
 
   let total = contextObj[totalPagesKey];
   let current = contextObj[currentPageKey];
-  if (total <= 1) return;
 
   let html = `<div class="d-flex align-items-center justify-content-center gap-2">`;
+  html += `<button onclick="${funcName}(${current - 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior"><i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i></button>`;
 
-  html += `<button onclick="changePage(${current - 1}, '${funcName}', defaultOrg)" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" ${current === 1 ? "disabled" : ""} title="Anterior"><i class="fas fa-chevron-left" style="font-size: 0.85rem;"></i></button>`;
-
-  for (let p = Math.max(1, current - 2); p <= Math.min(total, current + 2); p++) {
+  for (let p = Math.max(1, current - 1); p <= Math.min(total, current + 1); p++) {
     if (p === current) {
-      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" disabled>${p}</button>`;
+      html += `<button class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 36px; height: 36px; padding: 0;" disabled>${p}</button>`;
     } else {
-      html += `<button onclick="changePage(${p}, '${funcName}', defaultOrg)" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold flex-shrink-0" style="width: 32px; height: 32px; padding: 0;">${p}</button>`;
+      html += `<button onclick="${funcName}(${p})" class="btn btn-sm text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none fw-bold" style="width: 36px; height: 36px; padding: 0;">${p}</button>`;
     }
   }
 
-  html += `<button onclick="changePage(${current + 1}, '${funcName}', defaultOrg)" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
-
+  html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
   html += `</div>`;
   container.html(html);
 };

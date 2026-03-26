@@ -21,6 +21,7 @@
   left: 3px;
   right: 3px;
   height: 72px;
+  bottom: 3px;
   background: rgba(255, 255, 255, 0.85) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

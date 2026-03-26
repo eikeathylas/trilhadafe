@@ -54,11 +54,11 @@
                             </div>
                         </div>
 
-                    <div class="col-12 col-md-3">
-                        <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
-                            Perfil Mestre
+                        <div class="col-12 col-md-3">
+                            <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" style="letter-spacing: 0.5px;">
+                                Perfil Mestre
                             </label>
-                        <select id="filtro-perfil" class="form-select border-0 bg-fundo shadow-none rounded-4 fw-medium text-body px-3" style="height: 52px;">
+                            <select id="filtro-perfil" class="form-select border-0 bg-fundo shadow-none rounded-4 fw-medium text-body px-3" style="height: 52px;">
                                 <option value="">Carregando perfis...</option>
                             </select>
                         </div>
@@ -69,7 +69,7 @@
                                     <i class="fas fa-sync-alt text-secondary"></i>
                                 </button>
                                 <button class="btn btn-primary fw-bold shadow-sm d-flex align-items-center justify-content-center transition-all hover-scale" onclick="openCreateModal()" data-slug="usuarios.create" style="height: 48px; border-radius: 12px; min-width: 160px;">
-                                    <i class="fas fa-user-plus me-2"></i> 
+                                    <i class="fas fa-user-plus me-2"></i>
                                     <span>Novo Usuário</span>
                                 </button>
                             </div>
@@ -207,7 +207,7 @@
                         </div>
                     </div>
 
-                    <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-end">
+                    <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
                         <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light me-2" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                         <button type="button" class="btn btn-primary fw-bold px-5 rounded-4 shadow-sm transition-all hover-scale" onclick="salvarUsuario(this)" data-slug="usuarios.save" style="height: 48px;">
                             <i class="fas fa-save me-2 opacity-75"></i> Salvar
@@ -221,8 +221,8 @@
         <div class="modal fade" id="modalHistoricoUsuario" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
-                    <div class="modal-header border-0 bg-secondary bg-opacity-75 py-4 px-4 shadow-sm position-relative w-100 d-flex justify-content-center" style="z-index: 1090;">
-                        <h5 class="modal-title fs-5 fw-bold text-white m-0 text-center" style="letter-spacing: -0.5px;">
+                    <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
+                        <h5 class="modal-title fw-bold text-white d-flex align-items-center fs-5 text-center m-0" style="letter-spacing: -0.5px;">
                             <i class="fas fa-book-open-reader me-3 opacity-75"></i> Atividades do Usuário
                         </h5>
                         <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
@@ -233,8 +233,8 @@
                         </div>
                     </div>
 
-                    <div class="modal-footer border-0 p-4 pt-0 bg-transparent align-items-center justify-content-center">
-                        <button type="button" class="btn btn-light fw-bold px-5 rounded-4 border shadow-sm transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar Histórico</button>
+                    <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
+                        <button type="button" class="btn btn-light fw-bold px-4 rounded-4 border shadow-sm transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">Fechar</button>
                     </div>
                 </div>
             </div>

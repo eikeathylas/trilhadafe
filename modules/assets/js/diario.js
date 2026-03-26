@@ -85,7 +85,7 @@ const initResizer = () => {
 };
 
 // =========================================================
-// 2. MOTORES DE FILTRO (Turmas e Disciplinas)
+// 2. MOTORES DE FILTRO (Turmas e Fase)
 // =========================================================
 const initFilters = () => {
   if ($("#sel_filter_class").length && !$("#sel_filter_class")[0].selectize) {
@@ -141,7 +141,7 @@ const initFilters = () => {
       valueField: "subject_id",
       labelField: "subject_name",
       searchField: "subject_name",
-      placeholder: "Selecione a Disciplina...",
+      placeholder: "Selecione a Fase...",
       onChange: function (value) {
         if (value) {
           diarioState.subjectId = value;
@@ -171,11 +171,11 @@ const loadSubjects = async (classId) => {
       res.data.forEach((item) => selSub.addOption(item));
       if (res.data.length === 1) selSub.setValue(res.data[0].subject_id);
     } else {
-      throw new Error(res.alert || "Erro ao obter disciplinas.");
+      throw new Error(res.alert || "Erro ao obter fase.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar disciplinas da turma.";
-    window.alertErrorWithSupport(`Carregar Disciplinas da Turma`, errorMessage);
+    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar fase da turma.";
+    window.alertErrorWithSupport(`Carregar Fase da Turma`, errorMessage);
   }
 };
 
@@ -190,7 +190,7 @@ const resetInterface = () => {
   $(".list-table-diario").html(`
     <div class="text-center py-5 text-muted opacity-50">
         <i class="fas fa-arrow-up mb-3 d-block" style="font-size: 2.5rem;"></i>
-        <h6 class="fw-bold text-body">Selecione Turma e Disciplina</h6>
+        <h6 class="fw-bold text-body">Selecione Turma e Fase</h6>
         <p class="small text-secondary">Utilize os filtros acima para visualizar ou lançar o diário.</p>
     </div>
   `);
@@ -206,7 +206,7 @@ window.getHistory = async () => {
   container.html(`
     <div class="text-center py-5 opacity-50">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 fw-medium text-body">Sincronizando histórico de aulas...</p>
+        <p class="mt-3 fw-medium text-body">Sincronizando histórico de encontros...</p>
     </div>
   `);
 
@@ -231,7 +231,7 @@ window.getHistory = async () => {
         container.html(`
             <div class="text-center py-5 opacity-50">
                 <span class="material-symbols-outlined" style="font-size: 56px;">history_edu</span>
-                <p class="mt-3 fw-medium text-body">Nenhuma aula registrada para esta disciplina.</p>
+                <p class="mt-3 fw-medium text-body">Nenhum encontro registrado para esta fase.</p>
             </div>
         `);
         $(".pagination-diario").empty();
@@ -263,7 +263,7 @@ const renderTableHistory = (data) => {
     container.html(`
         <div class="text-center py-5 text-muted opacity-50">
             <span class="material-symbols-outlined fs-1">event_busy</span>
-            <p class="mt-2">Nenhuma aula registrada.</p>
+            <p class="mt-2">Nenhum encontro registrado.</p>
         </div>
     `);
     return;
@@ -528,7 +528,7 @@ window.checkDateLogic = async (dateStr) => {
   const $msgContainer = $("#date-msg");
 
   $statusIcon.html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div>');
-  $msgContainer.text("Validando plano de aula...").removeClass("text-warning text-danger text-success text-primary");
+  $msgContainer.text("Validando plano de encontro...").removeClass("text-warning text-danger text-success text-primary");
 
   const dateObj = new Date(dateStr + "T00:00:00");
   const dayOfWeek = dateObj.getDay();
@@ -536,7 +536,7 @@ window.checkDateLogic = async (dateStr) => {
   if (diarioState.schedules.length > 0) {
     const isScheduledDay = diarioState.schedules.some((s) => parseInt(s.day_of_week) === dayOfWeek);
     if (!isScheduledDay) {
-      $msgContainer.text("Atenção: Aula extra (Fora do dia padrão).").addClass("text-warning");
+      $msgContainer.text("Atenção: Encontro extra (Fora do dia padrão).").addClass("text-warning");
     }
   }
 
@@ -569,12 +569,12 @@ window.checkDateLogic = async (dateStr) => {
       } else if (info.status === "NEW") {
         diarioState.sessionId = null;
         $statusIcon.html('<i class="fas fa-check-circle text-success"></i>');
-        $msgContainer.text(`Novo Diário (Aula #${info.sequence})`).removeClass("text-warning").addClass("text-success");
+        $msgContainer.text(`Novo Diário (Encontro #${info.sequence})`).removeClass("text-warning").addClass("text-success");
 
         $("#diario_content").summernote("enable");
         if (info.template) {
           $("#diario_content").summernote("code", info.template);
-          window.alertDefault("Plano de aula carregado com sucesso!", "info");
+          window.alertDefault("Plano de encontro carregado com sucesso!", "info");
         } else {
           $("#diario_content").summernote("code", "");
         }
@@ -739,7 +739,7 @@ window.salvarDiario = async (btn) => {
   const content = $("#diario_content").summernote("code");
   btn = $(btn);
 
-  if (!date) return window.alertDefault("Selecione a data da aula.", "warning");
+  if (!date) return window.alertDefault("Selecione a data do encontro.", "warning");
   if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data bloqueada para registro.", "error");
 
   window.setButton(true, btn, " Salvando...");
@@ -791,7 +791,7 @@ window.deleteSession = (sessionId) => {
         });
 
         if (res.status) {
-          window.alertDefault("Registro de aula removido.", "success");
+          window.alertDefault("Registro de encontro removido.", "success");
           if (typeof getHistory === "function") window.getHistory();
         } else {
           throw new Error(res.alert || res.msg || "O servidor não permitiu excluir este registro.");
