@@ -121,21 +121,20 @@ window.renderToggle = (id, isChecked, onChangeFunction) => {
     `;
 };
 
-window.zoomAvatar = (url, altText = "Foto") => {
+window.zoomAvatar = (url, name = 'Trilha da Fé') => {
   if (!url) return;
   Swal.fire({
+    title: name,
     imageUrl: url,
-    imageAlt: altText,
-    imageWidth: "auto",
-    customClass: {
-      image: "rounded-4 shadow-lg border border-white",
-      popup: "bg-transparent shadow-none",
-    },
+    imageWidth: 300,
+    imageHeight: 300,
+    imageAlt: `Foto de perfil de ${name}`,
     showConfirmButton: false,
     showCloseButton: true,
     backdrop: `rgba(0,0,0,0.85)`,
     scrollbarPadding: false,
     animation: true,
+    customClass: { image: "rounded-circle object-fit-cover shadow-sm border border-4 border-white" },
     didOpen: () => {
       const swalContainer = document.querySelector(".swal2-container");
       if (swalContainer) {

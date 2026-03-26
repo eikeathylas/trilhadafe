@@ -181,7 +181,7 @@
                         <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 shadow-inner">
                             <h6 class="fw-bold text-primary mb-4 d-flex align-items-center"><i class="fas fa-map-location-dot me-2 opacity-75"></i> Endereço e Contato</h6>
                             <div class="row g-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">CEP</label>
                                     <div class="input-group bg-white rounded-4 shadow-none border-0 overflow-hidden">
                                         <input type="text" id="org_zip" class="form-control border-0 shadow-none bg-transparent fw-bold text-body px-3 mask-cep" onblur="buscarCep(this.value)" placeholder="00000-000" style="height: 52px;" />
@@ -190,9 +190,13 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="col-md-8">
+                                <div class="col-md-7">
                                     <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Rua / Logradouro</label>
                                     <input type="text" id="org_street" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" style="height: 52px;" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Número</label>
+                                    <input type="text" id="org_number" class="form-control border-0 rounded-4 shadow-none bg-white fw-medium text-body px-3" style="height: 52px;" />
                                 </div>
                                 <div class="col-md-5 mt-3">
                                     <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Bairro</label>

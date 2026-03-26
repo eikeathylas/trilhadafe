@@ -106,7 +106,7 @@
                         <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                     </div>
 
-                    <div class="px-2 pt-3 pb-2 border-bottom border-secondary border-opacity-10 bg-body shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
+                    <div class="px-2 pt-1 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
                         <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
                             <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="userTab" role="tablist">
                                 <li class="nav-item">

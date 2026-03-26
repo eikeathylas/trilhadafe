@@ -31,19 +31,6 @@ window.copyEmail = (email) => {
   });
 };
 
-window.zoomAvatar = (url, name) => {
-  Swal.fire({
-    title: name,
-    imageUrl: url,
-    imageWidth: 200,
-    imageHeight: 200,
-    imageAlt: `Foto de perfil de ${name}`,
-    showConfirmButton: false,
-    showCloseButton: true,
-    customClass: { image: "rounded-circle object-fit-cover shadow-sm border border-4 border-white" },
-  });
-};
-
 window.togglePerson = (id, element) => handleToggle("togglePerson", id, element, "Estado atualizado.", `.status-text-person-${id}`, getPessoas);
 
 // ==========================================
@@ -165,12 +152,9 @@ const renderTablePeople = (data) => {
       }
 
       let actionsHtml = "";
-      if (canHistory)
-        actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
-      if (canEdit)
-        actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
-      if (canDelete)
-        actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('people.persons', ${item.person_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalPessoa(${item.person_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deletePerson(${item.person_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
