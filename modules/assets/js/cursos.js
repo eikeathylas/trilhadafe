@@ -224,9 +224,12 @@ const renderTableCourses = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
 
       let mobActionsHtml = "";
-      if (canHistory) mobActionsHtml += `<button class="ios-action-pill text-warning bg-warning bg-opacity-10 flex-shrink-0" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-history"></i></button>`;
-      if (canEdit) mobActionsHtml += `<button class="ios-action-pill text-primary bg-primary bg-opacity-10 flex-shrink-0" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) mobActionsHtml += `<button class="ios-action-pill text-danger bg-danger bg-opacity-10 flex-shrink-0" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>`;
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        mobActionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <div class="ios-list-item flex-column align-items-stretch position-relative mb-2" style="padding: 12px 16px;">
@@ -474,22 +477,15 @@ const renderCurriculumTable = () => {
       let actionsHtml = "";
 
       if (canHistory && item.curriculum_id) {
-        actionsHtml += `
-        <button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" onclick="openAudit('education.curriculum', ${item.curriculum_id}, this)" title="Auditoria da Disciplina">
-            <i class="fas fa-history" style="font-size: 0.85rem;"></i>
-        </button>`;
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.curriculum', ${item.curriculum_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       }
 
-      actionsHtml += `
-        <button class="btn btn-sm ${planBtnClass} bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" onclick="configureTemplate(${index})" title="${canTemplate ? "Gerenciar Roteiro" : "Ver Roteiro"}">
-            <i class="fa-solid fa-book-open-reader" style="font-size: 0.85rem;"></i>
-        </button>`;
+      if (canTemplate) {
+        actionsHtml += `<button class="btn btn-sm ${planBtnClass} bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="configureTemplate(${index})" title="${canTemplate ? "Gerenciar Roteiro" : "Ver Roteiro"}"><i class="fas fa-book-open-reader" style="font-size: 0.85rem;"></i></button>`;
+      }
 
       if (canEdit) {
-        actionsHtml += `
-        <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" onclick="removeSubjectFromGrid(${index})" title="Remover da Grade">
-            <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
-        </button>`;
+        actionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="removeSubjectFromGrid(${index})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
       }
 
       return `

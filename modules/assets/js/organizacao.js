@@ -560,7 +560,7 @@ window.salvarInstituicao = async (btn) => {
 };
 
 window.deleteOrg = (id) => {
-  Swal.fire({ title: "Excluir Instituição?", text: "Ela será movida para a lixeira do sistema.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim, excluir" }).then(async (r) => {
+  Swal.fire({ title: "Excluir Instituição?", text: "O registro será movido para a lixeira do sistema.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim, excluir" }).then(async (r) => {
     if (r.isConfirmed) {
       const res = await window.ajaxValidator({ validator: "deleteOrganization", token: window.defaultApp.userInfo.token, id: id });
       if (res.status) {
@@ -619,7 +619,7 @@ window.salvarLocal = async (btn) => {
 };
 
 window.deleteLoc = (id) => {
-  Swal.fire({ title: "Excluir Local?", text: "Será movido para a lixeira.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim, excluir" }).then(async (r) => {
+  Swal.fire({ title: "Excluir Local?", text: "O registro será movido para a lixeira do sistema.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim, excluir" }).then(async (r) => {
     if (r.isConfirmed) {
       const res = await window.ajaxValidator({ validator: "deleteLocation", token: window.defaultApp.userInfo.token, id: id });
       if (res.status) {

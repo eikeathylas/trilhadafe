@@ -228,11 +228,11 @@ const renderTableClasses = (data) => {
 
       let mobActionsHtml = "";
       if (canHistory)
-        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
-        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)
-        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       let mobileFooter = "";
       if (mobActionsHtml !== "") {
@@ -396,7 +396,7 @@ window.addHistoryItem = async (btn) => {
 };
 
 window.deleteHistoryItem = (historyId, enrollmentId) => {
-  Swal.fire({ title: "Apagar registro?", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
+  Swal.fire({ title: "Apagar registro?", text: "O registro será movido para a lixeira do sistema.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
     if (r.isConfirmed) {
       try {
         await window.ajaxValidator({ validator: "deleteEnrollmentHistory", token: defaultApp.userInfo.token, id: historyId });
@@ -494,13 +494,11 @@ const renderStudentsList = (data) => {
 
       let actionsHtml = "";
       if (canHistory) {
-        // Auditoria de Matrícula - Ícone Relógio (History)
-        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.enrollments', ${item.enrollment_id}, this)" title="Log de Matrícula"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
-        // Abrir Ocorrências/Observações - Ícone Lápis (Pen)
-        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Adicionar Observação"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.enrollments', ${item.enrollment_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       }
       if (canDrop) {
-        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEnrollment(${item.enrollment_id})" title="Remover Matrícula"><i class="fas fa-user-minus" style="font-size: 0.85rem;"></i></button>`;
+        actionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEnrollment(${item.enrollment_id})" title="Excluir"><i class="fas fa-user-minus" style="font-size: 0.85rem;"></i></button>`;
       }
 
       return `
@@ -751,7 +749,7 @@ const renderSchedulesTable = () => {
           canEdit
             ? `
         <button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 36px; height: 36px; padding: 0;" onclick="currentSchedules.splice(${index}, 1); renderSchedulesTable();" title="Remover Horário">
-            <i class="fas fa-trash-can" style="font-size: 0.9rem;"></i>
+            <i class="fas fa-trash-can" style="font-size: 0.85rem;"></i>
         </button>`
             : ""
         }
@@ -779,7 +777,7 @@ window.deleteTurma = (id) => {
 };
 
 window.deleteEnrollment = (id) => {
-  Swal.fire({ title: "Remover Aluno?", text: "Desvincula o aluno desta turma.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
+  Swal.fire({ title: "Remover Aluno?", text: "O registro será movido para a lixeira do sistema.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33" }).then(async (r) => {
     if (r.isConfirmed) {
       const res = await window.ajaxValidator({ validator: "deleteEnrollment", token: defaultApp.userInfo.token, id });
       if (res.status) {
