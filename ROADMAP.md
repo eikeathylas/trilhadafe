@@ -21,27 +21,6 @@ Permitir alternar entre visão **local** e **global** do CRM.
 
 # 🔔 3 — SISTEMA DE NOTIFICAÇÕES
 
-Criar um motor de notificações baseado em eventos do sistema.
-
-## Eventos previstos
-
-[ ] Aniversariante do dia
-
-Regras:
-
-- Respeitar hierarquia
-- Paróquia
-- Comunidade
-- Usuário
-
----
-
-[ ] Feriado para professor
-
-Quando um feriado for cadastrado em uma turma:
-
-- Notificar professor responsável
-
 ---
 
 # 📊 4 — RELATÓRIOS
