@@ -276,7 +276,7 @@ const renderTablePeople = (data) => {
         </div>
         <div class="d-flex justify-content-between align-items-center pt-2 mt-2 border-top border-secondary border-opacity-10 w-100 flex-nowrap">
             <div class="d-flex flex-nowrap">${quickActionsHtml}</div>
-            <div class="d-flex flex-nowrap">${actionsHtml}</div>
+            <div class="d-flex flex-nowrap gap-2">${actionsHtml}</div>
         </div>
     </div>`;
     })

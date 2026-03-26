@@ -49,7 +49,6 @@ function getUsuariosParoquia($data)
             $userIds = array_column($usuarios, 'id');
             $inQuery = implode(',', array_fill(0, count($userIds), '?'));
 
-            // [CORREÇÃO] SQL cruzando dados locais para trazer nomes de anos e cargos
             $sqlLocal = "SELECT 
                             su.user_id, 
                             pp.profile_photo_url,
@@ -167,9 +166,7 @@ function updateUsuarioParoquia($data)
         $roleLevel = ($mainProfile == 50) ? 'MANAGER' : (($mainProfile == 40) ? 'SECRETARY' : (($mainProfile == 30) ? 'TEACHER' : 'USER'));
 
         if ($idUser === 0) {
-            // ==========================================
-            // 1. CRIAR NOVO USUÁRIO (INSERT OU RESTAURAR)
-            // ==========================================
+            // 1. CRIAR NOVO USUÁRIO
             $personId = (int)$data['person_id'];
             if (!$personId) throw new Exception("Pessoa não selecionada para vínculo.");
 
@@ -179,7 +176,6 @@ function updateUsuarioParoquia($data)
 
             if (!$person) throw new Exception("Pessoa não encontrada no diretório.");
 
-            // [CORREÇÃO] Checa Unique Constraint de e-mail no Staff para reativar
             $stmtCheck = $conectStaff->prepare("SELECT id FROM public.users WHERE email = :em");
             $stmtCheck->execute(['em' => $email]);
             $existingStaffId = $stmtCheck->fetchColumn();
@@ -208,7 +204,6 @@ function updateUsuarioParoquia($data)
             }
 
             if ($conectLocal) {
-                // [CORREÇÃO] Upsert Local (conflict no user_id)
                 $sqlLocal = "INSERT INTO security.users (user_id, org_id, person_id, name, email, role_level, is_active, deleted, updated_at) 
                              VALUES (:uid, :oid, :pid, :nm, :em, :rl, TRUE, FALSE, CURRENT_TIMESTAMP)
                              ON CONFLICT (user_id) DO UPDATE 
@@ -223,14 +218,11 @@ function updateUsuarioParoquia($data)
                     'rl' => $roleLevel
                 ]);
 
-                // Log local explícito
                 $conectLocal->prepare("INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, new_values) VALUES ('security', 'users', 'INSERT', :rid, :author, :desc)")
                     ->execute(['rid' => (string)$idUser, 'author' => $authorId, 'desc' => json_encode(['info' => "Criação manual do acesso deste usuário no sistema"])]);
             }
         } else {
-            // ==========================================
-            // 2. ATUALIZAR USUÁRIO EXISTENTE (UPDATE)
-            // ==========================================
+            // 2. ATUALIZAR USUÁRIO EXISTENTE
             $stmtCheck = $conectStaff->prepare("SELECT id FROM public.users WHERE email = :em AND id != :id");
             $stmtCheck->execute(['em' => $email, 'id' => $idUser]);
             if ($stmtCheck->fetchColumn()) throw new Exception("Este e-mail já está em uso por outro usuário global.");
@@ -239,7 +231,6 @@ function updateUsuarioParoquia($data)
             $conectStaff->prepare("UPDATE public.users_clients_profiles SET id_profile = :profile, updated_at = CURRENT_TIMESTAMP WHERE id_user = :id_user AND id_client = :id_client")->execute(['profile' => $mainProfile, 'id_user' => $idUser, 'id_client' => $idClient]);
 
             if ($conectLocal) {
-                // [CORREÇÃO] Atualizando e-mail e nível local
                 $conectLocal->prepare("UPDATE security.users SET email = :em, role_level = :rl, updated_at = CURRENT_TIMESTAMP WHERE user_id = :uid")->execute(['em' => $email, 'rl' => $roleLevel, 'uid' => $idUser]);
 
                 $conectLocal->prepare("INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, new_values) VALUES ('security', 'users', 'UPDATE', :rid, :author, :desc)")
@@ -247,17 +238,12 @@ function updateUsuarioParoquia($data)
             }
         }
 
-        // ==========================================
-        // 3. GRAVAR VÍNCULOS COM SOFT DELETE + REATIVAÇÃO
-        // ==========================================
+        // 3. GRAVAR VÍNCULOS DE ANOS LETIVOS
         if ($conectLocal) {
-            // Passo 1: Inativa os vínculos acadêmicos atuais em lote (Soft Delete)
             $conectLocal->prepare("UPDATE security.users_years SET is_active = FALSE, deleted = TRUE, updated_at = CURRENT_TIMESTAMP WHERE user_id = :uid")
                 ->execute(['uid' => $idUser]);
 
             if (!empty($data['years_mapping']) && is_array($data['years_mapping'])) {
-
-                // Passo 2: Insere os novos ou REATIVA os existentes (Upsert)
                 $sqlUpsert = "INSERT INTO security.users_years (user_id, year_id, id_profile, is_active, deleted, created_at, updated_at) 
                               VALUES (:uid, :yid, :pid, TRUE, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                               ON CONFLICT (user_id, year_id) DO UPDATE 
@@ -300,12 +286,10 @@ function deleteUsuarioParoquia($data)
         $idClient = (int)$data['id_client'];
         $authorId = (int)$data['author_id'];
 
-        // [CORREÇÃO] Soft Delete no Staff
         $conectStaff->prepare("UPDATE public.users SET deleted = TRUE, active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE id = :id")->execute(['id' => $idUser]);
         $conectStaff->prepare("UPDATE public.users_clients_profiles SET active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE id_user = :uid AND id_client = :cid")->execute(['uid' => $idUser, 'cid' => $idClient]);
 
         if ($conectLocal) {
-            // [CORREÇÃO] Soft Delete local
             $conectLocal->prepare("UPDATE security.users_years SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE user_id = :uid")->execute(['uid' => $idUser]);
             $conectLocal->prepare("UPDATE security.users SET deleted = TRUE, is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE user_id = :uid")->execute(['uid' => $idUser]);
 
@@ -351,7 +335,6 @@ function resetPasswordUsuario($data)
 
 /**
  * Auditoria Traduzida e Focada no que ELA (user_id) FEZ no sistema.
- * Agora com ENRIQUECIMENTO RELACIONAL (Transforma IDs em Nomes).
  */
 function getHistoricoAuditoriaUsuario($data)
 {
@@ -359,7 +342,6 @@ function getHistoricoAuditoriaUsuario($data)
         $conectLocal = $GLOBALS["local"];
         $idUser = (int)$data['id_user'];
 
-        // Tenta buscar old_values caso exista na estrutura da trigger
         $checkOldCol = $conectLocal->query("SELECT column_name FROM information_schema.columns WHERE table_schema='security' AND table_name='change_logs' AND column_name='old_values'")->fetchColumn();
         $oldColSql = $checkOldCol ? "old_values" : "NULL as old_values";
 
@@ -374,7 +356,6 @@ function getHistoricoAuditoriaUsuario($data)
 
         $formattedHistory = [];
 
-        // Helper interno para buscar nomes no banco de forma segura
         $fetchName = function ($table, $colName, $idCol, $val) use ($conectLocal) {
             if (!$val) return null;
             try {
@@ -394,10 +375,6 @@ function getHistoricoAuditoriaUsuario($data)
             $newVals = json_decode($h['new_values'] ?? '{}', true);
             $oldVals = json_decode($h['old_values'] ?? '{}', true);
 
-            // ==========================================
-            // MOTOR DE ENRIQUECIMENTO DE DADOS
-            // Transformando IDs frios em Nomes Humanos
-            // ==========================================
             if ($table === 'attendance') {
                 if (!empty($newVals['student_id'])) {
                     $nome = $fetchName('people.persons', 'full_name', 'person_id', $newVals['student_id']);
@@ -415,9 +392,6 @@ function getHistoricoAuditoriaUsuario($data)
             $color = "secondary";
             $title = "Ação de Sistema";
 
-            // ==========================================
-            // TÍTULOS INTELIGENTES BASEADOS NO CONTEXTO
-            // ==========================================
             if ($table === 'attendance') {
                 $primeiroNome = isset($newVals['student_name']) ? explode(' ', $newVals['student_name'])[0] : "um aluno";
                 if ($op === 'INSERT') {
@@ -453,7 +427,6 @@ function getHistoricoAuditoriaUsuario($data)
                 $icon = "fas fa-user-shield";
                 $color = ($op === 'DELETE') ? "danger" : "info";
             } else {
-                // Fallback Padrão
                 $modulos = ['users_years' => 'Vínculo Letivo', 'persons' => 'Pessoa', 'person_roles' => 'Cargo'];
                 $nomeModulo = $modulos[$table] ?? $table;
                 if ($op === 'INSERT') {
@@ -468,7 +441,6 @@ function getHistoricoAuditoriaUsuario($data)
                 }
             }
 
-            // Garante que o frontend receba os JSONs atualizados e enriquecidos
             $formattedHistory[] = [
                 'log_id' => $h['log_id'],
                 'date_fmt' => $dateFmt,
@@ -489,7 +461,7 @@ function getHistoricoAuditoriaUsuario($data)
 }
 
 // =========================================================
-// ROTAS DE APOIO (Inalteradas, mas garantindo que estejam aqui)
+// ROTAS DE APOIO E PERFIS
 // =========================================================
 
 function fetchAnosLetivosDropdown()
@@ -517,5 +489,38 @@ function fetchPessoasDropdown($data)
         return success("Pessoas", $pessoas);
     } catch (Exception $e) {
         return failure("Erro.");
+    }
+}
+
+function fetchProfilesList()
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $stmt = $conect->query("SELECT id, title as name FROM public.profiles WHERE status = 1 ORDER BY title ASC");
+        return success("Perfis encontrados", $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (Exception $e) {
+        return failure("Erro ao buscar perfis do sistema.");
+    }
+}
+
+/**
+ * Busca a matriz de permissões cruzando features com o perfil selecionado
+ */
+function fetchProfilePermissions($id_profile)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $sql = "SELECT f.title as name, f.description,
+                CASE WHEN pf.id_feature IS NOT NULL THEN true ELSE false END as active
+                FROM public.features f
+                LEFT JOIN public.profiles_features pf ON f.id = pf.id_feature AND pf.id_profile = :id_profile
+                ORDER BY f.module, f.title";
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute([':id_profile' => $id_profile]);
+        return success("Permissões do Perfil", $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (Exception $e) {
+        // Fallback de segurança caso a tabela features não exista ou seja diferente
+        return success("Permissões em modo de compatibilidade", []);
     }
 }

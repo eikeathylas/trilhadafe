@@ -10,9 +10,116 @@ const defaultUsers = {
  */
 window.toggleUsuario = (id, element) => handleToggle("toggleUser", id, element, "Estado atualizado.", `.status-text-usr-${id}`, loadUsuarios);
 
+const loadProfilesDropdown = async () => {
+  try {
+    const res = await window.ajaxValidator({ validator: "getProfilesList", token: defaultApp.userInfo.token });
+    if (res.status) {
+      let opts = '<option value="">Selecione o perfil mestre...</option>';
+      res.data.forEach((p) => {
+        opts += `<option value="${p.id}">${p.name}</option>`;
+      });
+      $("#filtro-perfil").html('<option value="">Todos os Perfis</option>' + opts);
+      $("#edit_profile").html(opts);
+    }
+  } catch (e) {
+    console.error("Erro ao carregar lista de perfis do banco.", e);
+  }
+};
+
+/**
+ * Renderiza a nova matriz de permissões utilizando o Bootstrap Accordion (Premium UI)
+ */
+const loadProfilePermissions = async (idProfile) => {
+  const container = $("#lista-permissoes");
+  if (!idProfile) {
+    container.html(`<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-shield-alt fa-3x mb-3"></i><p>Selecione um perfil para visualizar a matriz.</p></div>`);
+    return;
+  }
+  container.html(`<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 fw-medium text-muted">Carregando permissões...</p></div>`);
+
+  try {
+    const res = await window.ajaxValidator({ validator: "getProfilePermissions", token: defaultApp.userInfo.token, id_profile: idProfile });
+    if (res.status) {
+      if (res.data.length === 0) {
+        container.html(`<div class="text-center py-5 text-muted opacity-50"><p>Nenhuma matriz de permissões detalhada foi encontrada para este perfil.</p></div>`);
+        return;
+      }
+
+      // Agrupamento de Ações por Módulo Pai
+      const modules = {};
+      res.data.forEach((p) => {
+        if (!modules[p.module_name]) {
+          modules[p.module_name] = { icon: p.module_icon || "fas fa-cross", actions: [] };
+        }
+        modules[p.module_name].actions.push(p);
+      });
+
+      let accordionHtml = `<div class="accordion accordion-flush" id="accordionPermissions">`;
+      let mIndex = 0;
+
+      for (const [moduleName, moduleData] of Object.entries(modules)) {
+        mIndex++;
+        const headingId = `headingPerm${mIndex}`;
+        const collapseId = `collapsePerm${mIndex}`;
+
+        const activeCount = moduleData.actions.filter((a) => a.active).length;
+        const totalCount = moduleData.actions.length;
+        const badgeClass = activeCount === totalCount ? "bg-success" : activeCount > 0 ? "bg-warning" : "bg-secondary";
+
+        let actionsHtml = moduleData.actions
+          .map(
+            (p) => `
+              <div class="d-flex align-items-center justify-content-between py-3 border-bottom border-secondary border-opacity-10 transition-all hover-bg-light">
+                  <div class="pe-3">
+                      <h6 class="fw-bold text-body mb-1" style="font-size: 0.9rem;">${p.name}</h6>
+                      <small class="text-muted fw-medium" style="font-size: 0.75rem; line-height: 1.2; display: block;">${p.description || "Configuração de acesso."}</small>
+                  </div>
+                  <span class="badge ${p.active ? "bg-success text-success border-success" : "bg-secondary text-secondary border-secondary"} bg-opacity-10 border border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                      ${p.active ? "Liberado" : "Restrito"}
+                  </span>
+              </div>
+          `,
+          )
+          .join("");
+
+        accordionHtml += `
+          <div class="accordion-item bg-transparent border-0 mb-3 bg-white rounded-4 shadow-sm overflow-hidden">
+              <h2 class="accordion-header" id="${headingId}">
+                  <button class="accordion-button collapsed bg-transparent fw-bold text-body shadow-none p-3" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
+                      <div class="d-flex align-items-center w-100 pe-3">
+                          <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
+                              <i class="${moduleData.icon.replace("icon-", "fas fa-")}"></i>
+                          </div>
+                          <div class="flex-grow-1">
+                              <span style="font-size: 0.95rem;">Trilha da fé</span>
+                          </div>
+                          <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass} border border-${badgeClass} border-opacity-25 rounded-pill px-2 py-1 ms-2" style="font-size: 0.7rem;">
+                              ${activeCount}/${totalCount}
+                          </span>
+                      </div>
+                  </button>
+              </h2>
+              <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" data-bs-parent="#accordionPermissions">
+                  <div class="accordion-body pt-0 pb-2 px-4">
+                      ${actionsHtml}
+                  </div>
+              </div>
+          </div>`;
+      }
+      accordionHtml += `</div>`;
+
+      container.html(accordionHtml);
+    } else {
+      container.html(`<div class="text-center py-5 text-danger opacity-75"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>${res.alert}</p></div>`);
+    }
+  } catch (e) {
+    container.html(`<div class="text-center py-5 text-danger opacity-75"><p>Falha de comunicação com o servidor.</p></div>`);
+  }
+};
+
 const loadUsuarios = async () => {
   const container = $(".list-table-usuarios");
-  const mobileContainer = $("#mobile-users-cards"); // Opcional se for unificado, mantido por segurança
+  const mobileContainer = $("#mobile-users-cards");
 
   try {
     const page = Math.max(0, defaultUsers.currentPage - 1);
@@ -86,8 +193,22 @@ const getProfileColor = (profileId) => {
 const renderUsers = (data) => {
   const container = $(".list-table-usuarios");
 
+  let allowedSlugs = [];
+  try {
+    let access = localStorage.getItem("tf_access");
+    if (access) {
+      let parsed = JSON.parse(access);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
+      allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
+    }
+  } catch (e) {}
+
+  const canEdit = true;
+  const canHistory = true;
+  const canDelete = true;
+
   // =========================================================
-  // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
+  // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM COM BOTÕES PADRÃO)
   // =========================================================
   const desktopRows = data
     .map((item) => {
@@ -107,14 +228,19 @@ const renderUsers = (data) => {
 
       const profileLabel = getTranslatedProfile(item.main_profile_name);
       const color = getProfileColor(item.main_profile_id);
-      const textClass = color === "warning" || color === "light" ? "text-body" : "text-white";
       const profileBadge = `<span class="badge bg-${color} bg-opacity-10 text-${color} border border-${color} border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.65rem;">${profileLabel.toUpperCase()}</span>`;
 
-      // Presumindo a existência de is_active, senão o checkbox fica checado
       const isActive = item.is_active !== false && item.is_active !== "f" && item.is_active !== "0";
       const statusIconHtml = isActive
         ? `<span title="Ativo" class="text-success d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-check-circle"></i></span>`
         : `<span title="Inativo" class="text-danger d-flex align-items-center justify-content-center" style="font-size: 1.1rem; width: 24px; height: 24px; cursor: help;"><i class="fas fa-times-circle"></i></span>`;
+
+      let actionsHtml = "";
+      if (canHistory)
+        actionsHtml += `<button class="btn-icon-action text-info ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openHistoryModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', this)" title="Auditoria de Cadastro"><i class="fas fa-clipboard-list" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('security.users', ${item.id})" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openEditModal(${item.id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteUsuario(${item.id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
@@ -131,10 +257,9 @@ const renderUsers = (data) => {
               </div>
           </td>
           <td class="text-end align-middle pe-4 text-nowrap">
-              <button class="btn-icon-action text-info" onclick="openHistoryModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', this)" title="Ações do Usuário"><i class="fas fa-book-open-reader"></i></button>
-              <button class="btn-icon-action text-warning" onclick="openAudit('security.users', ${item.id}, this)" title="Log / Auditoria"><i class="fas fa-bolt"></i></button>
-              <button class="btn-icon-action text-primary" onclick="openEditModal(${item.id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon-action text-danger" onclick="deleteUsuario(${item.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              <div class="d-flex justify-content-end align-items-center flex-nowrap">
+                  ${actionsHtml}
+              </div>
           </td>
       </tr>`;
     })
@@ -157,7 +282,7 @@ const renderUsers = (data) => {
     </div>`;
 
   // =========================================================
-  // 2. VISÃO MOBILE (INSET GROUPED LIST - APPLE HIG)
+  // 2. VISÃO MOBILE (INSET GROUPED LIST COM BOTÕES PADRÃO)
   // =========================================================
   const mobileRows = data
     .map((item) => {
@@ -174,10 +299,20 @@ const renderUsers = (data) => {
 
       const profileLabel = getTranslatedProfile(item.main_profile_name);
       const color = getProfileColor(item.main_profile_id);
-      const profileBadge = `<span class="badge bg-${color} bg-opacity-10 text-${color} fw-bold px-2 py-1" style="font-size: 0.65rem; border-radius: 6px;">${profileLabel.toUpperCase()}</span>`;
+      const profileBadge = `<span class="badge bg-${color} bg-opacity-10 text-${color} fw-bold px-2 py-1 border border-${color} border-opacity-25" style="font-size: 0.65rem; border-radius: 6px;">${profileLabel.toUpperCase()}</span>`;
 
       const isActive = item.is_active !== false && item.is_active !== "f" && item.is_active !== "0";
       const statusIconHtml = isActive ? `<span class="text-success"><i class="fas fa-check-circle"></i></span>` : `<span class="text-danger"><i class="fas fa-times-circle"></i></span>`;
+
+      let mobActionsHtml = "";
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-info bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openHistoryModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', this)" title="Auditoria"><i class="fas fa-clipboard-list" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory)
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('security.users', ${item.id})" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openEditModal(${item.id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete)
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteUsuario(${item.id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <div class="ios-list-item flex-column align-items-stretch">
@@ -200,10 +335,7 @@ const renderUsers = (data) => {
           </div>
 
           <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top border-secondary border-opacity-10">
-              <button class="ios-action-pill text-info bg-info bg-opacity-10" onclick="openHistoryModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', this)" title="Atividades"><i class="fas fa-book-open-reader"></i></button>
-              <button class="ios-action-pill text-warning bg-warning bg-opacity-10" onclick="openAudit('security.users', ${item.id}, this)" title="Log"><i class="fas fa-bolt"></i></button>
-              <button class="ios-action-pill text-primary bg-primary bg-opacity-10" onclick="openEditModal(${item.id}, this)" title="Editar"><i class="fas fa-pen"></i></button>
-              <button class="ios-action-pill text-danger bg-danger bg-opacity-10" onclick="deleteUsuario(${item.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+              ${mobActionsHtml}
           </div>
       </div>`;
     })
@@ -212,7 +344,11 @@ const renderUsers = (data) => {
   const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
 
   container.html(desktopHtml + mobileHtml);
-  _generatePaginationButtons("pagination-usuarios", "currentPage", "totalPages", "changePage", defaultUsers);
+
+  // Utiliza a função global do sistema (Garante a volta da paginação nativa)
+  if (typeof _generatePaginationButtons === "function") {
+    _generatePaginationButtons("pagination-usuarios", "currentPage", "totalPages", "changePage", defaultUsers);
+  }
 };
 
 const translateLogKey = (key) => {
@@ -327,6 +463,9 @@ window.openCreateModal = () => {
   $("#div_input_name").hide();
   $("#div_reset_password").hide();
 
+  $('#userTab a[href="#tab-acesso"]').tab("show");
+  $("#lista-permissoes").html(`<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-shield-alt fa-3x mb-3"></i><p>Selecione um perfil para visualizar a matriz.</p></div>`);
+
   $("#modalUsuarioTitle").html('<i class="fas fa-user-plus me-3 opacity-75"></i> Novo Usuário');
   $("#modalUsuario").modal("show");
 };
@@ -348,7 +487,9 @@ window.openEditModal = async (id, btn) => {
       $("#edit_id_user").val(u.id);
       $("#edit_name").val(u.name).prop("disabled", true);
       $("#edit_email").val(u.email);
-      $("#edit_profile").val(u.main_profile_id || u.id_profile);
+      $("#edit_profile")
+        .val(u.main_profile_id || u.id_profile)
+        .trigger("change");
       $("#modal_user_photo").attr("src", u.img || "./assets/img/trilhadafe.png");
 
       if ($("#edit_years")[0]?.selectize) {
@@ -361,6 +502,8 @@ window.openEditModal = async (id, btn) => {
       $("#div_select_person").hide();
       $("#div_input_name").show();
       $("#div_reset_password").show();
+
+      $('#userTab a[href="#tab-acesso"]').tab("show");
 
       $("#modalUsuarioTitle").html('<i class="fas fa-user-edit me-3 opacity-75"></i> Editar Usuário');
       $("#modalUsuario").modal("show");
@@ -419,7 +562,7 @@ window.salvarUsuario = async (btn) => {
     return;
   }
 
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
   try {
     const res = await window.ajaxValidator({
       validator: "saveUsuarioInfo",
@@ -527,21 +670,6 @@ window.changePage = (p) => {
   loadUsuarios();
 };
 
-const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
-  let container = $(`.${containerClass}`);
-  container.empty();
-  let total = contextObj[totalPagesKey];
-  let current = contextObj[currentPageKey];
-  if (total <= 1) return;
-
-  let html = `<button onclick="${funcName}(1)" class="btn btn-sm btn-secondary me-1 shadow-sm" ${current === 1 ? "disabled" : ""}>Primeira</button>`;
-  for (let p = Math.max(1, current - 2); p <= Math.min(total, current + 2); p++) {
-    html += `<button onclick="${funcName}(${p})" class="btn btn-sm ${p === current ? "btn-primary" : "btn-secondary"} me-1 shadow-sm">${p}</button>`;
-  }
-  html += `<button onclick="${funcName}(${total})" class="btn btn-sm btn-secondary shadow-sm" ${current === total ? "disabled" : ""}>Última</button>`;
-  container.html(html);
-};
-
 $("#filtro-perfil, #busca-texto").on("change keyup", function () {
   clearTimeout(window.searchTimeout);
   window.searchTimeout = setTimeout(() => {
@@ -550,7 +678,13 @@ $("#filtro-perfil, #busca-texto").on("change keyup", function () {
   }, 500);
 });
 
+$("#edit_profile").on("change", function () {
+  loadProfilePermissions($(this).val());
+});
+
 $(document).ready(() => {
+  loadProfilesDropdown();
+
   if ($("#edit_years").length > 0 && typeof $("#edit_years").selectize === "function") {
     $("#edit_years").selectize({
       valueField: "id",

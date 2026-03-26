@@ -295,12 +295,18 @@ switch ($validator) {
 		getUsuarioHistorico();
 		break;
 
-	// Rotas de Apoio (Dropdowns)
+	// Rotas de Apoio (Dropdowns e Perfis)
 	case "getAnosLetivosDropdown": // Rota para popular o Selectize de Anos Letivos
 		getAnosLetivosDropdown();
 		break;
 	case "searchPessoasDropdown": // Rota para popular a busca de Pessoas (Novo Usuário)
 		searchPessoasDropdown();
+		break;
+	case "getProfilesList": // Rota para listar os perfis dinamicamente
+		getProfilesList();
+		break;
+	case "getProfilePermissions": // Rota para consultar matriz de permissões
+		getProfilePermissions();
 		break;
 
 	// MÓDULO: RELATÓRIOS (relatorios.js)

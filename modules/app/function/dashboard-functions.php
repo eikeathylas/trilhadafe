@@ -34,8 +34,14 @@ function getDashboardStatsData($data)
         // --- NOVAS MÉTRICAS REFATORADAS ---
 
         // 3. Total de Usuários (Administrativo/Operacional - Role 1)
-        $sql = "SELECT COUNT(DISTINCT person_id) as total FROM people.person_roles 
-                WHERE org_id = :oid AND role_id = 1"; 
+        $sql = "SELECT
+                    COUNT(DISTINCT pr.person_id) AS total
+                FROM
+                    people.person_roles pr
+                JOIN security.users su ON su.person_id = pr.person_id
+                WHERE
+                    pr.org_id = :oid
+                    AND pr.role_id = 1"; 
         $stmt = $conect->prepare($sql);
         $stmt->execute(['oid' => $orgId]);
         $stats['total_usuarios'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;

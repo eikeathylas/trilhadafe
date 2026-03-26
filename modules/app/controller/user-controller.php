@@ -103,7 +103,7 @@ function getUsuarioHistorico()
 }
 
 // =========================================================
-// ROTAS DE APOIO (DROPDOWNS / SELECTIZE)
+// ROTAS DE APOIO E PERFIS (DROPDOWNS / SELECTIZE)
 // =========================================================
 
 /**
@@ -128,4 +128,26 @@ function searchPessoasDropdown()
     ];
 
     echo json_encode(fetchPessoasDropdown($data));
+}
+
+/**
+ * Busca a lista de perfis mestres disponíveis no sistema (Resolve o bug do hardcode)
+ */
+function getProfilesList()
+{
+    if (!verifyToken()) return;
+
+    echo json_encode(fetchProfilesList());
+}
+
+/**
+ * Busca a matriz de permissões (features) vinculadas a um perfil específico para auditoria visual
+ */
+function getProfilePermissions()
+{
+    if (!verifyToken()) return;
+
+    $id_profile = $_POST["id_profile"] ?? 0;
+
+    echo json_encode(fetchProfilePermissions($id_profile));
 }

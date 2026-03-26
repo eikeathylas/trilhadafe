@@ -1,7 +1,8 @@
 -- ==========================================================
--- SCRIPT MESTRE: TRILHA DA FÉ - STAFF DB (CENTRAL V2.3)
--- DATA: 04/02/2026
--- DESCRIÇÃO: Banco responsável por login, roteamento e permissões.
+-- SCRIPT MESTRE: TRILHA DA FÉ - STAFF DB (CENTRAL V2.4)
+-- DATA: 06/02/2026
+-- DESCRIÇÃO: Banco responsável por login, roteamento, permissões
+-- e agora com Painel DEV e Dicionário de Dados.
 -- ==========================================================
 
 -- ==========================================================
@@ -13,6 +14,7 @@ DROP TABLE IF EXISTS public.profiles_actions CASCADE;
 DROP TABLE IF EXISTS public.actions CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TABLE IF EXISTS public.clients_config CASCADE;
+DROP TABLE IF EXISTS public.users_versions_read CASCADE; -- [NOVO] Controle de Leitura
 DROP TABLE IF EXISTS public.versions_logs CASCADE;
 DROP TABLE IF EXISTS public.versions CASCADE;
 DROP TABLE IF EXISTS public.clients CASCADE;
@@ -35,6 +37,7 @@ CREATE TABLE IF NOT EXISTS public.login_attempts (
     success BOOLEAN NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_login_attempts ON public.login_attempts (email, ip_address, attempt_time);
+COMMENT ON TABLE public.login_attempts IS 'Registo de tentativas de autenticação para prevenção de ataques de força bruta.';
 
 CREATE TABLE IF NOT EXISTS public.error_logs (
     id SERIAL PRIMARY KEY,
@@ -44,6 +47,7 @@ CREATE TABLE IF NOT EXISTS public.error_logs (
     email TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+COMMENT ON TABLE public.error_logs IS 'Logs genéricos de erros capturados no sistema.';
 
 CREATE TABLE IF NOT EXISTS public.system_error_logs (
     id SERIAL PRIMARY KEY,
@@ -56,8 +60,9 @@ CREATE TABLE IF NOT EXISTS public.system_error_logs (
     ip TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+COMMENT ON TABLE public.system_error_logs IS 'Logs estruturados de falhas profundas com armazenamento do payload (JSONB) para o Painel DEV.';
 
--- 2.2 CONFIGURAÇÕES GLOBAIS
+-- 2.2 CONFIGURAÇÕES GLOBAIS E VERSÕES
 CREATE TABLE IF NOT EXISTS public.settings (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -67,6 +72,7 @@ CREATE TABLE IF NOT EXISTS public.settings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     active BOOLEAN DEFAULT TRUE
 );
+COMMENT ON TABLE public.settings IS 'Configurações globais e institucionais da plataforma Trilha da Fé.';
 
 CREATE TABLE IF NOT EXISTS public.versions (
     id SERIAL PRIMARY KEY,
@@ -78,6 +84,7 @@ CREATE TABLE IF NOT EXISTS public.versions (
     updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE
 );
+COMMENT ON TABLE public.versions IS 'Controlo dos lançamentos de novas versões (Release Notes) do sistema.';
 
 CREATE TABLE IF NOT EXISTS public.versions_logs (
     id SERIAL PRIMARY KEY,
@@ -88,8 +95,9 @@ CREATE TABLE IF NOT EXISTS public.versions_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
-    CONSTRAINT fk_versions FOREIGN KEY (id_version) REFERENCES public.versions (id)
+    CONSTRAINT fk_versions FOREIGN KEY (id_version) REFERENCES public.versions (id) ON DELETE CASCADE
 );
+COMMENT ON TABLE public.versions_logs IS 'Detalhes e funcionalidades específicas lançadas dentro de uma versão.';
 
 -- 2.3 USUÁRIOS E CLIENTES (TENANTS)
 CREATE TABLE IF NOT EXISTS public.users (
@@ -106,6 +114,20 @@ CREATE TABLE IF NOT EXISTS public.users (
     active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE
 );
+COMMENT ON TABLE public.users IS 'Tabela central de autenticação global. Contém as credenciais primárias.';
+COMMENT ON COLUMN public.users.staff IS 'Se TRUE, o utilizador é um administrador da plataforma (Sede).';
+
+-- [NOVO] Tabela para impedir que a notificação de atualização apareça repetidamente
+CREATE TABLE IF NOT EXISTS public.users_versions_read (
+    id SERIAL PRIMARY KEY,
+    id_user INTEGER NOT NULL,
+    id_version INTEGER NOT NULL,
+    read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_uvr_user FOREIGN KEY (id_user) REFERENCES public.users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_uvr_version FOREIGN KEY (id_version) REFERENCES public.versions (id) ON DELETE CASCADE,
+    CONSTRAINT uk_user_version UNIQUE (id_user, id_version)
+);
+COMMENT ON TABLE public.users_versions_read IS 'Gere as confirmações de leitura das notas de atualização por utilizador.';
 
 CREATE TABLE IF NOT EXISTS public.clients (
     id SERIAL PRIMARY KEY,
@@ -120,6 +142,7 @@ CREATE TABLE IF NOT EXISTS public.clients (
     updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE
 );
+COMMENT ON TABLE public.clients IS 'Registo de Inquilinos (Tenants/Dioceses/Paróquias) utilizando o sistema.';
 
 CREATE TABLE IF NOT EXISTS public.clients_config (
     id SERIAL PRIMARY KEY,
@@ -142,8 +165,9 @@ CREATE TABLE IF NOT EXISTS public.clients_config (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
-    CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id)
+    CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id) ON DELETE CASCADE
 );
+COMMENT ON TABLE public.clients_config IS 'Configurações de roteamento de base de dados e gestão de assinaturas do cliente.';
 
 -- 2.4 PERMISSÕES E AÇÕES (RBAC)
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -155,6 +179,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE
 );
+COMMENT ON TABLE public.profiles IS 'Perfis de acesso mestres (Ex: Pároco, Secretária, Catequista).';
 
 CREATE TABLE IF NOT EXISTS public.actions (
     id SERIAL PRIMARY KEY,
@@ -170,6 +195,7 @@ CREATE TABLE IF NOT EXISTS public.actions (
     active BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_action_parent FOREIGN KEY (parent_id) REFERENCES public.actions (id) ON DELETE CASCADE
 );
+COMMENT ON TABLE public.actions IS 'Lista de Módulos (Menus) e Micro-permissões (Ações) do sistema.';
 
 CREATE TABLE IF NOT EXISTS public.profiles_actions (
     id SERIAL PRIMARY KEY,
@@ -178,9 +204,10 @@ CREATE TABLE IF NOT EXISTS public.profiles_actions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
-    CONSTRAINT fk_profiles FOREIGN KEY (id_profile) REFERENCES public.profiles (id),
-    CONSTRAINT fk_actions FOREIGN KEY (id_action) REFERENCES public.actions (id)
+    CONSTRAINT fk_profiles FOREIGN KEY (id_profile) REFERENCES public.profiles (id) ON DELETE CASCADE,
+    CONSTRAINT fk_actions FOREIGN KEY (id_action) REFERENCES public.actions (id) ON DELETE CASCADE
 );
+COMMENT ON TABLE public.profiles_actions IS 'Matriz RBAC: Associa as permissões (ações) aos perfis.';
 
 CREATE TABLE IF NOT EXISTS public.users_clients_profiles (
     id SERIAL PRIMARY KEY,
@@ -190,10 +217,11 @@ CREATE TABLE IF NOT EXISTS public.users_clients_profiles (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
-    CONSTRAINT fk_users FOREIGN KEY (id_user) REFERENCES public.users (id),
-    CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id),
+    CONSTRAINT fk_users FOREIGN KEY (id_user) REFERENCES public.users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id) ON DELETE CASCADE,
     CONSTRAINT fk_profiles FOREIGN KEY (id_profile) REFERENCES public.profiles (id)
 );
+COMMENT ON TABLE public.users_clients_profiles IS 'Vínculo essencial: Qual Utilizador acede a qual Cliente utilizando qual Perfil.';
 
 CREATE TABLE IF NOT EXISTS public.users_token (
     id SERIAL PRIMARY KEY,
@@ -204,30 +232,31 @@ CREATE TABLE IF NOT EXISTS public.users_token (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
-    CONSTRAINT fk_users FOREIGN KEY (id_user) REFERENCES public.users (id),
-    CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id)
+    CONSTRAINT fk_users FOREIGN KEY (id_user) REFERENCES public.users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_clients FOREIGN KEY (id_client) REFERENCES public.clients (id) ON DELETE CASCADE
 );
+COMMENT ON TABLE public.users_token IS 'Gestão das sessões ativas (Tokens JWT/Bearer) dos utilizadores.';
 
 -- ==========================================================
--- 3. INSERT (POPULAÇÃO)
+-- 3. INSERT (POPULAÇÃO INICIAL)
 -- ==========================================================
 
 -- 3.1 Configurações Básicas
 INSERT INTO public.settings (name, email, contact, city) VALUES ('Trilha da Fé', 'contato@trilhadafe.com', '000', 'Sede Tecnologia');
 
 -- 3.2 Usuário Admin (DEV)
-INSERT INTO public.users (name, email, password, staff) VALUES
-('Eike Benízio', 'eike@dev', 'eikebenizio', TRUE),
-('Teste Dev', 'teste@dev', 'teste@dev', TRUE);
+INSERT INTO public.users (id, name, email, password, staff) VALUES
+(1, 'Eike Benízio', 'eike@dev', 'eikebenizio', TRUE),
+(2, 'Teste Dev', 'teste@dev', 'teste@dev', TRUE);
 
 -- 3.3 Cliente Inicial
-INSERT INTO public.clients (name, description) VALUES ('Caruaru - PE', 'Diocese de Caruaru - PE');
+INSERT INTO public.clients (id, name, description) VALUES (1, 'Caruaru - PE', 'Diocese de Caruaru - PE');
 
 -- 3.4 Conexão com Banco Local
 INSERT INTO public.clients_config (id_client, host, "database", "user", "password", port) 
 VALUES (1, '145.223.94.211', 'pe_caruaru_db', 'postgres', 'vSoj3WaPHUaa6MrADKtzayy46ub5YS69S2K3JXrQtqkeV8VtYv', '5432');
 
--- 3.5 Perfis (AJUSTADO CONFORME SOLICITADO)
+-- 3.5 Perfis
 INSERT INTO public.profiles (id, title, description, staff, active) VALUES
 (99, 'DEV', 'Acesso Supremo (Desenvolvedor)', TRUE, TRUE),
 (50, 'PÁROCO', 'Administrador da Paróquia', FALSE, TRUE),
@@ -236,7 +265,7 @@ INSERT INTO public.profiles (id, title, description, staff, active) VALUES
 (10, 'ALUNO/RESPONSÁVEL', 'Portal do Fiel', FALSE, TRUE);
 
 -- ==========================================================
--- 3.6 AÇÕES (MENUS PRINCIPAIS - IDs 1 a 99)
+-- 3.6 AÇÕES (MENUS PRINCIPAIS E PAINEL DEV)
 -- ==========================================================
 
 INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller) VALUES 
@@ -250,7 +279,8 @@ INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, co
 (8,  'pessoas',     'Diretório de Pessoas', 'Prontuário único.', TRUE, 'icon-user', 'PeopleController'),
 (9,  'organizacao', 'Organização',          'Estrutura física e dados.', TRUE, 'icon-building', 'OrganizationController'),
 (10, 'usuarios',    'Usuários',             'Gerenciamento de acessos.', TRUE, 'icon-users', 'UsersController'),
-(11, 'ajuda',       'Ajuda e Suporte',      'Base de conhecimento.', TRUE, 'icon-help', 'HelpController');
+(11, 'ajuda',       'Ajuda e Suporte',      'Base de conhecimento.', TRUE, 'icon-help', 'HelpController'),
+(12, 'dev',         'Painel DEV',           'Gestão do sistema e atualizações.', TRUE, 'icon-code', 'DevController'); -- [NOVO]
 
 -- ==========================================================
 -- 3.6.1 SUB-AÇÕES (MICRO-PERMISSÕES)
@@ -321,17 +351,17 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 
 -- BLOCO 800: PESSOAS
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
-(801, 8, 'pessoas.list',             'Listar Pessoas',    'Acesso ao diretório.', FALSE),
-(802, 8, 'pessoas.modal',            'Abrir Modal',       'Pode abrir o prontuário.', FALSE),
-(803, 8, 'pessoas.create',           'Cadastrar Pessoa',  'Nova pessoa.', FALSE),
-(804, 8, 'pessoas.edit',             'Editar Pessoa',     'Alterar dados.', FALSE),
-(805, 8, 'pessoas.save',             'Salvar Pessoa',     'Gravar alterações.', FALSE),
-(806, 8, 'pessoas.history',          'Ver Histórico',     'Log da pessoa.', FALSE),
-(807, 8, 'pessoas.delete',           'Excluir Pessoa',    'Remover cadastro.', FALSE),
-(808, 8, 'pessoas.tab_contact',      'Aba Contato',       'Ver dados de contato.', FALSE),
-(809, 8, 'pessoas.tab_family',       'Aba Família',       'Ver/editar vínculos familiares.', FALSE),
-(810, 8, 'pessoas.tab_sacraments',   'Aba Sacramentos',   'Ver/editar dados religiosos.', FALSE),
-(811, 8, 'pessoas.tab_attachments',  'Aba Anexos',        'Acesso aos documentos PDF/Img.', FALSE);
+(801, 8, 'pessoas.list',            'Listar Pessoas',    'Acesso ao diretório.', FALSE),
+(802, 8, 'pessoas.modal',           'Abrir Modal',       'Pode abrir o prontuário.', FALSE),
+(803, 8, 'pessoas.create',          'Cadastrar Pessoa',  'Nova pessoa.', FALSE),
+(804, 8, 'pessoas.edit',            'Editar Pessoa',     'Alterar dados.', FALSE),
+(805, 8, 'pessoas.save',            'Salvar Pessoa',     'Gravar alterações.', FALSE),
+(806, 8, 'pessoas.history',         'Ver Histórico',     'Log da pessoa.', FALSE),
+(807, 8, 'pessoas.delete',          'Excluir Pessoa',    'Remover cadastro.', FALSE),
+(808, 8, 'pessoas.tab_contact',     'Aba Contato',       'Ver dados de contato.', FALSE),
+(809, 8, 'pessoas.tab_family',      'Aba Família',       'Ver/editar vínculos familiares.', FALSE),
+(810, 8, 'pessoas.tab_sacraments',  'Aba Sacramentos',   'Ver/editar dados religiosos.', FALSE),
+(811, 8, 'pessoas.tab_attachments', 'Aba Anexos',        'Acesso aos documentos PDF/Img.', FALSE);
 
 -- BLOCO 900: ORGANIZAÇÃO (MINHA PARÓQUIA)
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
@@ -364,16 +394,22 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 (1101, 11, 'ajuda.secretary', 'FAQ Secretaria', 'Manuais de gestão.', FALSE),
 (1102, 11, 'ajuda.professor', 'FAQ Professor',  'Manuais de sala de aula.', FALSE);
 
+-- BLOCO 1200: PAINEL DEV [NOVO]
+INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
+(1201, 12, 'dev.versions',    'Gerenciar Atualizações', 'Pode lançar novas Notas de Versão (Atualizações do Sistema).', FALSE),
+(1202, 12, 'dev.logs',        'Visualizar Logs',        'Pode analisar os Logs de Erro estruturados gerados pela plataforma.', FALSE);
+
 
 -- ----------------------------------------------------------
 -- PERFIL 99: DEV (Acesso Supremo)
+-- Inclui automaticamente o novo Menu DEV (12) e subações.
 -- ----------------------------------------------------------
 INSERT INTO public.profiles_actions (id_profile, id_action)
 SELECT 99, id FROM public.actions;
 
 -- ----------------------------------------------------------
 -- PERFIL 50: PÁROCO (Administrador da Paróquia)
--- Tem acesso a todos os módulos, relatórios, usuários e configuração da paróquia.
+-- Tem acesso a todos os módulos, mas NÃO tem acesso ao painel DEV (12, 1201, 1202)
 -- ----------------------------------------------------------
 INSERT INTO public.profiles_actions (id_profile, id_action)
 SELECT 50, id FROM public.actions 
@@ -400,7 +436,6 @@ WHERE id IN (
 
 -- ----------------------------------------------------------
 -- PERFIL 40: COORDENADOR (Gestão Pedagógica/Pastoral e Eventos)
--- Não vê "Usuários", "Minha Paróquia" e "Gráfico Financeiro".
 -- ----------------------------------------------------------
 INSERT INTO public.profiles_actions (id_profile, id_action)
 SELECT 40, id FROM public.actions 
@@ -423,7 +458,6 @@ WHERE id IN (
 
 -- ----------------------------------------------------------
 -- PERFIL 30: CATEQUISTA (Professor / Acesso Restrito)
--- Foca no Diário. Pode VER as Turmas e Pessoas, mas não alterar.
 -- ----------------------------------------------------------
 INSERT INTO public.profiles_actions (id_profile, id_action)
 SELECT 30, id FROM public.actions 
@@ -446,7 +480,6 @@ INSERT INTO public.users_clients_profiles (id_user, id_client, id_profile) VALUE
 -- ==========================================================
 -- 4. AJUSTE DE SEQUÊNCIA (CRÍTICO PARA NÃO TRAVAR O SISTEMA)
 -- ==========================================================
--- Como inserimos IDs manualmente, precisamos avisar ao Postgres onde o contador deve continuar.
 
 SELECT setval('public.profiles_id_seq', (SELECT MAX(id) FROM public.profiles));
 SELECT setval('public.users_id_seq', (SELECT MAX(id) FROM public.users));

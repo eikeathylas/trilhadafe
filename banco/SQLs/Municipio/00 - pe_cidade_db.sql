@@ -1,10 +1,12 @@
 -- ==========================================================
 -- SCRIPT MESTRE: TRILHA DA FÉ - BANCO LOCAL (V4.0)
 -- DATA: 06/02/2026
--- DESCRIÇÃO: Estrutura completa com módulos Acadêmico, Eventos e Anexos.
+-- DESCRIÇÃO: Estrutura completa com módulos Acadêmico, Eventos, Anexos,
+-- e Dicionário de Dados integrado.
 -- ==========================================================
 
 -- 1. Remove Schemas de Negócio (Ordem de Dependência)
+DROP SCHEMA IF EXISTS public CASCADE;           -- Core Global (Staff Mock)
 DROP SCHEMA IF EXISTS communication CASCADE;    -- Marketing/Blog
 DROP SCHEMA IF EXISTS events_commerce CASCADE;  -- Festas e Vendas
 DROP SCHEMA IF EXISTS finance CASCADE;          -- Tesouraria
@@ -30,42 +32,32 @@ CREATE SCHEMA IF NOT EXISTS pastoral;
 CREATE SCHEMA IF NOT EXISTS finance;
 CREATE SCHEMA IF NOT EXISTS events_commerce;
 CREATE SCHEMA IF NOT EXISTS communication;
+CREATE SCHEMA IF NOT EXISTS public;             -- Core Global (Staff Mock)
 
 -- ==========================================================
 -- SCHEMA: ORGANIZATION
 -- Responsabilidade: Estrutura Física, Jurídica e Agenda
 -- ==========================================================
 
--- Enum: Tipos de Organização
 CREATE TYPE organization.org_type_enum AS ENUM ('PARISH', 'DIOCESE', 'CHAPEL', 'CONVENT', 'MONASTERY', 'SEMINARY', 'CURIA', 'RETREAT_HOUSE');
 
--- 1. Tabela de Organizações
 CREATE TABLE organization.organizations (
     org_id SERIAL PRIMARY KEY,
     parent_org_id INT REFERENCES organization.organizations(org_id),
-    
     org_type VARCHAR(50) NOT NULL DEFAULT 'PARISH',
-    
-    -- Identificação Legal
     legal_name VARCHAR(255) NOT NULL,
     display_name VARCHAR(255) NOT NULL,
-    tax_id VARCHAR(20), -- CNPJ
+    tax_id VARCHAR(20), 
     logo_url VARCHAR(255), 
-    
-    -- Dados Eclesiásticos
     diocese_name VARCHAR(200),
     patron_saint VARCHAR(150),
     decree_number VARCHAR(50),
     foundation_date DATE,
     closure_date DATE,
-    
-    -- Contatos
     phone_main VARCHAR(20),
     phone_secondary VARCHAR(20),
     email_contact VARCHAR(150),
     website_url VARCHAR(255),
-    
-    -- Endereço Principal
     address_street VARCHAR(255),
     address_number VARCHAR(20),
     address_district VARCHAR(100),
@@ -73,53 +65,43 @@ CREATE TABLE organization.organizations (
     address_state CHAR(2),
     zip_code VARCHAR(20),
     geo_coordinates VARCHAR(50),
-    
-    -- Controle
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 COMMENT ON TABLE organization.organizations IS 'Cadastro das unidades eclesiásticas (Paróquias, Capelas, Dioceses).';
 COMMENT ON COLUMN organization.organizations.parent_org_id IS 'Hierarquia: Se for uma Capela, aponta para a Paróquia Matriz.';
 COMMENT ON COLUMN organization.organizations.decree_number IS 'Número do decreto canônico de criação da paróquia.';
 COMMENT ON COLUMN organization.organizations.tax_id IS 'CNPJ da Mitra ou da unidade específica.';
 
--- 2. Locais e Salas
 CREATE TABLE organization.locations (
     location_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
-    
     name VARCHAR(150) NOT NULL,
     description TEXT,
     capacity INT DEFAULT 0,
-    
-    responsible_id INT, -- FK criada via ALTER TABLE depois de PEOPLE
-    
-    -- Endereço
+    responsible_id INT, 
     address_street VARCHAR(255),
     address_number VARCHAR(20),
     address_district VARCHAR(100),
     zip_code VARCHAR(20),
-    
-    -- Atributos
     is_accessible BOOLEAN DEFAULT FALSE,
     is_lodging BOOLEAN DEFAULT FALSE,
     is_consecrated BOOLEAN DEFAULT FALSE,
     has_ac BOOLEAN DEFAULT FALSE,
     has_ceiling_fan BOOLEAN DEFAULT FALSE,
-
     resources_detail JSONB, 
     photo_url VARCHAR(255),
-    
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
+COMMENT ON TABLE organization.locations IS 'Espaços físicos gerenciáveis (Salas de Aula, Igreja, Salão).';
+COMMENT ON COLUMN organization.locations.is_consecrated IS 'Define se o local é sagrado (restringe uso para eventos profanos).';
+COMMENT ON COLUMN organization.locations.resources_detail IS 'JSON com inventário fixo (Ex: {"projetor": true, "cadeiras": 50}).';
 
--- 3. [NOVO] Eventos Paroquiais (Agenda)
 CREATE TABLE organization.events (
     event_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id) DEFAULT 1,
@@ -128,82 +110,61 @@ CREATE TABLE organization.events (
     event_date DATE NOT NULL,
     start_time TIME,
     end_time TIME,
-    
-    -- Impacto Acadêmico (Solicitado)
-    is_academic_blocker BOOLEAN DEFAULT FALSE, -- TRUE = Bloqueia lançamento de aulas neste dia
-    
+    is_academic_blocker BOOLEAN DEFAULT FALSE, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     deleted BOOLEAN DEFAULT FALSE
 );
-
-COMMENT ON TABLE organization.locations IS 'Espaços físicos gerenciáveis (Salas de Aula, Igreja, Salão).';
-COMMENT ON COLUMN organization.locations.is_consecrated IS 'Define se o local é sagrado (restringe uso para eventos profanos).';
-COMMENT ON COLUMN organization.locations.resources_detail IS 'JSON com inventário fixo (Ex: {"projetor": true, "cadeiras": 50}).';
 COMMENT ON TABLE organization.events IS 'Agenda oficial da paróquia (Ex: Padroeiro, Feriados). Pode bloquear aulas.';
+
 
 -- ==========================================================
 -- SCHEMA: PEOPLE
 -- Responsabilidade: Gestão de Pessoas, Vínculos, Famílias e Anexos
 -- ==========================================================
 
--- 1. Pessoas (Tabela Mestra)
 CREATE TABLE people.persons (
     person_id SERIAL PRIMARY KEY,
     org_id_origin INT REFERENCES organization.organizations(org_id),
-    
     full_name VARCHAR(200) NOT NULL,
     religious_name VARCHAR(150),
     birth_date DATE,
     gender CHAR(1),
-    
-    tax_id VARCHAR(20),      -- CPF
-    national_id VARCHAR(20), -- RG
-    
+    tax_id VARCHAR(20),      
+    national_id VARCHAR(20), 
     nationality VARCHAR(50) DEFAULT 'Brasileira',
     place_of_birth VARCHAR(100),
     civil_status VARCHAR(20),
-    
     email VARCHAR(150),
     phone_mobile VARCHAR(20),
     phone_landline VARCHAR(20),
     wants_whatsapp_group BOOLEAN DEFAULT FALSE,
-    
     zip_code VARCHAR(20),
     address_street VARCHAR(255),
     address_number VARCHAR(20),
     address_district VARCHAR(100),
     address_city VARCHAR(100),
     address_state CHAR(2),
-    
     profile_photo_url VARCHAR(255),
-    
     is_pcd BOOLEAN DEFAULT FALSE,
     pcd_details TEXT,
     dietary_restrictions TEXT,
-
     sacraments_info JSONB,
-    
-    -- [NOVO] Campos de Eucaristia (Solicitado)
     eucharist_date DATE,
     eucharist_place VARCHAR(255),
-    
     deceased BOOLEAN DEFAULT FALSE,
     death_date DATE,
-    
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
-
 ALTER TABLE organization.locations ADD CONSTRAINT fk_location_responsible FOREIGN KEY (responsible_id) REFERENCES people.persons(person_id);
 
 COMMENT ON TABLE people.persons IS 'Cadastro único de indivíduos (CRM). Centraliza dados de padres, alunos, funcionários e fiéis.';
 COMMENT ON COLUMN people.persons.religious_name IS 'Nome social ou religioso (Ex: Padre João, Irmã Maria).';
 COMMENT ON COLUMN people.persons.sacraments_info IS 'JSON declaratório dos sacramentos recebidos (Ex: {"batismo": true, "crisma": false}).';
 
--- 2. Cargos e Funções
 CREATE TABLE people.roles (
     role_id SERIAL PRIMARY KEY,
     role_name VARCHAR(50) NOT NULL UNIQUE,
@@ -212,48 +173,38 @@ CREATE TABLE people.roles (
     is_administrative BOOLEAN DEFAULT FALSE,
     is_student BOOLEAN DEFAULT FALSE
 );
-
 COMMENT ON TABLE people.roles IS 'Catálogo de funções possíveis no sistema (Padre, Catequista, Aluno).';
 
--- 3. Vínculos Pessoa <-> Organização
 CREATE TABLE people.person_roles (
     link_id SERIAL PRIMARY KEY,
     person_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
     role_id INT NOT NULL REFERENCES people.roles(role_id),
-    
     start_date DATE DEFAULT CURRENT_DATE,
     end_date DATE,
     notes TEXT,
-    
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
 ALTER TABLE people.person_roles ADD CONSTRAINT unique_person_role UNIQUE (person_id, role_id);
-
 COMMENT ON TABLE people.person_roles IS 'Associação N:N. Uma pessoa pode ter múltiplos papéis (Ex: Pai e Catequista).';
 
--- 4. Vínculos Familiares
 CREATE TABLE people.family_ties (
     tie_id SERIAL PRIMARY KEY,
     person_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
     relative_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
-    
     relationship_type VARCHAR(50) NOT NULL,
     is_financial_responsible BOOLEAN DEFAULT FALSE,
     is_legal_guardian BOOLEAN DEFAULT FALSE,
-    
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
-
 COMMENT ON TABLE people.family_ties IS 'Grafo de parentesco. Essencial para controle de retirada de alunos.';
 COMMENT ON COLUMN people.family_ties.is_legal_guardian IS 'Se TRUE, o parente tem autoridade legal sobre o aluno.';
 
--- 5. Histórico de Status (RH)
 CREATE TABLE people.status_history (
     log_id SERIAL PRIMARY KEY,
     person_id INT NOT NULL REFERENCES people.persons(person_id),
@@ -265,8 +216,8 @@ CREATE TABLE people.status_history (
     document_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+COMMENT ON TABLE people.status_history IS 'Log de afastamentos e ocorrências de RH para funcionários/clero.';
 
--- 6. [NOVO] Anexos e Documentos (Solicitado)
 CREATE TABLE people.person_attachments (
     attachment_id SERIAL PRIMARY KEY,
     person_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
@@ -274,11 +225,9 @@ CREATE TABLE people.person_attachments (
     file_path VARCHAR(500) NOT NULL,
     description VARCHAR(255),
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    uploaded_by INT, -- ID do usuário que enviou
+    uploaded_by INT, 
     deleted BOOLEAN DEFAULT FALSE
 );
-
-COMMENT ON TABLE people.status_history IS 'Log de afastamentos e ocorrências de RH para funcionários/clero.';
 COMMENT ON TABLE people.person_attachments IS 'Documentos digitalizados vinculados à pessoa (RG, Certidões).';
 
 
@@ -287,7 +236,6 @@ COMMENT ON TABLE people.person_attachments IS 'Documentos digitalizados vinculad
 -- Responsabilidade: Gestão Pedagógica, Cursos e Diários
 -- ==========================================================
 
--- 1. Anos Letivos
 CREATE TABLE education.academic_years (
     year_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
@@ -301,7 +249,6 @@ CREATE TABLE education.academic_years (
 );
 COMMENT ON TABLE education.academic_years IS 'Ciclos letivos. Agrupa as turmas por período.';
 
--- 2. Disciplinas
 CREATE TABLE education.subjects (
     subject_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
@@ -314,7 +261,6 @@ CREATE TABLE education.subjects (
 );
 COMMENT ON TABLE education.subjects IS 'Matérias ou Temas ensinados.';
 
--- 3. Cursos
 CREATE TABLE education.courses (
     course_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
@@ -330,24 +276,18 @@ CREATE TABLE education.courses (
 );
 COMMENT ON TABLE education.courses IS 'Produtos educacionais (Ex: Catequese 1ª Eucaristia, Crisma).';
 
--- 4. Grade Curricular
 CREATE TABLE education.curriculum (
     curriculum_id SERIAL PRIMARY KEY,
     course_id INT NOT NULL REFERENCES education.courses(course_id) ON DELETE CASCADE,
     subject_id INT NOT NULL REFERENCES education.subjects(subject_id),
     workload_hours INT DEFAULT 0,
     is_mandatory BOOLEAN DEFAULT TRUE,
-    
-    -- [NOVO] Template de Plano de Aula (Solicitado)
     lesson_plan_template TEXT, 
-    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
-
 COMMENT ON TABLE education.curriculum IS 'Associação Curso x Disciplina. Define a ementa do curso.';
 COMMENT ON COLUMN education.curriculum.lesson_plan_template IS 'Modelo HTML (Summernote) usado como base para novas aulas desta disciplina.';
-
 
 CREATE TABLE education.curriculum_plans (
     plan_id SERIAL PRIMARY KEY,
@@ -355,42 +295,30 @@ CREATE TABLE education.curriculum_plans (
     meeting_number INT NOT NULL,
     title VARCHAR(255),
     content TEXT,
-    
-    -- Campos Padrão de Controle
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
-
--- Índices para performance
 CREATE INDEX idx_curriculum_plans_curr ON education.curriculum_plans(curriculum_id);
 CREATE INDEX idx_curriculum_plans_del ON education.curriculum_plans(deleted);
-
--- Comentários
 COMMENT ON TABLE education.curriculum_plans IS 'Detalhes de cada encontro/aula de uma disciplina.';
 COMMENT ON COLUMN education.curriculum_plans.content IS 'Conteúdo HTML do Summernote.';
 
--- 5. Turmas
 CREATE TABLE education.classes (
     class_id SERIAL PRIMARY KEY,
     course_id INT NOT NULL REFERENCES education.courses(course_id),
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     year_id INT NOT NULL REFERENCES education.academic_years(year_id),
-    
     main_location_id INT REFERENCES organization.locations(location_id),
     coordinator_id INT REFERENCES people.persons(person_id),
     class_assistant_id INT REFERENCES people.persons(person_id),
-    
     name VARCHAR(100) NOT NULL,
     semester INT,
-    
     start_date DATE,
     end_date DATE,
     max_capacity INT,
-    
     status VARCHAR(20) DEFAULT 'PLANNED',
-    
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -398,9 +326,7 @@ CREATE TABLE education.classes (
 );
 COMMENT ON TABLE education.classes IS 'Instância de um curso em um ano letivo.';
 COMMENT ON COLUMN education.classes.coordinator_id IS 'Catequista principal responsável pela turma.';
-COMMENT ON COLUMN education.classes.class_assistant_id IS 'Auxiliar ou monitor da turma.';
 
--- 6. Grade Horária Fixa
 CREATE TABLE education.class_schedules (
     schedule_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id) ON DELETE CASCADE,
@@ -412,12 +338,10 @@ CREATE TABLE education.class_schedules (
     instructor_id INT REFERENCES people.persons(person_id),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT check_day_of_week CHECK (day_of_week BETWEEN 0 AND 6)
 );
 COMMENT ON TABLE education.class_schedules IS 'Planejamento semanal fixo (Ex: Todo Sábado às 09:00).';
 
--- 7. Solicitações de Matrícula
 CREATE TABLE education.registration_requests (
     request_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
@@ -436,7 +360,6 @@ CREATE TABLE education.registration_requests (
 );
 COMMENT ON TABLE education.registration_requests IS 'Fila de espera ou inscrições via site.';
 
--- 8. Matrículas
 CREATE TABLE education.enrollments (
     enrollment_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id),
@@ -452,7 +375,6 @@ CREATE TABLE education.enrollments (
 );
 COMMENT ON TABLE education.enrollments IS 'Vínculo oficial do aluno com a turma.';
 
--- 9. Histórico Acadêmico
 CREATE TABLE education.enrollment_history (
     history_id BIGSERIAL PRIMARY KEY,
     enrollment_id INT NOT NULL REFERENCES education.enrollments(enrollment_id) ON DELETE CASCADE,
@@ -466,60 +388,44 @@ CREATE TABLE education.enrollment_history (
 );
 COMMENT ON TABLE education.enrollment_history IS 'Log de alterações de status da matrícula (Auditoria pedagógica).';
 
--- 10. Diário de Classe: Sessões
 CREATE TABLE education.class_sessions (
     session_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id),
     subject_id INT REFERENCES education.subjects(subject_id),
-    
     session_date TIMESTAMP NOT NULL,
-    description TEXT, -- Conteúdo (Aqui entra o Plano de Aula preenchido)
-    
+    description TEXT, 
     content_type VARCHAR(50) DEFAULT 'DOCTRINAL',
     status VARCHAR(20) DEFAULT 'PUBLISHED',
-    
     signed_by_user_id INT,
     signed_at TIMESTAMP,
-    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     deleted BOOLEAN DEFAULT FALSE,
-    
     CONSTRAINT unique_class_date UNIQUE (class_id, subject_id, session_date)
 );
 CREATE INDEX idx_sessions_subject ON education.class_sessions(subject_id);
 CREATE INDEX idx_sessions_class ON education.class_sessions(class_id);
 CREATE INDEX idx_sessions_date ON education.class_sessions(session_date);
 ALTER TABLE education.class_sessions ADD CONSTRAINT unique_class_date_subject UNIQUE (class_id, session_date, subject_id);
-
-
 COMMENT ON TABLE education.class_sessions IS 'Diário de Classe. Representa um dia letivo/encontro.';
 COMMENT ON COLUMN education.class_sessions.description IS 'Relatório do que foi ensinado na aula.';
-COMMENT ON COLUMN education.class_sessions.signed_by_user_id IS 'Usuário (Catequista) que preencheu o diário.';
 
--- 11. Diário de Classe: Frequência
 CREATE TABLE education.attendance (
     attendance_id SERIAL PRIMARY KEY,
     session_id INT NOT NULL REFERENCES education.class_sessions(session_id) ON DELETE CASCADE,
     student_id INT NOT NULL REFERENCES people.persons(person_id),
-    
     is_present BOOLEAN NOT NULL DEFAULT FALSE,
-    
     absence_type VARCHAR(50),
     justification TEXT,
     student_observation TEXT,
-    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
-    
     CONSTRAINT unique_attendance_student UNIQUE (session_id, student_id)
 );
 CREATE INDEX idx_attendance_session ON education.attendance(session_id);
 CREATE INDEX idx_attendance_student ON education.attendance(student_id);
-
 COMMENT ON TABLE education.attendance IS 'Lista de presença dos alunos em uma sessão específica.';
 
--- 12. Avaliações
 CREATE TABLE education.assessments (
     assessment_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id),
@@ -650,6 +556,7 @@ CREATE TABLE pastoral.celebration_types (
     allows_intentions BOOLEAN DEFAULT TRUE,
     allows_collections BOOLEAN DEFAULT TRUE
 );
+COMMENT ON TABLE pastoral.celebration_types IS 'Tipos de eventos litúrgicos permitidos.';
 
 CREATE TABLE pastoral.schedules (
     schedule_id SERIAL PRIMARY KEY,
@@ -661,6 +568,7 @@ CREATE TABLE pastoral.schedules (
     start_time TIME NOT NULL,
     is_active BOOLEAN DEFAULT TRUE
 );
+COMMENT ON TABLE pastoral.schedules IS 'Planejamento semanal de missas regulares.';
 
 CREATE TABLE pastoral.celebrations (
     celebration_id SERIAL PRIMARY KEY,
@@ -723,6 +631,7 @@ CREATE TABLE finance.accounts (
     current_balance NUMERIC(15,2) DEFAULT 0.00,
     is_active BOOLEAN DEFAULT TRUE
 );
+COMMENT ON TABLE finance.accounts IS 'Contas bancárias e cofres da paróquia.';
 
 CREATE TABLE finance.categories (
     category_id SERIAL PRIMARY KEY,
@@ -732,6 +641,7 @@ CREATE TABLE finance.categories (
     type VARCHAR(20) NOT NULL,
     is_system_default BOOLEAN DEFAULT FALSE
 );
+COMMENT ON TABLE finance.categories IS 'Plano de contas (Receitas e Despesas).';
 
 CREATE TABLE finance.cost_centers (
     center_id SERIAL PRIMARY KEY,
@@ -741,6 +651,7 @@ CREATE TABLE finance.cost_centers (
     budget_limit NUMERIC(15,2),
     is_active BOOLEAN DEFAULT TRUE
 );
+COMMENT ON TABLE finance.cost_centers IS 'Centros de custo ou projetos para separação orçamentária.';
 
 CREATE TABLE finance.transactions (
     transaction_id BIGSERIAL PRIMARY KEY,
@@ -772,42 +683,28 @@ CREATE TABLE finance.tithe_profiles (
     envelope_number INT,
     is_active BOOLEAN DEFAULT TRUE
 );
-COMMENT ON TABLE finance.tithe_profiles IS 'Cadastro de Dizimistas e seus compromissos.';
+COMMENT ON TABLE finance.tithe_profiles IS 'Cadastro de Dizimistas e seus compromissos mensais.';
 
 
 -- ==========================================================
--- SCHEMA: EVENTS_COMMERCE (V2.0 - Completo)
--- Responsabilidade: Gestão de Eventos, Venda de Ingressos (Lotes), 
--- Arrecadações Físicas, Barracas e Sistema Cashless.
+-- SCHEMA: EVENTS_COMMERCE
+-- Responsabilidade: Gestão de Eventos, Ingressos, Cashless.
 -- ==========================================================
-
-DROP SCHEMA IF EXISTS events_commerce CASCADE;
-CREATE SCHEMA events_commerce;
-
--- ==========================================
--- 1. NÚCLEO DO EVENTO E CONFIGURAÇÕES
--- ==========================================
 
 CREATE TABLE events_commerce.events (
     event_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     name VARCHAR(150) NOT NULL,
     description TEXT,
-    event_type VARCHAR(50), -- FESTIVAL, BINGO, RETREAT, MASS_SPECIAL
-    
+    event_type VARCHAR(50), 
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP,
     location_id INT REFERENCES organization.locations(location_id),
     external_location_text VARCHAR(255),
-    
-    -- Projeções e Metas Financeiras
     expected_audience INT DEFAULT 0,
     expected_expense NUMERIC(15,2) DEFAULT 0.00,
     financial_goal NUMERIC(15,2),
-    
-    status VARCHAR(20) DEFAULT 'PLANNED', -- PLANNED, ACTIVE, FINISHED, CANCELLED
-    
-    -- Controle e Auditoria
+    status VARCHAR(20) DEFAULT 'PLANNED', 
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -818,37 +715,25 @@ COMMENT ON TABLE events_commerce.events IS 'Tabela mestre de eventos, quermesses
 CREATE TABLE events_commerce.event_configs (
     config_id SERIAL PRIMARY KEY,
     event_id INT NOT NULL REFERENCES events_commerce.events(event_id) ON DELETE CASCADE,
-    
     allow_online_sales BOOLEAN DEFAULT TRUE,
     allow_cashless BOOLEAN DEFAULT TRUE,
-    
     currency_symbol VARCHAR(5) DEFAULT 'R$',
-    tax_rate_online NUMERIC(5,2) DEFAULT 0.00, -- Taxa de conveniência/Gateway
+    tax_rate_online NUMERIC(5,2) DEFAULT 0.00, 
     max_tickets_per_person INT DEFAULT 5,
-    
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 COMMENT ON TABLE events_commerce.event_configs IS 'Configurações de operação de venda para um evento específico.';
 
-
--- ==========================================
--- 2. GESTÃO DE INGRESSOS E LOTES
--- ==========================================
-
 CREATE TABLE events_commerce.ticket_batches (
     batch_id SERIAL PRIMARY KEY,
     event_id INT NOT NULL REFERENCES events_commerce.events(event_id) ON DELETE CASCADE,
-    
-    name VARCHAR(100) NOT NULL, -- Ex: "1º Lote", "VIP", "Promocional", "Meia-Entrada"
+    name VARCHAR(100) NOT NULL, 
     description TEXT,
-    
     price NUMERIC(15,2) NOT NULL DEFAULT 0.00,
     quantity_available INT NOT NULL,
     quantity_sold INT DEFAULT 0,
-    
     start_date TIMESTAMP,
     end_date TIMESTAMP,
-    
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -860,63 +745,41 @@ CREATE TABLE events_commerce.tickets (
     ticket_id SERIAL PRIMARY KEY,
     event_id INT NOT NULL REFERENCES events_commerce.events(event_id),
     batch_id INT REFERENCES events_commerce.ticket_batches(batch_id),
-    
     owner_person_id INT REFERENCES people.persons(person_id),
-    guest_name VARCHAR(150), -- Para quando comprar ingresso para terceiros
-    seller_person_id INT REFERENCES people.persons(person_id), -- Quem vendeu (promoter)
-    
+    guest_name VARCHAR(150), 
+    seller_person_id INT REFERENCES people.persons(person_id), 
     qr_code_hash UUID DEFAULT gen_random_uuid(),
     price_sold NUMERIC(10,2) DEFAULT 0.00,
-    
     is_paid BOOLEAN DEFAULT FALSE,
-    transaction_id BIGINT, -- Vinculo futuro com tabela finance.transactions
-    
-    -- Controle de Entrada (Check-in)
+    transaction_id BIGINT, 
     checkin_status BOOLEAN DEFAULT FALSE,
     checkin_date TIMESTAMP,
     validated_by_user_id INT,
-    
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 COMMENT ON TABLE events_commerce.tickets IS 'Ingressos individuais emitidos, contendo hash único para leitura via QR Code.';
 
-
--- ==========================================
--- 3. DOAÇÕES FÍSICAS (PRENDAS E INSUMOS)
--- ==========================================
-
 CREATE TABLE events_commerce.donations_in_kind (
     donation_id SERIAL PRIMARY KEY,
     event_id INT NOT NULL REFERENCES events_commerce.events(event_id),
     donor_person_id INT REFERENCES people.persons(person_id),
-    
     item_name VARCHAR(100) NOT NULL,
     quantity NUMERIC(10,2) DEFAULT 1,
-    unit_measure VARCHAR(20), -- KG, UN, LITROS, CAIXAS
-    
+    unit_measure VARCHAR(20), 
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     received_by_user_id INT,
-    
     deleted BOOLEAN DEFAULT FALSE
 );
-COMMENT ON TABLE events_commerce.donations_in_kind IS 'Registro de prendas doadas para bingos ou insumos para quermesses (óleo, farinha).';
-
-
--- ==========================================
--- 4. SISTEMA CASHLESS E BARRACAS
--- ==========================================
+COMMENT ON TABLE events_commerce.donations_in_kind IS 'Registro de prendas doadas para bingos ou insumos para quermesses.';
 
 CREATE TABLE events_commerce.cards (
     card_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     person_id INT REFERENCES people.persons(person_id),
-    
     card_uuid UUID DEFAULT gen_random_uuid(),
-    display_code VARCHAR(50), -- Código impresso no cartão físico (Ex: TFE-9921)
-    
+    display_code VARCHAR(50), 
     current_balance NUMERIC(15,2) DEFAULT 0.00,
-    
     is_active BOOLEAN DEFAULT TRUE,
     last_used_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -926,13 +789,10 @@ COMMENT ON TABLE events_commerce.cards IS 'Cartões de consumo pré-pagos (Cashl
 CREATE TABLE events_commerce.vendors (
     vendor_id SERIAL PRIMARY KEY,
     event_id INT NOT NULL REFERENCES events_commerce.events(event_id),
-    name VARCHAR(100) NOT NULL, -- Ex: Barraca do Pastel, Pescaria
-    
+    name VARCHAR(100) NOT NULL, 
     responsible_person_id INT REFERENCES people.persons(person_id),
-    
-    commission_rate NUMERIC(5,2) DEFAULT 0.00, -- % repassada à igreja (se terceirizado)
-    fixed_fee NUMERIC(15,2) DEFAULT 0.00, -- Taxa fixa cobrada do barraqueiro
-    
+    commission_rate NUMERIC(5,2) DEFAULT 0.00, 
+    fixed_fee NUMERIC(15,2) DEFAULT 0.00, 
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -942,11 +802,9 @@ COMMENT ON TABLE events_commerce.vendors IS 'Pontos de venda (barracas) ativos d
 CREATE TABLE events_commerce.products (
     product_id SERIAL PRIMARY KEY,
     vendor_id INT NOT NULL REFERENCES events_commerce.vendors(vendor_id),
-    
     name VARCHAR(100) NOT NULL,
     unit_price NUMERIC(10,2) NOT NULL,
-    stock_quantity INT, -- NULL para estoque infinito
-    
+    stock_quantity INT, 
     is_available BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE
 );
@@ -955,21 +813,16 @@ COMMENT ON TABLE events_commerce.products IS 'Cardápio de produtos vendidos em 
 CREATE TABLE events_commerce.transactions (
     log_id BIGSERIAL PRIMARY KEY,
     card_id INT NOT NULL REFERENCES events_commerce.cards(card_id),
-    
-    transaction_type VARCHAR(20) NOT NULL, -- RECHARGE (Recarga), PURCHASE (Compra), REFUND (Estorno)
+    transaction_type VARCHAR(20) NOT NULL, 
     amount NUMERIC(15,2) NOT NULL,
-    
     vendor_id INT REFERENCES events_commerce.vendors(vendor_id),
-    products_json JSONB, -- Histórico do que foi comprado: [{"item": "Pastel", "qtd": 2, "price": 10.00}]
-    
-    church_fee_amount NUMERIC(15,2) DEFAULT 0.00, -- Parte que fica para a Paróquia
-    vendor_net_amount NUMERIC(15,2) DEFAULT 0.00, -- Parte que vai para o terceirizado
-    
-    operator_user_id INT, -- Quem operou a maquininha/sistema
+    products_json JSONB, 
+    church_fee_amount NUMERIC(15,2) DEFAULT 0.00, 
+    vendor_net_amount NUMERIC(15,2) DEFAULT 0.00, 
+    operator_user_id INT, 
     transaction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 COMMENT ON TABLE events_commerce.transactions IS 'Ledger imutável de todas as movimentações de saldo no Cashless.';
-
 
 
 -- ==========================================================
@@ -992,22 +845,19 @@ CREATE TABLE communication.posts (
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     author_id INT NOT NULL REFERENCES people.persons(person_id),
     category_id INT REFERENCES communication.categories(category_id),
-    
     title VARCHAR(255) NOT NULL,
     slug VARCHAR(255) NOT NULL,
     summary TEXT,
     content_html TEXT,
     cover_image_url VARCHAR(255),
-    
     status VARCHAR(20) DEFAULT 'DRAFT',
     published_at TIMESTAMP,
     allow_comments BOOLEAN DEFAULT FALSE,
     views_count INT DEFAULT 0,
-    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-COMMENT ON TABLE communication.posts IS 'CMS: Notícias, Homilias e Avisos.';
+COMMENT ON TABLE communication.posts IS 'CMS: Notícias, Homilias e Avisos do site paroquial.';
 
 CREATE TABLE communication.attachments (
     attachment_id SERIAL PRIMARY KEY,
@@ -1017,6 +867,7 @@ CREATE TABLE communication.attachments (
     caption VARCHAR(200),
     display_order INT DEFAULT 0
 );
+COMMENT ON TABLE communication.attachments IS 'Anexos vinculados a um Post/Aviso.';
 
 CREATE TABLE communication.banners (
     banner_id SERIAL PRIMARY KEY,
@@ -1035,16 +886,12 @@ COMMENT ON TABLE communication.banners IS 'Slideshow da Home do Site/App.';
 CREATE TABLE communication.notifications (
     notification_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
-    
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     type VARCHAR(50) DEFAULT 'INFO',
     action_url VARCHAR(500),
     module_context VARCHAR(100),
-    
-    -- Sem FK, pois um alerta pode ser gerado pelo sistema central ou por um DEV
     created_by_user_id INT, 
-    
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1056,10 +903,8 @@ COMMENT ON COLUMN communication.notifications.module_context IS 'Identificador d
 CREATE TABLE communication.notification_targets (
     target_id SERIAL PRIMARY KEY,
     notification_id INT NOT NULL REFERENCES communication.notifications(notification_id) ON DELETE CASCADE,
-    
-    target_type VARCHAR(50) NOT NULL, -- 'ALL', 'ROLE', 'PERSON'
+    target_type VARCHAR(50) NOT NULL, 
     target_val INT,
-    
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -1073,25 +918,74 @@ CREATE TABLE communication.notification_reads (
     read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted BOOLEAN DEFAULT FALSE
 );
-
 CREATE UNIQUE INDEX idx_notification_reads_unique ON communication.notification_reads(notification_id, user_id);
 CREATE INDEX idx_notification_reads_user ON communication.notification_reads(user_id);
 COMMENT ON TABLE communication.notification_reads IS 'Grava apenas quando o usuário abre/lê a notificação para apagar a bolinha vermelha (badge).';
 
 -- ==========================================================
--- SCHEMA: SECURITY LOGS (AUDITORIA FINAL)
+-- SCHEMA: PUBLIC (MOCK STAFF)
+-- Responsabilidade: Evitar erros em ambiente local simulando 
+-- o banco central de Acessos e Perfis.
+-- ==========================================================
+
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    status INT DEFAULT 1
+);
+COMMENT ON TABLE public.profiles IS '[STAFF MOCK] Perfis mestres globais do sistema. Tipagem status=1 para compatibilidade.';
+
+CREATE TABLE IF NOT EXISTS public.features (
+    id SERIAL PRIMARY KEY,
+    module VARCHAR(50),
+    title VARCHAR(100),
+    description TEXT
+);
+COMMENT ON TABLE public.features IS '[STAFF MOCK] Matriz de permissões/funcionalidades.';
+
+CREATE TABLE IF NOT EXISTS public.profiles_features (
+    id_profile INT REFERENCES public.profiles(id) ON DELETE CASCADE,
+    id_feature INT REFERENCES public.features(id) ON DELETE CASCADE,
+    PRIMARY KEY (id_profile, id_feature)
+);
+COMMENT ON TABLE public.profiles_features IS '[STAFF MOCK] Relacionamento Perfil x Permissão.';
+
+CREATE TABLE IF NOT EXISTS public.users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    img VARCHAR(255),
+    active BOOLEAN DEFAULT TRUE,
+    deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE public.users IS '[STAFF MOCK] Tabela de autenticação global.';
+
+CREATE TABLE IF NOT EXISTS public.users_clients_profiles (
+    id SERIAL PRIMARY KEY,
+    id_user INT REFERENCES public.users(id) ON DELETE CASCADE,
+    id_client INT,
+    id_profile INT REFERENCES public.profiles(id),
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE public.users_clients_profiles IS '[STAFF MOCK] Vínculo entre usuário global e o tenant (paróquia).';
+
+-- ==========================================================
+-- SCHEMA: SECURITY LOGS (AUDITORIA FINAL E ACESSOS)
 -- ==========================================================
 
 CREATE TABLE IF NOT EXISTS security.users (
     user_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id) DEFAULT 1,
     person_id INT REFERENCES people.persons(person_id), 
-    
     name VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
-    
     force_password_change BOOLEAN DEFAULT FALSE,
-    role_level VARCHAR(50) DEFAULT 'USER', -- ADMIN, MANAGER, SECRETARY, TEACHER
+    role_level VARCHAR(50) DEFAULT 'USER', 
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     last_login TIMESTAMP,
@@ -1099,12 +993,11 @@ CREATE TABLE IF NOT EXISTS security.users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Nova tabela com Perfil por Ano
 CREATE TABLE security.users_years (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     year_id INTEGER NOT NULL,
-    id_profile INTEGER NOT NULL, -- Perfil específico para este ano
+    id_profile INTEGER NOT NULL, 
     is_active BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1112,17 +1005,16 @@ CREATE TABLE security.users_years (
     CONSTRAINT fk_users_years_year FOREIGN KEY (year_id) REFERENCES education.academic_years(year_id) ON DELETE CASCADE
 );
 
-
 ALTER TABLE security.users ADD CONSTRAINT unique_user_id UNIQUE (user_id);
 ALTER TABLE security.users_years ADD CONSTRAINT unique_user_year UNIQUE (user_id, year_id);
-
 CREATE INDEX IF NOT EXISTS idx_users_email ON security.users(email);
 CREATE INDEX IF NOT EXISTS idx_users_person ON security.users(person_id);
 CREATE INDEX idx_users_years_user_year ON security.users_years(user_id, year_id, id_profile);
 
-COMMENT ON TABLE security.users IS 'Tabela de autenticação (Login). Vinculada a uma Pessoa Física.';
-COMMENT ON COLUMN security.users.person_id IS 'Link com o cadastro completo da pessoa.';
-COMMENT ON COLUMN security.users.role_level IS 'Nível de permissão no sistema (ACL).';
+COMMENT ON TABLE security.users IS 'Tabela de autenticação local. Sincronizada com o banco Global (Staff).';
+COMMENT ON TABLE security.users_years IS 'Atribuição de perfis de acesso baseados em anos letivos.';
+COMMENT ON COLUMN security.users.person_id IS 'Link com o cadastro completo da pessoa física.';
+COMMENT ON COLUMN security.users.role_level IS 'Nível de permissão textual no sistema (ACL Legado).';
 
 CREATE TABLE IF NOT EXISTS security.change_logs (
     log_id BIGSERIAL PRIMARY KEY,
@@ -1136,7 +1028,7 @@ CREATE TABLE IF NOT EXISTS security.change_logs (
     new_values JSONB,
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-COMMENT ON TABLE security.change_logs IS 'Audit Trail. Grava snapshot dos dados antes e depois de cada UPDATE/DELETE.';
+COMMENT ON TABLE security.change_logs IS 'Audit Trail. Grava snapshot dos dados antes e depois de cada UPDATE/DELETE para auditoria.';
 
 CREATE TABLE IF NOT EXISTS security.error_logs (
     error_id BIGSERIAL PRIMARY KEY,
@@ -1148,7 +1040,7 @@ CREATE TABLE IF NOT EXISTS security.error_logs (
     request_uri VARCHAR(255),
     occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-COMMENT ON TABLE security.error_logs IS 'Log de erros de aplicação (Backend Catch).';
+COMMENT ON TABLE security.error_logs IS 'Log de erros de aplicação (Backend Catch) para suporte e debugging.';
 
 CREATE TABLE IF NOT EXISTS security.access_logs (
     access_id BIGSERIAL PRIMARY KEY,
@@ -1160,11 +1052,11 @@ CREATE TABLE IF NOT EXISTS security.access_logs (
     user_agent TEXT,
     status VARCHAR(20) DEFAULT 'SUCCESS'
 );
-COMMENT ON TABLE security.access_logs IS 'Histórico de acessos e logins.';
+COMMENT ON TABLE security.access_logs IS 'Histórico de acessos, logins, logouts e bloqueios.';
 
 CREATE TABLE security.push_subscriptions (
     subscription_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL, -- Removida a FK
+    user_id INT NOT NULL, 
     endpoint TEXT NOT NULL UNIQUE,
     p256dh_key VARCHAR(255) NOT NULL,
     auth_key VARCHAR(255) NOT NULL,
@@ -1174,7 +1066,7 @@ CREATE TABLE security.push_subscriptions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-COMMENT ON TABLE security.push_subscriptions IS 'Credenciais do navegador do usuário para disparos nativos de Web Push (Celular/Desktop).';
+COMMENT ON TABLE security.push_subscriptions IS 'Credenciais do navegador do usuário para disparos nativos de Web Push Notifications.';
 
 
 -- ============================================================================
@@ -1186,45 +1078,32 @@ DECLARE
     v_pk_column TEXT;
     v_user_id INT;
 BEGIN
-    -- 1. Tenta identificar o usuário da sessão (Setado pelo PHP)
     BEGIN
         v_user_id := NULLIF(current_setting('app.current_user_id', true), '')::INT;
     EXCEPTION WHEN OTHERS THEN
         v_user_id := NULL;
     END;
 
-    -- 2. Identifica a coluna de ID passada como argumento
     v_pk_column := TG_ARGV[0];
 
-    -- 3. Lógica por Operação
     IF (TG_OP = 'DELETE') THEN
-        -- Pega o ID do registro antigo dinamicamente
         EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING OLD;
-        
         INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, old_values)
         VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'DELETE', v_record_id, v_user_id, to_jsonb(OLD));
-        
         RETURN OLD;
         
     ELSIF (TG_OP = 'UPDATE') THEN
-        -- Pega o ID do registro novo
         EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING NEW;
-        
-        -- Só registra se houver mudança real nos dados (Ignora updates falsos)
         IF to_jsonb(OLD) IS DISTINCT FROM to_jsonb(NEW) THEN
             INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, old_values, new_values)
             VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'UPDATE', v_record_id, v_user_id, to_jsonb(OLD), to_jsonb(NEW));
         END IF;
-        
         RETURN NEW;
         
     ELSIF (TG_OP = 'INSERT') THEN
-        -- Pega o ID do registro novo
         EXECUTE 'SELECT ($1).' || v_pk_column || '::text' INTO v_record_id USING NEW;
-        
         INSERT INTO security.change_logs (schema_name, table_name, operation, record_id, user_id, new_values)
         VALUES (TG_TABLE_SCHEMA, TG_TABLE_NAME, 'INSERT', v_record_id, v_user_id, to_jsonb(NEW));
-        
         RETURN NEW;
     END IF;
 
@@ -1260,7 +1139,7 @@ CREATE TRIGGER audit_trigger_family_ties AFTER INSERT OR UPDATE OR DELETE ON peo
 DROP TRIGGER IF EXISTS audit_trigger_person_attachments ON people.person_attachments;
 CREATE TRIGGER audit_trigger_person_attachments AFTER INSERT OR UPDATE OR DELETE ON people.person_attachments FOR EACH ROW EXECUTE FUNCTION security.log_changes('attachment_id');
 
--- Educacional (Geral)
+-- Educacional
 DROP TRIGGER IF EXISTS audit_trigger_academic_years ON education.academic_years;
 CREATE TRIGGER audit_trigger_academic_years AFTER INSERT OR UPDATE OR DELETE ON education.academic_years FOR EACH ROW EXECUTE FUNCTION security.log_changes('year_id');
 
@@ -1273,11 +1152,9 @@ CREATE TRIGGER audit_trigger_courses AFTER INSERT OR UPDATE OR DELETE ON educati
 DROP TRIGGER IF EXISTS audit_trigger_curriculum ON education.curriculum;
 CREATE TRIGGER audit_trigger_curriculum AFTER INSERT OR UPDATE OR DELETE ON education.curriculum FOR EACH ROW EXECUTE FUNCTION security.log_changes('curriculum_id');
 
--- [NOVO] Trigger para Planos de Aula (Importante para o novo módulo)
 DROP TRIGGER IF EXISTS audit_trigger_curriculum_plans ON education.curriculum_plans;
 CREATE TRIGGER audit_trigger_curriculum_plans AFTER INSERT OR UPDATE OR DELETE ON education.curriculum_plans FOR EACH ROW EXECUTE FUNCTION security.log_changes('plan_id');
 
--- Turmas e Diário
 DROP TRIGGER IF EXISTS audit_trigger_classes ON education.classes;
 CREATE TRIGGER audit_trigger_classes AFTER INSERT OR UPDATE OR DELETE ON education.classes FOR EACH ROW EXECUTE FUNCTION security.log_changes('class_id');
 
@@ -1290,7 +1167,6 @@ CREATE TRIGGER audit_trigger_enrollments AFTER INSERT OR UPDATE OR DELETE ON edu
 DROP TRIGGER IF EXISTS audit_trigger_class_sessions ON education.class_sessions;
 CREATE TRIGGER audit_trigger_class_sessions AFTER INSERT OR UPDATE OR DELETE ON education.class_sessions FOR EACH ROW EXECUTE FUNCTION security.log_changes('session_id');
 
--- Frequência e Notas
 DROP TRIGGER IF EXISTS audit_trigger_attendance ON education.attendance;
 CREATE TRIGGER audit_trigger_attendance AFTER INSERT OR UPDATE OR DELETE ON education.attendance FOR EACH ROW EXECUTE FUNCTION security.log_changes('attendance_id');
 
@@ -1304,30 +1180,19 @@ CREATE TRIGGER audit_trigger_enrollment_history AFTER INSERT OR UPDATE OR DELETE
 DROP TRIGGER IF EXISTS audit_trigger_users ON security.users;
 CREATE TRIGGER audit_trigger_users AFTER INSERT OR UPDATE OR DELETE ON security.users FOR EACH ROW EXECUTE FUNCTION security.log_changes('user_id');
 
-
--- Triggers de Auditoria
 DROP TRIGGER IF EXISTS audit_trigger_notifications ON communication.notifications;
-CREATE TRIGGER audit_trigger_notifications 
-AFTER INSERT OR UPDATE OR DELETE ON communication.notifications 
-FOR EACH ROW EXECUTE FUNCTION security.log_changes('notification_id');
+CREATE TRIGGER audit_trigger_notifications AFTER INSERT OR UPDATE OR DELETE ON communication.notifications FOR EACH ROW EXECUTE FUNCTION security.log_changes('notification_id');
 
 DROP TRIGGER IF EXISTS audit_trigger_notification_targets ON communication.notification_targets;
-CREATE TRIGGER audit_trigger_notification_targets 
-AFTER INSERT OR UPDATE OR DELETE ON communication.notification_targets 
-FOR EACH ROW EXECUTE FUNCTION security.log_changes('target_id');
+CREATE TRIGGER audit_trigger_notification_targets AFTER INSERT OR UPDATE OR DELETE ON communication.notification_targets FOR EACH ROW EXECUTE FUNCTION security.log_changes('target_id');
 
 DROP TRIGGER IF EXISTS audit_trigger_notification_reads ON communication.notification_reads;
-CREATE TRIGGER audit_trigger_notification_reads 
-AFTER INSERT OR UPDATE OR DELETE ON communication.notification_reads 
-FOR EACH ROW EXECUTE FUNCTION security.log_changes('read_id');
+CREATE TRIGGER audit_trigger_notification_reads AFTER INSERT OR UPDATE OR DELETE ON communication.notification_reads FOR EACH ROW EXECUTE FUNCTION security.log_changes('read_id');
 
 DROP TRIGGER IF EXISTS audit_trigger_push_subscriptions ON security.push_subscriptions;
-CREATE TRIGGER audit_trigger_push_subscriptions 
-AFTER INSERT OR UPDATE OR DELETE ON security.push_subscriptions 
-FOR EACH ROW EXECUTE FUNCTION security.log_changes('subscription_id');
+CREATE TRIGGER audit_trigger_push_subscriptions AFTER INSERT OR UPDATE OR DELETE ON security.push_subscriptions FOR EACH ROW EXECUTE FUNCTION security.log_changes('subscription_id');
 
-
-
+-- Festas e Commerce
 CREATE TRIGGER audit_trigger_events AFTER INSERT OR UPDATE OR DELETE ON events_commerce.events FOR EACH ROW EXECUTE FUNCTION security.log_changes('event_id');
 CREATE TRIGGER audit_trigger_event_configs AFTER INSERT OR UPDATE OR DELETE ON events_commerce.event_configs FOR EACH ROW EXECUTE FUNCTION security.log_changes('config_id');
 CREATE TRIGGER audit_trigger_ticket_batches AFTER INSERT OR UPDATE OR DELETE ON events_commerce.ticket_batches FOR EACH ROW EXECUTE FUNCTION security.log_changes('batch_id');
@@ -1336,6 +1201,8 @@ CREATE TRIGGER audit_trigger_donations AFTER INSERT OR UPDATE OR DELETE ON event
 CREATE TRIGGER audit_trigger_cards AFTER INSERT OR UPDATE OR DELETE ON events_commerce.cards FOR EACH ROW EXECUTE FUNCTION security.log_changes('card_id');
 CREATE TRIGGER audit_trigger_vendors AFTER INSERT OR UPDATE OR DELETE ON events_commerce.vendors FOR EACH ROW EXECUTE FUNCTION security.log_changes('vendor_id');
 CREATE TRIGGER audit_trigger_products AFTER INSERT OR UPDATE OR DELETE ON events_commerce.products FOR EACH ROW EXECUTE FUNCTION security.log_changes('product_id');
+
+
 
 -- ==========================================================
 -- POPULAÇÃO INICIAL (SEED)
@@ -1354,7 +1221,6 @@ VALUES
 (3, 2, 'Sala 1 - Catequese', 30, FALSE, TRUE, '{"quadro": true}'),
 (4, 2, 'Sala 2 - Catequese', 30, FALSE, TRUE, '{"quadro": true}');
 
--- [NOVO] Eventos Iniciais
 INSERT INTO organization.events (org_id, title, description, event_date, is_academic_blocker) VALUES 
 (2, 'Padroeiro São José', 'Festa litúrgica solene.', '2026-03-19', TRUE),
 (2, 'Corpus Christi', 'Procissão nas ruas.', '2026-06-19', FALSE);
@@ -1399,7 +1265,6 @@ INSERT INTO education.courses (org_id, name, min_age, max_age) VALUES
 (2, 'Primeira Eucaristia', 9, 12),
 (2, 'Crisma (Jovens)', 14, 18);
 
--- [NOVO] Grade Curricular com Template de Plano de Aula
 INSERT INTO education.curriculum (course_id, subject_id, workload_hours, lesson_plan_template) VALUES 
 (1, 1, 30, '<b>ACOLHIDA:</b><br>...'), 
 (1, 3, 30, '<b>ACOLHIDA:</b><br>...');
@@ -1407,7 +1272,6 @@ INSERT INTO education.curriculum (course_id, subject_id, workload_hours, lesson_
 INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES 
 (2, 1, 40), (2, 2, 40);
 
--- Turma (Com Academic Year ID)
 INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, year_id, status) VALUES 
 (1, 1, 2, 3, 3, 'Turma Sábado Manhã', 2026, 'ACTIVE');
 
@@ -1417,7 +1281,6 @@ INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_ti
 INSERT INTO education.enrollments (class_id, student_id, status) VALUES 
 (1, 5, 'ACTIVE'), (1, 6, 'ACTIVE');
 
--- Diário: Apenas insert do registro mestre
 INSERT INTO education.class_sessions (session_id, class_id, session_date, description) VALUES 
 (1, 1, CURRENT_DATE - INTERVAL '7 days', 'Introdução aos Evangelhos');
 
@@ -1469,51 +1332,81 @@ UPDATE events_commerce.cards SET current_balance = 40.00 WHERE card_id = 1;
 INSERT INTO communication.categories (category_id, org_id, name, slug) VALUES 
 (1, 2, 'Avisos', 'avisos');
 
+
+-- ==========================================================
+-- MOCK SEED: PREENCHIMENTO DO ESQUEMA STAFF (Para Ambiente Local)
+-- ==========================================================
+
+INSERT INTO public.profiles (id, title, status) VALUES
+(10, 'Fiel / Aluno', 1),
+(30, 'Catequista / Professor', 1),
+(40, 'Coordenador / Secretaria', 1),
+(50, 'Pároco / Administrador', 1),
+(99, 'Desenvolvedor / Manager', 1)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.features (id, module, title, description) VALUES
+(1, 'USUARIOS', 'Acessar Módulo de Usuários', 'Permite visualizar a lista de acessos e pessoas da paróquia'),
+(2, 'USUARIOS', 'Gerenciar Acessos', 'Permite criar, editar, alterar perfis e excluir usuários do sistema'),
+(3, 'CATEQUESE', 'Acessar Diário de Classe', 'Permite lançar frequências e preencher conteúdo das aulas'),
+(4, 'CATEQUESE', 'Criar Turmas', 'Permite criar novas turmas e associar catequistas e alunos'),
+(5, 'FINANCEIRO', 'Acessar Financeiro', 'Permite visualizar o fluxo de caixa, despesas e dízimo')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles_features (id_profile, id_feature) VALUES
+(99, 1), (99, 2), (99, 3), (99, 4), (99, 5),
+(50, 1), (50, 2), (50, 3), (50, 4), (50, 5),
+(40, 1), (40, 3), (40, 4),
+(30, 3)
+ON CONFLICT DO NOTHING;
+
+
 -- =================================================================
 -- AJUSTE DE SEQUÊNCIAS (RESETS)
--- Executar após os INSERTS manuais para evitar erro de ID duplicado
 -- =================================================================
 
--- 1. Organization
+-- 1. Public (Staff Mock)
+SELECT setval(pg_get_serial_sequence('public.profiles', 'id'), COALESCE(MAX(id), 1)) FROM public.profiles;
+SELECT setval(pg_get_serial_sequence('public.features', 'id'), COALESCE(MAX(id), 1)) FROM public.features;
+SELECT setval(pg_get_serial_sequence('public.users', 'id'), COALESCE(MAX(id), 1)) FROM public.users;
+SELECT setval(pg_get_serial_sequence('public.users_clients_profiles', 'id'), COALESCE(MAX(id), 1)) FROM public.users_clients_profiles;
+
+-- 2. Organization
 SELECT setval(pg_get_serial_sequence('organization.organizations', 'org_id'), COALESCE(MAX(org_id), 1)) FROM organization.organizations;
 SELECT setval(pg_get_serial_sequence('organization.locations', 'location_id'), COALESCE(MAX(location_id), 1)) FROM organization.locations;
--- Nota: 'organization.events' não teve ID manual inserido no script anterior (usou o sequence), mas se quiser garantir:
 SELECT setval(pg_get_serial_sequence('organization.events', 'event_id'), COALESCE(MAX(event_id), 1)) FROM organization.events;
 
--- 2. People
+-- 3. People
 SELECT setval(pg_get_serial_sequence('people.roles', 'role_id'), COALESCE(MAX(role_id), 1)) FROM people.roles;
 SELECT setval(pg_get_serial_sequence('people.persons', 'person_id'), COALESCE(MAX(person_id), 1)) FROM people.persons;
 
--- 3. Education
+-- 4. Education
 SELECT setval(pg_get_serial_sequence('education.academic_years', 'year_id'), COALESCE(MAX(year_id), 1)) FROM education.academic_years;
--- education.subjects não teve ID manual, mas por garantia:
 SELECT setval(pg_get_serial_sequence('education.subjects', 'subject_id'), COALESCE(MAX(subject_id), 1)) FROM education.subjects;
 SELECT setval(pg_get_serial_sequence('education.courses', 'course_id'), COALESCE(MAX(course_id), 1)) FROM education.courses;
 SELECT setval(pg_get_serial_sequence('education.classes', 'class_id'), COALESCE(MAX(class_id), 1)) FROM education.classes;
 SELECT setval(pg_get_serial_sequence('education.class_sessions', 'session_id'), COALESCE(MAX(session_id), 1)) FROM education.class_sessions;
 
--- 4. Sacraments
+-- 5. Sacraments
 SELECT setval(pg_get_serial_sequence('sacraments.registry_books', 'book_id'), COALESCE(MAX(book_id), 1)) FROM sacraments.registry_books;
--- baptisms usou sequence automático, mas por garantia:
 SELECT setval(pg_get_serial_sequence('sacraments.baptisms', 'baptism_id'), COALESCE(MAX(baptism_id), 1)) FROM sacraments.baptisms;
 
--- 5. Pastoral
+-- 6. Pastoral
 SELECT setval(pg_get_serial_sequence('pastoral.celebration_types', 'type_id'), COALESCE(MAX(type_id), 1)) FROM pastoral.celebration_types;
 SELECT setval(pg_get_serial_sequence('pastoral.celebrations', 'celebration_id'), COALESCE(MAX(celebration_id), 1)) FROM pastoral.celebrations;
 
--- 6. Finance
+-- 7. Finance
 SELECT setval(pg_get_serial_sequence('finance.accounts', 'account_id'), COALESCE(MAX(account_id), 1)) FROM finance.accounts;
 SELECT setval(pg_get_serial_sequence('finance.categories', 'category_id'), COALESCE(MAX(category_id), 1)) FROM finance.categories;
--- transactions usou sequence automático, mas por garantia:
 SELECT setval(pg_get_serial_sequence('finance.transactions', 'transaction_id'), COALESCE(MAX(transaction_id), 1)) FROM finance.transactions;
 
--- 7. Events Commerce (Festas)
+-- 8. Events Commerce (Festas)
 SELECT setval(pg_get_serial_sequence('events_commerce.events', 'event_id'), COALESCE(MAX(event_id), 1)) FROM events_commerce.events;
 SELECT setval(pg_get_serial_sequence('events_commerce.vendors', 'vendor_id'), COALESCE(MAX(vendor_id), 1)) FROM events_commerce.vendors;
 SELECT setval(pg_get_serial_sequence('events_commerce.products', 'product_id'), COALESCE(MAX(product_id), 1)) FROM events_commerce.products;
 SELECT setval(pg_get_serial_sequence('events_commerce.cards', 'card_id'), COALESCE(MAX(card_id), 1)) FROM events_commerce.cards;
 
--- 8. Communication
+-- 9. Communication
 SELECT setval(pg_get_serial_sequence('communication.categories', 'category_id'), COALESCE(MAX(category_id), 1)) FROM communication.categories;
 SELECT setval(pg_get_serial_sequence('communication.notifications', 'notification_id'), COALESCE(MAX(notification_id), 1)) FROM communication.notifications;
 SELECT setval(pg_get_serial_sequence('communication.notification_targets', 'target_id'), COALESCE(MAX(target_id), 1)) FROM communication.notification_targets;
