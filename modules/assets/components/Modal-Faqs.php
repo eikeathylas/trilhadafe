@@ -3,16 +3,17 @@
 
 <div class="modal fade" id="duvidasFrequentes" aria-hidden="true" aria-labelledby="duvidas_frequentesLabel" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-transparent-card">
 
-      <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 shadow-sm position-relative" style="z-index: 1090;">
+      <div class="modal-header border-0 bg-primary bg-gradient py-4 px-4 w-100 d-flex justify-content-center position-relative shadow-sm" style="z-index: 1090;">
         <h1 class="modal-title fs-4 fw-bold text-white d-flex align-items-center m-0" id="duvidas_frequentesLabel" style="letter-spacing: -0.5px;">
           <i class="fas fa-circle-question me-3 opacity-75"></i> Central de Ajuda
         </h1>
         <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <div class="modal-body p-4 bg-body" style="max-height: 75vh; overflow-y: auto;">
+      <div class="modal-body p-0 bg-body">
         <div class="accordion accordion-flush" id="accordionDuvidas">
 
           <div class="accordion-item shadow-sm" data-slug="ajuda.secretary">
@@ -297,12 +298,13 @@
         </div>
       </div>
 
-      <div class="modal-footer border-0 p-4 bg-transparent justify-content-end">
+      <div class="modal-footer border-0 p-2 bg-transparent align-items-center">
         <button class="btn btn-light fw-bold px-5 rounded-4 shadow-sm border transition-all hover-bg-light" data-bs-dismiss="modal" style="height: 48px;">
           Entendi, fechar ajuda!
         </button>
       </div>
 
     </div>
+
   </div>
 </div>

@@ -153,7 +153,7 @@ const renderTableCourses = (data) => {
 
       // Ações Desktop Condicionais
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Auditoria/Log"><i class="fas fa-history"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.courses', ${item.course_id}, this)" title="Log"><i class="fas fa-history"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="modalCurso(${item.course_id}, this)" title="Editar"><i class="fas fa-pen"></i></button>`;
       if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteCourse(${item.course_id})" title="Excluir"><i class="fas fa-trash-can"></i></button>`;
 
@@ -477,7 +477,7 @@ const renderCurriculumTable = () => {
       let actionsHtml = "";
 
       if (canHistory && item.curriculum_id) {
-        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.curriculum', ${item.curriculum_id}, this)" title="Auditoria/Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        actionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.curriculum', ${item.curriculum_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       }
 
       if (canTemplate) {
