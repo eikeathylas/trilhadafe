@@ -1,18 +1,5 @@
 # 🔧 1 — CORREÇÕES (BUGFIX)
 
-## Tela: Usuários
-
-
-[ ] Corrigir coluna `last_login`
-
-Objetivo:
-Registrar automaticamente o último login do usuário.
-
-Sugestão técnica:
-
-- Atualizar no momento da autenticação
-- Registrar timestamp no banco
-
 ---
 
 # 🚀 2 — MELHORIAS
