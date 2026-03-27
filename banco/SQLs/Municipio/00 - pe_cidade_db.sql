@@ -1209,21 +1209,35 @@ CREATE TRIGGER audit_trigger_products AFTER INSERT OR UPDATE OR DELETE ON events
 -- ==========================================================
 
 -- 1. Organização
-INSERT INTO organization.organizations (org_id, parent_org_id, org_type, legal_name, display_name, tax_id, diocese_name, patron_saint, phone_main)
-VALUES 
-(1, NULL, 'DIOCESE', 'Diocese Caruaru', 'Diocese Caruaru', '12.345.678/0001-99', 'Diocese de Recife', 'São José', '(16) 3636-1010'),
-(2, 1, 'PARISH', 'Mitra Arquidiocesana - Paróquia São José', 'Paróquia São José Operário', '12.345.678/0001-99', 'Diocese de Caruaru', 'São José', '(16) 3636-1010');
+INSERT INTO organization.organizations (org_id, parent_org_id, org_type, legal_name, display_name, tax_id, diocese_name, patron_saint, phone_main, email_contact, website_url,address_street, address_number, address_district, address_city, address_state, zip_code,is_active)
+VALUES
+(1, NULL, 'DIOCESE', 'Diocese de Caruaru', 'Diocese de Caruaru', '10.426.680/0001-38', 'Diocese de Caruaru', 'Nossa Senhora das Dores', '(81) 3721-0911', 'curia@diocesedecaruaru.org', 'https://diocesedecaruaru.org', 'Rua Bispo Cardoso Ayres', 's/n', 'Centro', 'Caruaru', 'PE', '55002-120', TRUE),
+(2, 1, 'PARISH', 'Diocese de Caruaru - Paróquia de Nossa Senhora da Assunção', 'Paróquia de Nossa Senhora da Assunção', '10.426.680/0014-52', 'Diocese de Caruaru', 'Indianópolis', '(81) 2104-1165', '', '', 'R. Alcídes de Farias Leite', 's/n', 'Indianópolis', 'Caruaru', 'PE', '55024-153', TRUE);
 
-INSERT INTO organization.locations (location_id, org_id, name, capacity, has_ac, has_ceiling_fan, resources_detail)
+INSERT INTO organization.locations (location_id, org_id, name, capacity, has_ac)
 VALUES 
-(1, 2, 'Igreja Matriz', 400, FALSE, TRUE, '{"som": true, "projetor": true}'),
-(2, 2, 'Salão Paroquial', 200, TRUE, FALSE, '{"cozinha": true, "palco": true}'),
-(3, 2, 'Sala 1 - Catequese', 30, FALSE, TRUE, '{"quadro": true}'),
-(4, 2, 'Sala 2 - Catequese', 30, FALSE, TRUE, '{"quadro": true}');
+(1, 2, 'Igreja Matriz', 400, FALSE),
+(2, 2, 'Colégio Jesus Salvador', 200, TRUE);
 
 INSERT INTO organization.events (org_id, title, description, event_date, is_academic_blocker) VALUES 
-(2, 'Padroeiro São José', 'Festa litúrgica solene.', '2026-03-19', TRUE),
-(2, 'Corpus Christi', 'Procissão nas ruas.', '2026-06-19', FALSE);
+(2, 'Confraternização Universal', 'Feriado Nacional - Ano Novo', '2026-01-01', TRUE),
+(2, 'Carnaval', 'Ponto Facultativo Nacional', '2026-02-17', TRUE),
+(2, 'Data Magna de Pernambuco', 'Feriado Estadual (Lei 16.059/17)', '2026-03-06', TRUE),
+(2, 'Paixão de Cristo', 'Feriado Nacional Religioso', '2026-04-03', TRUE),
+(2, 'Tiradentes', 'Feriado Nacional Civil', '2026-04-21', TRUE),
+(2, 'Dia Mundial do Trabalho', 'Feriado Nacional', '2026-05-01', TRUE),
+(2, 'Emancipação de Caruaru', 'Feriado Municipal', '2026-05-18', TRUE),
+(2, 'Corpus Christi', 'Feriado Municipal em Caruaru e Ponto Facultativo', '2026-06-04', TRUE),
+(2, 'São João', 'Feriado Estadual em Pernambuco', '2026-06-24', TRUE),
+(2, 'São Pedro', 'Feriado Municipal em Caruaru', '2026-06-29', TRUE),
+(2, 'Independência do Brasil', 'Feriado Nacional', '2026-09-07', TRUE),
+(2, 'Nossa Senhora das Dores', 'Padroeira de Caruaru - Feriado Municipal', '2026-09-15', TRUE),
+(2, 'Nossa Senhora Aparecida', 'Padroeira do Brasil - Feriado Nacional', '2026-10-12', TRUE),
+(2, 'Dia do Comerciário', 'Feriado para o setor em Caruaru (Terceira Segunda de Outubro)', '2026-10-19', FALSE),
+(2, 'Finados', 'Feriado Nacional Religioso', '2026-11-02', TRUE),
+(2, 'Proclamação da República', 'Feriado Nacional', '2026-11-15', TRUE),
+(2, 'Consciência Negra', 'Feriado Nacional (Zumbi dos Palmares)', '2026-11-20', TRUE),
+(2, 'Natal', 'Feriado Nacional Religioso', '2026-12-25', TRUE);
 
 -- 2. Pessoas
 INSERT INTO people.roles (role_id, role_name, description_pt, is_clergy, is_administrative, is_student) VALUES
@@ -1257,23 +1271,19 @@ INSERT INTO education.academic_years (year_id, org_id, name, start_date, end_dat
 (2026, 2, '2026', '2026-01-01', '2026-12-31', TRUE);
 
 INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES 
-(2, 'Novo Testamento', 'Estudo dos Evangelhos e Atos dos Apóstolos.'),
-(2, 'Antigo Testamento', 'História da Salvação e Profetas.'),
-(2, 'Liturgia Básica', 'Cores litúrgicas, tempos e ritos da Missa.');
+(2, 'Querigma', 'Foco no anúncio básico, apresentação de Jesus como amigo e Deus como Pai amoroso, utilizando histórias, recursos visuais e orações simples.'),
+(2, 'Catecumenato', 'Aprofundamento na cultura cristã, manuseio da Bíblia, Credo, orações fundamentais (Pai Nosso), os 10 Mandamentos, bem-aventuranças e compreensão da Missa.'),
+(2, 'Purificação e Iluminação', 'Foco na espiritualidade, exame de consciência, compreensão da transubstanciação, e preparação para a Primeira Confissão e Eucaristia.'),
+(2, 'Mistagogia', 'Pós-eucarística, ensinando a vivenciar o cristianismo no dia a dia e a participar ativamente da comunidade.');
 
 INSERT INTO education.courses (org_id, name, min_age, max_age) VALUES 
-(2, 'Primeira Eucaristia', 9, 12),
-(2, 'Crisma (Jovens)', 14, 18);
-
-INSERT INTO education.curriculum (course_id, subject_id, workload_hours, lesson_plan_template) VALUES 
-(1, 1, 30, '<b>ACOLHIDA:</b><br>...'), 
-(1, 3, 30, '<b>ACOLHIDA:</b><br>...');
+(2, 'Primeira Eucaristia', 9, 12);
 
 INSERT INTO education.curriculum (course_id, subject_id, workload_hours) VALUES 
 (2, 1, 40), (2, 2, 40);
 
 INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, year_id, status) VALUES 
-(1, 1, 2, 3, 3, 'Turma Sábado Manhã', 2026, 'ACTIVE');
+(1, 1, 2, 3, 3, 'Turma ano I - Sábado Manhã', 2026, 'ACTIVE');
 
 INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, subject_id, location_id, instructor_id) VALUES 
 (1, 6, '09:00:00', '10:30:00', 1, 3, 3);
