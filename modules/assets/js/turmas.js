@@ -171,7 +171,7 @@ const renderTableClasses = (data) => {
             </td>
             <td class="align-middle">
                 <div class="small text-body fw-bold"><i class="far fa-clock me-1 text-primary"></i> ${item.schedule_summary || "---"}</div>
-                <div class="small text-muted mt-1 text-truncate" style="max-width: 150px;"><i class="fas fa-location-dot me-1 opacity-50"></i> ${item.location_name || "Sede"}</div>
+                <div class="small text-muted mt-1 text-truncate" style="max-width: 200px;"><i class="fas fa-location-dot me-1 opacity-50"></i> ${item.location_name || "Sede"}</div>
             </td>
             <td class="text-center align-middle">${getProgressHtml(item.enrolled_count, item.max_capacity)}</td>
             <td class="text-center align-middle">

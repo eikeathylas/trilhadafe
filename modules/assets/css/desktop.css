@@ -39,6 +39,7 @@
   padding: 24px 16px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  max-width: 280px !important;
 }
 
 .sidebar-scroll-wrapper::-webkit-scrollbar {

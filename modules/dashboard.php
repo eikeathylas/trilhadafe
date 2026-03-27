@@ -46,7 +46,7 @@
                     </div>
                 </div>
 
-                <div class="col-6 col-lg" data-slug="">
+                <div class="col-6 col-lg">
                     <div class="card border border-secondary border-opacity-10 shadow-sm rounded-4 h-100 transition-all hover-lift">
                         <div class="card-body p-3 p-md-4">
                             <div class="d-flex align-items-center justify-content-between">

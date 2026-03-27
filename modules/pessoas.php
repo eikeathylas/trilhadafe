@@ -58,11 +58,11 @@
                         </label>
                         <select id="filtro-role" class="form-select border-0 bg-fundo shadow-none rounded-4 fw-medium text-body" style="height: 52px; padding-left: 20px;">
                             <option value="">Todos os vínculos</option>
-                            <option value="1">Fiéis / Membros</option>
-                            <option value="2">Catequizandos</option>
+                            <option value="1">Funcionários</option>
+                            <option value="5">Fiéis / Membros</option>
+                            <option value="2">Coordenadores</option>
+                            <option value="4">Catequizandos</option>
                             <option value="3">Catequistas / Professores</option>
-                            <option value="4">Coordenadores</option>
-                            <option value="5">Funcionários</option>
                         </select>
                     </div>
 

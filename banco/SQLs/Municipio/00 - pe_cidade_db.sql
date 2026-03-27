@@ -1279,8 +1279,8 @@ INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES
 INSERT INTO education.courses (org_id, name, min_age, max_age) VALUES 
 (2, 'Primeira Eucaristia', 9, 12);
 
-INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, year_id, status) VALUES 
-(1, 1, 2, 2, 3, 'Turma ano I - Sábado Manhã', 2026, 'ACTIVE');
+INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, year_id, max_capacity, status) VALUES 
+(1, 1, 2, 2, 3, 'Turma ano I - Sábado Manhã', 2026, 20, 'ACTIVE');
 
 INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, subject_id, location_id, instructor_id) VALUES 
 (1, 6, '09:00:00', '10:30:00', 1, 2, 3);
