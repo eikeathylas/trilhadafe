@@ -2,20 +2,237 @@
 
 ---
 
-# 🚀 2 — MELHORIAS
+## Tela: Diário
 
-## Tela: Pessoas
-
-[ ] Criar filtro de escopo de pessoas
-
-Adicionar opção de visualização:
-
-- Pessoas da Paróquia atual
-- Pessoas do Banco Global
+[ ] Permitir registrar encontro somente quando houver estudantes na turma
 
 Objetivo:
 
-Permitir alternar entre visão **local** e **global** do CRM.
+Evitar registros inválidos de encontros em turmas sem catequizandos.
+
+---
+
+## Tela: Diário
+
+[ ] Ajustar nomenclatura **Aula → Encontro**
+
+Objetivo:
+
+Catequese não possui aulas, mas **encontros catequéticos**.
+
+---
+
+# 🚀 2 — MELHORIAS
+
+---
+
+## Estrutura do Sistema: Catequese
+
+[ ] Substituir **Disciplina** por **Fase**
+
+Objetivo:
+
+Adequar o sistema ao modelo real de catequese, que trabalha com **fases da iniciação cristã** em vez de disciplinas.
+
+---
+
+[ ] Ajustar banco local para trabalhar com **fases**
+
+Objetivo:
+
+Modificar a estrutura do banco para substituir disciplinas por fases.
+
+Exemplo de fases da iniciação cristã:
+
+- Pré-catecumenato (Querigma / Acolhida)
+- Catecumenato
+- Purificação e Iluminação
+- Mistagogia
+
+---
+
+## Tela: Pessoas
+
+[ ] Criar nova aba **Padrinhamento**
+
+Objetivo:
+
+Registrar padrinhos e madrinhas dos catequizandos.
+
+---
+
+[ ] Criar select **Padrinho**
+
+Objetivo:
+
+Selecionar padrinho a partir do cadastro de pessoas.
+
+---
+
+[ ] Criar select **Madrinha**
+
+Objetivo:
+
+Selecionar madrinha a partir do cadastro de pessoas.
+
+---
+
+[ ] Criar campo **Endereço**
+
+Objetivo:
+
+Registrar endereço do padrinho/madrinha.
+
+---
+
+[ ] Criar campo **Telefone**
+
+Objetivo:
+
+Registrar telefone de contato.
+
+---
+
+[ ] Criar campo **Data de nascimento**
+
+Objetivo:
+
+Registrar data de nascimento do padrinho/madrinha.
+
+---
+
+[ ] Criar toggle **Casados na Igreja**
+
+Objetivo:
+
+Registrar se os padrinhos são casados sacramentalmente.
+
+---
+
+[ ] Criar toggle **Solteiros**
+
+Objetivo:
+
+Registrar estado civil dos padrinhos.
+
+---
+
+[ ] Gerar **Termo LGPD** após cadastro
+
+Objetivo:
+
+Garantir autorização de uso de dados conforme legislação.
+
+---
+
+[ ] Gerar **Termo de uso de imagem**
+
+Objetivo:
+
+Permitir autorização para uso de imagem em atividades da paróquia.
+
+---
+
+## Tela: Turmas
+
+[ ] Adicionar toggle **Turma Ano II**
+
+Objetivo:
+
+Identificar turmas do segundo ano de catequese.
+
+Regra:
+
+Somente turmas **Ano II** podem ser concluídas.
+
+---
+
+[ ] Implementar **Conclusão de Turma**
+
+Objetivo:
+
+Permitir finalizar turmas que chegaram ao fim do ciclo catequético.
+
+Ações esperadas:
+
+- Marcar turma como concluída
+- Bloquear novos encontros
+- Preparar geração de certificados
+
+---
+
+[ ] Gerar **lembrancinhas / certificados de conclusão**
+
+Objetivo:
+
+Emitir certificado para catequizandos que concluíram a formação.
+
+Dados possíveis:
+
+- Nome do catequizando
+- Paróquia
+- Fase concluída
+- Data
+- Assinatura responsável
+
+---
+
+## Experiência do Usuário (UX)
+
+[ ] Permitir **cadastro direto nas telas**
+
+Objetivo:
+
+Evitar que o usuário precise sair da tela atual para cadastrar novos registros.
+
+Exemplo:
+
+Dentro de selects adicionar opção:
+
+- **+ Novo cadastro**
+
+Abrir modal de cadastro rápido.
+
+---
+
+## Estrutura do Sistema
+
+[ ] Alterar nome **Organização → Entidade**
+
+Objetivo:
+
+Tornar o sistema mais genérico e adequado à estrutura paroquial.
+
+Impacto esperado:
+
+- Labels do sistema
+- Telas
+- Permissões
+- Banco de dados (caso necessário)
+
+---
+
+## Tela: Diário
+
+[ ] Permitir **dois encontros na mesma data**
+
+Objetivo:
+
+Registrar múltiplos encontros catequéticos realizados no mesmo dia.
+
+Exemplo:
+
+14/04  
+- Encontro 1  
+- Encontro 2
+
+---
+
+[ ] Permitir **selecionar o encontro ao registrar presença**
+
+Objetivo:
+
+Garantir que a presença seja vinculada ao encontro correto quando houver mais de um no mesmo dia.
 
 ---
 
