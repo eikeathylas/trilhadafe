@@ -115,9 +115,10 @@ const configureProfile = () => {
 
     // if (screen && screen !== "index" && screen !== "dashboard" && !defaults.screensAllowed.includes(screen)) {
     if (!defaults.screensAllowed.includes(screen)) {
-      if (href == defaults.pageActive){
-        window.location.href = defaults.screensAllowed.includes('diario') ? 'diario.php' : 'eventos.php'
-      } 
+      if (href == defaults.pageActive) {
+        // window.location.href = defaults.screensAllowed.includes('diario') ? 'diario.php' : 'eventos.php'
+        window.logOut();
+      }
       $(this).remove();
     }
   });
