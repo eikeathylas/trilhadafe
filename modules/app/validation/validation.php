@@ -185,7 +185,7 @@ switch ($validator) {
 	case "getCoursesList":
 		getCoursesList();
 		break;
-	case "getSubjectsSelect":
+	case "getPhasesSelect":
 		getPhasesSelect();
 		break;
 

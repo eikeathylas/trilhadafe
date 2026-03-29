@@ -329,13 +329,13 @@ window.loadCourseData = async (id, btn) => {
 };
 
 window.initSelectPhases = () => {
-  const $select = $("#curr_subject");
+  const $select = $("#curr_phase");
 
   if ($select[0] && $select[0].selectize) {
     try {
       $select[0].selectize.destroy();
     } catch (e) {
-      console.warn("Aviso Selectize: Erro ao destruir instância de disciplinas.", e);
+      console.warn("Aviso Selectize: Erro ao destruir instância de fases.", e);
     }
   }
 
@@ -343,7 +343,7 @@ window.initSelectPhases = () => {
     valueField: "id",
     labelField: "title",
     searchField: "title",
-    placeholder: "Busque uma disciplina...",
+    placeholder: "Busque uma fase...",
     preload: true,
     maxOptions: 50,
     render: {
@@ -374,11 +374,11 @@ window.initSelectPhases = () => {
           callback(result.data || []);
         } else {
           callback();
-          throw new Error(result.alert || "Erro ao buscar disciplinas.");
+          throw new Error(result.alert || "Erro ao buscar fases.");
         }
       } catch (e) {
         callback();
-        window.alertErrorWithSupport(`Busca Selectize Disciplinas`, e.message);
+        window.alertErrorWithSupport(`Busca Selectize Fases`, e.message);
       }
     },
   });
@@ -863,7 +863,7 @@ window.salvarCurso = async (btn) => {
 
   if (!name) return window.alertDefault("O nome do curso é obrigatório.", "warning");
 
-  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
+  window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
   if (typeof window.saveActiveSummernote === "function") {
     window.saveActiveSummernote();
   }
