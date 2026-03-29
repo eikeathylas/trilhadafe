@@ -8,53 +8,6 @@ As tarefas devem ser executadas **uma por vez**, seguindo o processo de **engenh
 
 # 🧱 BLOCO 1 — ESTRUTURA DA CATEQUESE
 
-## TAREFA 01 — Substituir conceito **Disciplina → Fase**
-
-**Objetivo**
-
-Adequar o sistema ao modelo real de catequese, que trabalha com **fases da iniciação cristã** em vez de disciplinas.
-
-**Alterações esperadas**
-
-- Labels do sistema
-- Textos de interface
-- Nomenclatura nas telas
-- Variáveis relacionadas
-
-**Fases esperadas**
-
-- Pré-catecumenato (Querigma / Acolhida)
-- Catecumenato
-- Purificação e Iluminação
-- Mistagogia
-
-**Impacto possível**
-
-- Tela de turmas
-- Tela de encontros
-- Relatórios
-
----
-
-## TAREFA 02 — Ajustar banco de dados para trabalhar com **Fases**
-
-**Objetivo**
-
-Modificar a estrutura do banco de dados para substituir disciplinas por fases.
-
-**Possíveis ações**
-
-- Renomear tabela
-- Renomear colunas  
-- Criar tabela `fases`
-- Ajustar relacionamentos
-
-**Regras**
-
-- Manter integridade dos dados existentes
-- Evitar quebra de registros atuais
-
----
 
 # 👥 BLOCO 2 — TELA DE PESSOAS
 
