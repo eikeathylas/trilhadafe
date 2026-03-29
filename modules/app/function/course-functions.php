@@ -29,7 +29,7 @@ function getAllCourses($data)
                 c.max_age,
                 c.is_active,
                 COALESCE((SELECT SUM(cur.workload_hours) FROM education.curriculum cur WHERE cur.course_id = c.course_id), 0) as total_workload_hours,
-                (SELECT COUNT(*) FROM education.curriculum cur WHERE cur.course_id = c.course_id) as subjects_count
+                (SELECT COUNT(*) FROM education.curriculum cur WHERE cur.course_id = c.course_id) as phase_count
             FROM education.courses c
             $where
             ORDER BY c.name ASC
@@ -70,14 +70,14 @@ function getCourseData($courseId)
         $sqlCurriculum = <<<'SQL'
             SELECT 
                 cur.curriculum_id,
-                cur.subject_id,
-                s.name as subject_name,
+                cur.phase_id,
+                p.name as phase_name,
                 cur.workload_hours,
                 cur.is_mandatory
             FROM education.curriculum cur
-            JOIN education.subjects s ON s.subject_id = cur.subject_id
+            JOIN education.phases p ON p.phase_id = cur.phase_id
             WHERE cur.course_id = :id
-            ORDER BY s.name ASC
+            ORDER BY p.name ASC
         SQL;
 
         $stmtCur = $conect->prepare($sqlCurriculum);
@@ -148,12 +148,12 @@ function upsertCourse($data)
 
         foreach ($currList as $item) {
             $curriculumId = $item['curriculum_id'] ?? null;
-            $subjectId = $item['subject_id'];
+            $phaseId = $item['phase_id'];
 
             // Verifica ID se não veio do front (caso raro de inserção concorrente, ou segurança)
             if (!$curriculumId) {
-                $stmtCheck = $conect->prepare("SELECT curriculum_id FROM education.curriculum WHERE course_id = :cid AND subject_id = :sid");
-                $stmtCheck->execute(['cid' => $courseId, 'sid' => $subjectId]);
+                $stmtCheck = $conect->prepare("SELECT curriculum_id FROM education.curriculum WHERE course_id = :cid AND phase_id = :pid");
+                $stmtCheck->execute(['cid' => $courseId, 'pid' => $phaseId]);
                 $curriculumId = $stmtCheck->fetchColumn();
             }
 
@@ -163,8 +163,8 @@ function upsertCourse($data)
                     ->execute(['h' => (int)$item['workload_hours'], 'm' => ($item['is_mandatory'] ? 'TRUE' : 'FALSE'), 'id' => $curriculumId]);
             } else {
                 // INSERT
-                $stmtIns = $conect->prepare("INSERT INTO education.curriculum (course_id, subject_id, workload_hours, is_mandatory) VALUES (:cid, :sid, :h, :m) RETURNING curriculum_id");
-                $stmtIns->execute(['cid' => $courseId, 'sid' => $subjectId, 'h' => (int)$item['workload_hours'], 'm' => ($item['is_mandatory'] ? 'TRUE' : 'FALSE')]);
+                $stmtIns = $conect->prepare("INSERT INTO education.curriculum (course_id, phase_id, workload_hours, is_mandatory) VALUES (:cid, :pid, :h, :m) RETURNING curriculum_id");
+                $stmtIns->execute(['cid' => $courseId, 'pid' => $phaseId, 'h' => (int)$item['workload_hours'], 'm' => ($item['is_mandatory'] ? 'TRUE' : 'FALSE')]);
                 $curriculumId = $stmtIns->fetchColumn();
             }
 
@@ -323,7 +323,7 @@ function searchCoursesForSelect($search)
     }
 }
 
-function searchSubjects($search = '')
+function searchPhases($search = '')
 {
     try {
         $conect = $GLOBALS["local"];
@@ -335,7 +335,7 @@ function searchSubjects($search = '')
             $params[':search'] = "%" . $search . "%";
         }
 
-        $sql = "SELECT subject_id as id, name as title FROM education.subjects $where ORDER BY name ASC LIMIT 100";
+        $sql = "SELECT phase_id as id, name as title FROM education.phases $where ORDER BY name ASC LIMIT 100";
         $stmt = $conect->prepare($sql);
         foreach ($params as $key => $val) {
             $stmt->bindValue($key, $val);

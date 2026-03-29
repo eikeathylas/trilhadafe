@@ -275,7 +275,7 @@ INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, co
 (4,  'diario',      'Diário de Classe',     'Área do professor/frequência.', TRUE, 'icon-calendar', 'AcademicController'),
 (5,  'turmas',      'Gestão de Turmas',     'Administração de salas e alunos.', TRUE, 'icon-group', 'AcademicController'),
 (6,  'cursos',      'Cursos e Grades',      'Definição formativa.', TRUE, 'icon-school', 'AcademicController'),
-(7,  'disciplinas', 'Disciplinas',          'Cadastro de matérias.', TRUE, 'icon-list', 'AcademicController'),
+(7,  'fases',       'Fases da Iniciação',   'Cadastro de fases.', TRUE, 'icon-list', 'AcademicController'),
 (8,  'pessoas',     'Diretório de Pessoas', 'Prontuário único.', TRUE, 'icon-user', 'PeopleController'),
 (9,  'organizacao', 'Organização',          'Estrutura física e dados.', TRUE, 'icon-building', 'OrganizationController'),
 (10, 'usuarios',    'Usuários',             'Gerenciamento de acessos.', TRUE, 'icon-users', 'UsersController'),
@@ -339,15 +339,15 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 (607, 6, 'cursos.delete',   'Excluir Curso',    'Excluir curso.', FALSE),
 (608, 6, 'cursos.template', 'Template Padrão',  'Gerir roteiro de aulas.', FALSE);
 
--- BLOCO 700: DISCIPLINAS
+-- BLOCO 700: FASES DA INICIAÇÃO
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
-(701, 7, 'disciplinas.list',    'Listar Materiais', 'Ver lista.', FALSE),
-(702, 7, 'disciplinas.modal',   'Abrir Modal',      'Janela.', FALSE),
-(703, 7, 'disciplinas.create',  'Criar Disc.',      'Nova.', FALSE),
-(704, 7, 'disciplinas.edit',    'Editar Disc.',     'Alterar.', FALSE),
-(705, 7, 'disciplinas.save',    'Salvar Disc.',     'Gravar.', FALSE),
-(706, 7, 'disciplinas.history', 'Histórico',        'Auditoria.', FALSE),
-(707, 7, 'disciplinas.delete',  'Excluir',          'Lixeira.', FALSE);
+(701, 7, 'fases.list',    'Listar Fases',    'Ver lista.', FALSE),
+(702, 7, 'fases.modal',   'Abrir Modal',     'Janela.', FALSE),
+(703, 7, 'fases.create',  'Criar Fase',      'Nova.', FALSE),
+(704, 7, 'fases.edit',    'Editar Fase',     'Alterar.', FALSE),
+(705, 7, 'fases.save',    'Salvar Fase',     'Gravar.', FALSE),
+(706, 7, 'fases.history', 'Histórico',       'Auditoria.', FALSE),
+(707, 7, 'fases.delete',  'Excluir',         'Lixeira.', FALSE);
 
 -- BLOCO 800: PESSOAS
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 

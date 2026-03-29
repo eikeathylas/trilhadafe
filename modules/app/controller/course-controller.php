@@ -74,11 +74,11 @@ function getCoursesList()
     echo json_encode(searchCoursesForSelect($search));
 }
 
-function getSubjectsSelect()
+function getPhasesSelect()
 {
     if (!verifyToken()) return;
 
     $search = $_POST["search"] ?? "";
 
-    echo json_encode(searchSubjects($search));
+    echo json_encode(searchPhases($search));
 }

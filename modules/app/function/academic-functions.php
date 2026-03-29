@@ -1,6 +1,6 @@
 <?php
 
-function getAllSubjects($data)
+function getAllPhases($data)
 {
     try {
         $conect = $GLOBALS["local"];
@@ -17,11 +17,11 @@ function getAllSubjects($data)
         $sql = <<<SQL
             SELECT 
                 COUNT(*) OVER() as total_registros,
-                subject_id,
+                phase_id,
                 name,
                 syllabus_summary,
                 is_active
-            FROM education.subjects
+            FROM education.phases
             $where
             ORDER BY name ASC
             LIMIT :limit OFFSET :page
@@ -37,14 +37,14 @@ function getAllSubjects($data)
 
         foreach ($result as &$row) $row['is_active'] = (bool)$row['is_active'];
 
-        return success("Disciplinas listadas.", $result);
+        return success("Fases listadas.", $result);
     } catch (Exception $e) {
-        logSystemError("painel", "education", "getAllSubjects", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao listar as disciplinas. Contate o suporte.", null, false, 500);
+        logSystemError("painel", "education", "getAllPhases", "sql", $e->getMessage(), $data);
+        return failure("Ocorreu um erro ao listar as fases. Contate o suporte.", null, false, 500);
     }
 }
 
-function getSubjectData($id)
+function getPhaseData($id)
 {
     try {
         $conect = $GLOBALS["local"];
@@ -52,9 +52,9 @@ function getSubjectData($id)
             SELECT
                 *
             FROM
-                education.subjects
+                education.phases
             WHERE
-                subject_id = :id
+                phase_id = :id
                 AND deleted IS FALSE
             ORDER BY name ASC
             LIMIT 1
@@ -64,15 +64,15 @@ function getSubjectData($id)
         $stmt->execute(['id' => $id]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$res) return failure("Disciplina não encontrada.");
+        if (!$res) return failure("Fase não encontrada.");
         return success("Dados carregados.", $res);
     } catch (Exception $e) {
-        logSystemError("painel", "education", "getSubjectData", "sql", $e->getMessage(), ['id' => $id]);
+        logSystemError("painel", "education", "getPhaseData", "sql", $e->getMessage(), ['id' => $id]);
         return failure("Ocorreu um erro ao buscar os dados. Contate o suporte.", null, false, 500);
     }
 }
 
-function upsertSubject($data)
+function upsertPhase($data)
 {
     try {
         $conect = $GLOBALS["local"];
@@ -87,18 +87,18 @@ function upsertSubject($data)
             'syllabus' => $data['syllabus_summary'] ?? null
         ];
 
-        if (!empty($data['subject_id'])) {
-            $sql = "UPDATE education.subjects SET name=:name, syllabus_summary=:syllabus, updated_at=CURRENT_TIMESTAMP WHERE subject_id=:id";
-            $params['id'] = $data['subject_id'];
-            $msg = "Disciplina atualizada!";
+        if (!empty($data['phase_id'])) {
+            $sql = "UPDATE education.phases SET name=:name, syllabus_summary=:syllabus, updated_at=CURRENT_TIMESTAMP WHERE phase_id=:id";
+            $params['id'] = $data['phase_id'];
+            $msg = "Fase atualizada!";
         } else {
             if (empty($data['org_id'])) {
                 $conect->rollBack();
                 return failure("Organização não definida.");
             }
-            $sql = "INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES (:oid, :name, :syllabus)";
+            $sql = "INSERT INTO education.phases (org_id, name, syllabus_summary) VALUES (:oid, :name, :syllabus)";
             $params['oid'] = $data['org_id'];
-            $msg = "Disciplina criada!";
+            $msg = "Fase criada!";
         }
 
         $stmt = $conect->prepare($sql);
@@ -107,12 +107,12 @@ function upsertSubject($data)
         return success($msg);
     } catch (Exception $e) {
         $conect->rollBack();
-        logSystemError("painel", "education", "upsertSubject", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao salvar a disciplina. Contate o suporte.", null, false, 500);
+        logSystemError("painel", "education", "upsertPhase", "sql", $e->getMessage(), $data);
+        return failure("Ocorreu um erro ao salvar a fase. Contate o suporte.", null, false, 500);
     }
 }
 
-function removeSubject($data)
+function removePhase($data)
 {
     try {
         $conect = $GLOBALS["local"];
@@ -123,18 +123,18 @@ function removeSubject($data)
             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
         }
 
-        $stmt = $conect->prepare("UPDATE education.subjects SET deleted = TRUE, is_active = FALSE WHERE subject_id = :id");
+        $stmt = $conect->prepare("UPDATE education.phases SET deleted = TRUE, is_active = FALSE WHERE phase_id = :id");
         $stmt->execute(['id' => $data['id']]);
         $conect->commit();
-        return success("Disciplina removida com sucesso.");
+        return success("Fase removida com sucesso.");
     } catch (Exception $e) {
         $conect->rollBack();
-        logSystemError("painel", "education", "removeSubject", "sql", $e->getMessage(), $data);
-        return failure("Ocorreu um erro ao remover a disciplina. Contate o suporte.", null, false, 500);
+        logSystemError("painel", "education", "removePhase", "sql", $e->getMessage(), $data);
+        return failure("Ocorreu um erro ao remover a fase. Contate o suporte.", null, false, 500);
     }
 }
 
-function toggleSubjectStatus($data)
+function togglePhaseStatus($data)
 {
     try {
         $conect = $GLOBALS["local"];
@@ -145,7 +145,7 @@ function toggleSubjectStatus($data)
             $stmtAudit->execute(['uid' => (string)$data['user_id']]);
         }
 
-        $stmt = $conect->prepare("UPDATE education.subjects SET is_active = :active WHERE subject_id = :id");
+        $stmt = $conect->prepare("UPDATE education.phases SET is_active = :active WHERE phase_id = :id");
         $status = ($data['active'] === 'true' || $data['active'] === true);
         $stmt->bindValue(':active', $status, PDO::PARAM_BOOL);
         $stmt->bindValue(':id', $data['id'], PDO::PARAM_INT);
@@ -154,7 +154,7 @@ function toggleSubjectStatus($data)
         return success("Status atualizado com sucesso.");
     } catch (Exception $e) {
         $conect->rollBack();
-        logSystemError("painel", "education", "toggleSubjectStatus", "sql", $e->getMessage(), $data);
+        logSystemError("painel", "education", "togglePhaseStatus", "sql", $e->getMessage(), $data);
         return failure("Ocorreu um erro ao atualizar o status. Contate o suporte.", null, false, 500);
     }
 }

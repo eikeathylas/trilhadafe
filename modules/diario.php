@@ -51,10 +51,10 @@
                     </div>
 
                     <div class="col-12 col-md-5 flex-grow-1">
-                        <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" for="sel_filter_subject" style="letter-spacing: 0.5px;">
+                        <label class="form-label d-none d-md-flex small fw-bold text-uppercase text-muted mb-2" for="sel_filter_phase" style="letter-spacing: 0.5px;">
                             <i class="fas fa-book-open opacity-50 me-1"></i> 2. Selecione a Fase
                         </label>
-                        <select id="sel_filter_subject" class="form-control shadow-sm" disabled style="height: 48px; border-radius: 12px;">
+                        <select id="sel_filter_phase" class="form-control shadow-sm" disabled style="height: 48px; border-radius: 12px;">
                             <option value="">Primeiro selecione a turma...</option>
                         </select>
                     </div>

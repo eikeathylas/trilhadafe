@@ -71,22 +71,22 @@ function getTeacherClassesF($userId, $roleLevel, $yearId, $orgId)
     }
 }
 
-function getClassSubjectsF($classId)
+function getClassPhasesF($classId)
 {
     try {
         $conect = $GLOBALS["local"];
-        $sql = "SELECT s.subject_id, s.name as subject_name, cur.workload_hours
+        $sql = "SELECT p.phase_id, p.name as phase_name, cur.workload_hours
                 FROM education.classes c
                 JOIN education.curriculum cur ON c.course_id = cur.course_id
-                JOIN education.subjects s ON cur.subject_id = s.subject_id
-                WHERE c.class_id = :cid AND s.deleted IS FALSE
-                ORDER BY s.name ASC";
+                JOIN education.phases p ON cur.phase_id = p.phase_id
+                WHERE c.class_id = :cid AND p.deleted IS FALSE
+                ORDER BY p.name ASC";
         $stmt = $conect->prepare($sql);
         $stmt->execute(['cid' => $classId]);
-        return success("Disciplinas carregadas.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        return success("Fases carregadas.", $stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (Exception $e) {
-        logSystemError("painel", "diario", "getClassSubjectsF", "sql", $e->getMessage(), ['class_id' => $classId]);
-        return failure("Erro ao carregar disciplinas.");
+        logSystemError("painel", "diario", "getClassPhasesF", "sql", $e->getMessage(), ['class_id' => $classId]);
+        return failure("Erro ao carregar fases.");
     }
 }
 
@@ -95,7 +95,7 @@ function getDiarioMetadataF($data)
     try {
         $conect = $GLOBALS["local"];
         $classId = (int)$data['class_id'];
-        $subjectId = (int)$data['subject_id'];
+        $phaseId = (int)$data['phase_id'];
 
         // 1. Busca Dados da Turma (Org e Datas Limites)
         $sqlClass = "SELECT c.org_id, ay.start_date, ay.end_date 
@@ -169,9 +169,9 @@ function getDiarioMetadataF($data)
         $existingDates = [];
         $sqlExist = "SELECT to_char(session_date, 'YYYY-MM-DD') as date 
                      FROM education.class_sessions 
-                     WHERE class_id = :cid AND subject_id = :sid AND deleted IS FALSE";
+                     WHERE class_id = :cid AND phase_id = :pid AND deleted IS FALSE";
         $stmtExist = $conect->prepare($sqlExist);
-        $stmtExist->execute(['cid' => $classId, 'sid' => $subjectId]);
+        $stmtExist->execute(['cid' => $classId, 'pid' => $phaseId]);
         $existingDates = $stmtExist->fetchAll(PDO::FETCH_COLUMN);
 
         return success("Configurações carregadas.", [
@@ -193,7 +193,7 @@ function checkDateContentF($data)
     try {
         $conect = $GLOBALS["local"];
         $classId = $data['class_id'];
-        $subjectId = $data['subject_id'];
+        $phaseId = $data['phase_id'];
         $dateTime = $data['date'];
         $dateOnly = substr($dateTime, 0, 10);
 
@@ -217,9 +217,9 @@ function checkDateContentF($data)
 
         // B. Verifica Aula Existente
         $sqlSession = "SELECT session_id, description, content_type, session_date FROM education.class_sessions 
-                       WHERE class_id = :cid AND subject_id = :sid AND session_date = :dt AND deleted IS FALSE";
+                       WHERE class_id = :cid AND phase_id = :pid AND session_date = :dt AND deleted IS FALSE";
         $stmtSess = $conect->prepare($sqlSession);
-        $stmtSess->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime]);
+        $stmtSess->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $dateTime]);
         $existing = $stmtSess->fetch(PDO::FETCH_ASSOC);
 
         if ($existing) {
@@ -242,9 +242,9 @@ function checkDateContentF($data)
 
         // C. Nova Aula
         $sqlCount = "SELECT COUNT(*) FROM education.class_sessions 
-                     WHERE class_id = :cid AND subject_id = :sid AND session_date < :dt AND deleted IS FALSE";
+                     WHERE class_id = :cid AND phase_id = :pid AND session_date < :dt AND deleted IS FALSE";
         $stmtCount = $conect->prepare($sqlCount);
-        $stmtCount->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $dateTime]);
+        $stmtCount->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $dateTime]);
         $prevCount = $stmtCount->fetchColumn();
 
         $meetingNum = $prevCount + 1;
@@ -253,10 +253,10 @@ function checkDateContentF($data)
                     FROM education.curriculum_plans cp
                     JOIN education.curriculum cur ON cp.curriculum_id = cur.curriculum_id
                     JOIN education.classes c ON c.course_id = cur.course_id
-                    WHERE c.class_id = :cid AND cur.subject_id = :sid AND cp.meeting_number = :num AND cp.deleted IS FALSE
+                    WHERE c.class_id = :cid AND cur.phase_id = :pid AND cp.meeting_number = :num AND cp.deleted IS FALSE
                     LIMIT 1";
         $stmtPlan = $conect->prepare($sqlPlan);
-        $stmtPlan->execute(['cid' => $classId, 'sid' => $subjectId, 'num' => $meetingNum]);
+        $stmtPlan->execute(['cid' => $classId, 'pid' => $phaseId, 'num' => $meetingNum]);
         $template = $stmtPlan->fetchColumn();
 
         return success("Nova aula.", [
@@ -314,22 +314,22 @@ function saveClassSessionF($data)
 
         $sessionId = !empty($data['session_id']) ? (int)$data['session_id'] : null;
         $classId = $data['class_id'];
-        $subjectId = $data['subject_id'];
+        $phaseId = $data['phase_id'];
         $date = $data['date'];
         $content = $data['content'];
 
         if (empty($sessionId)) {
-            $check = $conect->prepare("SELECT session_id FROM education.class_sessions WHERE class_id = :c AND subject_id = :s AND session_date = :d AND deleted IS FALSE");
-            $check->execute(['c' => $classId, 's' => $subjectId, 'd' => $date]);
+            $check = $conect->prepare("SELECT session_id FROM education.class_sessions WHERE class_id = :c AND phase_id = :p AND session_date = :d AND deleted IS FALSE");
+            $check->execute(['c' => $classId, 'p' => $phaseId, 'd' => $date]);
             if ($check->rowCount() > 0) {
                 $conect->rollBack();
-                return failure("Já existe uma aula nesta data.");
+                return failure("Já existe um encontro nesta data.");
             }
 
-            $sqlIns = "INSERT INTO education.class_sessions (class_id, subject_id, session_date, description, content_type, signed_by_user_id, signed_at) 
-                       VALUES (:cid, :sid, :dt, :desc, 'DOCTRINAL', :uid, CURRENT_TIMESTAMP) RETURNING session_id";
+            $sqlIns = "INSERT INTO education.class_sessions (class_id, phase_id, session_date, description, content_type, signed_by_user_id, signed_at) 
+                       VALUES (:cid, :pid, :dt, :desc, 'DOCTRINAL', :uid, CURRENT_TIMESTAMP) RETURNING session_id";
             $stmt = $conect->prepare($sqlIns);
-            $stmt->execute(['cid' => $classId, 'sid' => $subjectId, 'dt' => $date, 'desc' => $content, 'uid' => $data['user_id']]);
+            $stmt->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $date, 'desc' => $content, 'uid' => $data['user_id']]);
             $sessionId = $stmt->fetchColumn();
         } else {
             $sqlUpd = "UPDATE education.class_sessions SET description = :desc, session_date = :dt, updated_at = CURRENT_TIMESTAMP WHERE session_id = :id";
@@ -369,7 +369,7 @@ function getClassHistoryF($data)
         $conect = $GLOBALS["local"];
         $params = [
             'cid' => $data['class_id'],
-            'sid' => $data['subject_id'],
+            'pid' => $data['phase_id'],
             'limit' => (int)$data['limit'],
             'offset' => (int)$data['page']
         ];
@@ -382,7 +382,7 @@ function getClassHistoryF($data)
                     (SELECT COUNT(*) FROM education.attendance a WHERE a.session_id = sess.session_id AND a.is_present IS TRUE) as present_count,
                     (SELECT COUNT(*) FROM education.enrollments e WHERE e.class_id = sess.class_id AND e.status = 'ACTIVE') as total_students
                 FROM education.class_sessions sess
-                WHERE sess.class_id = :cid AND sess.subject_id = :sid AND sess.deleted IS FALSE
+                WHERE sess.class_id = :cid AND sess.phase_id = :pid AND sess.deleted IS FALSE
                 ORDER BY sess.session_date DESC
                 LIMIT :limit OFFSET :offset";
         $stmt = $conect->prepare($sql);

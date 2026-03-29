@@ -1,24 +1,24 @@
-const defaultSubject = {
+const defaultPhase = {
   currentPage: 1,
   rowsPerPage: 10,
   totalPages: 1,
 };
 
 // Declaração Global do Toggle com Dual Status (Padrão de Excelência)
-window.toggleSubject = (id, element) => handleToggle("toggleSubject", id, element, "Estado atualizado.", `.status-text-sub-${id}`, getDisciplinas);
+window.togglePhase = (id, element) => handleToggle("togglePhase", id, element, "Estado atualizado.", `.status-text-sub-${id}`, getFases);
 
-const getDisciplinas = async () => {
-  const container = $(".list-table-disciplinas");
+const getFases = async () => {
+  const container = $(".list-table-fases");
 
   try {
-    const page = Math.max(0, defaultSubject.currentPage - 1);
+    const page = Math.max(0, defaultPhase.currentPage - 1);
     const search = $("#busca-texto").val();
 
     const result = await window.ajaxValidator({
-      validator: "getSubjects",
+      validator: "getPhases",
       token: window.defaultApp.userInfo.token,
-      limit: defaultSubject.rowsPerPage,
-      page: page * defaultSubject.rowsPerPage,
+      limit: defaultPhase.rowsPerPage,
+      page: page * defaultPhase.rowsPerPage,
       search: search,
       org_id: localStorage.getItem("tf_active_parish"),
     });
@@ -28,8 +28,8 @@ const getDisciplinas = async () => {
 
       if (dataArray.length > 0) {
         const total = dataArray[0]?.total_registros || 0;
-        defaultSubject.totalPages = Math.max(1, Math.ceil(total / defaultSubject.rowsPerPage));
-        renderTableSubjects(dataArray);
+        defaultPhase.totalPages = Math.max(1, Math.ceil(total / defaultPhase.rowsPerPage));
+        renderTablePhases(dataArray);
       } else {
         container.html(`
             <div class="text-center py-5 opacity-50">
@@ -37,7 +37,7 @@ const getDisciplinas = async () => {
                 <p class="mt-3 fw-medium text-body">Nenhuma fase ou etapa encontrada.</p>
             </div>
         `);
-        $(".pagination-disciplinas").empty();
+        $(".pagination-fases").empty();
       }
     } else {
       throw new Error(result.alert || "O servidor não conseguiu processar a lista de fases.");
@@ -51,7 +51,7 @@ const getDisciplinas = async () => {
                 <i class="fas fa-exclamation-triangle fs-3"></i>
             </div>
             <h6 class="fw-bold text-danger">Erro ao carregar dados</h6>
-            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm mt-2" onclick="getDisciplinas()">
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-4 shadow-sm mt-2" onclick="getFases()">
                 <i class="fas fa-sync-alt me-2"></i> Tentar Novamente
             </button>
         </div>
@@ -61,8 +61,8 @@ const getDisciplinas = async () => {
   }
 };
 
-const renderTableSubjects = (data) => {
-  const container = $(".list-table-disciplinas");
+const renderTablePhases = (data) => {
+  const container = $(".list-table-fases");
 
   if (data.length === 0) {
     container.html(`
@@ -71,7 +71,7 @@ const renderTableSubjects = (data) => {
             <p class="mt-2 fw-medium text-body">Nenhum registo encontrado.</p>
         </div>
     `);
-    $(".pagination-disciplinas").empty();
+    $(".pagination-fases").empty();
     return;
   }
 
@@ -90,9 +90,9 @@ const renderTableSubjects = (data) => {
     console.warn("Erro ao ler permissões", e);
   }
 
-  const canEdit = allowedSlugs.includes("disciplinas.save");
-  const canHistory = allowedSlugs.includes("disciplinas.history");
-  const canDelete = allowedSlugs.includes("disciplinas.delete");
+  const canEdit = allowedSlugs.includes("fases.save");
+  const canHistory = allowedSlugs.includes("fases.history");
+  const canDelete = allowedSlugs.includes("fases.delete");
 
   // =========================================================
   // 1. VISÃO DESKTOP (TABELA CUSTOM PREMIUM)
@@ -105,9 +105,9 @@ const renderTableSubjects = (data) => {
 
       // Ações Desktop Condicionais
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
-      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.phases', ${item.phase_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalFase(${item.phase_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deletePhase(${item.phase_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
@@ -126,7 +126,7 @@ const renderTableSubjects = (data) => {
               <div class="d-flex align-items-center justify-content-center gap-2">
                   <div class="form-check form-switch m-0 p-0 d-flex align-items-center position-relative">
                       <input class="form-check-input shadow-none m-0" type="checkbox" ${isActive ? "checked" : ""} 
-                             ${canEdit ? `onchange="toggleSubject(${item.subject_id}, this)"` : "disabled"} 
+                             ${canEdit ? `onchange="togglePhase(${item.phase_id}, this)"` : "disabled"} 
                              style="width: 44px; height: 24px; cursor: ${canEdit ? "pointer" : "default"};">
                   </div>
               </div>
@@ -166,11 +166,11 @@ const renderTableSubjects = (data) => {
       // Ações Mobile Condicionais (Usando os botões redondos para manter coerência visual)
       let mobActionsHtml = "";
       if (canHistory)
-        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.subjects', ${item.subject_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.phases', ${item.phase_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
-        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="modalDisciplina(${item.subject_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="modalFase(${item.phase_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)
-        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSubject(${item.subject_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deletePhase(${item.phase_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <div class="ios-list-item flex-column align-items-stretch mb-2 p-3">
@@ -181,7 +181,7 @@ const renderTableSubjects = (data) => {
               </div>
               <div class="form-check form-switch m-0 p-0 d-flex align-items-center flex-shrink-0 ms-2">
                   <input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} 
-                         ${canEdit ? `onchange="toggleSubject(${item.subject_id}, this)"` : "disabled"} 
+                         ${canEdit ? `onchange="togglePhase(${item.phase_id}, this)"` : "disabled"} 
                          style="cursor: ${canEdit ? "pointer" : "default"}; width: 44px; height: 24px;">
               </div>
           </div>
@@ -198,30 +198,30 @@ const renderTableSubjects = (data) => {
   const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
 
   container.html(desktopHtml + mobileHtml);
-  _generatePaginationButtons("pagination-disciplinas", "currentPage", "totalPages", "changePage", defaultSubject);
+  _generatePaginationButtons("pagination-fases", "currentPage", "totalPages", "changePage", defaultPhase);
 };
 
-window.modalDisciplina = (id = null, btn = false) => {
-  const modal = $("#modalDisciplina");
-  $("#subject_id").val("");
-  $("#subject_name").val("");
-  $("#subject_summary").val("");
+window.modalFase = (id = null, btn = false) => {
+  const modal = $("#modalFase");
+  $("#phase_id").val("");
+  $("#phase_name").val("");
+  $("#phase_summary").val("");
 
   if (btn) btn = $(btn);
 
   if (id) {
-    loadSubjectData(id, btn);
+    loadPhaseData(id, btn);
   } else {
     $("#modalLabel").html('<i class="fas fa-book-open me-3 opacity-75"></i> Nova Fase');
     modal.modal("show");
   }
 };
 
-const loadSubjectData = async (id, btn) => {
+const loadPhaseData = async (id, btn) => {
   try {
     window.setButton(true, btn, "");
     const result = await window.ajaxValidator({
-      validator: "getSubjectById",
+      validator: "getPhaseById",
       token: window.defaultApp.userInfo.token,
       id: id,
     });
@@ -229,12 +229,12 @@ const loadSubjectData = async (id, btn) => {
     if (result.status) {
       const d = result.data;
 
-      $("#subject_id").val(d.subject_id);
-      $("#subject_name").val(d.name);
-      $("#subject_summary").val(d.syllabus_summary);
+      $("#phase_id").val(d.phase_id);
+      $("#phase_name").val(d.name);
+      $("#phase_summary").val(d.syllabus_summary);
 
       $("#modalLabel").html('<i class="fas fa-pen me-3 opacity-75"></i> Editar Fase');
-      $("#modalDisciplina").modal("show");
+      $("#modalFase").modal("show");
     } else {
       throw new Error(result.alert || "O servidor não retornou os dados desta fase.");
     }
@@ -246,9 +246,9 @@ const loadSubjectData = async (id, btn) => {
   }
 };
 
-window.salvarDisciplina = async (btn) => {
-  const name = $("#subject_name").val()?.trim();
-  const id = $("#subject_id").val();
+window.salvarFase = async (btn) => {
+  const name = $("#phase_name").val()?.trim();
+  const id = $("#phase_id").val();
   btn = $(btn);
 
   if (!name) return window.alertDefault("O nome da fase é obrigatório.", "warning");
@@ -256,14 +256,14 @@ window.salvarDisciplina = async (btn) => {
   window.setButton(true, btn, id ? " Salvando..." : " Cadastrando...");
 
   const data = {
-    subject_id: id,
+    phase_id: id,
     name: name,
-    syllabus_summary: $("#subject_summary").val()?.trim(),
+    syllabus_summary: $("#phase_summary").val()?.trim(),
   };
 
   try {
     const result = await window.ajaxValidator({
-      validator: "saveSubject",
+      validator: "savePhase",
       token: window.defaultApp.userInfo.token,
       data: data,
       org_id: localStorage.getItem("tf_active_parish"),
@@ -271,9 +271,9 @@ window.salvarDisciplina = async (btn) => {
 
     if (result.status) {
       window.alertDefault("Fase guardada com sucesso!", "success");
-      $("#modalDisciplina").modal("hide");
+      $("#modalFase").modal("hide");
 
-      if (typeof getDisciplinas === "function") getDisciplinas();
+      if (typeof getFases === "function") getFases();
     } else {
       throw new Error(result.alert || "O servidor recusou o salvamento desta fase.");
     }
@@ -286,7 +286,7 @@ window.salvarDisciplina = async (btn) => {
   }
 };
 
-window.deleteSubject = (id) => {
+window.deletePhase = (id) => {
   Swal.fire({
     title: "Excluir Fase?",
     text: "O registro será movido para a lixeira do sistema.",
@@ -300,7 +300,7 @@ window.deleteSubject = (id) => {
     if (r.isConfirmed) {
       try {
         const res = await window.ajaxValidator({
-          validator: "deleteSubject",
+          validator: "deletePhase",
           token: window.defaultApp.userInfo.token,
           id: id,
         });
@@ -308,7 +308,7 @@ window.deleteSubject = (id) => {
         if (res.status) {
           window.alertDefault("Fase movida para a lixeira.", "success");
 
-          if (typeof getDisciplinas === "function") window.getDisciplinas();
+          if (typeof getFases === "function") window.getFases();
         } else {
           throw new Error(res.alert || "O banco de dados não permitiu a exclusão desta fase.");
         }
@@ -323,16 +323,16 @@ window.deleteSubject = (id) => {
 $("#busca-texto").on("change keyup", function () {
   clearTimeout(window.searchTimeout);
   window.searchTimeout = setTimeout(() => {
-    defaultSubject.currentPage = 1;
-    getDisciplinas();
+    defaultPhase.currentPage = 1;
+    getFases();
   }, 500);
 });
 
-window.getDisciplinas = getDisciplinas;
+window.getFases = getFases;
 
 window.changePage = (page) => {
-  defaultSubject.currentPage = page;
-  getDisciplinas();
+  defaultPhase.currentPage = page;
+  getFases();
 };
 
 // MOTOR DE PAGINAÇÃO INTELIGENTE (Padrão Trilha da Fé)
@@ -360,5 +360,5 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
 };
 
 $(document).ready(() => {
-  getDisciplinas();
+  getFases();
 });

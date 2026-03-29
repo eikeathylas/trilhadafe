@@ -151,11 +151,11 @@
 
                         <div class="tab-pane fade" id="tab-grade">
                             <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 mb-4 shadow-inner" data-slug="cursos.save">
-                                <label class="form-label small fw-bold text-primary text-uppercase mb-3 ms-1"><i class="fas fa-plus-circle me-2"></i>Adicionar Disciplina</label>
+                                <label class="form-label small fw-bold text-primary text-uppercase mb-3 ms-1"><i class="fas fa-plus-circle me-2"></i>Adicionar Fase</label>
                                 <div class="row g-3 align-items-end">
                                     <div class="col-12 col-md-5">
-                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Disciplina</label>
-                                        <select id="curr_subject" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;"></select>
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Fase da Iniciação</label>
+                                        <select id="curr_phase" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;"></select>
                                     </div>
                                     <div class="col-6 col-md-2">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Horas</label>
@@ -171,7 +171,7 @@
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-2 d-grid">
-                                        <button class="btn btn-primary rounded-4 fw-bold shadow-sm transition-all hover-scale" onclick="addSubjectToGrid()" style="height: 52px;">
+                                        <button class="btn btn-primary rounded-4 fw-bold shadow-sm transition-all hover-scale" onclick="addPhaseToGrid()" style="height: 52px;">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>

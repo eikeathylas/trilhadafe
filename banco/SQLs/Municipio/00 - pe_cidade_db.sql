@@ -249,8 +249,8 @@ CREATE TABLE education.academic_years (
 );
 COMMENT ON TABLE education.academic_years IS 'Ciclos letivos. Agrupa as turmas por período.';
 
-CREATE TABLE education.subjects (
-    subject_id SERIAL PRIMARY KEY,
+CREATE TABLE education.phases (
+    phase_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id),
     name VARCHAR(150) NOT NULL,
     syllabus_summary TEXT,
@@ -259,7 +259,7 @@ CREATE TABLE education.subjects (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
-COMMENT ON TABLE education.subjects IS 'Matérias ou Temas ensinados.';
+COMMENT ON TABLE education.phases IS 'Fases da Iniciação Cristã (Ex: Querigma, Catecumenato).';
 
 CREATE TABLE education.courses (
     course_id SERIAL PRIMARY KEY,
@@ -279,7 +279,7 @@ COMMENT ON TABLE education.courses IS 'Produtos educacionais (Ex: Catequese 1ª 
 CREATE TABLE education.curriculum (
     curriculum_id SERIAL PRIMARY KEY,
     course_id INT NOT NULL REFERENCES education.courses(course_id) ON DELETE CASCADE,
-    subject_id INT NOT NULL REFERENCES education.subjects(subject_id),
+    phase_id INT NOT NULL REFERENCES education.phases(phase_id),
     workload_hours INT DEFAULT 0,
     is_mandatory BOOLEAN DEFAULT TRUE,
     lesson_plan_template TEXT, 
@@ -333,7 +333,7 @@ CREATE TABLE education.class_schedules (
     day_of_week INT NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
-    subject_id INT REFERENCES education.subjects(subject_id),
+    phase_id INT REFERENCES education.phases(phase_id),
     location_id INT REFERENCES organization.locations(location_id),
     instructor_id INT REFERENCES people.persons(person_id),
     is_active BOOLEAN DEFAULT TRUE,
@@ -391,7 +391,7 @@ COMMENT ON TABLE education.enrollment_history IS 'Log de alterações de status 
 CREATE TABLE education.class_sessions (
     session_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id),
-    subject_id INT REFERENCES education.subjects(subject_id),
+    phase_id INT REFERENCES education.phases(phase_id),
     session_date TIMESTAMP NOT NULL,
     description TEXT, 
     content_type VARCHAR(50) DEFAULT 'DOCTRINAL',
@@ -401,12 +401,12 @@ CREATE TABLE education.class_sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     deleted BOOLEAN DEFAULT FALSE,
-    CONSTRAINT unique_class_date UNIQUE (class_id, subject_id, session_date)
+    CONSTRAINT unique_class_date UNIQUE (class_id, phase_id, session_date)
 );
-CREATE INDEX idx_sessions_subject ON education.class_sessions(subject_id);
+CREATE INDEX idx_sessions_phase ON education.class_sessions(phase_id);
 CREATE INDEX idx_sessions_class ON education.class_sessions(class_id);
 CREATE INDEX idx_sessions_date ON education.class_sessions(session_date);
-ALTER TABLE education.class_sessions ADD CONSTRAINT unique_class_date_subject UNIQUE (class_id, session_date, subject_id);
+ALTER TABLE education.class_sessions ADD CONSTRAINT unique_class_date_phase UNIQUE (class_id, session_date, phase_id);
 COMMENT ON TABLE education.class_sessions IS 'Diário de Classe. Representa um dia letivo/encontro.';
 COMMENT ON COLUMN education.class_sessions.description IS 'Relatório do que foi ensinado na aula.';
 
@@ -429,7 +429,7 @@ COMMENT ON TABLE education.attendance IS 'Lista de presença dos alunos em uma s
 CREATE TABLE education.assessments (
     assessment_id SERIAL PRIMARY KEY,
     class_id INT NOT NULL REFERENCES education.classes(class_id),
-    subject_id INT REFERENCES education.subjects(subject_id),
+    phase_id INT REFERENCES education.phases(phase_id),
     title VARCHAR(150) NOT NULL,
     max_score NUMERIC(5,2) DEFAULT 10.00,
     weight INT DEFAULT 1,
@@ -1143,8 +1143,8 @@ CREATE TRIGGER audit_trigger_person_attachments AFTER INSERT OR UPDATE OR DELETE
 DROP TRIGGER IF EXISTS audit_trigger_academic_years ON education.academic_years;
 CREATE TRIGGER audit_trigger_academic_years AFTER INSERT OR UPDATE OR DELETE ON education.academic_years FOR EACH ROW EXECUTE FUNCTION security.log_changes('year_id');
 
-DROP TRIGGER IF EXISTS audit_trigger_subjects ON education.subjects;
-CREATE TRIGGER audit_trigger_subjects AFTER INSERT OR UPDATE OR DELETE ON education.subjects FOR EACH ROW EXECUTE FUNCTION security.log_changes('subject_id');
+DROP TRIGGER IF EXISTS audit_trigger_phases ON education.phases;
+CREATE TRIGGER audit_trigger_phases AFTER INSERT OR UPDATE OR DELETE ON education.phases FOR EACH ROW EXECUTE FUNCTION security.log_changes('phase_id');
 
 DROP TRIGGER IF EXISTS audit_trigger_courses ON education.courses;
 CREATE TRIGGER audit_trigger_courses AFTER INSERT OR UPDATE OR DELETE ON education.courses FOR EACH ROW EXECUTE FUNCTION security.log_changes('course_id');
@@ -1270,7 +1270,7 @@ INSERT INTO people.family_ties (person_id, relative_id, relationship_type, is_le
 INSERT INTO education.academic_years (year_id, org_id, name, start_date, end_date, is_active) VALUES
 (2026, 2, '2026', '2026-01-01', '2026-12-31', TRUE);
 
-INSERT INTO education.subjects (org_id, name, syllabus_summary) VALUES 
+INSERT INTO education.phases (org_id, name, syllabus_summary) VALUES 
 (2, 'Querigma', 'Foco no anúncio básico, apresentação de Jesus como amigo e Deus como Pai amoroso, utilizando histórias, recursos visuais e orações simples.'),
 (2, 'Catecumenato', 'Aprofundamento na cultura cristã, manuseio da Bíblia, Credo, orações fundamentais (Pai Nosso), os 10 Mandamentos, bem-aventuranças e compreensão da Missa.'),
 (2, 'Purificação e Iluminação', 'Foco na espiritualidade, exame de consciência, compreensão da transubstanciação, e preparação para a Primeira Confissão e Eucaristia.'),
@@ -1282,7 +1282,7 @@ INSERT INTO education.courses (org_id, name, min_age, max_age) VALUES
 INSERT INTO education.classes (class_id, course_id, org_id, main_location_id, coordinator_id, name, year_id, max_capacity, status) VALUES 
 (1, 1, 2, 2, 3, 'Turma ano I - Sábado Manhã', 2026, 20, 'ACTIVE');
 
-INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, subject_id, location_id, instructor_id) VALUES 
+INSERT INTO education.class_schedules (class_id, day_of_week, start_time, end_time, phase_id, location_id, instructor_id) VALUES 
 (1, 6, '09:00:00', '10:30:00', 1, 2, 3);
 
 INSERT INTO education.enrollments (class_id, student_id, status) VALUES 
@@ -1389,7 +1389,7 @@ SELECT setval(pg_get_serial_sequence('people.persons', 'person_id'), COALESCE(MA
 
 -- 4. Education
 SELECT setval(pg_get_serial_sequence('education.academic_years', 'year_id'), COALESCE(MAX(year_id), 1)) FROM education.academic_years;
-SELECT setval(pg_get_serial_sequence('education.subjects', 'subject_id'), COALESCE(MAX(subject_id), 1)) FROM education.subjects;
+SELECT setval(pg_get_serial_sequence('education.phases', 'phase_id'), COALESCE(MAX(phase_id), 1)) FROM education.phases;
 SELECT setval(pg_get_serial_sequence('education.courses', 'course_id'), COALESCE(MAX(course_id), 1)) FROM education.courses;
 SELECT setval(pg_get_serial_sequence('education.classes', 'class_id'), COALESCE(MAX(class_id), 1)) FROM education.classes;
 SELECT setval(pg_get_serial_sequence('education.class_sessions', 'session_id'), COALESCE(MAX(session_id), 1)) FROM education.class_sessions;

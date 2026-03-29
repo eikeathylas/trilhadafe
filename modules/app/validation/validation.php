@@ -150,20 +150,20 @@ switch ($validator) {
 		break;
 
 	// MÓDULO: ACADÊMICO (Disciplinas)
-	case "getSubjects":
-		getSubjects();
+	case "getPhases":
+		getPhases();
 		break;
-	case "getSubjectById":
-		getSubjectById();
+	case "getPhaseById":
+		getPhaseById();
 		break;
-	case "saveSubject":
-		saveSubject();
+	case "savePhase":
+		savePhase();
 		break;
-	case "deleteSubject":
-		deleteSubject();
+	case "deletePhase":
+		deletePhase();
 		break;
-	case "toggleSubject":
-		toggleSubject();
+	case "togglePhase":
+		togglePhase();
 		break;
 
 	// MÓDULO: ACADÊMICO (Cursos)
@@ -186,7 +186,7 @@ switch ($validator) {
 		getCoursesList();
 		break;
 	case "getSubjectsSelect":
-		getSubjectsSelect();
+		getPhasesSelect();
 		break;
 
 	// MÓDULO: TURMAS (turmas.js)
@@ -234,8 +234,8 @@ switch ($validator) {
 	case "getMyClasses":
 		getMyClasses();
 		break;
-	case "getClassSubjects":
-		getClassSubjects();
+	case "getClassPhases":
+		getClassPhases();
 		break;
 	case "getClassHistory":
 		getClassHistory();

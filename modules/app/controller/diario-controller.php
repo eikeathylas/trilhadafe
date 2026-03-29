@@ -15,11 +15,11 @@ function getMyClasses()
     echo json_encode(getTeacherClassesF($userId, $roleLevel, $yearId, $orgId));
 }
 
-function getClassSubjects()
+function getClassPhases()
 {
     if (!verifyToken()) return;
     $classId = $_POST['class_id'] ?? 0;
-    echo json_encode(getClassSubjectsF($classId));
+    echo json_encode(getClassPhasesF($classId));
 }
 
 function getClassHistory()

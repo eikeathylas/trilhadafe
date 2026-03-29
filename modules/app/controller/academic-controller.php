@@ -2,8 +2,7 @@
 
 include "../function/academic-functions.php";
 
-
-function getSubjects()
+function getPhases()
 {
     if (!verifyToken()) return;
 
@@ -14,17 +13,17 @@ function getSubjects()
         "search" => $_POST["search"] ?? ""
     ];
 
-    echo json_encode(getAllSubjects($data));
+    echo json_encode(getAllPhases($data));
 }
 
-function getSubjectById()
+function getPhaseById()
 {
     if (!verifyToken()) return;
 
-    echo json_encode(getSubjectData($_POST["id"] ?? 0));
+    echo json_encode(getPhaseData($_POST["id"] ?? 0));
 }
 
-function saveSubject()
+function savePhase()
 {
     if (!verifyToken()) return;
 
@@ -32,18 +31,18 @@ function saveSubject()
     $data['user_id'] = getAuthUserId();
     $data['org_id'] = $_POST["org_id"] ?? 0;
 
-    echo json_encode(upsertSubject($data));
+    echo json_encode(upsertPhase($data));
 }
 
-function deleteSubject()
+function deletePhase()
 {
     if (!verifyToken()) return;
 
     $data = ["id" => $_POST["id"] ?? 0, "user_id" => getAuthUserId(),];
-    echo json_encode(removeSubject($data));
+    echo json_encode(removePhase($data));
 }
 
-function toggleSubject()
+function togglePhase()
 {
     if (!verifyToken()) return;
 
@@ -52,5 +51,5 @@ function toggleSubject()
         "active" => $_POST["active"],
         "user_id" => getAuthUserId(),
     ];
-    echo json_encode(toggleSubjectStatus($data));
+    echo json_encode(togglePhaseStatus($data));
 }

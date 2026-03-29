@@ -6,7 +6,7 @@ const defaultDiary = {
 
 const diarioState = {
   classId: null,
-  subjectId: null,
+  phaseId: null,
   schedules: [],
   sessionId: null,
   currentStudents: [],
@@ -126,8 +126,8 @@ const initFilters = () => {
       onChange: function (value) {
         if (value) {
           diarioState.classId = value;
-          loadSubjects(value);
-          if ($("#sel_filter_subject")[0].selectize) $("#sel_filter_subject")[0].selectize.enable();
+          loadPhases(value);
+          if ($("#sel_filter_phase")[0].selectize) $("#sel_filter_phase")[0].selectize.enable();
         } else {
           diarioState.classId = null;
           resetInterface();
@@ -136,20 +136,20 @@ const initFilters = () => {
     });
   }
 
-  if ($("#sel_filter_subject").length && !$("#sel_filter_subject")[0].selectize) {
-    $("#sel_filter_subject").selectize({
-      valueField: "subject_id",
-      labelField: "subject_name",
-      searchField: "subject_name",
+  if ($("#sel_filter_phase").length && !$("#sel_filter_phase")[0].selectize) {
+    $("#sel_filter_phase").selectize({
+      valueField: "phase_id",
+      labelField: "phase_name",
+      searchField: "phase_name",
       placeholder: "Selecione a Fase...",
       onChange: function (value) {
         if (value) {
-          diarioState.subjectId = value;
+          diarioState.phaseId = value;
           defaultDiary.currentPage = 1;
           getHistory();
           $("#btn_new_session").prop("disabled", false);
         } else {
-          diarioState.subjectId = null;
+          diarioState.phaseId = null;
           $("#btn_new_session").prop("disabled", true);
           $(".list-table-diario").empty();
         }
@@ -158,18 +158,18 @@ const initFilters = () => {
   }
 };
 
-const loadSubjects = async (classId) => {
-  const selSub = $("#sel_filter_subject")[0].selectize;
+const loadPhases = async (classId) => {
+  const selSub = $("#sel_filter_phase")[0].selectize;
   selSub.clear();
   selSub.clearOptions();
   selSub.disable();
 
   try {
-    const res = await window.ajaxValidator({ validator: "getClassSubjects", token: defaultApp.userInfo.token, class_id: classId });
+    const res = await window.ajaxValidator({ validator: "getClassPhases", token: defaultApp.userInfo.token, class_id: classId });
     if (res.status && res.data.length > 0) {
       selSub.enable();
       res.data.forEach((item) => selSub.addOption(item));
-      if (res.data.length === 1) selSub.setValue(res.data[0].subject_id);
+      if (res.data.length === 1) selSub.setValue(res.data[0].phase_id);
     } else {
       throw new Error(res.alert || "Erro ao obter fase.");
     }
@@ -180,7 +180,7 @@ const loadSubjects = async (classId) => {
 };
 
 const resetInterface = () => {
-  const selSub = $("#sel_filter_subject")[0].selectize;
+  const selSub = $("#sel_filter_phase")[0]?.selectize;
   if (selSub) {
     selSub.clear();
     selSub.disable();
@@ -215,7 +215,7 @@ window.getHistory = async () => {
       validator: "getClassHistory",
       token: window.defaultApp.userInfo.token,
       class_id: diarioState.classId,
-      subject_id: diarioState.subjectId,
+      phase_id: diarioState.phaseId,
       page: page * defaultDiary.rowsPerPage,
       limit: defaultDiary.rowsPerPage,
     });
@@ -447,7 +447,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
       validator: "getDiarioMetadata",
       token: window.defaultApp.userInfo.token,
       class_id: diarioState.classId,
-      subject_id: diarioState.subjectId,
+      phase_id: diarioState.phaseId,
     });
 
     if (resMeta.status) {
@@ -545,7 +545,7 @@ window.checkDateLogic = async (dateStr) => {
       validator: "checkDateContent",
       token: defaultApp.userInfo.token,
       class_id: diarioState.classId,
-      subject_id: diarioState.subjectId,
+      phase_id: diarioState.phaseId,
       date: dateStr,
     });
 
@@ -749,7 +749,7 @@ window.salvarDiario = async (btn) => {
       validator: "saveClassDiary",
       token: defaultApp.userInfo.token,
       class_id: diarioState.classId,
-      subject_id: diarioState.subjectId,
+      phase_id: diarioState.phaseId,
       session_id: diarioState.sessionId,
       date: date,
       content: content,

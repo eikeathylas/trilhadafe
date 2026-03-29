@@ -91,7 +91,7 @@
                             <li data-slug="cursos">
                                 <a href="cursos.php" class="<?= basename($_SERVER['PHP_SELF']) == 'cursos.php' ? 'fw-bold text-white' : '' ?>">Cursos</a>
                             </li>
-                            <li data-slug="disciplinas">
+                            <li data-slug="fases">
                                 <a href="fases.php" class="<?= basename($_SERVER['PHP_SELF']) == 'fases.php' ? 'fw-bold text-white' : '' ?>">Fases</a>
                             </li>
                         </ul>
@@ -161,9 +161,9 @@
         <span>Início</span>
     </a>
 
-    <a href="relatorios.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'relatorios.php' ? 'active' : '' ?>" data-slug="relatorios">
-        <div class="icon-wrapper"><span class="material-symbols-outlined">description</span></div>
-        <span>Relatórios</span>
+    <a href="eventos.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'eventos.php' ? 'active' : '' ?>" data-slug="eventos">
+        <div class="icon-wrapper"><span class="material-symbols-outlined">event</span></div>
+        <span>Agenda</span>
     </a>
 
     <a href="pessoas.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'pessoas.php' ? 'active' : '' ?>" data-slug="pessoas">

@@ -177,7 +177,7 @@ const renderTableCourses = (data) => {
           </td>
           <td class="text-center align-middle" style="width: 150px;">
               <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
-                  <i class="fas fa-book me-1"></i> ${item.subjects_count || 0} Matérias
+                  <i class="fas fa-book me-1"></i> ${item.phase_count || 0} Fases
               </span>
           </td>
           <td class="text-center align-middle" style="width: 100px;">
@@ -237,7 +237,7 @@ const renderTableCourses = (data) => {
               <div class="flex-grow-1 pe-2" style="min-width: 0;">
                   <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                       <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem; max-width: 200px;">${item.name}</h6>
-                      <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-0 border border-primary border-opacity-25 rounded-pill" style="font-size: 0.65rem;">${item.subjects_count || 0} matérias</span>
+                      <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-0 border border-primary border-opacity-25 rounded-pill" style="font-size: 0.65rem;">${item.phase_count || 0} fases</span>
                   </div>
                   <div class="small text-muted fw-medium d-flex align-items-center mt-1" style="font-size: 0.75rem;">
                       <i class="far fa-clock opacity-50 me-1"></i> Carga: ${item.total_workload_hours || 0}h
@@ -280,7 +280,7 @@ window.modalCurso = (id = null, btn = false) => {
   $("#curr_hours").val("20");
   $("#curr_mandatory").prop("checked", true);
 
-  initSelectSubjects();
+  initSelectPhases();
 
   const firstTabEl = document.querySelector("#courseTab button:first-child");
   if (firstTabEl) {
@@ -316,7 +316,7 @@ window.loadCourseData = async (id, btn) => {
       });
 
       renderCurriculumTable();
-      initSelectSubjects();
+      initSelectPhases();
 
       $("#modalLabel").html('<i class="fas fa-pen me-3 opacity-75"></i> Editar Curso e Grade');
       $("#modalCurso").modal("show");
@@ -328,7 +328,7 @@ window.loadCourseData = async (id, btn) => {
   }
 };
 
-window.initSelectSubjects = () => {
+window.initSelectPhases = () => {
   const $select = $("#curr_subject");
 
   if ($select[0] && $select[0].selectize) {
@@ -365,7 +365,7 @@ window.initSelectSubjects = () => {
 
       try {
         const result = await window.ajaxValidator({
-          validator: "getSubjectsSelect",
+          validator: "getPhasesSelect",
           token: window.defaultApp.userInfo.token,
           search: query,
         });
@@ -384,25 +384,25 @@ window.initSelectSubjects = () => {
   });
 };
 
-window.addSubjectToGrid = () => {
-  const subjectId = $("#curr_subject").val();
-  let subjectText = "Disciplina";
-  if (subjectId && $("#curr_subject")[0].selectize.options[subjectId]) {
-    subjectText = $("#curr_subject")[0].selectize.options[subjectId].title;
+window.addPhaseToGrid = () => {
+  const phaseId = $("#curr_phase").val();
+  let phaseText = "Fase";
+  if (phaseId && $("#curr_phase")[0].selectize.options[phaseId]) {
+    phaseText = $("#curr_phase")[0].selectize.options[phaseId].title;
   }
   const hours = $("#curr_hours").val();
   const isMandatory = $("#curr_mandatory").is(":checked");
 
-  if (!subjectId) return window.alertDefault("Selecione uma disciplina.", "warning");
+  if (!phaseId) return window.alertDefault("Selecione uma fase.", "warning");
   if (!hours || hours <= 0) return window.alertDefault("Informe a carga horária.", "warning");
 
-  if (window.currentCurriculumList.some((i) => i.subject_id == subjectId)) {
-    return window.alertDefault("Esta disciplina já está na grade.", "warning");
+  if (window.currentCurriculumList.some((i) => i.phase_id == phaseId)) {
+    return window.alertDefault("Esta fase já está na grade.", "warning");
   }
 
   window.currentCurriculumList.push({
-    subject_id: subjectId,
-    subject_name: subjectText,
+    phase_id: phaseId,
+    phase_name: phaseText,
     workload_hours: parseInt(hours),
     is_mandatory: isMandatory,
     plans: [],
@@ -410,14 +410,14 @@ window.addSubjectToGrid = () => {
 
   renderCurriculumTable();
   updateTotalHours();
-  $("#curr_subject")[0].selectize.clear();
+  $("#curr_phase")[0].selectize.clear();
   $("#curr_hours").val("20");
 };
 
-window.removeSubjectFromGrid = (index) => {
+window.removePhaseFromGrid = (index) => {
   Swal.fire({
     title: "Remover da grade?",
-    text: "O planejamento de aulas desta disciplina será perdido.",
+    text: "O planejamento de encontros desta fase será perdido.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#d33",
@@ -429,7 +429,7 @@ window.removeSubjectFromGrid = (index) => {
       window.currentCurriculumList.splice(index, 1);
       renderCurriculumTable();
       updateTotalHours();
-      window.alertDefault("Disciplina removida.", "success");
+      window.alertDefault("Fase removida.", "success");
     }
   });
 };
@@ -441,7 +441,7 @@ const renderCurriculumTable = () => {
     container.html(`
         <div class="text-center py-5 opacity-50">
             <span class="material-symbols-outlined fs-1 text-secondary">menu_book</span>
-            <p class="mt-2 fw-medium text-body mb-0">Nenhuma disciplina adicionada à grade.</p>
+            <p class="mt-2 fw-medium text-body mb-0">Nenhuma fase adicionada à grade.</p>
         </div>
     `);
     return;
@@ -485,7 +485,7 @@ const renderCurriculumTable = () => {
       }
 
       if (canEdit) {
-        actionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="removeSubjectFromGrid(${index})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+        actionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="removePhaseFromGrid(${index})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
       }
 
       return `
@@ -495,7 +495,7 @@ const renderCurriculumTable = () => {
                   <i class="fas fa-book-open"></i>
               </div>
               <div>
-                  <div class="fw-bold text-body small mb-1">${item.subject_name}</div>
+                  <div class="fw-bold text-body small mb-1">${item.phase_name}</div>
                   <div class="d-flex align-items-center flex-wrap gap-2">
                       <span class="badge text-body border rounded-pill fw-medium px-2 py-1 shadow-sm" style="font-size: 0.65rem;">
                           <i class="far fa-clock me-1 text-primary opacity-75"></i> ${item.workload_hours}h
@@ -527,7 +527,7 @@ window.configureTemplate = (index) => {
   if (!Array.isArray(item.plans)) item.plans = [];
 
   renderAccordionList();
-  $("#modalTemplateAulaLabel").html(`<i class="fa-solid fa-book-open-reader me-3 opacity-75"></i><strong class="text-white ms-1 fw-bold">${item.subject_name}</strong>`);
+  $("#modalTemplateAulaLabel").html(`<i class="fa-solid fa-book-open-reader me-3 opacity-75"></i><strong class="text-white ms-1 fw-bold">${item.phase_name}</strong>`);
   $("#modalTemplateAula").css("z-index", 1060);
   $("#modalTemplateAula").modal("show");
 };
@@ -763,7 +763,7 @@ window.exportPlansXlsx = async () => {
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 
-    const safeName = item.subject_name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    const safeName = item.phase_name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
     saveAs(blob, `planejamento_${safeName}.xlsx`);
 
     window.alertDefault("Planilha gerada com sucesso!", "success");
