@@ -1,0 +1,386 @@
+# 📦 Backlog de Implementação — Sistema Trilha da Fé
+
+Este documento contém as tarefas planejadas para evolução do sistema.
+
+As tarefas devem ser executadas **uma por vez**, seguindo o processo de **engenharia controlada**, garantindo estabilidade e evitando alterações indevidas na arquitetura.
+
+---
+
+# 🧱 BLOCO 1 — ESTRUTURA DA CATEQUESE
+
+## TAREFA 01 — Substituir conceito **Disciplina → Fase**
+
+**Objetivo**
+
+Adequar o sistema ao modelo real de catequese, que trabalha com **fases da iniciação cristã** em vez de disciplinas.
+
+**Alterações esperadas**
+
+- Labels do sistema
+- Textos de interface
+- Nomenclatura nas telas
+- Variáveis relacionadas
+
+**Fases esperadas**
+
+- Pré-catecumenato (Querigma / Acolhida)
+- Catecumenato
+- Purificação e Iluminação
+- Mistagogia
+
+**Impacto possível**
+
+- Tela de turmas
+- Tela de encontros
+- Relatórios
+
+---
+
+## TAREFA 02 — Ajustar banco de dados para trabalhar com **Fases**
+
+**Objetivo**
+
+Modificar a estrutura do banco de dados para substituir disciplinas por fases.
+
+**Possíveis ações**
+
+- Renomear tabela
+- Renomear colunas  
+- Criar tabela `fases`
+- Ajustar relacionamentos
+
+**Regras**
+
+- Manter integridade dos dados existentes
+- Evitar quebra de registros atuais
+
+---
+
+# 👥 BLOCO 2 — TELA DE PESSOAS
+
+## TAREFA 03 — Criar aba **Padrinhamento**
+
+**Objetivo**
+
+Adicionar uma nova aba no modal de pessoa para registrar informações de padrinhos e madrinhas.
+
+**Conteúdo da aba**
+
+- Dados de padrinhos
+- Dados de madrinhas
+- Informações adicionais
+
+---
+
+## TAREFA 04 — Criar select **Padrinho**
+
+**Objetivo**
+
+Permitir selecionar padrinho a partir do cadastro existente de pessoas.
+
+**Comportamento esperado**
+
+- Select com busca
+- Utilizar padrão já existente do sistema (Selectize)
+
+---
+
+## TAREFA 05 — Criar select **Madrinha**
+
+**Objetivo**
+
+Permitir selecionar madrinha a partir do cadastro existente de pessoas.
+
+**Regra**
+
+Seguir exatamente o mesmo padrão visual do select de padrinho.
+
+---
+
+## TAREFA 06 — Criar campo **Endereço**
+
+**Objetivo**
+
+Registrar endereço do padrinho ou madrinha.
+
+---
+
+## TAREFA 07 — Criar campo **Telefone**
+
+**Objetivo**
+
+Registrar telefone de contato.
+
+**Comportamento esperado**
+
+- Aplicar máscara de telefone
+- Seguir padrão já utilizado no sistema
+
+---
+
+## TAREFA 08 — Criar campo **Data de nascimento**
+
+**Objetivo**
+
+Registrar data de nascimento do padrinho ou madrinha.
+
+**Tipo de campo**
+
+Date picker.
+
+---
+
+## TAREFA 09 — Criar toggle **Casados na Igreja**
+
+**Objetivo**
+
+Indicar se padrinho e madrinha possuem casamento sacramental.
+
+**Tipo**
+
+Campo booleano (toggle).
+
+---
+
+## TAREFA 10 — Criar toggle **Solteiros**
+
+**Objetivo**
+
+Registrar estado civil quando não houver casamento sacramental.
+
+---
+
+# 📄 BLOCO 3 — LGPD
+
+## TAREFA 11 — Gerar **Termo LGPD**
+
+**Objetivo**
+
+Emitir termo de autorização de uso de dados pessoais conforme legislação.
+
+**Fluxo esperado**
+
+Após cadastro do catequizando:
+
+- Gerar documento
+- Permitir download
+- Permitir impressão
+
+---
+
+## TAREFA 12 — Gerar **Termo de Uso de Imagem**
+
+**Objetivo**
+
+Permitir autorização para uso de imagem em atividades da paróquia.
+
+**Fluxo esperado**
+
+- Gerar documento automaticamente
+- Permitir impressão ou download
+
+---
+
+# 🏫 BLOCO 4 — TURMAS
+
+## TAREFA 13 — Adicionar toggle **Turma Ano II**
+
+**Objetivo**
+
+Identificar turmas do segundo ano de catequese.
+
+**Regra**
+
+Somente turmas **Ano II** podem ser concluídas.
+
+---
+
+## TAREFA 14 — Implementar **Conclusão de Turma**
+
+**Objetivo**
+
+Permitir finalizar turmas que chegaram ao fim do ciclo catequético.
+
+**Ações esperadas**
+
+- Marcar turma como concluída
+- Bloquear novos encontros
+- Manter histórico da turma
+
+---
+
+## TAREFA 15 — Gerar **Certificados de Conclusão**
+
+**Objetivo**
+
+Emitir certificados para catequizandos que concluíram a formação.
+
+**Dados esperados**
+
+- Nome do catequizando
+- Paróquia
+- Fase concluída
+- Data
+- Assinatura do responsável
+
+**Formato sugerido**
+
+- PDF
+- Layout de lembrancinha
+
+---
+
+# ⚡ BLOCO 5 — EXPERIÊNCIA DO USUÁRIO (UX)
+
+## TAREFA 16 — Permitir **cadastro direto nas telas**
+
+**Objetivo**
+
+Evitar que o usuário precise sair da tela atual para cadastrar novos registros.
+
+**Exemplo**
+
+Dentro de selects adicionar opção:
+
+
+- Novo cadastro
+
+
+**Comportamento esperado**
+
+- Abrir modal de cadastro rápido
+- Atualizar select após salvar
+
+---
+
+# 🏛 BLOCO 6 — ESTRUTURA DO SISTEMA
+
+## TAREFA 17 — Alterar nome **Organização → Entidade**
+
+**Objetivo**
+
+Tornar o sistema mais genérico e adequado à estrutura paroquial.
+
+**Impacto esperado**
+
+- Labels do sistema
+- Telas
+- Permissões
+- Banco de dados (se necessário)
+
+---
+
+# 📓 BLOCO 7 — DIÁRIO
+
+## TAREFA 18 — Permitir **dois encontros na mesma data**
+
+**Objetivo**
+
+Registrar múltiplos encontros catequéticos realizados no mesmo dia.
+
+**Exemplo**
+
+
+14/04
+
+Encontro 1
+Encontro 2
+
+---
+
+## TAREFA 19 — Selecionar encontro ao registrar presença
+
+**Objetivo**
+
+Garantir que a presença seja vinculada ao encontro correto.
+
+**Comportamento esperado**
+
+Ao registrar presença:
+
+- Selecionar qual encontro está sendo registrado
+
+---
+
+# 📊 Resumo
+
+Total de tarefas planejadas:
+
+**19 tarefas**
+
+Distribuição:
+
+- Estrutura da catequese: 2
+- Tela de pessoas: 8
+- LGPD: 2
+- Turmas: 3
+- Experiência do usuário: 1
+- Estrutura do sistema: 1
+- Diário: 2
+
+---
+
+# ⚠️ Boas práticas de execução
+
+- Executar **uma tarefa por vez**
+- Sempre enviar **apenas os arquivos envolvidos**
+- Validar cada alteração antes de seguir para a próxima
+- Nunca realizar múltiplas alterações estruturais simultaneamente
+
+
+
+
+
+============== TAREFAS EXEMPLOS
+
+# Tarefa
+
+Tela: Usuários
+
+Objetivo:
+Criar uma nova aba no modal de usuário chamada **Perfil de Permissões**.
+
+Nessa aba deve existir:
+
+• lista de permissões do usuário
+• descrição da ação
+• toggle true/false indicando se está ativa
+
+Seguir o padrão visual existente no sistema.
+
+---
+
+Arquivos envolvidos:
+
+usuarios.php
+usuarios.js
+usuarios.css
+
+==============
+
+# Tarefa
+
+Tela: Diário
+
+Quero permitir **dois encontros na mesma data**.
+
+Hoje o sistema aceita apenas um.
+
+Não sei qual seria a melhor abordagem:
+
+• permitir múltiplos encontros
+• criar seleção de encontro
+• ou outra solução
+
+Analise os arquivos e proponha a melhor arquitetura sem quebrar o sistema.
+
+---
+
+Arquivos envolvidos:
+
+diario.php
+diario.js
+diario_controller.php
+
+==============
+---

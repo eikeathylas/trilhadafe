@@ -222,8 +222,9 @@ Registrar múltiplos encontros catequéticos realizados no mesmo dia.
 
 Exemplo:
 
-14/04  
-- Encontro 1  
+14/04
+
+- Encontro 1
 - Encontro 2
 
 ---
@@ -326,14 +327,17 @@ Sistema de comunicação interno.
 Hierarquia:
 
 Pároco
+
 - pode enviar para todos
 - pode enviar para grupos
 
 Secretaria
+
 - pode enviar para todos
 - pode enviar para grupos
 
 Professor
+
 - pode enviar apenas para alunos da turma
 
 Possíveis canais:
@@ -390,7 +394,7 @@ Significado:
 G → Guia  
 u → Unificado  
 I → Inteligência  
-A → Artificial  
+A → Artificial
 
 Frase oficial:
 
@@ -604,7 +608,7 @@ Identificar:
 
 ✔ funcionalidades já implementadas  
 ✔ funcionalidades incompletas  
-✔ funcionalidades ausentes  
+✔ funcionalidades ausentes
 
 ---
 
