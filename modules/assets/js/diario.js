@@ -166,10 +166,20 @@ const loadPhases = async (classId) => {
 
   try {
     const res = await window.ajaxValidator({ validator: "getClassPhases", token: defaultApp.userInfo.token, class_id: classId });
-    if (res.status && res.data.length > 0) {
-      selSub.enable();
-      res.data.forEach((item) => selSub.addOption(item));
-      if (res.data.length === 1) selSub.setValue(res.data[0].phase_id);
+    if (res.status) {
+      if (res.data.length == 0) {
+        $(".list-table-diario").html(`
+          <div class="text-center py-5 opacity-50">
+              <span class="material-symbols-outlined" style="font-size: 56px;">event_busy</span>
+              <p class="mt-3 fw-medium text-body">Nenhuma fase encontrada para esta turma, consulte a coordenação.</p>
+          </div>
+        `);
+        selSub.disable();
+      } else {
+        selSub.enable();
+        res.data.forEach((item) => selSub.addOption(item));
+        if (res.data.length === 1) selSub.setValue(res.data[0].phase_id);
+      }
     } else {
       throw new Error(res.alert || "Erro ao obter fase.");
     }

@@ -361,7 +361,8 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 (808, 8, 'pessoas.tab_contact',     'Aba Contato',       'Ver dados de contato.', FALSE),
 (809, 8, 'pessoas.tab_family',      'Aba Família',       'Ver/editar vínculos familiares.', FALSE),
 (810, 8, 'pessoas.tab_sacraments',  'Aba Sacramentos',   'Ver/editar dados religiosos.', FALSE),
-(811, 8, 'pessoas.tab_attachments', 'Aba Anexos',        'Acesso aos documentos PDF/Img.', FALSE);
+(811, 8, 'pessoas.tab_attachments', 'Aba Anexos',        'Acesso aos documentos PDF/Img.', FALSE),
+(812, 8, 'pessoas.tab_godparents',  'Aba Padrinhamento', 'Ver/editar padrinhos e madrinhas.', FALSE);
 
 -- BLOCO 900: ORGANIZAÇÃO (MINHA PARÓQUIA)
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
@@ -425,7 +426,7 @@ WHERE id IN (
     501, 502, 503, 504, 505, 506, 507, 508, 509,
     601, 602, 603, 604, 605, 606, 607, 608,
     701, 702, 703, 704, 705, 706, 707,
-    801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811,
+    801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811, 812,
     -- Paróquia (Gestão total)
     901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912,
     -- Usuários (Pode criar novos coordenadores/catequistas)
@@ -451,7 +452,7 @@ WHERE id IN (
     501, 502, 503, 504, 505, 506, 507, 508, 509,
     601, 602, 603, 604, 605, 606, 607, 608,
     701, 702, 703, 704, 705, 706, 707,
-    801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811,
+    801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811, 812,
     -- Ajuda (Ambos)
     1101, 1102
 );

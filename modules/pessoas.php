@@ -126,6 +126,9 @@
                                 <li class="nav-item" data-slug="pessoas.tab_attachments">
                                     <button class="nav-link fw-bold px-4 rounded-pill" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#tab-anexos" type="button"><i class="fas fa-paperclip me-2 opacity-75"></i> Anexos</button>
                                 </li>
+                                <li class="nav-item" data-slug="pessoas.tab_godparents">
+                                    <button class="nav-link fw-bold px-4 rounded-pill" id="padrinhamento-tab" data-bs-toggle="tab" data-bs-target="#tab-padrinhamento" type="button"><i class="fas fa-dove me-2 opacity-75"></i> Padrinhamento</button>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -249,6 +252,19 @@
                                                 <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_parent">Responsável</label>
                                                 <div class="form-check form-switch m-0 p-0">
                                                     <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_parent" style="width: 42px; height: 22px; position: relative; z-index: 2;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-all hover-scale" style="border: 1px solid rgba(0,0,0,0.05) !important;">
+                                            <div class="card-body p-3 d-flex flex-column align-items-center text-center position-relative">
+                                                <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 46px; height: 46px;">
+                                                    <i class="fas fa-desktop fs-5"></i>
+                                                </div>
+                                                <label class="fw-bold text-body small stretched-link cursor-pointer mb-3" for="role_secretary">Secretário(a)</label>
+                                                <div class="form-check form-switch m-0 p-0">
+                                                    <input class="form-check-input m-0 shadow-none cursor-pointer border-secondary" type="checkbox" id="role_secretary" style="width: 42px; height: 22px; position: relative; z-index: 2;">
                                                 </div>
                                             </div>
                                         </div>
@@ -470,6 +486,82 @@
                                             <div class="form-check form-switch m-0 p-0">
                                                 <input class="form-check-input shadow-none m-0 cursor-pointer border-secondary" type="checkbox" id="has_matrimony" style="width: 48px; height: 26px;">
                                                 <input type="hidden" id="matrimony_date"><input type="hidden" id="matrimony_place">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tab-padrinhamento">
+                            <div class="card border-0 rounded-4 bg-secondary bg-opacity-10 p-4 mb-4 shadow-inner">
+                                <h6 class="fw-bold text-body mb-4 d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
+                                        <i class="fas fa-user-friends" style="font-size: 0.9rem;"></i>
+                                    </div>
+                                    Dados do Padrinho ou Madrinha
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1">Tipo de Vínculo</label>
+                                        <select id="godparent_type" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
+                                            <option value="" selected disabled>Selecione...</option>
+                                            <option value="PADRINHO">Padrinho</option>
+                                            <option value="MADRINHA">Madrinha</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-8">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1">Nome Completo</label>
+                                        <input type="text" id="godparent_name" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body px-3" style="height: 52px;">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1">Telefone / WhatsApp</label>
+                                        <input type="text" id="godparent_phone" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body px-3 mask-phone" style="height: 52px;">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1">Data de Nascimento</label>
+                                        <input type="date" id="godparent_dob" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-uppercase text-body px-3 cursor-pointer" style="height: 52px;" onclick="this.showPicker()">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1">Endereço Residencial</label>
+                                        <input type="text" id="godparent_address" class="form-control border-0 shadow-sm rounded-4 bg-white fw-bold text-body px-3" placeholder="Rua, Número, Bairro..." style="height: 52px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="card p-4 border-0 bg-success bg-opacity-10 rounded-4 h-100 shadow-inner transition-all hover-bg-light">
+                                        <div class="d-flex align-items-center justify-content-between h-100">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                    <i class="fas fa-church fs-5"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold text-success m-0">Casado(a) na Igreja</h6>
+                                                    <small class="text-success opacity-75 fw-medium" style="font-size: 0.75rem;">Possui matrimônio sacramental</small>
+                                                </div>
+                                            </div>
+                                            <div class="form-check form-switch m-0 p-0">
+                                                <input class="form-check-input shadow-none m-0 cursor-pointer border-success" type="checkbox" id="godparent_married" style="width: 48px; height: 26px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="card p-4 border-0 bg-info bg-opacity-10 rounded-4 h-100 shadow-inner transition-all hover-bg-light">
+                                        <div class="d-flex align-items-center justify-content-between h-100">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                    <i class="fas fa-user fs-5"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold text-info m-0">Solteiro(a)</h6>
+                                                    <small class="text-info opacity-75 fw-medium" style="font-size: 0.75rem;">Sem vínculo matrimonial religioso</small>
+                                                </div>
+                                            </div>
+                                            <div class="form-check form-switch m-0 p-0">
+                                                <input class="form-check-input shadow-none m-0 cursor-pointer border-info" type="checkbox" id="godparent_single" style="width: 48px; height: 26px;">
                                             </div>
                                         </div>
                                     </div>

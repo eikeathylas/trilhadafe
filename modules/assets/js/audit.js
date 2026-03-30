@@ -91,9 +91,11 @@ const formatKey = (key) => {
     start_time: "Horário de Início",
     end_time: "Horário de Término",
     year_id: "Ciclo / Ano Letivo",
-    subject_id: "Matriz Disciplinar",
+    phase_id: "Matriz da Fase",
+    subject_id: "Matriz Disciplinar (Legado)",
     is_mandatory: "Requisito Obrigatório",
-    disciplina: "Componente Curricular",
+    fase: "Fase da Iniciação",
+    disciplina: "Componente Curricular (Legado)",
     syllabus_summary: "Ementa Acadêmica",
     course_id: "ID do Curso",
     class_id: "ID da Turma",
@@ -137,6 +139,10 @@ const formatKey = (key) => {
     phone_secondary: "Telefone Secundário",
     phone_mobile: "Celular / WhatsApp",
     phone_landline: "Linha Fixa",
+    phone: "Telefone de Contato",
+    godparent_type: "Tipo de Vínculo",
+    marital_status: "Estado Civil",
+    address: "Endereço Residencial",
     email_contact: "Endereço de E-mail",
     website_url: "Portal Eletrônico",
     address_street: "Logradouro (Rua/Av)",
@@ -238,6 +244,12 @@ const formatValue = (val, key = "") => {
       PEDAGOGICAL: "Pedagógico",
     };
     if (translateMap[valUpper]) return translateMap[valUpper];
+
+    // Tratamentos Visuais Premium (Padrinhamento e Casamentos)
+    if (valUpper === "PADRINHO") return `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="fas fa-male me-1"></i> Padrinho</span>`;
+    if (valUpper === "MADRINHA") return `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1"><i class="fas fa-female me-1"></i> Madrinha</span>`;
+    if (valUpper === "MARRIED") return `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1"><i class="fas fa-church me-1"></i> Casado(a) na Igreja</span>`;
+    if (valUpper === "SINGLE") return `<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1"><i class="fas fa-user me-1"></i> Solteiro(a)</span>`;
   }
 
   if (!boolKeys.includes(key) && isEffectivelyEmpty(val)) return `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-normal">Não informado</span>`;
@@ -314,7 +326,7 @@ const renderTimeline = (logs, container) => {
     "session_id",
     "attendance_id",
     "signed_by_user_id",
-    "subject_id",
+    "phase_id",
     "attachment_id",
     "uploaded_by",
     "file_path",
@@ -348,7 +360,7 @@ const renderTimeline = (logs, container) => {
   let html = "";
   let visibleLogsCount = 0;
 
-  const priorityTables = ["persons", "organizations", "classes", "courses", "subjects", "events"];
+  const priorityTables = ["persons", "organizations", "classes", "courses", "phases", "events"];
 
   groupedTransactions.forEach((group, index) => {
     let sessionLog = group.items.find((l) => l.table_name === "class_sessions");
@@ -381,6 +393,7 @@ const renderTimeline = (logs, container) => {
         curriculum_plans: "Planejamento Estratégico",
         person_attachments: "Anexação de Documentos",
         enrollments: "Matrícula / Vínculo de Aluno",
+        person_godparents: "Dados de Padrinhamento",
       };
       if (labelsMap[mainLog.table_name]) headerText = labelsMap[mainLog.table_name];
     }
@@ -464,15 +477,33 @@ const renderTimeline = (logs, container) => {
               if (typeof vo === "object" || typeof vn === "object") {
                 if (JSON.stringify(vo) === JSON.stringify(vn)) return;
                 let lbl = formatKey(sk);
+
+                // Helper para extrair e formatar dados agregados do sacramento
+                const getDetails = (obj) => {
+                  if (!obj) return "";
+                  let parts = [];
+                  if (obj.date) {
+                    let p = obj.date.split("-");
+                    let fmtDate = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : obj.date;
+                    parts.push(`<i class="far fa-calendar-alt mx-1"></i> ${fmtDate}`);
+                  }
+                  if (obj.place) parts.push(`<i class="fas fa-map-marker-alt mx-1"></i> ${obj.place}`);
+                  return parts.length > 0 ? ` <span class="opacity-75 fw-normal ms-1">(${parts.join(" | ")})</span>` : "";
+                };
+
+                let dNew = getDetails(vn);
+                let dOld = getDetails(vo);
+
                 if (logOp === "INSERT" || isInsert) {
-                  if (vn && vn.has) changesHTML += `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-1"><i class="fas fa-check me-1"></i> ${lbl}</span>`;
+                  if (vn && vn.has) changesHTML += `<div class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-2 text-wrap text-start lh-base d-inline-block" style="font-size:0.8rem;"><i class="fas fa-check me-1"></i> ${lbl}${dNew}</div>`;
                 } else {
                   if (vn && vn.has && (!vo || !vo.has)) {
-                    changesHTML += `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-1"><i class="fas fa-plus me-1"></i> ${lbl} | Ativado</span>`;
+                    changesHTML += `<div class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-2 text-wrap text-start lh-base d-inline-block" style="font-size:0.8rem;"><i class="fas fa-plus me-1"></i> ${lbl} | Registrado${dNew}</div>`;
                   } else if ((!vn || !vn.has) && vo && vo.has) {
-                    changesHTML += `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 me-1 mb-1"><i class="fas fa-minus me-1"></i> ${lbl} | Removido</span>`;
-                  } else {
-                    changesHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 me-1 mb-1">${lbl} modificado</span>`;
+                    changesHTML += `<div class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 me-1 mb-2 text-wrap text-start lh-base d-inline-block" style="font-size:0.8rem;"><i class="fas fa-minus me-1"></i> ${lbl} | Removido</div>`;
+                  } else if (vn && vn.has && vo && vo.has) {
+                    // Edição nos detalhes (data ou local mudou, mas o sacramento continuou ativado)
+                    changesHTML += `<div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 me-1 mb-2 text-wrap text-start lh-base d-inline-block" style="font-size:0.8rem;"><i class="fas fa-pen me-1"></i> ${lbl} atualizado ${dOld} <i class="fas fa-arrow-right mx-1 opacity-50"></i> ${dNew}</div>`;
                   }
                 }
               } else {
@@ -548,7 +579,7 @@ const renderTimeline = (logs, container) => {
             generalFieldsHTML += `
                       <div class="col-12 col-md-6 mb-3">
                           <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                              <i class="fas fa-tag me-1 opacity-50"></i> ${fieldLabel}
+                          <i class="fas fa-tag me-1 opacity-50"></i> ${fieldLabel}
                           </div>
                           <div class="p-2 rounded-3 bg-white border border-secondary border-opacity-10 text-body" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
                               ${displayNew}

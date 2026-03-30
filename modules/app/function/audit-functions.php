@@ -25,6 +25,7 @@ function getHistory($data)
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'person_roles' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'family_ties' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'person_attachments' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
+            $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name FROM security.change_logs l WHERE l.schema_name = 'people' AND l.table_name = 'person_godparents' AND (l.new_values->>'person_id' = :id OR l.old_values->>'person_id' = :id)";
         } elseif ($table === 'courses') {
             $sql .= " UNION ALL SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name 
                       FROM security.change_logs l 
@@ -40,7 +41,7 @@ function getHistory($data)
                           OR
                           l.old_values->>'curriculum_id' IN (SELECT CAST(curriculum_id AS TEXT) FROM education.curriculum WHERE course_id = CAST(:id AS INTEGER))
                       )";
-        } elseif ($table === 'curriculum') { // [NOVO] Adicionado suporte direto para a Grade Curricular
+        } elseif ($table === 'curriculum') {
             $sql .= " UNION ALL 
                       SELECT l.log_id, l.operation, l.user_id, l.changed_at, l.old_values, l.new_values, l.table_name, l.schema_name 
                       FROM security.change_logs l 
@@ -61,7 +62,7 @@ function getHistory($data)
         if (empty($logs)) return success("Nenhum histórico encontrado.", []);
 
         // --- 3. COLETA DE DADOS AUXILIARES E ALUNOS (Batch Querying) ---
-        $userIds = $roleIds = $subjectIds = $peopleIds = $orgIds = [];
+        $userIds = $roleIds = $phaseIds = $peopleIds = $orgIds = [];
 
         foreach ($logs as $log) {
             if ($log['user_id']) $userIds[] = $log['user_id'];
@@ -84,8 +85,8 @@ function getHistory($data)
                 if (!empty($old['student_id'])) $peopleIds[] = $old['student_id'];
                 if (!empty($new['student_id'])) $peopleIds[] = $new['student_id'];
             } elseif (in_array($log['table_name'], ['curriculum', 'class_sessions'])) {
-                if (!empty($old['subject_id'])) $subjectIds[] = $old['subject_id'];
-                if (!empty($new['subject_id'])) $subjectIds[] = $new['subject_id'];
+                if (!empty($old['phase_id'])) $phaseIds[] = $old['phase_id'];
+                if (!empty($new['phase_id'])) $phaseIds[] = $new['phase_id'];
             } elseif ($log['table_name'] === 'locations') {
                 if (!empty($old['org_id'])) $orgIds[] = $old['org_id'];
                 if (!empty($new['org_id'])) $orgIds[] = $new['org_id'];
@@ -93,11 +94,11 @@ function getHistory($data)
         }
 
         // Helpers para buscar nomes
-        $usersMap    = !empty($userIds) ? fetchMap($conectStaff, "SELECT id, name FROM public.users WHERE id IN (" . implode(',', array_unique($userIds)) . ")", 'id', 'name') : [];
-        $rolesMap    = !empty($roleIds) ? fetchMap($conectLocal, "SELECT role_id, description_pt as nome FROM people.roles WHERE role_id IN (" . implode(',', array_unique($roleIds)) . ")", 'role_id', 'nome') : [];
-        $peopleMap   = !empty($peopleIds) ? fetchMap($conectLocal, "SELECT person_id, full_name FROM people.persons WHERE person_id IN (" . implode(',', array_unique($peopleIds)) . ")", 'person_id', 'full_name') : [];
-        $subjectsMap = !empty($subjectIds) ? fetchMap($conectLocal, "SELECT subject_id, name FROM education.subjects WHERE subject_id IN (" . implode(',', array_unique($subjectIds)) . ")", 'subject_id', 'name') : [];
-        $orgMap      = !empty($orgIds) ? fetchMap($conectLocal, "SELECT org_id, display_name FROM organization.organizations WHERE org_id IN (" . implode(',', array_unique($orgIds)) . ")", 'org_id', 'display_name') : [];
+        $usersMap  = !empty($userIds) ? fetchMap($conectStaff, "SELECT id, name FROM public.users WHERE id IN (" . implode(',', array_unique($userIds)) . ")", 'id', 'name') : [];
+        $rolesMap  = !empty($roleIds) ? fetchMap($conectLocal, "SELECT role_id, description_pt as nome FROM people.roles WHERE role_id IN (" . implode(',', array_unique($roleIds)) . ")", 'role_id', 'nome') : [];
+        $peopleMap = !empty($peopleIds) ? fetchMap($conectLocal, "SELECT person_id, full_name FROM people.persons WHERE person_id IN (" . implode(',', array_unique($peopleIds)) . ")", 'person_id', 'full_name') : [];
+        $phasesMap = !empty($phaseIds) ? fetchMap($conectLocal, "SELECT phase_id, name FROM education.phases WHERE phase_id IN (" . implode(',', array_unique($phaseIds)) . ")", 'phase_id', 'name') : [];
+        $orgMap    = !empty($orgIds) ? fetchMap($conectLocal, "SELECT org_id, display_name FROM organization.organizations WHERE org_id IN (" . implode(',', array_unique($orgIds)) . ")", 'org_id', 'display_name') : [];
 
         // --- 4. PROCESSAMENTO E NORMALIZAÇÃO ---
         $tempAdded = [];
@@ -170,19 +171,19 @@ function getHistory($data)
                 $log['new_values'] = $humanizeAttendance($log['new_values']);
             }
 
-            // --- GRADES CURRICULARES ---
+            // --- GRADES CURRICULARES (FASES) ---
             elseif ($log['table_name'] === 'curriculum') {
-                $sId = $newArr['subject_id'] ?? $oldArr['subject_id'] ?? 0;
+                $pId = $newArr['phase_id'] ?? $oldArr['phase_id'] ?? 0;
 
-                if ($log['operation'] === 'INSERT') $tempAdded['s' . $sId] = $index;
-                if ($log['operation'] === 'DELETE') $tempRemoved['s' . $sId] = $index;
+                if ($log['operation'] === 'INSERT') $tempAdded['p' . $pId] = $index;
+                if ($log['operation'] === 'DELETE') $tempRemoved['p' . $pId] = $index;
 
-                $inject = function ($j) use ($subjectsMap) {
+                $inject = function ($j) use ($phasesMap) {
                     if (empty($j)) return null;
                     $a = json_decode($j, true);
                     if (is_array($a)) {
-                        if (isset($a['subject_id'], $subjectsMap[$a['subject_id']])) $a['disciplina'] = $subjectsMap[$a['subject_id']];
-                        unset($a['subject_id'], $a['course_id'], $a['curriculum_id'], $a['lesson_plan_template']);
+                        if (isset($a['phase_id'], $phasesMap[$a['phase_id']])) $a['fase'] = $phasesMap[$a['phase_id']];
+                        unset($a['phase_id'], $a['course_id'], $a['curriculum_id'], $a['lesson_plan_template']);
                         return json_encode($a);
                     }
                     return $j;
@@ -190,7 +191,7 @@ function getHistory($data)
 
                 $log['old_values'] = $inject($log['old_values']);
                 $log['new_values'] = $inject($log['new_values']);
-                $log['target_name'] = $subjectsMap[$sId] ?? "Grade Curricular";
+                $log['target_name'] = $phasesMap[$pId] ?? "Grade Curricular";
             }
 
             // --- TURMAS (CLASSES) ---
@@ -250,15 +251,31 @@ function getHistory($data)
                 $log['new_values'] = $inject($log['new_values']);
             }
 
-            // --- DIÁRIO (CLASS_SESSIONS) ---
-            elseif ($log['table_name'] === 'class_sessions') {
-                $log['target_name'] = "Dados da Aula";
-                $inject = function ($j) use ($subjectsMap) {
+            // --- PADRINHOS (PERSON_GODPARENTS) ---
+            elseif ($log['table_name'] === 'person_godparents') {
+                $log['target_name'] = "Vínculo de Padrinhamento";
+                $inject = function ($j) {
                     if (empty($j)) return null;
                     $a = json_decode($j, true);
                     if (is_array($a)) {
-                        if (isset($a['subject_id'], $subjectsMap[$a['subject_id']])) $a['disciplina'] = $subjectsMap[$a['subject_id']];
-                        unset($a['subject_id'], $a['class_id'], $a['signed_by_user_id']);
+                        unset($a['person_id'], $a['godparent_id']); // Oculta IDs de infraestrutura do Front
+                        return json_encode($a);
+                    }
+                    return $j;
+                };
+                $log['old_values'] = $inject($log['old_values']);
+                $log['new_values'] = $inject($log['new_values']);
+            }
+
+            // --- DIÁRIO (CLASS_SESSIONS) ---
+            elseif ($log['table_name'] === 'class_sessions') {
+                $log['target_name'] = "Dados do Encontro";
+                $inject = function ($j) use ($phasesMap) {
+                    if (empty($j)) return null;
+                    $a = json_decode($j, true);
+                    if (is_array($a)) {
+                        if (isset($a['phase_id'], $phasesMap[$a['phase_id']])) $a['fase'] = $phasesMap[$a['phase_id']];
+                        unset($a['phase_id'], $a['class_id'], $a['signed_by_user_id']);
                         return json_encode($a);
                     }
                     return $j;
@@ -315,7 +332,7 @@ function getHistory($data)
                 $logRem = &$logs[$remIndex];
 
                 if (substr($logAdd['changed_at'], 0, 19) === substr($logRem['changed_at'], 0, 19)) {
-                    if (str_starts_with($key, 'r') || (str_starts_with($key, 's') && $logAdd['new_values'] === $logRem['old_values'])) {
+                    if (str_starts_with($key, 'r') || (str_starts_with($key, 'p') && $logAdd['new_values'] === $logRem['old_values'])) {
                         $logAdd['__exclude'] = true;
                         $logRem['__exclude'] = true;
                     }
@@ -356,19 +373,21 @@ function rollbackChange($data)
         $table = $log['table_name'];
         $recordId = $log['record_id'];
 
+        // Mapa de Mestre-Chaves (Fundamental para a reversão correta)
         $pkMap = [
             'organizations'      => 'org_id',
             'persons'            => 'person_id',
             'users'              => 'id',
             'locations'          => 'location_id',
-            'subjects'           => 'subject_id',
+            'phases'             => 'phase_id',
             'courses'            => 'course_id',
             'classes'            => 'class_id',
             'class_sessions'     => 'session_id',
             'attendance'         => 'attendance_id',
             'person_roles'       => 'link_id',
             'family_ties'        => 'tie_id',
-            'person_attachments' => 'attachment_id'
+            'person_attachments' => 'attachment_id',
+            'person_godparents'  => 'godparent_id'
         ];
 
         $pkColumn = $pkMap[$table] ?? rtrim($table, 's') . "_id";
@@ -380,7 +399,7 @@ function rollbackChange($data)
             if ($col === $pkColumn || in_array($col, ['updated_at', 'created_at', 'deleted'])) continue;
 
             // Ignora colunas formatadas que não existem fisicamente na tabela original
-            if (in_array($col, ['vinculo', 'relative_name', 'disciplina', 'instituicao', 'aluno', 'aluno_nome'])) continue;
+            if (in_array($col, ['vinculo', 'relative_name', 'fase', 'instituicao', 'aluno', 'aluno_nome'])) continue;
 
             // Tratamento rígido de tipos para a montagem de parâmetros PDO
             if (is_array($val) || is_object($val)) {

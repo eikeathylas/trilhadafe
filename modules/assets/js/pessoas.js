@@ -22,8 +22,16 @@ window.initMasks = () => {
 
   $("#tax_id").unmask().mask("000.000.000-00", { reverse: true });
   $("#zip_code").unmask().mask("00000-000");
-  $("#phone_main, #phone_secondary, #phone_mobile, #phone_landline").unmask().mask(SPMaskBehavior, spOptions);
+  $("#phone_main, #phone_secondary, #phone_mobile, #phone_landline, #godparent_phone").unmask().mask(SPMaskBehavior, spOptions);
 };
+
+// Toggle Exclusivo Padrinhamento
+$("#godparent_married").change(function () {
+  if ($(this).is(":checked")) $("#godparent_single").prop("checked", false);
+});
+$("#godparent_single").change(function () {
+  if ($(this).is(":checked")) $("#godparent_married").prop("checked", false);
+});
 
 window.copyEmail = (email) => {
   navigator.clipboard.writeText(email).then(() => {
@@ -336,6 +344,15 @@ window.modalPessoa = (id = null, btn = false) => {
   $("#role_catechist").prop("checked", false);
   $("#role_priest").prop("checked", false);
   $("#role_parent").prop("checked", false);
+  $("#role_secretary").prop("checked", false);
+
+  $("#godparent_type").val("");
+  $("#godparent_name").val("");
+  $("#godparent_phone").val("");
+  $("#godparent_dob").val("");
+  $("#godparent_address").val("");
+  $("#godparent_married").prop("checked", false);
+  $("#godparent_single").prop("checked", false);
 
   $("#has_baptism").prop("checked", false).trigger("change");
   $("#baptism_date").val("");
@@ -408,11 +425,14 @@ const loadPersonData = async (id, btn) => {
       $("#role_catechist").prop("checked", roles.includes("CATECHIST"));
       $("#role_priest").prop("checked", roles.includes("PRIEST"));
       $("#role_parent").prop("checked", roles.includes("PARENT"));
+      $("#role_secretary").prop("checked", roles.includes("SECRETARY"));
+
+      console.log(d.sacraments_info)
 
       if (d.sacraments_info) {
         let sac = {};
         try {
-          sac = JSON.parse(d.sacraments_info);
+          sac = d.sacraments_info ? (typeof d.sacraments_info === "string" ? JSON.parse(d.sacraments_info) : d.sacraments_info) : {};
         } catch (e) {}
         if (sac.baptism && sac.baptism.has) {
           $("#has_baptism").prop("checked", true).trigger("change");
@@ -433,6 +453,15 @@ const loadPersonData = async (id, btn) => {
           $("#has_matrimony").prop("checked", true).trigger("change");
           $("#matrimony_date").val(sac.matrimony.date);
           $("#matrimony_place").val(sac.matrimony.place);
+        }
+        if (sac.godparent) {
+          $("#godparent_type").val(sac.godparent.type || "");
+          $("#godparent_name").val(sac.godparent.name || "");
+          $("#godparent_phone").val(sac.godparent.phone || "");
+          $("#godparent_dob").val(sac.godparent.dob || "");
+          $("#godparent_address").val(sac.godparent.address || "");
+          $("#godparent_married").prop("checked", sac.godparent.married === true);
+          $("#godparent_single").prop("checked", sac.godparent.single === true);
         }
       }
 
@@ -485,6 +514,7 @@ window.salvarPessoa = async (btn) => {
   formData.append("role_catechist", $("#role_catechist").is(":checked"));
   formData.append("role_priest", $("#role_priest").is(":checked"));
   formData.append("role_parent", $("#role_parent").is(":checked"));
+  formData.append("role_secretary", $("#role_secretary").is(":checked"));
 
   formData.append("family_json", JSON.stringify(currentFamilyList));
 
@@ -495,6 +525,15 @@ window.salvarPessoa = async (btn) => {
       eucharist: { has: $("#has_eucharist").is(":checked"), date: $("#eucharist_date").val(), place: $("#eucharist_place").val() },
       chrism: { has: $("#has_chrism").is(":checked"), date: $("#chrism_date").val(), place: $("#chrism_place").val() },
       matrimony: { has: $("#has_matrimony").is(":checked"), date: $("#matrimony_date").val(), place: $("#matrimony_place").val() },
+      godparent: {
+        type: $("#godparent_type").val(),
+        name: $("#godparent_name").val()?.trim(),
+        phone: $("#godparent_phone").val(),
+        dob: $("#godparent_dob").val(),
+        address: $("#godparent_address").val()?.trim(),
+        married: $("#godparent_married").is(":checked"),
+        single: $("#godparent_single").is(":checked"),
+      },
     }),
   );
 

@@ -148,6 +148,23 @@ function getPersonData($personId)
             $person['sacraments_info']['eucharist']['place'] = $person['eucharist_place'] ?? "";
         }
 
+        // Busca Padrinho/Madrinha
+        $stmtGod = $conect->prepare("SELECT * FROM people.person_godparents WHERE person_id = :id");
+        $stmtGod->execute(['id' => $personId]);
+        $godparent = $stmtGod->fetch(PDO::FETCH_ASSOC);
+
+        if ($godparent) {
+            $person['sacraments_info']['godparent'] = [
+                'type' => $godparent['godparent_type'],
+                'name' => $godparent['name'],
+                'phone' => $godparent['phone'],
+                'dob' => $godparent['birth_date'],
+                'address' => $godparent['address'],
+                'married' => ($godparent['marital_status'] === 'MARRIED'),
+                'single' => ($godparent['marital_status'] === 'SINGLE')
+            ];
+        }
+
         foreach ($person['family'] as &$fam) {
             $fam['is_financial_responsible'] = ($fam['is_financial_responsible'] === 't' || $fam['is_financial_responsible'] === true);
             $fam['is_legal_guardian'] = ($fam['is_legal_guardian'] === 't' || $fam['is_legal_guardian'] === true);
@@ -182,6 +199,10 @@ function upsertPerson($data, $files = [])
         $sacArray = json_decode($data['sacraments_json'] ?? '{}', true);
         $eucDate = !empty($sacArray['eucharist']['date']) ? $sacArray['eucharist']['date'] : null;
         $eucPlace = $sanitize($sacArray['eucharist']['place'] ?? null);
+
+        // Extrai Padrinho para tabela própria e remove do JSON
+        $godparentData = $sacArray['godparent'] ?? null;
+        unset($sacArray['godparent']);
 
         // Booleano literal para interpolação direta (wants_whatsapp_group)
         $wantsWa = (isset($data['wants_whatsapp_group']) && ($data['wants_whatsapp_group'] === 'true' || $data['wants_whatsapp_group'] === true)) ? 'TRUE' : 'FALSE';
@@ -241,7 +262,7 @@ function upsertPerson($data, $files = [])
         }
 
         // 5. Vínculos (Roles)
-        $rolesMap = ['role_student' => 'STUDENT', 'role_catechist' => 'CATECHIST', 'role_priest' => 'PRIEST', 'role_parent' => 'PARENT'];
+        $rolesMap = ['role_student' => 'STUDENT', 'role_catechist' => 'CATECHIST', 'role_priest' => 'PRIEST', 'role_parent' => 'PARENT', 'role_secretary' => 'SECRETARY'];
         foreach ($rolesMap as $key => $roleName) {
             if (isset($data[$key])) {
                 $active = ($data[$key] === 'true' || $data[$key] === true);
@@ -272,6 +293,42 @@ function upsertPerson($data, $files = [])
         }
         $notIn = !empty($processedIds) ? "AND relative_id NOT IN (" . implode(',', array_map('intval', $processedIds)) . ")" : "";
         $conect->prepare("UPDATE people.family_ties SET deleted = TRUE WHERE person_id = :pid $notIn")->execute(['pid' => $personId]);
+
+        // 7. Padrinhamento (Tabela Dedicada para Auditoria)
+        if (!empty($godparentData['name'])) {
+            $gType = $sanitize($godparentData['type'] ?? null);
+            $gName = $sanitize($godparentData['name']);
+            $gPhone = $sanitize($godparentData['phone'] ?? null);
+            $gDob = !empty($godparentData['dob']) ? $godparentData['dob'] : null;
+            $gAddress = $sanitize($godparentData['address'] ?? null);
+
+            $gMarital = null;
+            if (isset($godparentData['married']) && ($godparentData['married'] === true || $godparentData['married'] === 'true')) $gMarital = 'MARRIED';
+            elseif (isset($godparentData['single']) && ($godparentData['single'] === true || $godparentData['single'] === 'true')) $gMarital = 'SINGLE';
+
+            $sqlGodparent = "INSERT INTO people.person_godparents (person_id, godparent_type, name, phone, birth_date, address, marital_status)
+                             VALUES (:pid, :type, :name, :phone, :dob, :addr, :marital)
+                             ON CONFLICT (person_id) DO UPDATE SET 
+                                godparent_type = EXCLUDED.godparent_type,
+                                name = EXCLUDED.name,
+                                phone = EXCLUDED.phone,
+                                birth_date = EXCLUDED.birth_date,
+                                address = EXCLUDED.address,
+                                marital_status = EXCLUDED.marital_status,
+                                updated_at = CURRENT_TIMESTAMP";
+
+            $conect->prepare($sqlGodparent)->execute([
+                'pid' => $personId,
+                'type' => $gType,
+                'name' => $gName,
+                'phone' => $gPhone,
+                'dob' => $gDob,
+                'addr' => $gAddress,
+                'marital' => $gMarital
+            ]);
+        } else {
+            $conect->prepare("DELETE FROM people.person_godparents WHERE person_id = :pid")->execute(['pid' => $personId]);
+        }
 
         $conect->commit();
         if (function_exists('syncUserLogin')) syncUserLogin($personId, $data['id_client'] ?? 1);

@@ -205,6 +205,21 @@ CREATE TABLE people.family_ties (
 COMMENT ON TABLE people.family_ties IS 'Grafo de parentesco. Essencial para controle de retirada de alunos.';
 COMMENT ON COLUMN people.family_ties.is_legal_guardian IS 'Se TRUE, o parente tem autoridade legal sobre o aluno.';
 
+CREATE TABLE people.person_godparents (
+    godparent_id SERIAL PRIMARY KEY,
+    person_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
+    godparent_type VARCHAR(20), 
+    name VARCHAR(200) NOT NULL,
+    phone VARCHAR(20),
+    birth_date DATE,
+    address TEXT,
+    marital_status VARCHAR(20), 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    CONSTRAINT unique_person_godparent UNIQUE (person_id)
+);
+COMMENT ON TABLE people.person_godparents IS 'Registro 1:1 de Padrinho ou Madrinha vinculado a uma pessoa (Entrada Manual).';
+
 CREATE TABLE people.status_history (
     log_id SERIAL PRIMARY KEY,
     person_id INT NOT NULL REFERENCES people.persons(person_id),
@@ -1139,6 +1154,9 @@ CREATE TRIGGER audit_trigger_family_ties AFTER INSERT OR UPDATE OR DELETE ON peo
 DROP TRIGGER IF EXISTS audit_trigger_person_attachments ON people.person_attachments;
 CREATE TRIGGER audit_trigger_person_attachments AFTER INSERT OR UPDATE OR DELETE ON people.person_attachments FOR EACH ROW EXECUTE FUNCTION security.log_changes('attachment_id');
 
+DROP TRIGGER IF EXISTS audit_trigger_person_godparents ON people.person_godparents;
+CREATE TRIGGER audit_trigger_person_godparents AFTER INSERT OR UPDATE OR DELETE ON people.person_godparents FOR EACH ROW EXECUTE FUNCTION security.log_changes('godparent_id');
+
 -- Educacional
 DROP TRIGGER IF EXISTS audit_trigger_academic_years ON education.academic_years;
 CREATE TRIGGER audit_trigger_academic_years AFTER INSERT OR UPDATE OR DELETE ON education.academic_years FOR EACH ROW EXECUTE FUNCTION security.log_changes('year_id');
@@ -1386,6 +1404,7 @@ SELECT setval(pg_get_serial_sequence('organization.events', 'event_id'), COALESC
 -- 3. People
 SELECT setval(pg_get_serial_sequence('people.roles', 'role_id'), COALESCE(MAX(role_id), 1)) FROM people.roles;
 SELECT setval(pg_get_serial_sequence('people.persons', 'person_id'), COALESCE(MAX(person_id), 1)) FROM people.persons;
+SELECT setval(pg_get_serial_sequence('people.person_godparents', 'godparent_id'), COALESCE(MAX(godparent_id), 1)) FROM people.person_godparents;
 
 -- 4. Education
 SELECT setval(pg_get_serial_sequence('education.academic_years', 'year_id'), COALESCE(MAX(year_id), 1)) FROM education.academic_years;
