@@ -141,17 +141,30 @@
                                         <select id="sel_assistant" class="form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body px-3" style="height: 52px;"></select>
                                     </div>
                                     <div class="col-12 border-top border-secondary border-opacity-10 mt-4 pt-4"></div>
-                                    <div class="col-6">
+
+                                    <div class="col-12 col-md-4">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Capacidade</label>
                                         <input type="number" id="class_capacity" class="form-control border-0 bg-white rounded-4 shadow-none fw-bold text-body text-center px-3" placeholder="Ex: 30" style="height: 52px;">
                                     </div>
-                                    <div class="col-6">
+                                    <div class="col-12 col-md-4">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Estado Atual</label>
                                         <select id="class_status" class="form-select border-0 bg-white rounded-4 shadow-none fw-bold text-body px-3" style="height: 52px;">
                                             <option value="ACTIVE">Ativa</option>
                                             <option value="PLANNED">Planejada</option>
                                             <option value="FINISHED">Encerrada</option>
                                         </select>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1 d-none d-md-block" style="color: transparent; user-select: none;">&nbsp;</label>
+                                        <div class="form-check form-switch m-0 d-flex align-items-center p-3 bg-secondary bg-opacity-10 rounded-4 border border-secondary border-opacity-10 h-100 transition-all">
+                                            <div class="d-flex flex-column flex-grow-1">
+                                                <label class="form-check-label fw-bold text-body mb-0 cursor-pointer" for="is_graduating_class">Turma Formanda</label>
+                                                <span class="text-muted opacity-75 lh-sm mt-1" style="font-size: 0.75rem;">Habilita certificados</span>
+                                            </div>
+                                            <div class="ms-3">
+                                                <input class="form-check-input shadow-none m-0 border-secondary cursor-pointer" type="checkbox" id="is_graduating_class" style="width: 42px; height: 22px;">
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-12 mt-4">
                                         <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">Sala Padrão da Turma</label>

@@ -101,3 +101,17 @@ function deleteEnrollmentHistory()
     $data['user_id'] = getAuthUserId();
     echo json_encode(deleteEnrollmentHistoryF($data));
 }
+
+
+function toggleConclusionClass()
+{
+    if (!verifyToken()) return;
+
+    $data = [
+        "id" => $_POST["id"] ?? 0,
+        "conclude" => $_POST["conclude"] ?? 'false',
+        "user_id" => getAuthUserId()
+    ];
+
+    echo json_encode(toggleConclusionClassF($data));
+}

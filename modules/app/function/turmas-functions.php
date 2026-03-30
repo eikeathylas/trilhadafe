@@ -145,11 +145,12 @@ function upsertClass($data)
             'name' => $data['name'],
             'year_id' => $data['year_id'],
             'max_capacity' => !empty($data['max_capacity']) ? $data['max_capacity'] : null,
-            'status' => $data['status'] ?? 'PLANNED'
+            'status' => $data['status'] ?? 'PLANNED',
+            'is_graduating_class' => (isset($data['is_graduating_class']) && ($data['is_graduating_class'] === 'true' || $data['is_graduating_class'] === true)) ? 'true' : 'false'
         ];
 
         if (!empty($data['class_id'])) {
-            $sql = "UPDATE education.classes SET course_id=:course_id, main_location_id=:main_location_id, coordinator_id=:coordinator_id, class_assistant_id=:class_assistant_id, name=:name, year_id=:year_id, max_capacity=:max_capacity, status=:status, updated_at=CURRENT_TIMESTAMP WHERE class_id=:class_id";
+            $sql = "UPDATE education.classes SET course_id=:course_id, main_location_id=:main_location_id, coordinator_id=:coordinator_id, class_assistant_id=:class_assistant_id, name=:name, year_id=:year_id, max_capacity=:max_capacity, status=:status, is_graduating_class=:is_graduating_class, updated_at=CURRENT_TIMESTAMP WHERE class_id=:class_id";
             $params['class_id'] = $data['class_id'];
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
@@ -161,7 +162,7 @@ function upsertClass($data)
                 return failure("Organização não definida.");
             }
             $params['org_id'] = $data['org_id'];
-            $sql = "INSERT INTO education.classes (course_id, org_id, main_location_id, coordinator_id, class_assistant_id, name, year_id, max_capacity, status) VALUES (:course_id, :org_id, :main_location_id, :coordinator_id, :class_assistant_id, :name, :year_id, :max_capacity, :status) RETURNING class_id";
+            $sql = "INSERT INTO education.classes (course_id, org_id, main_location_id, coordinator_id, class_assistant_id, name, year_id, max_capacity, status, is_graduating_class) VALUES (:course_id, :org_id, :main_location_id, :coordinator_id, :class_assistant_id, :name, :year_id, :max_capacity, :status, :is_graduating_class) RETURNING class_id";
             $stmt = $conect->prepare($sql);
             $stmt->execute($params);
             $classId = $stmt->fetchColumn();
@@ -540,5 +541,43 @@ function deleteEnrollmentHistoryF($data)
         return success("Item apagado.");
     } catch (Exception $e) {
         return failure("Erro ao apagar registro.");
+    }
+}
+
+function toggleConclusionClassF($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $conect->beginTransaction();
+
+        if (!empty($data['user_id'])) {
+            $conect->prepare("SELECT set_config('app.current_user_id', :uid, true)")->execute(['uid' => (string)$data['user_id']]);
+        }
+
+        $classId = (int)$data['id'];
+        $isConcluding = ($data['conclude'] === 'true' || $data['conclude'] === true);
+
+        if ($isConcluding) {
+            // 1. Conclui a Turma
+            $conect->prepare("UPDATE education.classes SET status = 'COMPLETED', is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE class_id = :id")->execute(['id' => $classId]);
+
+            // 2. Conclui todos os Alunos Ativos
+            $conect->prepare("UPDATE education.enrollments SET status = 'COMPLETED', updated_at = CURRENT_TIMESTAMP WHERE class_id = :id AND status = 'ACTIVE' AND deleted IS FALSE")->execute(['id' => $classId]);
+            $msg = "Turma concluída com sucesso! Os alunos ativos foram promovidos a concluintes.";
+        } else {
+            // 1. Reabre a Turma
+            $conect->prepare("UPDATE education.classes SET status = 'ACTIVE', is_active = TRUE, updated_at = CURRENT_TIMESTAMP WHERE class_id = :id")->execute(['id' => $classId]);
+
+            // 2. Reativa os Alunos Concluintes
+            $conect->prepare("UPDATE education.enrollments SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP WHERE class_id = :id AND status = 'COMPLETED' AND deleted IS FALSE")->execute(['id' => $classId]);
+            $msg = "A conclusão da turma foi revertida. Turma e alunos estão ativos novamente.";
+        }
+
+        $conect->commit();
+        return success($msg);
+    } catch (Exception $e) {
+        if ($conect->inTransaction()) $conect->rollBack();
+        logSystemError("painel", "turmas", "toggleConclusionClass", "sql", $e->getMessage(), $data);
+        return failure("Erro ao processar a conclusão da turma.", null, false, 500);
     }
 }

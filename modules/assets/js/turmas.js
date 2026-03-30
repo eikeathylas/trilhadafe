@@ -140,12 +140,9 @@ const renderTableClasses = (data) => {
         : `<div class="form-check form-switch mb-0"><input class="form-check-input shadow-sm" type="checkbox" ${isActive ? "checked" : ""} disabled></div>`;
 
       let actionsHtml = "";
-      if (canHistory)
-        actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
-      if (canEdit)
-        actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
-      if (canDelete)
-        actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
         <tr>
@@ -232,7 +229,7 @@ const renderTableClasses = (data) => {
       if (canEdit)
         mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)
-        mobActionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       let mobileFooter = "";
       if (mobActionsHtml !== "") {
@@ -498,7 +495,7 @@ const renderStudentsList = (data) => {
         actionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openHistory(${item.enrollment_id}, '${item.student_name.replace(/'/g, "\\'")}')" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       }
       if (canDrop) {
-        actionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEnrollment(${item.enrollment_id})" title="Excluir"><i class="fas fa-user-minus" style="font-size: 0.85rem;"></i></button>`;
+        actionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEnrollment(${item.enrollment_id})" title="Excluir"><i class="fas fa-user-minus" style="font-size: 0.85rem;"></i></button>`;
       }
 
       return `
@@ -588,6 +585,9 @@ window.modalTurma = (id = null, btn = false) => {
   $("#class_name").val("");
   $("#class_capacity").val("");
   $("#class_status").val("PLANNED");
+  $("#is_graduating_class").prop("checked", false);
+  $("#class-actions-banner").removeClass("d-flex").addClass("d-none");
+
   currentSchedules = [];
   ["#sel_course", "#sel_coordinator", "#sel_assistant", "#sel_location"].forEach((s) => {
     if ($(s)[0]?.selectize) $(s)[0].selectize.clear();
@@ -618,6 +618,8 @@ const loadClassData = async (id, btn) => {
       $("#class_name").val(d.name);
       $("#class_capacity").val(d.max_capacity);
       $("#class_status").val(d.status);
+      $("#is_graduating_class").prop("checked", d.is_graduating_class === true || d.is_graduating_class === "t" || d.is_graduating_class === 1);
+
       const updateSel = (selId, val, text) => {
         if (val) {
           const s = $(selId)[0].selectize;
@@ -633,6 +635,8 @@ const loadClassData = async (id, btn) => {
       currentSchedules = d.schedules || [];
       renderSchedulesTable();
       loadClassStudents(id);
+      renderClassActionsBanner(d);
+
       $("#modalTurma").modal("show");
     }
   } catch (e) {
@@ -652,7 +656,7 @@ window.salvarTurma = async (btn) => {
   if (!orgId) return window.alertDefault("Organização não definida na sessão.", "error");
 
   btn = $(btn);
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   try {
     const res = await window.ajaxValidator({
@@ -668,6 +672,7 @@ window.salvarTurma = async (btn) => {
       main_location_id: $("#sel_location").val(),
       max_capacity: $("#class_capacity").val(),
       status: $("#class_status").val(),
+      is_graduating_class: $("#is_graduating_class").is(":checked"),
       schedules_json: JSON.stringify(currentSchedules),
     });
 
@@ -815,4 +820,94 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
   html += `<button onclick="${funcName}(${current + 1})" class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none" style="width: 36px; height: 36px; padding: 0;" ${current === total ? "disabled" : ""} title="Próxima"><i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i></button>`;
   html += `</div>`;
   container.html(html);
+};
+
+// =========================================================
+// 5. LÓGICA DE CONCLUSÃO E CERTIFICADOS
+// =========================================================
+window.renderClassActionsBanner = function (classData) {
+  const banner = $("#class-actions-banner");
+  const buttonsContainer = $("#cab-buttons");
+
+  if (!classData || !classData.class_id) {
+    banner.removeClass("d-flex").addClass("d-none");
+    return;
+  }
+
+  banner.removeClass("d-none").addClass("d-flex");
+  buttonsContainer.empty();
+
+  if (classData.status === "COMPLETED") {
+    $("#cab-icon").removeClass().addClass("rounded-circle d-flex align-items-center justify-content-center me-3 bg-success bg-opacity-10 text-success");
+    $("#cab-icon").html('<i class="fas fa-check-double fs-5"></i>');
+    $("#cab-title").text("Ciclo Concluído");
+    $("#cab-desc").text("Esta turma e seus alunos foram finalizados.");
+
+    buttonsContainer.append(`
+            <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill" onclick="processarConclusaoTurma(${classData.class_id}, false)">
+                <i class="fas fa-undo me-2"></i> Reabrir Turma
+            </button>
+        `);
+
+    const isGraduating = classData.is_graduating_class === true || classData.is_graduating_class === "t" || classData.is_graduating_class === 1;
+    if (isGraduating) {
+      buttonsContainer.append(`
+                <button type="button" class="btn btn-warning fw-bold rounded-pill text-dark shadow-sm hover-scale" onclick="abrirCertificados(${classData.class_id})">
+                    <i class="fas fa-award me-2"></i> Emitir Certificados
+                </button>
+            `);
+    }
+  } else {
+    $("#cab-icon").removeClass().addClass("rounded-circle d-flex align-items-center justify-content-center me-3 bg-primary bg-opacity-10 text-primary");
+    $("#cab-icon").html('<i class="fas fa-chalkboard-teacher fs-5"></i>');
+    $("#cab-title").text("Turma em Andamento");
+    $("#cab-desc").text("Aulas e diários estão liberados.");
+
+    buttonsContainer.append(`
+            <button type="button" class="btn btn-success fw-bold rounded-pill shadow-sm hover-scale" onclick="processarConclusaoTurma(${classData.class_id}, true)">
+                <i class="fas fa-flag-checkered me-2"></i> Concluir Turma
+            </button>
+        `);
+  }
+};
+
+window.processarConclusaoTurma = function (classId, isConcluding) {
+  const title = isConcluding ? "Concluir Turma?" : "Reabrir Turma?";
+  const text = isConcluding ? "Isso mudará o status de todos os alunos ativos para CONCLUÍDOS e travará o diário de classe." : "Isso reativará a turma e todos os alunos concluintes voltarão ao status ATIVO.";
+
+  Swal.fire({
+    title: title,
+    text: text,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: isConcluding ? "#198754" : "#6c757d",
+    cancelButtonColor: "#dc3545",
+    confirmButtonText: isConcluding ? "Sim, Concluir!" : "Sim, Reabrir!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      Swal.fire({ title: "Processando...", didOpen: () => Swal.showLoading() });
+      try {
+        const res = await window.ajaxValidator({
+          validator: "toggleConclusionClass",
+          token: defaultApp.userInfo.token,
+          id: classId,
+          conclude: isConcluding,
+        });
+        if (res.status) {
+          Swal.fire("Sucesso!", res.alert, "success").then(() => {
+            $("#modalTurma").modal("hide");
+            getTurmas(); // Atualiza a lista
+          });
+        } else {
+          Swal.fire("Erro", res.alert, "error");
+        }
+      } catch (e) {
+        Swal.fire("Erro", "Falha de comunicação com o servidor.", "error");
+      }
+    }
+  });
+};
+
+window.abrirCertificados = function (classId) {
+  window.open(`print-certificados.php?id=${classId}`, "_blank");
 };
