@@ -17,15 +17,26 @@ body {
   background-color: var(--bg-canvas);
 }
 
+/* Container Injetado pelo Javascript na Simulacão de Tela */
+#reportRoot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 40px 0;
+}
+
 /* ====================================================
    ESTRUTURA DA PÁGINA A4 (Base para o JS Calcular)
    ==================================================== */
 .page {
   width: 210mm;
-  height: 297mm; /* Fixo para o JS calcular a quebra de página */
+  height: 297mm;
+  /* Fixo para o JS calcular a quebra de página */
   display: flex;
   flex-direction: column;
-  padding: 15mm; /* Respiro interno oficial do documento */
+  padding: 15mm;
+  /* Respiro interno oficial do documento */
   background: #ffffff;
   position: relative;
 }
@@ -33,10 +44,60 @@ body {
 .page-header {
   flex: 0 0 auto;
 }
+
 .page-body {
   flex: 1 1 auto;
   overflow: hidden;
+
+  /* Tipografia ABNT para folhas A4 físicas */
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #000;
 }
+
+/* Estilos Globais de Texto para o Relatório */
+.page-body p {
+  margin-top: 0;
+  margin-bottom: 12pt;
+  font-size: 11pt;
+  text-align: justify;
+}
+
+.page-body h1,
+.page-body h2,
+.page-body h3,
+.page-body h4 {
+  color: #111;
+  margin-top: 15pt;
+  margin-bottom: 10pt;
+}
+
+/* Estilos Universais para Tabelas nos Relatórios */
+.page-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15pt;
+  font-size: 9pt;
+  /* Tabelas precisam de fonte menor para caber colunas */
+}
+
+.page-body th,
+.page-body td {
+  border: 1px solid #ccc;
+  padding: 6pt;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.page-body th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 8.5pt;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
 .page-footer {
   flex: 0 0 auto;
   margin-top: auto;
@@ -47,15 +108,13 @@ body {
    ==================================================== */
 @media screen {
   body {
-    padding: 40px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
+    background-color: var(--bg-canvas);
   }
+
   .page {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    border-radius: 4px; /* Leve arredondamento apenas visual na tela */
+    border-radius: 4px;
+    /* Leve arredondamento apenas visual na tela */
   }
 }
 
@@ -65,12 +124,16 @@ body {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 0 !important; /* MATA as margens do navegador para evitar quebra dupla */
+    margin: 0 !important;
+    /* MATA as margens do navegador para evitar quebra dupla */
   }
 
-  body {
-    background-color: transparent;
-    padding: 0;
+  body,
+  #reportRoot {
+    background-color: transparent !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    display: block !important;
   }
 
   .page {
@@ -84,7 +147,8 @@ body {
   }
 
   .page:last-child {
-    page-break-after: auto; /* Evita uma página em branco no final */
+    page-break-after: auto;
+    /* Evita uma página em branco no final */
   }
 
   .no-print,
@@ -100,17 +164,52 @@ body {
   display: grid;
   grid-template-columns: 150px 1fr 150px;
   align-items: center;
-  margin-bottom: 15px;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  gap: 15px;
 }
 
-.header-column-left .report-logo {
+.header-column-left .report-logo,
+.header-column-right .report-logo {
   max-height: 80px;
-  max-width: 150px;
+  max-width: 100%;
   object-fit: contain;
 }
 
 .header-column-center {
   text-align: center;
+}
+
+/* --- ESTILOS UNIFICADOS (TERMOS E RELATÓRIOS) --- */
+.info-block {
+  background: #f9f9f9;
+  padding: 15px;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+.signature-block {
+  margin-top: 50px;
+  text-align: center;
+}
+
+.signature-line {
+  border-top: 1px solid #000;
+  width: 60%;
+  margin: 0 auto 10px auto;
+  padding-top: 5px;
+}
+
+.footer-note {
+  font-size: 11px;
+  text-align: center;
+  color: #777;
+  margin-top: 40px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
 }
 
 .org-name {
@@ -158,12 +257,15 @@ body {
 .footer-left {
   text-align: left;
 }
+
 .footer-center {
   text-align: center;
 }
+
 .footer-right {
   text-align: right;
 }
+
 .page-number {
   font-weight: bold;
 }
@@ -186,9 +288,7 @@ body {
   align-items: center;
   gap: 8px;
   z-index: 1000;
-  transition:
-    transform 0.2s,
-    background-color 0.2s;
+  transition: transform 0.2s, background-color 0.2s;
 }
 
 .fab-print:hover {

@@ -301,10 +301,18 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 (206, 2, 'eventos.history', 'Ver Histórico',    'Acesso ao log de auditoria.', FALSE),
 (207, 2, 'eventos.delete',  'Excluir Evento',   'Botão de lixeira.', FALSE);
 
--- BLOCO 300: RELATÓRIOS
+-- BLOCO 300: RELATÓRIOS E EXTRAÇÕES
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
-(301, 3, 'relatorios.list',   'Listar Relatórios', 'Ver listagem de relatórios.', FALSE),
-(302, 3, 'relatorios.export', 'Exportar Dados',    'Botão de exportar PDF/Excel.', FALSE);
+(301, 3, 'relatorios.list',        'Listar Relatórios',    'Permissão base para acessar a central.', FALSE),
+(302, 3, 'relatorios.export',      'Exportar Dados',       'Botão de gerar e exportar PDF/Excel.', FALSE),
+(303, 3, 'relatorios.estudantes',  'Rel. Catequizandos',   'Acesso à lista de alunos.', FALSE),
+(304, 3, 'relatorios.professores', 'Rel. Catequistas',     'Acesso à lista de educadores.', FALSE),
+(305, 3, 'relatorios.pessoas',     'Rel. Diretório',       'Acesso à lista geral de pessoas.', FALSE),
+(306, 3, 'relatorios.pendencias',  'Rel. Pendências',      'Acesso à lista de falta de documentos.', FALSE),
+(307, 3, 'relatorios.encontros',   'Rel. Encontros',       'Acesso ao histórico do diário.', FALSE),
+(308, 3, 'relatorios.turmas',      'Rel. Turmas',          'Acesso à listagem de turmas ativas.', FALSE),
+(309, 3, 'relatorios.fases',       'Rel. Fases',           'Acesso à listagem de matrizes.', FALSE),
+(310, 3, 'relatorios.modelo',      'Rel. Modelo',          'Acesso ao modelo de testes e layout.', FALSE);
 
 -- BLOCO 400: DIÁRIO DE CLASSE
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
@@ -338,7 +346,7 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 (606, 6, 'cursos.history',  'Ver Histórico',    'Auditoria de curso.', FALSE),
 (607, 6, 'cursos.delete',   'Excluir Curso',    'Excluir curso.', FALSE),
 (608, 6, 'cursos.template', 'Template Padrão',  'Gerir roteiro de aulas.', FALSE);
-
+    
 -- BLOCO 700: FASES DA INICIAÇÃO
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
 (701, 7, 'fases.list',    'Listar Fases',    'Ver lista.', FALSE),
@@ -421,7 +429,7 @@ WHERE id IN (
     101, 102,
     -- Eventos, Relatórios, Diário, Turmas, Cursos, Disciplinas, Pessoas (Gestão Total)
     201, 202, 203, 204, 205, 206, 207,
-    301, 302,
+    301, 302, 303, 304, 305, 306, 307, 308, 309, 310,
     401, 402, 403, 404, 405, 406, 407,
     501, 502, 503, 504, 505, 506, 507, 508, 509,
     601, 602, 603, 604, 605, 606, 607, 608,

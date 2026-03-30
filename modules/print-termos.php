@@ -5,23 +5,14 @@
     <meta charset="UTF-8">
     <title>Termos LGPD e Uso de Imagem</title>
     <?php include "./assets/components/Head.php"; ?>
+    <link rel="stylesheet" href="./assets/css/report-print.css?v=<?php echo time(); ?>">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
             background-color: #f0f2f5;
         }
 
         .page {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 20mm;
             margin: 10mm auto;
-            background: white;
-            box-sizing: border-box;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
@@ -40,36 +31,6 @@
             font-size: 14px;
         }
 
-        .info-block {
-            background: #f9f9f9;
-            padding: 15px;
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .signature-block {
-            margin-top: 50px;
-            text-align: center;
-        }
-
-        .signature-line {
-            border-top: 1px solid #000;
-            width: 60%;
-            margin: 0 auto 10px auto;
-            padding-top: 5px;
-        }
-
-        .footer-note {
-            font-size: 11px;
-            text-align: center;
-            color: #777;
-            margin-top: 40px;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-        }
-
-        /* Ocultar elementos de carregamento na impressão */
         #loader {
             display: flex;
             height: 100vh;
@@ -89,10 +50,6 @@
 
             .page {
                 margin: 0;
-                padding: 10mm;
-                width: 100%;
-                border: none;
-                min-height: auto;
                 box-shadow: none;
             }
 
@@ -105,6 +62,7 @@
             }
         }
     </style>
+</head>
 </head>
 
 <body>

@@ -9,6 +9,23 @@ function getReportDataF($reportType, $filters)
 {
     try {
         switch ($reportType) {
+            // --- NOVOS RELATÓRIOS OFICIAIS ---
+            case 'lista_estudantes':
+                return _reportGenericPeople($filters, 'STUDENT');
+            case 'lista_professores':
+                return _reportGenericPeople($filters, 'CATECHIST');
+            case 'lista_pessoas':
+                return _reportGenericPeople($filters, null);
+            case 'lista_pendencias':
+                return _reportPendencias($filters);
+            case 'lista_turmas':
+                return _reportTurmas($filters);
+            case 'lista_fases':
+                return _reportFases($filters);
+            case 'lista_encontros':
+                return _reportEncontros($filters);
+
+                // --- RELATÓRIOS LEGADOS ---
             case 'pessoas_lista':
                 return _reportPessoasLista($filters);
 
@@ -24,14 +41,13 @@ function getReportDataF($reportType, $filters)
             case 'relatorio_modelo':
                 $data = [
                     'list' => [
-                        ['full_name' => 'Teste de Layout A', 'main_role' => 'STUDENT', 'is_active' => '1'],
-                        ['full_name' => 'Teste de Layout B', 'main_role' => 'CATECHIST', 'is_active' => '1'],
-                        ['full_name' => 'Teste de Layout C', 'main_role' => 'STUDENT', 'is_active' => '0'],
+                        ['full_name' => 'Eike Benízio', 'email' => 'eike@admin.com', 'tax_id' => '123.456.789-00', 'birth_date_fmt' => '03/08/1999', 'phone_mobile' => '(81) 98254-9914', 'is_active' => '1'],
+                        ['full_name' => 'Maria Silva', 'email' => 'maria@silva.com', 'tax_id' => '000.000.000-00', 'birth_date_fmt' => '10/05/1985', 'phone_mobile' => '(11) 99999-9999', 'is_active' => '1'],
+                        ['full_name' => 'João Inativo', 'email' => '', 'tax_id' => '', 'birth_date_fmt' => '', 'phone_mobile' => '', 'is_active' => '0'],
                     ],
                     'metadata' => []
                 ];
-                echo json_encode(['status' => true, 'data' => $data]);
-                exit;
+                return success("Dados gerados.", $data);
 
             default:
                 return failure("Relatório não implementado: " . $reportType);
@@ -179,5 +195,222 @@ function _reportAuditoria($data)
     } catch (Exception $e) {
         logSystemError("painel", "reports", "_reportAuditoria", "sql", $e->getMessage(), $data);
         return failure("Erro ao carregar auditoria.");
+    }
+}
+/**
+ * Gerador de Listagem de Pessoas (Estudantes, Professores, Geral)
+ */
+function _reportGenericPeople($data, $roleType)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $orgId = (int)($data['org_id'] ?? 0);
+        $search = $data['search'] ?? '';
+        $status = $data['status'] ?? 'ALL';
+        $params = [];
+
+        $sql = "SELECT p.person_id, p.full_name, p.email, p.phone_mobile, to_char(p.birth_date, 'DD/MM/YYYY') as birth_date_fmt, p.is_active, p.tax_id 
+                FROM people.persons p ";
+
+        $where = "WHERE p.deleted IS FALSE ";
+
+        if ($orgId > 0) {
+            $where .= " AND p.org_id_origin = :oid ";
+            $params[':oid'] = $orgId;
+        }
+
+        if (!empty($search)) {
+            $where .= " AND p.full_name ILIKE :search ";
+            $params[':search'] = "%" . $search . "%";
+        }
+
+        if ($status === 'ACTIVE') {
+            $where .= " AND p.is_active IS TRUE ";
+        } elseif ($status === 'INACTIVE') {
+            $where .= " AND p.is_active IS FALSE ";
+        }
+
+        if ($roleType) {
+            $sql .= " INNER JOIN people.person_roles pr ON pr.person_id = p.person_id INNER JOIN people.roles r ON pr.role_id = r.role_id ";
+            $where .= " AND r.role_name = :role AND pr.deleted IS FALSE AND pr.is_active IS TRUE ";
+            $params[':role'] = $roleType;
+        }
+
+        $sql .= $where . " ORDER BY p.full_name ASC";
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute($params);
+        return success("Dados gerados.", ['list' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    } catch (Exception $e) {
+        logSystemError("painel", "reports", "_reportGenericPeople", "sql", $e->getMessage(), $data);
+        return failure("Erro ao gerar listagem de pessoas.");
+    }
+}
+
+/**
+ * Gerador de Pendências (Falta de Documentação)
+ */
+function _reportPendencias($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $orgId = (int)($data['org_id'] ?? 0);
+        $search = $data['search'] ?? '';
+        $params = [];
+
+        $sql = "SELECT p.person_id, p.full_name, p.phone_mobile, p.tax_id, p.national_id 
+                FROM people.persons p 
+                WHERE p.deleted IS FALSE AND p.is_active IS TRUE AND (p.tax_id IS NULL OR p.tax_id = '' OR p.national_id IS NULL OR p.national_id = '') ";
+
+        if ($orgId > 0) {
+            $sql .= " AND p.org_id_origin = :oid ";
+            $params[':oid'] = $orgId;
+        }
+
+        if (!empty($search)) {
+            $sql .= " AND p.full_name ILIKE :search ";
+            $params[':search'] = "%" . $search . "%";
+        }
+
+        $sql .= " ORDER BY p.full_name ASC";
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute($params);
+        return success("Dados gerados.", ['list' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    } catch (Exception $e) {
+        logSystemError("painel", "reports", "_reportPendencias", "sql", $e->getMessage(), $data);
+        return failure("Erro ao gerar listagem de pendências.");
+    }
+}
+
+/**
+ * Gerador de Listagem de Turmas
+ */
+function _reportTurmas($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $orgId = (int)($data['org_id'] ?? 0);
+        $search = $data['search'] ?? '';
+        $status = $data['status'] ?? 'ALL';
+        $params = [];
+
+        $sql = "SELECT c.class_id, c.name as turma_name, co.name as curso_name, 
+                       COALESCE(p.full_name, 'Sem Coordenador') as coordinator_name,
+                       (SELECT COUNT(*) FROM education.enrollments e WHERE e.class_id = c.class_id AND e.status = 'ACTIVE' AND e.deleted IS FALSE) as total_alunos,
+                       c.max_capacity, c.is_active
+                FROM education.classes c
+                JOIN education.courses co ON c.course_id = co.course_id
+                LEFT JOIN people.persons p ON c.coordinator_id = p.person_id
+                WHERE c.deleted IS FALSE ";
+
+        if ($orgId > 0) {
+            $sql .= " AND c.org_id = :oid ";
+            $params[':oid'] = $orgId;
+        }
+
+        if (!empty($search)) {
+            $sql .= " AND c.name ILIKE :search ";
+            $params[':search'] = "%" . $search . "%";
+        }
+
+        if ($status === 'ACTIVE') {
+            $sql .= " AND c.is_active IS TRUE ";
+        } elseif ($status === 'INACTIVE') {
+            $sql .= " AND c.is_active IS FALSE ";
+        }
+
+        $sql .= " ORDER BY c.name ASC";
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute($params);
+        return success("Dados gerados.", ['list' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    } catch (Exception $e) {
+        logSystemError("painel", "reports", "_reportTurmas", "sql", $e->getMessage(), $data);
+        return failure("Erro ao gerar listagem de turmas.");
+    }
+}
+
+/**
+ * Gerador de Listagem de Fases
+ */
+function _reportFases($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $orgId = (int)($data['org_id'] ?? 0);
+        $search = $data['search'] ?? '';
+        $status = $data['status'] ?? 'ALL';
+        $params = [];
+
+        $sql = "SELECT f.phase_id, f.name as fase_name, f.syllabus_summary, f.is_active,
+                       (SELECT COUNT(*) FROM education.curriculum cur WHERE cur.phase_id = f.phase_id) as total_usos
+                FROM education.phases f
+                WHERE f.deleted IS FALSE ";
+
+        if ($orgId > 0) {
+            $sql .= " AND f.org_id = :oid ";
+            $params[':oid'] = $orgId;
+        }
+
+        if (!empty($search)) {
+            $sql .= " AND f.name ILIKE :search ";
+            $params[':search'] = "%" . $search . "%";
+        }
+
+        if ($status === 'ACTIVE') {
+            $sql .= " AND f.is_active IS TRUE ";
+        } elseif ($status === 'INACTIVE') {
+            $sql .= " AND f.is_active IS FALSE ";
+        }
+
+        $sql .= " ORDER BY f.name ASC";
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute($params);
+        return success("Dados gerados.", ['list' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    } catch (Exception $e) {
+        logSystemError("painel", "reports", "_reportFases", "sql", $e->getMessage(), $data);
+        return failure("Erro ao gerar listagem de fases.");
+    }
+}
+
+/**
+ * Gerador de Listagem de Encontros (Diário)
+ */
+function _reportEncontros($data)
+{
+    try {
+        $conect = $GLOBALS["local"];
+        $orgId = (int)($data['org_id'] ?? 0);
+        $search = $data['search'] ?? '';
+        $params = [];
+
+        $sql = "SELECT cs.session_id, to_char(cs.session_date, 'DD/MM/YYYY') as data_encontro, 
+                       cs.description, c.name as turma_name, COALESCE(f.name, 'Geral') as fase_name,
+                       (SELECT COUNT(*) FROM education.attendance a WHERE a.session_id = cs.session_id AND a.is_present IS TRUE) as total_presentes
+                FROM education.class_sessions cs
+                JOIN education.classes c ON cs.class_id = c.class_id
+                LEFT JOIN education.phases f ON cs.phase_id = f.phase_id
+                WHERE cs.deleted IS FALSE ";
+
+        if ($orgId > 0) {
+            $sql .= " AND c.org_id = :oid ";
+            $params[':oid'] = $orgId;
+        }
+
+        if (!empty($search)) {
+            $sql .= " AND (c.name ILIKE :search OR f.name ILIKE :search OR cs.description ILIKE :search) ";
+            $params[':search'] = "%" . $search . "%";
+        }
+
+        $sql .= " ORDER BY cs.session_date DESC LIMIT 500";
+
+        $stmt = $conect->prepare($sql);
+        $stmt->execute($params);
+        return success("Dados gerados.", ['list' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    } catch (Exception $e) {
+        logSystemError("painel", "reports", "_reportEncontros", "sql", $e->getMessage(), $data);
+        return failure("Erro ao gerar listagem de encontros.");
     }
 }
