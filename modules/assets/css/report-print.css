@@ -26,6 +26,34 @@ body {
   padding: 40px 0;
 }
 
+/* Botão Flutuante de Imprimir (Apenas Tela) */
+.fab-print {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+}
+
+.fab-print:hover {
+  background-color: #0b5ed7;
+  transform: scale(1.05);
+}
+
 /* ====================================================
    ESTRUTURA DA PÁGINA A4 (Base para o JS Calcular)
    ==================================================== */
@@ -164,9 +192,9 @@ body {
   display: grid;
   grid-template-columns: 150px 1fr 150px;
   align-items: center;
-  border-bottom: 2px solid #000;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+  border-bottom: 2px solid #1e293b !important; /* Linha única, escura e elegante */
+  padding-bottom: 15px !important;
+  margin-bottom: 15px !important;
   gap: 15px;
 }
 
@@ -179,37 +207,6 @@ body {
 
 .header-column-center {
   text-align: center;
-}
-
-/* --- ESTILOS UNIFICADOS (TERMOS E RELATÓRIOS) --- */
-.info-block {
-  background: #f9f9f9;
-  padding: 15px;
-  border: 1px solid #ddd;
-  margin-bottom: 20px;
-  font-size: 14px;
-  border-radius: 8px;
-}
-
-.signature-block {
-  margin-top: 50px;
-  text-align: center;
-}
-
-.signature-line {
-  border-top: 1px solid #000;
-  width: 60%;
-  margin: 0 auto 10px auto;
-  padding-top: 5px;
-}
-
-.footer-note {
-  font-size: 11px;
-  text-align: center;
-  color: #777;
-  margin-top: 40px;
-  border-top: 1px solid #eee;
-  padding-top: 10px;
 }
 
 .org-name {
@@ -225,9 +222,16 @@ body {
 
 .report-title-section {
   text-align: center;
-  border-top: 1px solid #eee;
-  margin-top: 10px;
-  padding-top: 10px;
+  border-top: none !important; /* CORREÇÃO: Remove a segunda linha clara */
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.report-title-section h2 {
+  margin-top: 0 !important;
+  color: #0f172a;
+  font-size: 16pt;
+  letter-spacing: -0.5px;
 }
 
 .report-subtitle {
@@ -257,41 +261,100 @@ body {
 .footer-left {
   text-align: left;
 }
-
 .footer-center {
   text-align: center;
 }
-
 .footer-right {
   text-align: right;
 }
-
 .page-number {
   font-weight: bold;
 }
 
-/* Botão Flutuante de Imprimir (Apenas Tela) */
-.fab-print {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  background-color: #0d6efd;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 1000;
-  transition: transform 0.2s, background-color 0.2s;
+/* --- ESTILOS DE TABELA PREMIUM (SaaS) --- */
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 10pt;
+  margin-top: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+.modern-table thead th {
+  background-color: #f1f5f9 !important;
+  color: #475569;
+  text-transform: uppercase;
+  font-size: 8.5pt;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 12px 15px;
+  border-bottom: 2px solid #cbd5e1 !important;
+  text-align: left;
+  border-left: none !important;
+  border-right: none !important;
+}
+.modern-table tbody tr {
+  transition: background-color 0.2s;
+  page-break-inside: avoid;
+}
+.modern-table tbody tr:nth-child(even) {
+  background-color: #f8fafc !important;
+}
+.modern-table tbody td {
+  padding: 12px 15px;
+  color: #334155;
+  vertical-align: middle;
+  border-bottom: 1px solid #e2e8f0 !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+.modern-table tbody tr:last-child td {
+  border-bottom: none !important;
 }
 
-.fab-print:hover {
-  background-color: #0b5ed7;
-  transform: scale(1.05);
+/* --- BADGES ARREDONDADOS --- */
+.modern-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 50rem;
+  font-size: 7.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.badge-green {
+  background-color: #dcfce7 !important;
+  color: #16a34a !important;
+  border: 1px solid #bbf7d0 !important;
+}
+.badge-red {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+}
+.badge-gray {
+  background-color: #f1f5f9 !important;
+  color: #64748b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+.badge-blue {
+  background-color: #dbeafe !important;
+  color: #2563eb !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+.empty-state-box {
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 20px;
 }

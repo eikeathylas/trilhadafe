@@ -1,11 +1,3 @@
-/**
- * RELATORIOS.JS - O Maestro
- * Interface, Filtros Dinâmicos, Requisições API e Fábrica de Tabelas HTML Modernas.
- */
-
-// ==========================================
-// 1. O REGISTRO CENTRAL (Data-Driven UI)
-// ==========================================
 const DEFAULT_REPORTS = [
   {
     id: "lista_estudantes",
@@ -14,6 +6,8 @@ const DEFAULT_REPORTS = [
     aba: "Pessoas",
     icon: "face",
     slug: "relatorios.estudantes",
+    import: "geradores/geradorPessoas.js",
+    function: "renderReportPessoas",
   },
   {
     id: "lista_professores",
@@ -22,6 +16,8 @@ const DEFAULT_REPORTS = [
     aba: "Pessoas",
     icon: "record_voice_over",
     slug: "relatorios.professores",
+    import: "geradores/geradorPessoas.js",
+    function: "renderReportPessoas",
   },
   {
     id: "lista_pessoas",
@@ -30,6 +26,8 @@ const DEFAULT_REPORTS = [
     aba: "Pessoas",
     icon: "group",
     slug: "relatorios.pessoas",
+    import: "geradores/geradorPessoas.js",
+    function: "renderReportPessoas",
   },
   {
     id: "lista_pendencias",
@@ -37,8 +35,10 @@ const DEFAULT_REPORTS = [
     description: "Catequizandos com documentação ausente (RG/CPF) ou dados incompletos.",
     aba: "Secretaria",
     icon: "assignment_late",
-    badge: "Atenção",
+    badge: "Novidade",
     slug: "relatorios.pendencias",
+    import: "geradores/geradorPendencias.js",
+    function: "renderReportPendencias",
   },
   {
     id: "lista_encontros",
@@ -47,6 +47,8 @@ const DEFAULT_REPORTS = [
     aba: "Acadêmico",
     icon: "event_note",
     slug: "relatorios.encontros",
+    import: "geradores/geradorEncontros.js",
+    function: "renderReportEncontros",
   },
   {
     id: "lista_turmas",
@@ -55,6 +57,8 @@ const DEFAULT_REPORTS = [
     aba: "Acadêmico",
     icon: "class",
     slug: "relatorios.turmas",
+    import: "geradores/geradorTurmas.js",
+    function: "renderReportTurmas",
   },
   {
     id: "lista_fases",
@@ -63,14 +67,8 @@ const DEFAULT_REPORTS = [
     aba: "Acadêmico",
     icon: "account_tree",
     slug: "relatorios.fases",
-  },
-  {
-    id: "relatorio_modelo",
-    title: "Modelo de Teste e Design",
-    description: "Relatório base para testes de layout tabular e quebra de páginas.",
-    aba: "Sistema",
-    icon: "biotech",
-    slug: "relatorios.modelo",
+    import: "geradores/geradorFases.js",
+    function: "renderReportFases",
   },
 ];
 
@@ -97,7 +95,7 @@ function getPermittedReports() {
       if (typeof parsed === "string") parsed = JSON.parse(parsed);
       allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
     }
-  } catch (e) { }
+  } catch (e) {}
 
   return DEFAULT_REPORTS.filter((report) => {
     return !report.slug || allowedSlugs.includes(report.slug) || allowedSlugs.includes("master");
@@ -218,9 +216,6 @@ function setupEventListeners() {
   });
 }
 
-// ==========================================
-// 6. COMPILAÇÃO E IMPRESSÃO COM DESIGN PREMIUM
-// ==========================================
 let currentReportToGenerate = null;
 
 window.prepareReportConfig = function (reportId) {
@@ -231,7 +226,6 @@ window.prepareReportConfig = function (reportId) {
   $("#reportTitle").text(report.title);
   $("#reportDesc").text(report.description);
 
-  // Injeta formulário de filtros dinâmicos REAIS baseados no tipo
   let htmlFiltros = `
       <div class="row g-3">
           <div class="col-12 col-md-8">
@@ -240,7 +234,6 @@ window.prepareReportConfig = function (reportId) {
           </div>
   `;
 
-  // Relatório de pendências e encontros não precisam de filtro de status
   if (reportId !== "lista_pendencias" && reportId !== "lista_encontros") {
     htmlFiltros += `
           <div class="col-12 col-md-4">
@@ -259,136 +252,20 @@ window.prepareReportConfig = function (reportId) {
   $("#modalReportConfig").modal("show");
 };
 
-// EXTRATOR SEGURO DE NOME DO USUÁRIO LOGADO
 function getLoggedUserName() {
   try {
-    // 1. Tenta extrair do token JWT direto do navegador
-    const token = localStorage.getItem("tf_token");
-    if (token) {
-      const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-      const payload = JSON.parse(window.atob(base64));
-      if (payload.name) return payload.name;
+    const tfDataStr = localStorage.getItem("tf_data");
+    if (tfDataStr) {
+      const tfData = JSON.parse(tfDataStr);
+      if (tfData && tfData.name_user) return tfData.name_user;
     }
-    // 2. Tenta extrair da variável de sessão local
-    const tfAccess = localStorage.getItem("tf_user");
-    if (tfAccess) {
-      const u = JSON.parse(tfAccess);
-      if (u.name) return u.name;
+    if (window.defaultApp && window.defaultApp.userInfo && window.defaultApp.userInfo.name_user) {
+      return window.defaultApp.userInfo.name_user;
     }
-    // 3. Fallback do cache do browser
-    return localStorage.getItem("tf_name") || "Administrador do Sistema";
+    return "Administrador do Sistema";
   } catch (e) {
     return "Secretaria Paroquial";
   }
-}
-
-// CONSTRUTOR DE TABELAS HTML MODERNAS PARA IMPRESSÃO
-function buildReportHTML(reportId, list) {
-  // O Código de CSS abaixo anula as "duas linhas" do cabeçalho (.report-header-grid) 
-  // e aplica o design corporativo premium às tabelas (Cores, zebrado, Badges arredondados).
-  let html = `
-    <style>
-        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; font-family: 'Inter', sans-serif; font-size: 10pt; margin-top: 15px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
-        .modern-table thead th { background-color: #f1f5f9; color: #475569; text-transform: uppercase; font-size: 8.5pt; font-weight: 700; letter-spacing: 0.5px; padding: 12px 15px; border-bottom: 2px solid #cbd5e1; text-align: left; }
-        .modern-table tbody tr { transition: background-color 0.2s; page-break-inside: avoid; }
-        .modern-table tbody tr:nth-child(even) { background-color: #f8fafc; }
-        .modern-table tbody td { padding: 12px 15px; color: #334155; vertical-align: middle; border-bottom: 1px solid #e2e8f0; }
-        .modern-table tbody tr:last-child td { border-bottom: none; }
-        
-        .modern-badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 50rem; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
-        .badge-green { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
-        .badge-red { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-        .badge-gray { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
-        .badge-blue { background-color: #dbeafe; color: #2563eb; border: 1px solid #bfdbfe; }
-        
-        .empty-state-box { text-align: center; padding: 40px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; color: #64748b; font-weight: 600; margin-top: 20px; }
-
-        /* Correção Suprema: Anula o conflito de bordas das duas linhas no topo */
-        .report-header-grid { border-bottom: 2px solid #1e293b !important; padding-bottom: 15px !important; margin-bottom: 15px !important; }
-        .report-title-section { border-top: none !important; margin-top: 0 !important; padding-top: 0 !important; }
-        .report-title-section h2 { margin-top: 0 !important; color: #0f172a; font-size: 16pt; letter-spacing: -0.5px; }
-    </style>
-    `;
-
-  if (!list || list.length === 0) {
-    return html + `<div class="empty-state-box">Nenhum registro encontrado para os filtros selecionados.</div>`;
-  }
-
-  html += `<table class="modern-table"><thead><tr>`;
-
-  // Definição Inteligente de Colunas baseada no Tipo
-  if (reportId.includes("pessoas") || reportId.includes("estudantes") || reportId.includes("professores") || reportId === "relatorio_modelo") {
-    html += `<th>Nome Completo</th><th>E-mail</th><th>CPF</th><th>Nascimento</th><th>Telefone</th><th style="text-align:center;">Status</th></tr></thead><tbody>`;
-    list.forEach((item) => {
-      const statusClass = item.is_active === true || item.is_active === "t" || item.is_active === 1 || item.is_active === "1" ? "badge-green" : "badge-red";
-      const statusText = item.is_active === true || item.is_active === "t" || item.is_active === 1 || item.is_active === "1" ? "Ativo" : "Inativo";
-      const email = item.email ? item.email : `<span style="color:#94a3b8; font-style:italic;">Não disp.</span>`;
-      const cpf = item.tax_id ? item.tax_id : `<span style="color:#94a3b8; font-style:italic;">Não disp.</span>`;
-      const nasc = item.birth_date_fmt ? item.birth_date_fmt : `<span style="color:#94a3b8; font-style:italic;">Não disp.</span>`;
-      const tel = item.phone_mobile ? item.phone_mobile : `<span style="color:#94a3b8; font-style:italic;">Não disp.</span>`;
-
-      html += `<tr>
-            <td style="font-weight:600; color:#0f172a;">${item.full_name}</td>
-            <td>${email}</td>
-            <td>${cpf}</td>
-            <td>${nasc}</td>
-            <td>${tel}</td>
-            <td style="text-align:center;"><span class="modern-badge ${statusClass}">${statusText}</span></td>
-        </tr>`;
-    });
-  } else if (reportId === "lista_pendencias") {
-    html += `<th>Nome Completo</th><th>Telefone</th><th>CPF (Fiscal)</th><th>RG (Identidade)</th></tr></thead><tbody>`;
-    list.forEach((item) => {
-      const cpf = item.tax_id ? item.tax_id : `<span class="modern-badge badge-red">Pendente</span>`;
-      const rg = item.national_id ? item.national_id : `<span class="modern-badge badge-red">Pendente</span>`;
-      html += `<tr>
-            <td style="font-weight:600; color:#0f172a;">${item.full_name}</td>
-            <td>${item.phone_mobile || "-"}</td>
-            <td>${cpf}</td>
-            <td>${rg}</td>
-        </tr>`;
-    });
-  } else if (reportId === "lista_turmas") {
-    html += `<th>Turma</th><th>Curso Base</th><th>Coordenador</th><th style="text-align:center;">Alunos / Vagas</th><th style="text-align:center;">Status</th></tr></thead><tbody>`;
-    list.forEach((item) => {
-      const statusClass = item.is_active === true || item.is_active === "t" || item.is_active === 1 ? "badge-green" : "badge-gray";
-      const statusText = item.is_active === true || item.is_active === "t" || item.is_active === 1 ? "Ativa" : "Encerrada";
-      const capacity = item.max_capacity || "∞";
-      html += `<tr>
-            <td style="font-weight:600; color:#0f172a;">${item.turma_name}</td>
-            <td>${item.curso_name}</td>
-            <td>${item.coordinator_name}</td>
-            <td style="text-align:center;"><b>${item.total_alunos}</b> / ${capacity}</td>
-            <td style="text-align:center;"><span class="modern-badge ${statusClass}">${statusText}</span></td>
-        </tr>`;
-    });
-  } else if (reportId === "lista_fases") {
-    html += `<th>Matriz da Fase</th><th>Resumo / Ementa</th><th style="text-align:center;">Utilização</th><th style="text-align:center;">Status</th></tr></thead><tbody>`;
-    list.forEach((item) => {
-      const statusClass = item.is_active === true || item.is_active === "t" || item.is_active === 1 ? "badge-green" : "badge-gray";
-      const statusText = item.is_active === true || item.is_active === "t" || item.is_active === 1 ? "Ativa" : "Inativa";
-      html += `<tr>
-            <td style="font-weight:600; color:#0f172a;">${item.fase_name}</td>
-            <td style="font-size:8.5pt;">${item.syllabus_summary || "-"}</td>
-            <td style="text-align:center;"><span class="modern-badge badge-blue">${item.total_usos} Grade(s)</span></td>
-            <td style="text-align:center;"><span class="modern-badge ${statusClass}">${statusText}</span></td>
-        </tr>`;
-    });
-  } else if (reportId === "lista_encontros") {
-    html += `<th>Data</th><th>Turma / Fase</th><th>Assunto / Tema</th><th style="text-align:center;">Presentes</th></tr></thead><tbody>`;
-    list.forEach((item) => {
-      html += `<tr>
-            <td style="font-weight:600; color:#0f172a; white-space:nowrap;">${item.data_encontro}</td>
-            <td><b>${item.turma_name}</b><br><span style="font-size:8pt; color:#64748b;">${item.fase_name}</span></td>
-            <td style="font-size:8.5pt;">${item.description || "-"}</td>
-            <td style="text-align:center;"><span class="modern-badge badge-blue">${item.total_presentes} Alunos</span></td>
-        </tr>`;
-    });
-  }
-
-  html += `</tbody></table>`;
-  return html;
 }
 
 $(document).on("click", "#btnGenerateReport", async function () {
@@ -396,7 +273,6 @@ $(document).on("click", "#btnGenerateReport", async function () {
   const btn = $(this);
   const originalHtml = btn.html();
 
-  // Coleta filtros da tela
   const filters = {
     search: $("#report_filter_search").val() || "",
     status: $("#report_filter_status").length ? $("#report_filter_status").val() : "ALL",
@@ -406,7 +282,7 @@ $(document).on("click", "#btnGenerateReport", async function () {
   btn.html('<i class="fas fa-spinner fa-spin me-2"></i> Processando...').prop("disabled", true);
 
   try {
-    // CHAMADA REAL À API
+    // 1. Busca os Dados na API
     const result = await window.ajaxValidator({
       validator: "getReportData",
       token: window.defaultApp ? window.defaultApp.userInfo.token : localStorage.getItem("tf_token"),
@@ -415,8 +291,22 @@ $(document).on("click", "#btnGenerateReport", async function () {
     });
 
     if (result.status) {
-      const generatedHTML = buildReportHTML(currentReportToGenerate.id, result.data?.list || []);
-      compileAndPrintReport(currentReportToGenerate, generatedHTML);
+      // 2. INJEÇÃO DINÂMICA DO GERADOR DE TABELA (Lazy Loading)
+      const scriptPath = "assets/relatorios/" + currentReportToGenerate.import;
+      const funcName = currentReportToGenerate.function;
+
+      try {
+        if (typeof window[funcName] !== "function") {
+          await $.getScript(scriptPath);
+        }
+
+        // Chama a função do gerador que acabou de ser carregado
+        const generatedHTML = window[funcName](result.data?.list || [], currentReportToGenerate.id);
+        compileAndPrintReport(currentReportToGenerate, generatedHTML);
+      } catch (scriptError) {
+        console.error("Falha ao carregar o módulo do relatório:", scriptError);
+        Swal.fire("Erro de Módulo", "O gerador de tabelas deste relatório não foi encontrado no servidor.", "error");
+      }
     } else {
       Swal.fire("Falha na Geração", result.alert || "Não foi possível carregar os dados.", "error");
     }
@@ -430,10 +320,8 @@ $(document).on("click", "#btnGenerateReport", async function () {
 
 function compileAndPrintReport(report, tableHtmlContent) {
   $("#modalReportConfig").modal("hide");
-
   const printWindow = window.open("", "_blank");
 
-  // Dados provisórios da Paróquia (Serão substituídos via API em atualizações futuras)
   const dadosParoquia = {
     titulo: report.title,
     organizacao: "Paróquia São João Batista",
@@ -445,8 +333,6 @@ function compileAndPrintReport(report, tableHtmlContent) {
   };
 
   const headerHTML = buildReportHeader(dadosParoquia);
-
-  // Utilizando o extrator rigoroso de identidade do usuário
   const userName = getLoggedUserName();
   const footerHTML = buildReportFooter({ emissor: userName });
 
@@ -460,7 +346,6 @@ function compileAndPrintReport(report, tableHtmlContent) {
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   </head>
   <body>
-
       <button class="fab-print no-print" onclick="window.print();">
           <span class="material-symbols-outlined">print</span> Imprimir
       </button>
@@ -468,9 +353,7 @@ function compileAndPrintReport(report, tableHtmlContent) {
       <div id="reportRoot"></div>
 
       <script>
-        const contentHTML = \`
-          ${tableHtmlContent}
-        \`;
+        const contentHTML = \`${tableHtmlContent}\`;
 
         function createPage() {
           const page = document.createElement("div");
@@ -485,23 +368,16 @@ function compileAndPrintReport(report, tableHtmlContent) {
 
         function paginate() {
           const root = document.getElementById("reportRoot");
-          const temp = document.createElement("div");
-          temp.innerHTML = contentHTML;
-
-          // Injetamos a tabela no corpo e o navegador cuida nativamente da quebra
-          // no @media print mantendo a integridade visual dos thead/tbody.
           let page = createPage();
           root.appendChild(page);
           page.querySelector(".page-body").innerHTML = contentHTML;
           
-          // Fallback da numeração
           const number = page.querySelector(".page-number");
           if (number) number.textContent = "Pág. 1";
         }
 
         window.onload = paginate;
       </script>
-
   </body>
   </html>
   `;
