@@ -367,6 +367,15 @@ window.modalPessoa = (id = null, btn = false) => {
   $("#matrimony_date").val("");
   $("#matrimony_place").val("");
 
+  // Limpa campos de Padrinhamento
+  if ($("#sel_godfather")[0] && $("#sel_godfather")[0].selectize) $("#sel_godfather")[0].selectize.clear();
+  if ($("#sel_godmother")[0] && $("#sel_godmother")[0].selectize) $("#sel_godmother")[0].selectize.clear();
+  $("#godparents_dob").val("");
+  $("#godparents_phone").val("");
+  $("#godparents_address").val("");
+  $("#godparents_married").prop("checked", false);
+  $("#godparents_single").prop("checked", false);
+
   currentFamilyList = [];
   currentAttachmentsList = [];
   if ($("#sel_relative")[0] && $("#sel_relative")[0].selectize) {
@@ -374,16 +383,27 @@ window.modalPessoa = (id = null, btn = false) => {
   }
 
   renderFamilyTable();
-  renderAttachmentsTable();
-  initMasks();
 
-  if (btn) btn = $(btn);
+  const firstTabEl = document.querySelector("#pessoaTab button:first-child");
+  if (firstTabEl) {
+    const tab = new bootstrap.Tab(firstTabEl);
+    tab.show();
+  }
+
   if (id) {
+    $("#btn-print-termos").removeClass("d-none");
     loadPersonData(id, btn);
   } else {
-    $("#modalLabel").html('<i class="fas fa-user-plus me-3 opacity-75"></i> Cadastrar Nova Pessoa');
+    $("#btn-print-termos").addClass("d-none");
+    $("#modalLabel").html('<i class="fas fa-user-plus me-3 opacity-75"></i> Novo Cadastro');
     modal.modal("show");
   }
+};
+
+window.abrirTermos = () => {
+  const id = $("#person_id").val();
+  if (!id) return;
+  window.open(`print-termos.php?id=${id}`, "_blank");
 };
 
 const loadPersonData = async (id, btn) => {
@@ -427,7 +447,7 @@ const loadPersonData = async (id, btn) => {
       $("#role_parent").prop("checked", roles.includes("PARENT"));
       $("#role_secretary").prop("checked", roles.includes("SECRETARY"));
 
-      console.log(d.sacraments_info)
+      console.log(d.sacraments_info);
 
       if (d.sacraments_info) {
         let sac = {};
