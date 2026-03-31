@@ -407,6 +407,7 @@ function getEnrollmentHistoryF($data)
 {
     try {
         $conect = $GLOBALS["local"];
+        // Restaurando o padrão arquitetural correto do sistema
         $conectStaff = getStaff();
 
         $enrollmentId = $data['enrollment_id'];
@@ -432,7 +433,7 @@ function getEnrollmentHistoryF($data)
         $stmtH->execute(['eid' => $enrollmentId]);
         $historyRecords = $stmtH->fetchAll(PDO::FETCH_ASSOC);
 
-        // 2. Busca as FALTAS no diário de classe
+        // 2. Busca as FALTAS no diário de classe (Refatorado para "Fases" em vez de "Disciplinas")
         $sqlAbs = "SELECT 
                         a.session_id as history_id,
                         'ABSENCE' as action_type,
@@ -440,14 +441,15 @@ function getEnrollmentHistoryF($data)
                         s.session_date as action_date,
                         s.signed_by_user_id as created_by_user_id,
                         'ATTENDANCE' as source_table,
-                        sub.name as subject_name
+                        ph.name as subject_name
                     FROM education.attendance a
                     JOIN education.class_sessions s ON a.session_id = s.session_id
-                    LEFT JOIN education.subjects sub ON s.subject_id = sub.subject_id
+                    LEFT JOIN education.phases ph ON s.phase_id = ph.phase_id
                     WHERE a.student_id = :sid 
                       AND s.class_id = :cid 
                       AND a.is_present IS FALSE 
-                      AND s.deleted IS FALSE";
+                      AND s.deleted IS FALSE
+                    LIMIT 0"; // LIMIT 0 para desativar temporariamente a busca de faltas.
         $stmtA = $conect->prepare($sqlAbs);
         $stmtA->execute([
             'sid' => $encData['student_id'],
@@ -464,7 +466,8 @@ function getEnrollmentHistoryF($data)
         $userIds = array_unique(array_filter(array_column($logs, 'created_by_user_id')));
         $usersMap = [];
 
-        if (!empty($userIds)) {
+        // Proteção contra falha no Staff DB
+        if (!empty($userIds) && $conectStaff) {
             $placeholders = implode(',', array_fill(0, count($userIds), '?'));
             $stmtU = $conectStaff->prepare("SELECT id, name FROM public.users WHERE id IN ($placeholders)");
             $stmtU->execute(array_values($userIds));
@@ -485,7 +488,7 @@ function getEnrollmentHistoryF($data)
 
         return success("Histórico carregado.", $logs);
     } catch (Exception $e) {
-        return failure("Erro ao buscar histórico.");
+        return failure("Erro ao buscar histórico: " . $e->getMessage());
     }
 }
 

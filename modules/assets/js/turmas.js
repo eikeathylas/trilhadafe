@@ -368,9 +368,12 @@ const loadEnrollmentHistory = async (enrollmentId) => {
         : '<div class="text-center py-5 text-muted opacity-50"><span class="material-symbols-outlined fs-1">event_busy</span><p class="mt-2 fw-medium text-body">Nenhum histórico registrado.</p></div>';
 
       container.html(wrapperHtml);
+    } else {
+      // TRATATIVA VISUAL PARA QUANDO STATUS FOR FALSO
+      container.html(`<div class="text-center text-danger py-4 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i> ${res.alert || "Erro ao carregar o histórico."}</div>`);
     }
   } catch (e) {
-    container.html('<div class="text-center text-danger py-4">Erro ao carregar histórico.</div>');
+    container.html('<div class="text-center text-danger py-4 fw-bold"><i class="fas fa-wifi me-2"></i> Falha de conexão ao carregar histórico.</div>');
   }
 };
 
