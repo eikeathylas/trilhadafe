@@ -346,8 +346,20 @@ window.initSelectPhases = () => {
     placeholder: "Busque uma fase...",
     preload: true,
     maxOptions: 50,
+    onChange: function (value) {
+      // Interceptador Quick Create
+      if (value === "NEW_REGISTER") {
+        this.clear(true);
+        window.selectizePhaseToUpdate = this;
+        $("#modalNovaFase").modal("show");
+      }
+    },
     render: {
       option: function (item, escape) {
+        // Renderiza botão dinâmico
+        if (item.id === "NEW_REGISTER") {
+          return `<div class="py-2 px-3 border-bottom border-primary border-opacity-25 text-primary fw-bold" style="background-color: var(--bs-primary-bg-subtle);"><i class="fas fa-plus-circle me-2"></i>${escape(item.title)}</div>`;
+        }
         return `
           <div class="d-flex align-items-center py-2 px-3 border-bottom border-secondary border-opacity-10">
             <div class="bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 36px; height: 36px;">
@@ -371,7 +383,10 @@ window.initSelectPhases = () => {
         });
 
         if (result.status) {
-          callback(result.data || []);
+          let data = result.data || [];
+          // Injeta a opção "Nova Fase" na lista via API
+          data.push({ id: "NEW_REGISTER", title: "Cadastrar Nova Fase", summary: "Criar no sistema" });
+          callback(data);
         } else {
           callback();
           throw new Error(result.alert || "Erro ao buscar fases.");
@@ -980,3 +995,70 @@ const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKe
 $(document).ready(() => {
   getCursos();
 });
+
+// Quick Create - Salvar Fase
+window.salvarFaseRapida = async (btn) => {
+  const name = $("#new_phase_title").val().trim();
+  const summary = $("#new_phase_summary").val().trim();
+  const orgId = localStorage.getItem("tf_active_parish");
+
+  if (!name) return window.alertDefault("Informe o nome da fase.", "warning");
+
+  btn = $(btn);
+  window.setButton(true, btn, " Salvando...");
+
+  try {
+    // 1. Payload blindado seguindo a assinatura exata do upsertPhase
+    const payload = {
+      phase_id: "",
+      name: name,
+      syllabus_summary: summary,
+    };
+
+    const res = await window.ajaxValidator({
+      validator: "savePhase",
+      token: defaultApp.userInfo.token,
+      data: payload, // Variáveis encapsuladas
+      org_id: orgId, // Cópia na raiz para validação da Controller
+    });
+
+    if (res.status) {
+      window.alertDefault("Fase criada com sucesso!", "success");
+      $("#modalNovaFase").modal("hide");
+      $("#new_phase_title").val("");
+      $("#new_phase_summary").val("");
+
+      // 2. Mágica Reativa: Busca a nova fase e atualiza o selectize
+      if (window.selectizePhaseToUpdate) {
+        window.selectizePhaseToUpdate.clearOptions();
+
+        $.ajax({
+          url: defaultApp.validator,
+          type: "POST",
+          dataType: "json",
+          data: { validator: "getPhasesSelect", token: defaultApp.userInfo.token, search: name },
+          success: function (r) {
+            let list = r.data || [];
+            // Reinsere a opção de criação
+            list.push({ id: "NEW_REGISTER", title: "Cadastrar Nova Fase", summary: "Criar no sistema" });
+
+            // Injeta as opções atualizadas na instância
+            list.forEach((item) => window.selectizePhaseToUpdate.addOption(item));
+
+            // Encontra a fase recém-criada (o backend de fases retorna 'title' para o selectize)
+            let found = list.find((d) => d.title && d.title.toLowerCase() === name.toLowerCase() && d.id !== "NEW_REGISTER");
+            if (found) {
+              window.selectizePhaseToUpdate.setValue(found.id);
+            }
+          },
+        });
+      }
+    } else {
+      window.alertDefault(res.alert || "Erro ao criar fase.", "error");
+    }
+  } catch (e) {
+    window.alertErrorWithSupport("Criar Fase", e.message);
+  } finally {
+    window.setButton(false, btn);
+  }
+};

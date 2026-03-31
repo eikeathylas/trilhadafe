@@ -250,6 +250,27 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalNovaFase" tabindex="-1" aria-hidden="true" style="z-index: 1100;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-body">
+                <div class="modal-header border-0 bg-secondary bg-opacity-10 p-4 pb-3">
+                    <h5 class="modal-title fw-bold text-body m-0"><i class="fas fa-book-medical me-2 text-primary"></i>Nova Fase da Iniciação</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Nome da Fase</label>
+                    <input type="text" id="new_phase_title" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none fw-bold px-3 mb-3 rounded-3" style="height: 48px;" placeholder="Ex: Catecumenato">
+
+                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Resumo (Opcional)</label>
+                    <input type="text" id="new_phase_summary" class="form-control bg-secondary bg-opacity-10 border-0 shadow-none fw-medium px-3 rounded-3" style="height: 48px;" placeholder="Breve objetivo da fase">
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 justify-content-end">
+                    <button type="button" class="btn btn-primary fw-bold px-5 rounded-3 shadow-sm w-100" onclick="salvarFaseRapida(this)">Criar Fase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php include "./assets/components/Modal-Faqs.php"; ?>
     <?php include "./assets/components/Modal-Audit.php"; ?>
     <?php include "./assets/components/Scripts.php"; ?>

@@ -555,8 +555,22 @@ const initSelects = () => {
         onInitialize: function () {
           this.$control.css({ border: "none", "background-color": "rgba(100, 116, 139, 0.1)", "border-radius": "10px", padding: "11px 14px", "font-size": "0.92rem", "font-weight": "600", "box-shadow": "inset 0 1px 2px rgba(0,0,0,0.05)" });
         },
+        onChange: function (value) {
+          // Interceptador Quick Create
+          if (value === "NEW_REGISTER") {
+            this.clear(true);
+            window.selectizeToUpdate = this; // Salva quem chamou a ação
+            $("#new_location_name").val("");
+            $("#modalNovoLocal").modal("show");
+          }
+        },
         render: {
           option: (item, escape) => {
+            // Renderização do Botão Flutuante de Novo
+            if (item.location_id === "NEW_REGISTER" || item.id === "NEW_REGISTER") {
+              return `<div class="py-2 px-3 border-bottom border-primary border-opacity-25 text-primary fw-bold" style="background-color: var(--bs-primary-bg-subtle);"><i class="fas fa-plus-circle me-2"></i>${escape(item.title || item.name)}</div>`;
+            }
+
             if (s.val === "getStudentsList") {
               const photo = item.profile_photo_url
                 ? `<img src="${escape(item.profile_photo_url)}" class="rounded-circle object-fit-cover border border-secondary border-opacity-25" style="width: 36px; height: 36px;">`
@@ -580,7 +594,21 @@ const initSelects = () => {
           },
         },
         load: (q, cb) => {
-          $.ajax({ url: defaultApp.validator, type: "POST", dataType: "json", data: { validator: s.val, token: defaultApp.userInfo.token, search: q, limit: 50 }, success: (r) => cb(r.data), error: () => cb() });
+          $.ajax({
+            url: defaultApp.validator,
+            type: "POST",
+            dataType: "json",
+            data: { validator: s.val, token: defaultApp.userInfo.token, search: q, limit: 50 },
+            success: (r) => {
+              let data = r.data || [];
+              // Injeta o botão virtual na lista de Locais
+              if (s.val === "getLocations") {
+                data.push({ location_id: "NEW_REGISTER", name: "Cadastrar Novo Local" });
+              }
+              cb(data);
+            },
+            error: () => cb(),
+          });
         },
       });
     }
@@ -922,4 +950,75 @@ window.processarConclusaoTurma = function (classId, isConcluding) {
 
 window.abrirCertificados = function (classId) {
   window.open(`print-certificados.php?id=${classId}`, "_blank");
+};
+
+// Quick Create - Salvar Local
+window.salvarLocalRapido = async (btn) => {
+  const name = $("#new_location_name").val().trim();
+  const orgId = localStorage.getItem("tf_active_parish");
+
+  if (!name) return window.alertDefault("Informe o nome do local.", "warning");
+
+  btn = $(btn);
+  window.setButton(true, btn, " Salvando...");
+
+  try {
+    // 1. Payload blindado
+    const payload = {
+      location_id: "",
+      org_id: orgId,
+      name: name,
+      capacity: 20,
+    };
+
+    const res = await window.ajaxValidator({
+      validator: "saveLocation",
+      token: defaultApp.userInfo.token,
+      data: payload,
+      org_id: orgId,
+    });
+
+    if (res.status) {
+      window.alertDefault("Local criado com sucesso!", "success");
+      $("#modalNovoLocal").modal("hide");
+      $("#new_location_name").val("");
+
+      // 2. Mágica Reativa: Busca o novo local e atualiza TODOS os selects da tela
+      $.ajax({
+        url: defaultApp.validator,
+        type: "POST",
+        dataType: "json",
+        data: { validator: "getLocations", token: defaultApp.userInfo.token, search: name, limit: 5 },
+        success: function (r) {
+          let list = r.data || [];
+          list.push({ location_id: "NEW_REGISTER", name: "Cadastrar Novo Local" });
+
+          // Encontra o local que acabamos de criar
+          let found = list.find((d) => d.name && d.name.toLowerCase() === name.toLowerCase() && d.location_id !== "NEW_REGISTER");
+
+          // Varre todos os selects de localização na tela de Turmas
+          ["#sel_location", "#sel_location_sched"].forEach((selId) => {
+            let selInstance = $(selId)[0]?.selectize;
+            if (selInstance) {
+              selInstance.clearOptions();
+
+              // Injeta as opções atualizadas em cada um
+              list.forEach((item) => selInstance.addOption(item));
+
+              // Se este for o exato select que disparou a ação, crava a seleção nele
+              if (window.selectizeToUpdate === selInstance && found) {
+                selInstance.setValue(found.location_id);
+              }
+            }
+          });
+        },
+      });
+    } else {
+      window.alertDefault(res.alert || "Erro ao criar local.", "error");
+    }
+  } catch (e) {
+    window.alertErrorWithSupport("Criar Local", e.message);
+  } finally {
+    window.setButton(false, btn);
+  }
 };
