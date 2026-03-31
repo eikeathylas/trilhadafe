@@ -109,9 +109,9 @@
                         </a>
                     </li>
                     <li data-slug="organizacao">
-                        <a href="organizacao.php" class="<?= basename($_SERVER['PHP_SELF']) == 'organizacao.php' ? 'active' : '' ?>" data-tooltip="Organização">
+                        <a href="organizacao.php" class="<?= basename($_SERVER['PHP_SELF']) == 'organizacao.php' ? 'active' : '' ?>" data-tooltip="Entidade">
                             <span class="material-symbols-outlined icon-only">domain</span>
-                            <span class="text-only">Organizações</span>
+                            <span class="text-only">Entidade</span>
                         </a>
                     </li>
                     <li data-slug="usuarios">

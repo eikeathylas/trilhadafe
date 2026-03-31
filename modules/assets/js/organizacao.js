@@ -177,17 +177,17 @@ window.getOrganizacoes = async () => {
   const container = $(".list-table-orgs");
   try {
     let page = Math.max(0, defaultOrg.orgCurrentPage - 1);
-    container.html(`<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium">Sincronizando paróquias...</p></div>`);
+    container.html(`<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium">Sincronizando entidades...</p></div>`);
     const result = await window.ajaxValidator({ validator: "getOrganizations", token: window.defaultApp.userInfo.token, limit: defaultOrg.orgRowsPerPage, page: page * defaultOrg.orgRowsPerPage, type: "org" });
     if (result.status) {
       const dataArray = result.data || [];
       if (dataArray.length > 0) {
         defaultOrg.orgTotalPages = Math.max(1, Math.ceil((dataArray[0]?.total_registros || 0) / defaultOrg.orgRowsPerPage));
         renderTableOrgs(dataArray);
-      } else container.html(`<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">church</span><p class="mt-2 text-body fw-medium">Nenhuma paróquia encontrada.</p></div>`);
+      } else container.html(`<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">church</span><p class="mt-2 text-body fw-medium">Nenhuma entidade encontrada.</p></div>`);
     } else throw new Error(result.alert || "Erro inesperado.");
   } catch (e) {
-    window.alertErrorWithSupport("Listar Paróquias", e.message);
+    window.alertErrorWithSupport("Listar Entidades", e.message);
   }
 };
 
@@ -223,7 +223,7 @@ const renderTableOrgs = (data) => {
               <div class="fw-bold text-body" style="font-size: 0.95rem;">${item.display_name}</div>
               <div class="text-muted small mt-1">Contato: ${item.phone_main || "-"}</div>
           </td>
-          <td class="text-center align-middle"><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 fw-bold shadow-sm" style="font-size: 0.65rem;">PARÓQUIA</span></td>
+          <td class="text-center align-middle"><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 fw-bold shadow-sm" style="font-size: 0.65rem;">ENTIDADE</span></td>
           <td class="align-middle text-body small fw-medium">${item.city_state || "-"}</td>
           <td class="text-center align-middle" style="width: 100px;">
               <div class="form-check form-switch m-0 p-0 d-flex align-items-center justify-content-center">
@@ -278,7 +278,7 @@ const renderTableOrgs = (data) => {
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th colspan="2" class="ps-3 text-uppercase small opacity-75">Paróquia / Comunidade</th>
+                    <th colspan="2" class="ps-3 text-uppercase small opacity-75">Entidade / Comunidade</th>
                     <th class="text-center text-uppercase small opacity-75">Tipo</th>
                     <th class="text-uppercase small opacity-75">Localização</th>
                     <th class="text-center text-uppercase small opacity-75">Estado</th>
@@ -298,7 +298,11 @@ window.getLocais = async () => {
   try {
     let page = Math.max(0, defaultOrg.locCurrentPage - 1);
     container.html(`<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium">Carregando locais...</p></div>`);
-    const result = await window.ajaxValidator({ validator: "getLocations", token: window.defaultApp.userInfo.token, limit: defaultOrg.locRowsPerPage, page: page * defaultOrg.locRowsPerPage, org_id: $("#filtro-org-locais").val() });
+
+    // Injeção forçada do Tenant Logado (Entidade) em vez de consumir input visual
+    const activeOrgId = localStorage.getItem("tf_active_parish");
+    const result = await window.ajaxValidator({ validator: "getLocations", token: window.defaultApp.userInfo.token, limit: defaultOrg.locRowsPerPage, page: page * defaultOrg.locRowsPerPage, org_id: activeOrgId });
+
     if (result.status) {
       const dataArray = result.data || [];
       if (dataArray.length > 0) {
@@ -575,8 +579,10 @@ window.deleteOrg = (id) => {
 
 window.salvarLocal = async (btn) => {
   const nome = $("#loc_name").val()?.trim();
-  const orgId = $("#loc_org_id").val();
-  if (!nome || !orgId) return window.alertDefault("Nome e Paróquia são obrigatórios.", "warning");
+  const orgId = localStorage.getItem("tf_active_parish");
+
+  if (!nome || !orgId) return window.alertDefault("Nome e vínculo da Entidade são obrigatórios.", "warning");
+
   btn = $(btn);
   window.setButton(true, btn, " Salvando...");
 
@@ -703,7 +709,6 @@ const editarLocalObj = (item, btn) => {
     $("#loc_id").val(item.location_id);
     $("#loc_name").val(item.name);
     $("#loc_capacity").val(item.capacity);
-    if ($("#loc_org_id")[0]?.selectize) $("#loc_org_id")[0].selectize.setValue(item.org_id);
     if ($("#loc_responsible")[0]?.selectize) $("#loc_responsible")[0].selectize.setValue(item.responsible_id);
     const res = typeof item.resources === "string" ? JSON.parse(item.resources || "{}") : item.resources || {};
     ["whiteboard", "projector", "sound", "wifi", "kitchen", "parking", "fan", "water", "computer"].forEach((r) => {
@@ -726,8 +731,6 @@ window.modalLocal = (id = null) => {
   modal.find('input[type="checkbox"]').prop("checked", false);
   $("#loc_address_block").addClass("d-none");
   loadResponsibles().then(() => {
-    const filter = $("#filtro-org-locais").val();
-    if (filter && $("#loc_org_id")[0]?.selectize) $("#loc_org_id")[0].selectize.setValue(filter);
     modal.modal("show");
     if (window.initMasks) window.initMasks();
   });
@@ -880,11 +883,6 @@ $(document).ready(() => {
   initOrgSelects();
 
   $('button[data-bs-target="#locais"]').on("shown.bs.tab", () => getLocais());
-
-  $("#filtro-org-locais").change(() => {
-    defaultOrg.locCurrentPage = 1;
-    getLocais();
-  });
 
   $("#loc_zip").on("blur", function () {
     const valor = $(this).val().replace(/\D/g, "");

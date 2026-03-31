@@ -253,12 +253,3 @@ diario_controller.php
 
 
 # Atual
-
-
-
-
-
-
-ADICIONAR AO BLOCO 6 QUE NÃO TERÁ FILTRO DE PARÓQUIA, SEMPRE SERÁ A PAROQUIA LOGADA, AJUSTAR O LAYOUT E CONTEXTO DA TELA
-
-ERRO NA TELA DE TURMAS:  - Não carrega o historico do estudante
