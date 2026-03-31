@@ -117,6 +117,12 @@
                                                 <input type="text" id="diario_date" class="form-control fw-bold border-0 text-body shadow-none px-4 bg-transparent" placeholder="Toque para selecionar..." readonly style="height: 52px; cursor: pointer;">
                                                 <span class="input-group-text border-0 bg-transparent px-3 pe-4" id="date-status-icon"></span>
                                             </div>
+
+                                            <div id="session_select_container" class="mt-2 d-none" style="position: relative; z-index: 1050;">
+                                                <select id="diario_session_select" class="form-select bg-primary bg-opacity-10 shadow-sm rounded-4 border-0 fw-bold text-primary px-3 mt-2" style="height: 48px; font-size: 0.9rem; cursor: pointer;">
+                                                </select>
+                                            </div>
+
                                             <small id="date-msg" class="d-block mt-2 fw-bold text-truncate text-body ms-2" style="font-size: 0.75rem;"></small>
                                         </div>
                                         <div class="col-md-5 text-end d-none d-md-block mt-4">

@@ -536,9 +536,13 @@ window.checkDateLogic = async (dateStr) => {
 
   const $statusIcon = $("#date-status-icon");
   const $msgContainer = $("#date-msg");
+  const $sessionSelectContainer = $("#session_select_container");
+  const $sessionSelect = $("#diario_session_select");
 
   $statusIcon.html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div>');
   $msgContainer.text("Validando plano de encontro...").removeClass("text-warning text-danger text-success text-primary");
+  $sessionSelectContainer.addClass("d-none");
+  $sessionSelect.empty();
 
   const dateObj = new Date(dateStr + "T00:00:00");
   const dayOfWeek = dateObj.getDay();
@@ -561,35 +565,45 @@ window.checkDateLogic = async (dateStr) => {
 
     if (res.status) {
       const info = res.data;
+      diarioState.currentDateInfo = info;
 
       if (info.status === "BLOCKED") {
         $statusIcon.html('<i class="fas fa-ban text-danger"></i>');
         $msgContainer.text(`Bloqueado: ${info.reason}`).removeClass("text-warning").addClass("text-danger");
-        $("#diario_content").summernote("disable");
+        if ($("#diario_content").next(".note-editor").length > 0) $("#diario_content").summernote("disable");
         $("#lista-alunos").html('<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">block</span><p class="mt-2 text-body fw-bold">Data bloqueada para chamadas.</p></div>');
-      } else if (info.status === "EXISTING") {
-        diarioState.sessionId = info.session_id;
-        $statusIcon.html('<i class="fas fa-edit text-primary"></i>');
-        $msgContainer.text("Editando diário existente.").removeClass("text-warning").addClass("text-primary");
-
-        $("#diario_content").summernote("enable");
-        $("#diario_content").summernote("code", info.content);
-        // Passando data como filtro
-        loadStudentsList(info.attendance, dateStr);
-      } else if (info.status === "NEW") {
-        diarioState.sessionId = null;
-        $statusIcon.html('<i class="fas fa-check-circle text-success"></i>');
-        $msgContainer.text(`Novo Diário (Encontro #${info.sequence})`).removeClass("text-warning").addClass("text-success");
-
-        $("#diario_content").summernote("enable");
-        if (info.template) {
-          $("#diario_content").summernote("code", info.template);
-          window.alertDefault("Plano de encontro carregado com sucesso!", "info");
-        } else {
-          $("#diario_content").summernote("code", "");
+      } else {
+        // Popula as opções de Encontros
+        let optionsHtml = "";
+        if (info.sessions && info.sessions.length > 0) {
+          info.sessions.forEach((sess, idx) => {
+            optionsHtml += `<option value="${sess.session_id}">Encontro ${idx + 1} (Já registrado)</option>`;
+          });
         }
-        // Passando data como filtro
-        loadStudentsList(null, dateStr);
+        optionsHtml += `<option value="NEW">+ Adicionar Novo Encontro</option>`;
+
+        // Injeta, remove o listener antigo e adiciona o novo com jQuery (Mais seguro)
+        $sessionSelect
+          .off("change")
+          .html(optionsHtml)
+          .on("change", function () {
+            window.changeSessionSelect($(this).val());
+          });
+
+        $sessionSelectContainer.removeClass("d-none").show();
+
+        if (info.sessions && info.sessions.length > 0) {
+          if (diarioState.sessionId && info.sessions.find((s) => s.session_id == diarioState.sessionId)) {
+            $sessionSelect.val(diarioState.sessionId);
+          } else {
+            $sessionSelect.val(info.sessions[0].session_id);
+          }
+        } else {
+          $sessionSelect.val("NEW");
+        }
+
+        // Dispara a lógica de troca manual para evitar triggers fantasmas
+        window.changeSessionSelect($sessionSelect.val());
       }
     } else {
       throw new Error(res.alert || "Não foi possível validar as regras desta data.");
@@ -599,6 +613,50 @@ window.checkDateLogic = async (dateStr) => {
     $msgContainer.text("Erro de comunicação.").addClass("text-warning");
     const errorMessage = e.message || "Falha na comunicação com o servidor.";
     window.alertErrorWithSupport(`Validar Data do Diário`, errorMessage);
+  }
+};
+
+window.changeSessionSelect = (val) => {
+  try {
+    const info = diarioState.currentDateInfo;
+    const $statusIcon = $("#date-status-icon");
+    const $msgContainer = $("#date-msg");
+    const dateStr = $("#diario_date").val();
+    const $editor = $("#diario_content");
+
+    // Proteção contra a Condição de Corrida (Summernote não inicializado)
+    const hasSummernote = $editor.next(".note-editor").length > 0;
+
+    if (val === "NEW") {
+      diarioState.sessionId = null;
+      $statusIcon.html('<i class="fas fa-plus-circle text-success"></i>');
+      $msgContainer.text(`Novo Registro (Encontro #${info.next_sequence})`).removeClass("text-warning text-primary").addClass("text-success");
+
+      if (hasSummernote) {
+        $editor.summernote("enable");
+        $editor.summernote("code", info.template || "");
+      } else {
+        $editor.val(info.template || "");
+      }
+      loadStudentsList(null, dateStr);
+    } else {
+      diarioState.sessionId = val;
+      const sessData = info.sessions.find((s) => s.session_id == val);
+      if (!sessData) return;
+
+      $statusIcon.html('<i class="fas fa-edit text-primary"></i>');
+      $msgContainer.text("Editando diário existente.").removeClass("text-warning text-success").addClass("text-primary");
+
+      if (hasSummernote) {
+        $editor.summernote("enable");
+        $editor.summernote("code", sessData.description || "");
+      } else {
+        $editor.val(sessData.description || "");
+      }
+      loadStudentsList(sessData.attendance, dateStr);
+    }
+  } catch (e) {
+    console.error("Crash ao tentar processar a aba do diário: ", e);
   }
 };
 
@@ -651,6 +709,7 @@ const loadStudentsList = async (existingAttendance = null, sessionDateStr = null
     window.alertErrorWithSupport(`Carregar Lista de Chamada`, errorMessage);
   }
 };
+
 const renderStudents = () => {
   const container = $("#lista-alunos");
   const students = diarioState.currentStudents;

@@ -206,7 +206,7 @@ function checkDateContentF($data)
 
         // A. Verifica Feriados
         $sqlEvent = "SELECT title FROM organization.events 
-                     WHERE org_id = :oid AND event_date = :dt AND is_academic_blocker IS TRUE AND deleted IS FALSE LIMIT 1";
+                     WHERE org_id = :oid AND CAST(event_date AS DATE) = CAST(:dt AS DATE) AND is_academic_blocker IS TRUE AND deleted IS FALSE LIMIT 1";
         $stmtEv = $conect->prepare($sqlEvent);
         $stmtEv->execute(['oid' => $orgId, 'dt' => $dateOnly]);
         $event = $stmtEv->fetch(PDO::FETCH_ASSOC);
@@ -215,39 +215,36 @@ function checkDateContentF($data)
             return success("Data bloqueada.", ['status' => 'BLOCKED', 'reason' => $event['title']]);
         }
 
-        // B. Verifica Aula Existente
+        // B. Verifica Aulas Existentes naquela Data
         $sqlSession = "SELECT session_id, description, content_type, session_date FROM education.class_sessions 
-                       WHERE class_id = :cid AND phase_id = :pid AND session_date = :dt AND deleted IS FALSE";
+                       WHERE class_id = :cid AND phase_id = :pid AND CAST(session_date AS DATE) = CAST(:dt AS DATE) AND deleted IS FALSE ORDER BY session_id ASC";
         $stmtSess = $conect->prepare($sqlSession);
-        $stmtSess->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $dateTime]);
-        $existing = $stmtSess->fetch(PDO::FETCH_ASSOC);
+        $stmtSess->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $dateOnly]);
+        $existingSessions = $stmtSess->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($existing) {
-            $sqlAtt = "SELECT student_id, is_present, justification FROM education.attendance WHERE session_id = :sid";
-            $stmtAtt = $conect->prepare($sqlAtt);
-            $stmtAtt->execute(['sid' => $existing['session_id']]);
-            $attendance = $stmtAtt->fetchAll(PDO::FETCH_ASSOC);
+        // Se houver, busca as presenças de cada sessão isoladamente
+        if (count($existingSessions) > 0) {
+            foreach ($existingSessions as &$sess) {
+                $sqlAtt = "SELECT student_id, is_present, justification, absence_type FROM education.attendance WHERE session_id = :sid";
+                $stmtAtt = $conect->prepare($sqlAtt);
+                $stmtAtt->execute(['sid' => $sess['session_id']]);
+                $attendance = $stmtAtt->fetchAll(PDO::FETCH_ASSOC);
 
-            foreach ($attendance as &$att) {
-                $att['is_present'] = ($att['is_present'] === true || $att['is_present'] === 't');
+                foreach ($attendance as &$att) {
+                    $att['is_present'] = ($att['is_present'] === true || $att['is_present'] === 't');
+                }
+                $sess['attendance'] = $attendance;
             }
-
-            return success("Aula existente.", [
-                'status' => 'EXISTING',
-                'session_id' => $existing['session_id'],
-                'content' => $existing['description'],
-                'attendance' => $attendance
-            ]);
         }
 
-        // C. Nova Aula
+        // C. Prepara a Sequência da Nova Aula
         $sqlCount = "SELECT COUNT(*) FROM education.class_sessions 
-                     WHERE class_id = :cid AND phase_id = :pid AND session_date < :dt AND deleted IS FALSE";
+                     WHERE class_id = :cid AND phase_id = :pid AND CAST(session_date AS DATE) < CAST(:dt AS DATE) AND deleted IS FALSE";
         $stmtCount = $conect->prepare($sqlCount);
-        $stmtCount->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $dateTime]);
+        $stmtCount->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $dateOnly]);
         $prevCount = $stmtCount->fetchColumn();
 
-        $meetingNum = $prevCount + 1;
+        $meetingNum = $prevCount + count($existingSessions) + 1;
 
         $sqlPlan = "SELECT cp.content 
                     FROM education.curriculum_plans cp
@@ -259,9 +256,10 @@ function checkDateContentF($data)
         $stmtPlan->execute(['cid' => $classId, 'pid' => $phaseId, 'num' => $meetingNum]);
         $template = $stmtPlan->fetchColumn();
 
-        return success("Nova aula.", [
-            'status' => 'NEW',
-            'sequence' => $meetingNum,
+        return success("Verificação concluída.", [
+            'status' => 'OK',
+            'sessions' => $existingSessions,
+            'next_sequence' => $meetingNum,
             'template' => $template ?: ''
         ]);
     } catch (Exception $e) {
@@ -319,13 +317,7 @@ function saveClassSessionF($data)
         $content = $data['content'];
 
         if (empty($sessionId)) {
-            $check = $conect->prepare("SELECT session_id FROM education.class_sessions WHERE class_id = :c AND phase_id = :p AND session_date = :d AND deleted IS FALSE");
-            $check->execute(['c' => $classId, 'p' => $phaseId, 'd' => $date]);
-            if ($check->rowCount() > 0) {
-                $conect->rollBack();
-                return failure("Já existe um encontro nesta data.");
-            }
-
+            // Removida a trava que impedia gravar mais de uma vez na mesma data
             $sqlIns = "INSERT INTO education.class_sessions (class_id, phase_id, session_date, description, content_type, signed_by_user_id, signed_at) 
                        VALUES (:cid, :pid, :dt, :desc, 'DOCTRINAL', :uid, CURRENT_TIMESTAMP) RETURNING session_id";
             $stmt = $conect->prepare($sqlIns);
@@ -337,21 +329,27 @@ function saveClassSessionF($data)
         }
 
         $attendanceList = json_decode($data['attendance_json'], true);
-        if (is_array($attendanceList)) {
-            $sqlAtt = "INSERT INTO education.attendance (session_id, student_id, is_present, justification, updated_at) 
-                       VALUES (:sess, :stud, :pres, :just, CURRENT_TIMESTAMP)
-                       ON CONFLICT (session_id, student_id) 
-                       DO UPDATE SET is_present = EXCLUDED.is_present, justification = EXCLUDED.justification, updated_at = CURRENT_TIMESTAMP";
-            $stmtAtt = $conect->prepare($sqlAtt);
 
-            foreach ($attendanceList as $att) {
-                $stmtAtt->execute([
-                    'sess' => $sessionId,
-                    'stud' => $att['student_id'],
-                    'pres' => ($att['is_present'] === 'true' || $att['is_present'] === true) ? 'TRUE' : 'FALSE',
-                    'just' => $att['justification'] ?? null
-                ]);
-            }
+        // NOVA REGRA DE NEGÓCIO: Só salva se tiver alunos na lista
+        if (!is_array($attendanceList) || count($attendanceList) === 0) {
+            $conect->rollBack();
+            return failure("Não é possível registrar o encontro: A turma não possui estudantes ativos nesta data.");
+        }
+
+        $sqlAtt = "INSERT INTO education.attendance (session_id, student_id, is_present, justification, absence_type, updated_at) 
+                   VALUES (:sess, :stud, :pres, :just, :abtype, CURRENT_TIMESTAMP)
+                   ON CONFLICT (session_id, student_id) 
+                   DO UPDATE SET is_present = EXCLUDED.is_present, justification = EXCLUDED.justification, absence_type = EXCLUDED.absence_type, updated_at = CURRENT_TIMESTAMP";
+        $stmtAtt = $conect->prepare($sqlAtt);
+
+        foreach ($attendanceList as $att) {
+            $stmtAtt->execute([
+                'sess' => $sessionId,
+                'stud' => $att['student_id'],
+                'pres' => ($att['is_present'] === 'true' || $att['is_present'] === true) ? 'TRUE' : 'FALSE',
+                'just' => $att['justification'] ?? null,
+                'abtype' => $att['absence_type'] ?? 'UNJUSTIFIED'
+            ]);
         }
 
         $conect->commit();
