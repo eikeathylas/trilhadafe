@@ -30,7 +30,7 @@ function getAllClasses($data)
                 c.class_id, c.name, y.name as year_name, c.status, c.max_capacity,
                 co.name as course_name, p.full_name as coordinator_name,
                 p.profile_photo_url as coordinator_photo, pa.full_name as assistant_name,
-                l.name as location_name, c.is_active,
+                l.name as location_name, c.is_active, c.is_graduating_class,
                 (SELECT COUNT(*) FROM education.enrollments e WHERE e.class_id = c.class_id AND e.deleted IS FALSE AND e.status = 'ACTIVE') as enrolled_count,
                 (SELECT STRING_AGG(CASE cs.day_of_week WHEN 0 THEN 'Dom' WHEN 1 THEN 'Seg' WHEN 2 THEN 'Ter' WHEN 3 THEN 'Qua' WHEN 4 THEN 'Qui' WHEN 5 THEN 'Sex' WHEN 6 THEN 'Sáb' END || ' ' || TO_CHAR(cs.start_time, 'HH24:MI'), ', ') FROM education.class_schedules cs WHERE cs.class_id = c.class_id AND cs.is_active IS TRUE) as schedule_summary
             FROM education.classes c

@@ -140,9 +140,15 @@ const renderTableClasses = (data) => {
         : `<div class="form-check form-switch mb-0"><input class="form-check-input shadow-sm" type="checkbox" ${isActive ? "checked" : ""} disabled></div>`;
 
       let actionsHtml = "";
+
       if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+
+      // Injeta o botão se a turma for do tipo formanda (Ano II)
+      if (item.is_graduating_class === true || item.is_graduating_class === "t") {
+        actionsHtml += `<a href="print-certificados.php?id=${item.class_id}" target="_blank" class="btn-icon-action text-success d-inline-flex align-items-center justify-content-center text-decoration-none" style="width: 32px; height: 32px; padding: 0;" title="Imprimir Certificados"><i class="fas fa-certificate" style="font-size: 0.85rem;"></i></a>`;
+      }
 
       return `
         <tr>
@@ -224,12 +230,18 @@ const renderTableClasses = (data) => {
         : `<div class="form-check form-switch m-0 p-0 d-flex align-items-center"><input class="form-check-input m-0 shadow-none" type="checkbox" ${isActive ? "checked" : ""} disabled style="width: 44px; height: 24px;"></div>`;
 
       let mobActionsHtml = "";
+
       if (canHistory)
         mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.classes', ${item.class_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
         mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="modalTurma(${item.class_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)
-        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteTurma(${item.class_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+
+      // Injeta o botão mobile se a turma for do tipo formanda (Ano II)
+      if (item.is_graduating_class === true || item.is_graduating_class === "t") {
+        mobActionsHtml += `<a href="print-certificados.php?id=${item.class_id}" target="_blank" class="btn btn-sm text-success bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 text-decoration-none" style="width: 32px; height: 32px; padding: 0;" title="Imprimir Certificados"><i class="fas fa-certificate" style="font-size: 0.85rem;"></i></a>`;
+      }
 
       let mobileFooter = "";
       if (mobActionsHtml !== "") {
