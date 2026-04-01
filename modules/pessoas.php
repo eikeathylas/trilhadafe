@@ -108,7 +108,7 @@
                 <div class="modal-body p-0 bg-body">
                     <input type="hidden" id="person_id">
 
-                    <div class="px-2 pt-1 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
+                    <div class="px-2 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
                         <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
                             <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="pessoaTab" role="tablist">
                                 <li class="nav-item">
