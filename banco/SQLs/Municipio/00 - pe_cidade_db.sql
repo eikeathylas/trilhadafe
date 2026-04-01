@@ -421,7 +421,6 @@ CREATE TABLE education.class_sessions (
 CREATE INDEX idx_sessions_phase ON education.class_sessions(phase_id);
 CREATE INDEX idx_sessions_class ON education.class_sessions(class_id);
 CREATE INDEX idx_sessions_date ON education.class_sessions(session_date);
-ALTER TABLE education.class_sessions ADD CONSTRAINT unique_class_date_phase UNIQUE (class_id, session_date, phase_id);
 COMMENT ON TABLE education.class_sessions IS 'Diário de Classe. Representa um dia letivo/encontro.';
 COMMENT ON COLUMN education.class_sessions.description IS 'Relatório do que foi ensinado na aula.';
 

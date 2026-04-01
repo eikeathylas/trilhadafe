@@ -9,19 +9,21 @@ const diarioState = {
   phaseId: null,
   schedules: [],
   sessionId: null,
-  currentStudents: [],
+  currentDateInfo: null,
+  globalAttendance: [],
 };
 
 let fpInstance = null;
 
 // =========================================================
-// 1. CONFIGURAÇÃO RESPONSIVA DO EDITOR E RESIZER
+// 1. CONFIGURAÇÃO RESPONSIVA DO EDITOR
 // =========================================================
 const summernoteConfig = {
   lang: "pt-BR",
   placeholder: "Descreva o roteiro, atividades ou observações do encontro...",
   dialogsInBody: true,
   disableResizeEditor: true,
+  height: 200,
   toolbar: [
     ["style", ["bold", "italic", "underline", "clear"]],
     ["para", ["ul", "ol", "paragraph"]],
@@ -32,8 +34,6 @@ const summernoteConfig = {
 };
 
 $(document).ready(() => {
-  initResizer();
-
   window.addEventListener("yearChanged", () => {
     resetInterface();
     const $selClass = $("#sel_filter_class");
@@ -43,46 +43,6 @@ $(document).ready(() => {
     initFilters();
   });
 });
-
-const initResizer = () => {
-  const resizer = document.getElementById("dragMe");
-  const leftPane = document.getElementById("pane-editor");
-  const rightPane = document.getElementById("pane-attendance");
-  if (!resizer || !leftPane || !rightPane) return;
-
-  let x = 0;
-  let leftWidth = 0;
-
-  const mouseDownHandler = function (e) {
-    x = e.clientX;
-    leftWidth = leftPane.getBoundingClientRect().width;
-    document.addEventListener("mousemove", mouseMoveHandler);
-    document.addEventListener("mouseup", mouseUpHandler);
-    $("body").css("cursor", "col-resize");
-    $("body").css("user-select", "none");
-  };
-
-  const mouseMoveHandler = function (e) {
-    const dx = e.clientX - x;
-    const containerWidth = resizer.parentNode.getBoundingClientRect().width;
-    let newLeftPct = ((leftWidth + dx) * 100) / containerWidth;
-
-    // Limites de expansão: mínimo de 35% e máximo de 75%
-    if (newLeftPct > 35 && newLeftPct < 75) {
-      leftPane.style.flexBasis = `${newLeftPct}%`;
-      rightPane.style.flexBasis = `${100 - newLeftPct}%`;
-    }
-  };
-
-  const mouseUpHandler = function () {
-    document.removeEventListener("mousemove", mouseMoveHandler);
-    document.removeEventListener("mouseup", mouseUpHandler);
-    $("body").css("cursor", "");
-    $("body").css("user-select", "");
-  };
-
-  resizer.addEventListener("mousedown", mouseDownHandler);
-};
 
 // =========================================================
 // 2. MOTORES DE FILTRO (Turmas e Fase)
@@ -207,7 +167,7 @@ const resetInterface = () => {
 };
 
 // =========================================================
-// 3. CARREGAMENTO E RENDERIZAÇÃO DO HISTÓRICO
+// 3. CARREGAMENTO E RENDERIZAÇÃO DO HISTÓRICO (AGRUPADO POR DATA)
 // =========================================================
 window.getHistory = async () => {
   const page = Math.max(0, defaultDiary.currentPage - 1);
@@ -236,7 +196,23 @@ window.getHistory = async () => {
       if (dataArray.length > 0) {
         const total = dataArray[0]?.total_registros || 0;
         defaultDiary.totalPages = Math.max(1, Math.ceil(total / defaultDiary.rowsPerPage));
-        renderTableHistory(dataArray);
+
+        // MÁGICA: Agrupa os retornos do BD por Data
+        const grouped = {};
+        dataArray.forEach((item) => {
+          const dateKey = item.session_date.split(" ")[0];
+          if (!grouped[dateKey]) {
+            grouped[dateKey] = {
+              date: dateKey,
+              total_students: item.total_students,
+              present_count: item.present_count,
+              sessions: [],
+            };
+          }
+          grouped[dateKey].sessions.push(item);
+        });
+
+        renderTableHistory(Object.values(grouped));
       } else {
         container.html(`
             <div class="text-center py-5 opacity-50">
@@ -250,7 +226,6 @@ window.getHistory = async () => {
       throw new Error(res.alert || res.msg || "O servidor não conseguiu recuperar o histórico do diário.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha na comunicação com o servidor ao carregar o diário.";
     container.html(`
         <div class="text-center py-5">
             <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
@@ -262,26 +237,12 @@ window.getHistory = async () => {
             </button>
         </div>
     `);
-    window.alertErrorWithSupport(`Listar Histórico do Diário`, errorMessage);
   }
 };
 
-const renderTableHistory = (data) => {
+const renderTableHistory = (groupedData) => {
   const container = $(".list-table-diario");
 
-  if (data.length === 0) {
-    container.html(`
-        <div class="text-center py-5 text-muted opacity-50">
-            <span class="material-symbols-outlined fs-1">event_busy</span>
-            <p class="mt-2">Nenhum encontro registrado.</p>
-        </div>
-    `);
-    return;
-  }
-
-  // =========================================================
-  // LÓGICA DE PERMISSÕES (RBAC)
-  // =========================================================
   let allowedSlugs = [];
   try {
     let access = localStorage.getItem("tf_access");
@@ -290,48 +251,45 @@ const renderTableHistory = (data) => {
       if (typeof parsed === "string") parsed = JSON.parse(parsed);
       allowedSlugs = Array.isArray(parsed) ? parsed.map((a) => a.slug) : [];
     }
-  } catch (e) {
-    console.warn("Erro ao ler permissões", e);
-  }
+  } catch (e) {}
 
-  const canHistory = allowedSlugs.includes("diario.history");
   const canEdit = allowedSlugs.includes("diario.edit");
-  const canDelete = allowedSlugs.includes("diario.delete");
 
-  // --- VISÃO DESKTOP ---
-  const desktopRows = data
-    .map((item) => {
-      const dateParts = item.session_date.split(" ")[0].split("-");
+  const desktopRows = groupedData
+    .map((group) => {
+      const dateParts = group.date.split("-");
       const dateFmt = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-      const rawIsoDate = item.session_date.split(" ")[0];
-      const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
-      const summary = cleanDesc.length > 35 ? cleanDesc.substring(0, 35) + "..." : cleanDesc;
-
-      const total = parseInt(item.total_students) || 0;
-      const present = parseInt(item.present_count) || 0;
+      const total = parseInt(group.total_students) || 0;
+      const present = parseInt(group.present_count) || 0;
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       const progColor = pct < 70 ? "bg-danger" : pct < 90 ? "bg-warning" : "bg-success";
 
+      const summaryHtml = group.sessions
+        .map((s, idx) => {
+          let text = s.description ? s.description.replace(/<[^>]*>?/gm, "").trim() : "";
+          text = text.length > 40 ? text.substring(0, 40) + "..." : text || "Sem conteúdo preenchido";
+          return `<div class="mb-1"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-10 me-2" style="font-size:0.65rem;">Encontro ${idx + 1}</span><span class="small text-secondary fw-medium">${text}</span></div>`;
+        })
+        .join("");
+
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Histórico"><i class="fas fa-history"></i></button>`;
-      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen"></i></button>`;
-      if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" onclick="deleteSession(${item.session_id})" title="Excluir"><i class="fas fa-trash"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn btn-primary btn-sm fw-bold px-3 rounded-pill shadow-sm hover-scale" onclick="openSessionModal(null, '${group.date}', this)"><i class="fas fa-pen me-2"></i> Ver / Editar</button>`;
 
       return `
       <tr>
         <td class="align-middle ps-3" style="width: 60px;">
           <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
-            <span class="material-symbols-outlined" style="font-size: 20px;">event_note</span>
+            <span class="material-symbols-outlined" style="font-size: 20px;">calendar_month</span>
           </div>
         </td>
-        <td class="align-middle">
-          <div class="fw-bold text-body" style="font-size: 0.95rem;">${dateFmt}</div>
-          <div class="small text-secondary">${summary || "Sem conteúdo preenchido"}</div>
+        <td class="align-middle py-3">
+          <div class="fw-bold text-body mb-2" style="font-size: 1rem;"><i class="fas fa-calendar-day opacity-50 me-1"></i> ${dateFmt}</div>
+          ${summaryHtml}
         </td>
         <td class="align-middle text-center" style="width: 220px;">
           <div class="d-flex flex-column align-items-center w-100 px-3">
             <small class="fw-bold text-muted mb-2 d-flex justify-content-between w-100">
-                <span>${present}/${total}</span>
+                <span><i class="fas fa-users opacity-50 me-1"></i> ${present}/${total} presentes</span>
                 <span>${pct}%</span>
             </small>
             <div class="progress w-100 bg-secondary bg-opacity-10 shadow-inner" style="height: 8px;">
@@ -340,18 +298,18 @@ const renderTableHistory = (data) => {
           </div>
         </td>
         <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
-          ${actionsHtml || '<span class="text-muted small opacity-50"><i class="fas fa-ban"></i></span>'}
+          ${actionsHtml || '<span class="text-muted small opacity-50"><i class="fas fa-lock"></i></span>'}
         </td>
       </tr>`;
     })
     .join("");
 
   const desktopHtml = `
-    <div class="d-none d-md-block table-responsive">
+    <div class="d-none d-md-block table-responsive pb-4">
       <table class="table-custom">
           <thead>
               <tr>
-                  <th colspan="2" class="ps-3 text-uppercase small opacity-75">Encontro / Conteúdo</th>
+                  <th colspan="2" class="ps-3 text-uppercase small opacity-75">Resumo da Data</th>
                   <th class="text-center text-uppercase small opacity-75">Quadro de Frequência</th>
                   <th class="text-end pe-4 text-uppercase small opacity-75">Ações</th>
               </tr>
@@ -360,112 +318,98 @@ const renderTableHistory = (data) => {
       </table>
     </div>`;
 
-  // --- VISÃO MOBILE ---
-  const mobileRows = data
-    .map((item) => {
-      const dateParts = item.session_date.split(" ")[0].split("-");
+  const mobileRows = groupedData
+    .map((group) => {
+      const dateParts = group.date.split("-");
       const day = dateParts[2];
       const month = dateParts[1];
-      const rawIsoDate = item.session_date.split(" ")[0];
 
-      const cleanDesc = item.description ? item.description.replace(/<[^>]*>?/gm, "") : "";
-      const summary = cleanDesc.length > 25 ? cleanDesc.substring(0, 25) + "..." : cleanDesc;
-
-      const total = parseInt(item.total_students) || 0;
-      const present = parseInt(item.present_count) || 0;
+      const total = parseInt(group.total_students) || 0;
+      const present = parseInt(group.present_count) || 0;
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       const badgeStyle = pct < 70 ? "bg-danger text-white" : pct < 90 ? "bg-warning text-dark" : "bg-success text-white";
 
+      const summaryHtml = group.sessions
+        .map((s, idx) => {
+          let text = s.description ? s.description.replace(/<[^>]*>?/gm, "").trim() : "";
+          text = text.length > 25 ? text.substring(0, 25) + "..." : text || "Sem conteúdo";
+          return `<div class="mb-1 text-truncate"><span class="badge bg-secondary bg-opacity-10 text-body me-1" style="font-size:0.6rem;">#${idx + 1}</span><span class="small text-secondary">${text}</span></div>`;
+        })
+        .join("");
+
       let mobActionsHtml = "";
-      if (canHistory)
-        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.class_sessions', ${item.session_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
-      if (canEdit)
-        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openSessionModal(${item.session_id}, '${rawIsoDate}', this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
-      if (canDelete)
-        mobActionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSession(${item.session_id}" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-4 fw-bold px-3 shadow-none w-100 mt-2" onclick="openSessionModal(null, '${group.date}', this)"><i class="fas fa-pen me-2"></i> Abrir Diários</button>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch position-relative" style="padding: 12px 16px;">
+      <div class="ios-list-item flex-column align-items-stretch position-relative p-3 mb-3 border border-secondary border-opacity-10 rounded-4 shadow-sm">
           <div class="position-absolute" style="top: 12px; right: 16px;">
-              <span class="badge ${badgeStyle} rounded-pill shadow-sm" style="font-size: 0.7rem; letter-spacing: 0.5px;">${pct}%</span>
+              <span class="badge ${badgeStyle} rounded-pill shadow-sm" style="font-size: 0.7rem;">${pct}% presenças</span>
           </div>
 
-          <div class="d-flex w-100 align-items-center">
+          <div class="d-flex w-100 align-items-start mb-2">
               <div class="me-3 flex-shrink-0">
                   <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 48px; height: 52px; border-radius: 8px;">
-                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.5rem; height: 16px; letter-spacing: 0.5px;">AULA</div>
+                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.5rem; height: 16px;">DATA</div>
                       <div class="d-flex align-items-center justify-content-center flex-grow-1">
                           <span class="fw-bold text-body lh-1">${day}/${month}</span>
                       </div>
                   </div>
               </div>
-              
               <div class="flex-grow-1 pe-4" style="min-width: 0;">
-                  <h6 class="fw-bold text-body m-0 text-truncate w-100" style="font-size: 0.95rem;">${summary || "Sem descrição..."}</h6>
-                  <div class="small text-secondary mt-1 d-flex align-items-center">
-                      <i class="fas fa-user-check opacity-50 me-1"></i> ${present} de ${total} presentes
-                  </div>
+                  <h6 class="fw-bold text-body m-0 mb-2" style="font-size: 0.95rem;">${group.sessions.length} Encontro(s)</h6>
+                  ${summaryHtml}
               </div>
           </div>
-
-          ${mobActionsHtml ? `<div class="d-flex justify-content-end align-items-center mt-2 pt-2 border-0 w-100"><div class="d-flex gap-2">${mobActionsHtml}</div></div>` : ""}
+          ${mobActionsHtml}
       </div>`;
     })
     .join("");
 
   const mobileHtml = `<div class="d-md-none ios-list-container">${mobileRows}</div>`;
-
   container.html(desktopHtml + mobileHtml);
   _generatePaginationButtons("pagination-diario", "currentPage", "totalPages", "changePage", defaultDiary);
 };
 
 // =========================================================
-// 4. LÓGICA DO MODAL (Calendário e Integração)
+// 4. LÓGICA DO MODAL (DATA, ACCORDIONS E FREQUÊNCIA GLOBAL)
 // =========================================================
 window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
   diarioState.sessionId = sessionId;
-
-  if (btn) {
-    btn = $(btn);
-    window.setButton(true, btn, "");
-  }
+  diarioState.globalAttendance = [];
+  if (btn) window.setButton(true, $(btn), "");
 
   const $dateInput = $("#diario_date");
-  const $editor = $("#diario_content");
-
   $dateInput.val("").prop("disabled", true);
   $("#date-status-icon").empty();
   $("#date-msg").text("");
-  $("#lista-alunos").html('<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium text-body">Carregando lista de chamada...</p></div>');
+  $("#session_select_container").addClass("d-none");
+  $("#accordions_container").html(`
+      <div class="text-center py-5 opacity-50" id="empty-accordion-msg">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-3 fw-medium text-body">Aguardando data...</p>
+      </div>
+  `);
+  $("#attendance_list_global").html(`
+      <div class="text-center py-5 text-muted opacity-50">
+          <span class="material-symbols-outlined fs-1">sync</span>
+          <p class="mt-2 small mb-0 fw-medium">Aguardando data...</p>
+      </div>
+  `);
 
   if (typeof fpInstance !== "undefined" && fpInstance) {
     fpInstance.destroy();
     fpInstance = null;
   }
 
-  if ($editor.next(".note-editor").length > 0) {
-    try {
-      $editor.summernote("destroy");
-    } catch (e) {}
-  }
-  $editor.val("").hide();
-
   $("#modalSession").modal("show");
 
   try {
-    const resMeta = await window.ajaxValidator({
-      validator: "getDiarioMetadata",
-      token: window.defaultApp.userInfo.token,
-      class_id: diarioState.classId,
-      phase_id: diarioState.phaseId,
-    });
-
+    const resMeta = await window.ajaxValidator({ validator: "getDiarioMetadata", token: window.defaultApp.userInfo.token, class_id: diarioState.classId, phase_id: diarioState.phaseId });
     if (resMeta.status) {
       diarioState.schedules = resMeta.data.schedules;
       const validDates = resMeta.data.valid_dates || [];
       const existingDates = resMeta.data.existing_dates || [];
       const holidays = resMeta.data.holidays || {};
-
       const enableDates = [...new Set([...validDates, ...existingDates])];
 
       if (dateStr) {
@@ -473,8 +417,7 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
         if (!enableDates.includes(currentDate)) enableDates.push(currentDate);
       }
 
-      $dateInput.prop("disabled", false).removeAttr("disabled");
-
+      $dateInput.prop("disabled", false);
       fpInstance = flatpickr("#diario_date", {
         enableTime: false,
         dateFormat: "Y-m-d",
@@ -488,7 +431,6 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
         onDayCreate: function (dObj, dStr, fp, dayElem) {
           const offsetDate = new Date(dayElem.dateObj.getTime() - dayElem.dateObj.getTimezoneOffset() * 60000);
           const dateKey = offsetDate.toISOString().split("T")[0];
-
           if (holidays[dateKey]) {
             dayElem.classList.add("flatpickr-disabled");
             dayElem.setAttribute("title", holidays[dateKey]);
@@ -504,183 +446,189 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
           if (typeof checkDateLogic === "function") checkDateLogic(dateStr);
         },
         onReady: function (selectedDates, dateStr, instance) {
-          if (instance.altInput) {
-            instance.altInput.disabled = false;
-            instance.altInput.style.backgroundColor = "";
-          }
+          if (instance.altInput) instance.altInput.disabled = false;
         },
       });
 
       if (dateStr) {
-        const cleanDate = dateStr.includes(" ") ? dateStr.split(" ")[0] : dateStr;
-        fpInstance.setDate(cleanDate, true);
+        fpInstance.setDate(dateStr.split(" ")[0], true);
       }
-    } else {
-      throw new Error(resMeta.alert || "Não foi possível carregar as regras de datas do diário.");
-    }
+    } else throw new Error(resMeta.alert);
   } catch (e) {
-    const errorMessage = e.message || "Falha de conexão ao carregar metadados do diário.";
-    $("#lista-alunos").html(`<div class='text-center py-5 text-danger'><i class='fas fa-exclamation-circle fs-2 mb-2'></i><p>${errorMessage}</p></div>`);
-    window.alertErrorWithSupport(`Abrir Modal de Diário`, errorMessage);
+    $("#accordions_container").html(`<div class='text-center py-5 text-danger'><i class='fas fa-exclamation-circle fs-2 mb-2'></i><p>${e.message}</p></div>`);
   } finally {
-    if (btn) window.setButton(false, btn);
-  }
-
-  if ($editor.length && typeof $.fn.summernote !== "undefined") {
-    $editor.summernote(window.summernoteConfig || {});
+    if (btn) window.setButton(false, $(btn));
   }
 };
 
 window.checkDateLogic = async (dateStr) => {
   if (!dateStr) return;
-
   const $statusIcon = $("#date-status-icon");
   const $msgContainer = $("#date-msg");
-  const $sessionSelectContainer = $("#session_select_container");
-  const $sessionSelect = $("#diario_session_select");
+  const $selectContainer = $("#session_select_container");
+  const $select = $("#diario_session_select");
 
   $statusIcon.html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div>');
-  $msgContainer.text("Validando plano de encontro...").removeClass("text-warning text-danger text-success text-primary");
-  $sessionSelectContainer.addClass("d-none");
-  $sessionSelect.empty();
+  $msgContainer.text("Validando encontros...").removeClass("text-warning text-danger text-success text-primary");
+  $selectContainer.addClass("d-none");
+  $("#accordions_container").html('<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium text-body">Aguardando seleções...</p></div>');
 
-  const dateObj = new Date(dateStr + "T00:00:00");
-  const dayOfWeek = dateObj.getDay();
-
-  if (diarioState.schedules.length > 0) {
-    const isScheduledDay = diarioState.schedules.some((s) => parseInt(s.day_of_week) === dayOfWeek);
-    if (!isScheduledDay) {
-      $msgContainer.text("Atenção: Encontro extra (Fora do dia padrão).").addClass("text-warning");
-    }
-  }
+  if ($select[0].selectize) $select[0].selectize.destroy();
+  $select.empty();
 
   try {
-    const res = await window.ajaxValidator({
-      validator: "checkDateContent",
-      token: defaultApp.userInfo.token,
-      class_id: diarioState.classId,
-      phase_id: diarioState.phaseId,
-      date: dateStr,
-    });
-
+    const res = await window.ajaxValidator({ validator: "checkDateContent", token: defaultApp.userInfo.token, class_id: diarioState.classId, phase_id: diarioState.phaseId, date: dateStr });
     if (res.status) {
       const info = res.data;
       diarioState.currentDateInfo = info;
 
       if (info.status === "BLOCKED") {
         $statusIcon.html('<i class="fas fa-ban text-danger"></i>');
-        $msgContainer.text(`Bloqueado: ${info.reason}`).removeClass("text-warning").addClass("text-danger");
-        if ($("#diario_content").next(".note-editor").length > 0) $("#diario_content").summernote("disable");
-        $("#lista-alunos").html('<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">block</span><p class="mt-2 text-body fw-bold">Data bloqueada para chamadas.</p></div>');
+        $msgContainer.text(`Bloqueado: ${info.reason}`).addClass("text-danger");
+        $("#accordions_container").html('<div class="text-center py-5 opacity-50"><span class="material-symbols-outlined fs-1">block</span><p class="mt-2 fw-bold text-body">Data bloqueada.</p></div>');
       } else {
-        // Popula as opções de Encontros
-        let optionsHtml = "";
+        let options = [];
+
+        // 1. Encontros Existentes
         if (info.sessions && info.sessions.length > 0) {
-          info.sessions.forEach((sess, idx) => {
-            optionsHtml += `<option value="${sess.session_id}">Encontro ${idx + 1} (Já registrado)</option>`;
+          info.sessions.forEach((s, idx) => {
+            options.push({ value: s.session_id.toString(), text: `Encontro ${idx + 1} (Salvo)` });
           });
         }
-        optionsHtml += `<option value="NEW">+ Adicionar Novo Encontro</option>`;
 
-        // Injeta, remove o listener antigo e adiciona o novo com jQuery (Mais seguro)
-        $sessionSelect
-          .off("change")
-          .html(optionsHtml)
-          .on("change", function () {
-            window.changeSessionSelect($(this).val());
-          });
+        // 2. Múltiplos Novos Encontros
+        let existingCount = info.sessions ? info.sessions.length : 0;
+        options.push({ value: "NEW_1", text: `+ Adicionar Encontro ${existingCount + 1} (Novo)` });
+        options.push({ value: "NEW_2", text: `+ Adicionar Encontro ${existingCount + 2} (Novo)` });
+        options.push({ value: "NEW_3", text: `+ Adicionar Encontro ${existingCount + 3} (Novo)` });
 
-        $sessionSelectContainer.removeClass("d-none").show();
+        options.forEach((opt) => $select.append(new Option(opt.text, opt.value)));
 
+        let defaultVals = [];
         if (info.sessions && info.sessions.length > 0) {
-          if (diarioState.sessionId && info.sessions.find((s) => s.session_id == diarioState.sessionId)) {
-            $sessionSelect.val(diarioState.sessionId);
-          } else {
-            $sessionSelect.val(info.sessions[0].session_id);
-          }
+          info.sessions.forEach((s) => defaultVals.push(s.session_id.toString()));
         } else {
-          $sessionSelect.val("NEW");
+          defaultVals.push("NEW_1");
         }
 
-        // Dispara a lógica de troca manual para evitar triggers fantasmas
-        window.changeSessionSelect($sessionSelect.val());
+        $select.selectize({
+          plugins: ["remove_button"],
+          onChange: function (values) {
+            window.renderAccordions(values);
+          },
+          onInitialize: function () {
+            this.$control.css({ border: "none", "background-color": "rgba(255, 255, 255, 1)", "border-radius": "10px", padding: "12px 16px", "font-weight": "600" });
+          },
+        });
+
+        $selectContainer.removeClass("d-none").show();
+        $select[0].selectize.setValue(defaultVals, true);
+        window.renderAccordions(defaultVals);
+
+        loadGlobalStudentsList(dateStr, info.sessions);
+
+        $statusIcon.html('<i class="fas fa-check-circle text-success"></i>');
+        $msgContainer.text("Selecione os encontros para preencher.").addClass("text-success");
       }
-    } else {
-      throw new Error(res.alert || "Não foi possível validar as regras desta data.");
     }
   } catch (e) {
-    $statusIcon.html('<i class="fas fa-exclamation-triangle text-warning fs-5"></i>');
+    $statusIcon.html('<i class="fas fa-exclamation-triangle text-warning"></i>');
     $msgContainer.text("Erro de comunicação.").addClass("text-warning");
-    const errorMessage = e.message || "Falha na comunicação com o servidor.";
-    window.alertErrorWithSupport(`Validar Data do Diário`, errorMessage);
   }
 };
 
-window.changeSessionSelect = (val) => {
-  try {
-    const info = diarioState.currentDateInfo;
-    const $statusIcon = $("#date-status-icon");
-    const $msgContainer = $("#date-msg");
-    const dateStr = $("#diario_date").val();
-    const $editor = $("#diario_content");
+// =========================================================
+// 4A. RENDERIZAÇÃO DOS EDITORES (ACCORDIONS EXCLUSIVOS)
+// =========================================================
+window.renderAccordions = (selectedValues) => {
+  const $container = $("#accordions_container");
+  const info = diarioState.currentDateInfo;
 
-    // Proteção contra a Condição de Corrida (Summernote não inicializado)
-    const hasSummernote = $editor.next(".note-editor").length > 0;
+  let vals = [];
+  if (Array.isArray(selectedValues)) vals = selectedValues;
+  else if (typeof selectedValues === "string" && selectedValues.trim() !== "") vals = selectedValues.split(",");
 
-    if (val === "NEW") {
-      diarioState.sessionId = null;
-      $statusIcon.html('<i class="fas fa-plus-circle text-success"></i>');
-      $msgContainer.text(`Novo Registro (Encontro #${info.next_sequence})`).removeClass("text-warning text-primary").addClass("text-success");
+  if (vals.length === 0) {
+    $container.html('<div class="text-center py-5 text-muted opacity-50" id="empty-accordion-msg"><span class="material-symbols-outlined fs-1">view_day</span><p class="mt-2 fw-medium">Nenhum encontro selecionado.</p></div>');
+    return;
+  }
 
-      if (hasSummernote) {
-        $editor.summernote("enable");
-        $editor.summernote("code", info.template || "");
-      } else {
-        $editor.val(info.template || "");
+  $(".diario-accordion-item").each(function () {
+    let sessionData = $(this).data("session");
+    if (sessionData !== undefined && sessionData !== null) {
+      const val = sessionData.toString();
+      if (!vals.includes(val)) {
+        if ($(`#editor_${val}`).next(".note-editor").length) $(`#editor_${val}`).summernote("destroy");
+        $(this).remove();
       }
-      loadStudentsList(null, dateStr);
-    } else {
-      diarioState.sessionId = val;
-      const sessData = info.sessions.find((s) => s.session_id == val);
-      if (!sessData) return;
-
-      $statusIcon.html('<i class="fas fa-edit text-primary"></i>');
-      $msgContainer.text("Editando diário existente.").removeClass("text-warning text-success").addClass("text-primary");
-
-      if (hasSummernote) {
-        $editor.summernote("enable");
-        $editor.summernote("code", sessData.description || "");
-      } else {
-        $editor.val(sessData.description || "");
-      }
-      loadStudentsList(sessData.attendance, dateStr);
     }
-  } catch (e) {
-    console.error("Crash ao tentar processar a aba do diário: ", e);
-  }
+  });
+
+  $("#empty-accordion-msg").remove();
+
+  vals.forEach((val) => {
+    if ($(`#accordion_item_${val}`).length === 0) {
+      let isNew = val.startsWith("NEW");
+      let sessData = null;
+      let title = "";
+      let template = "";
+
+      if (isNew) {
+        let num = val.split("_")[1]; // Pega o número do NEW_X
+        title = `Encontro ${info.sessions.length + parseInt(num)} (Novo)`;
+        template = info.template || "";
+      } else {
+        sessData = info.sessions.find((s) => s.session_id == val);
+        let idx = info.sessions.findIndex((s) => s.session_id == val);
+        title = `Encontro ${idx + 1} (Salvo)`;
+        template = sessData.description || "";
+      }
+
+      // CORREÇÃO: Design limpo, sem texto vazando no título, com margens maiores (mb-4)
+      let html = `
+            <div class="accordion-item diario-accordion-item border-0 shadow-sm rounded-4 mb-4 overflow-hidden shadow-inner bg-white" id="accordion_item_${val}" data-session="${val}">
+                <h2 class="accordion-header d-flex align-items-center bg-secondary bg-opacity-10 pe-3" id="heading_${val}">
+                    <button class="accordion-button bg-transparent fw-bold flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${val}" aria-expanded="true" style="box-shadow: none;">
+                        <i class="fas ${isNew ? "fa-plus-circle text-success" : "fa-check-circle text-primary"} me-2"></i> ${title}
+                    </button>
+                    ${!isNew ? `<button class="btn btn-sm text-danger hover-scale shadow-none" onclick="deleteSession(${val})" title="Excluir Encontro"><i class="fas fa-trash-can fs-6"></i></button>` : ""}
+                </h2>
+                <div id="collapse_${val}" class="accordion-collapse collapse show">
+                    <div class="accordion-body p-3 p-md-4">
+                        <textarea id="editor_${val}" class="w-100 form-control bg-white rounded-3 border-0"></textarea>
+                    </div>
+                </div>
+            </div>`;
+      $container.append(html);
+
+      $(`#editor_${val}`).summernote(summernoteConfig);
+      $(`#editor_${val}`).summernote("code", template);
+    }
+  });
 };
 
 // =========================================================
-// 5. LISTA DE ALUNOS COM RESIZER MÁGICO E STACK
+// 4B. RENDERIZAÇÃO DA FREQUÊNCIA GLOBAL (LADO DIREITO)
 // =========================================================
-const loadStudentsList = async (existingAttendance = null, sessionDateStr = null) => {
-  const container = $("#lista-alunos");
+const loadGlobalStudentsList = async (sessionDateStr, existingSessions = []) => {
+  const container = $("#attendance_list_global");
+  container.html('<div class="text-center py-5 opacity-50"><div class="spinner-border spinner-border-sm text-primary"></div><p class="mt-2">Carregando alunos...</p></div>');
+
   try {
-    const dt = sessionDateStr || $("#diario_date").val();
-    const res = await window.ajaxValidator({
-      validator: "getStudentsForDiary",
-      token: defaultApp.userInfo.token,
-      class_id: diarioState.classId,
-      date: dt,
-    });
+    const res = await window.ajaxValidator({ validator: "getStudentsForDiary", token: defaultApp.userInfo.token, class_id: diarioState.classId, date: sessionDateStr });
 
     if (res.status) {
-      diarioState.currentStudents = res.data.map((std) => {
-        let isPresent = true;
-        let justification = "";
-        let absenceType = "UNJUSTIFIED";
+      const dataArray = Array.isArray(res.data) ? res.data : [];
+      let existingAttendance = null;
+      if (existingSessions && existingSessions.length > 0) {
+        existingAttendance = existingSessions[0].attendance; // Frequência unificada
+      }
 
-        if (existingAttendance) {
+      diarioState.globalAttendance = dataArray.map((std) => {
+        let isPresent = true,
+          justification = "",
+          absenceType = "UNJUSTIFIED";
+        if (existingAttendance && Array.isArray(existingAttendance)) {
           const match = existingAttendance.find((a) => a.student_id == std.student_id);
           if (match) {
             isPresent = match.is_present;
@@ -691,183 +639,161 @@ const loadStudentsList = async (existingAttendance = null, sessionDateStr = null
         return { ...std, is_present: isPresent, justification: justification, absence_type: absenceType };
       });
 
-      renderStudents();
+      renderGlobalStudentsList();
     } else {
-      throw new Error(res.alert || "Não foi possível carregar a lista de alunos da turma.");
+      throw new Error(res.alert || "Erro ao buscar alunos.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha ao carregar lista de presença.";
-    container.html(`
-        <div class="text-center py-5">
-            <i class="fas fa-users-slash fs-1 text-danger opacity-50 mb-3"></i>
-            <h6 class="text-body fw-bold">Falha de conexão</h6>
-            <button class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2" onclick="loadStudentsList(${existingAttendance ? JSON.stringify(existingAttendance) : "null"}, '${sessionDateStr}')">
-                <i class="fas fa-sync-alt me-2"></i> Tentar novamente
-            </button>
-        </div>
-    `);
-    window.alertErrorWithSupport(`Carregar Lista de Chamada`, errorMessage);
+    container.html(`<div class="text-center py-3 text-danger"><i class="fas fa-wifi mb-2 fs-3"></i><p class="small fw-bold m-0 mt-2">Erro ao carregar lista</p></div>`);
   }
 };
 
-const renderStudents = () => {
-  const container = $("#lista-alunos");
-  const students = diarioState.currentStudents;
+const renderGlobalStudentsList = () => {
+  const container = $("#attendance_list_global");
+  const students = diarioState.globalAttendance || [];
 
   if (students.length === 0) {
-    container.html(`
-        <div class="text-center py-5 opacity-50">
-            <span class="material-symbols-outlined fs-1">group_off</span>
-            <p class="mt-2 fw-medium text-body">Nenhum aluno ativo nesta data.</p>
-        </div>`);
+    container.html(`<div class="text-center py-4 opacity-50"><i class="fas fa-users-slash fs-1 mb-2"></i><p class="small fw-bold mt-2">Nenhum aluno ativo nesta data.</p></div>`);
     return;
   }
 
-  // --- VISÃO UNIFICADA: CARDS RESPONSIVOS PARA DESKTOP E MOBILE ---
-  const unifiedRows = students
+  const rows = students
     .map((std, idx) => {
-      const nameParts = std.full_name.trim().split(" ");
-      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+      const studentName = std.full_name || std.student_name || std.name || "Aluno Registrado";
+      const initials = studentName.substring(0, 2).toUpperCase();
 
       const avatarHtml = std.profile_photo_url
-        ? `<img src="${std.profile_photo_url}?v=${new Date().getTime()}"
-            class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-            style="width:46px; height:46px; object-fit:cover; cursor: pointer;"
-            onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${std.profile_photo_url}', '${nameParts[0].replace(/'/g, "\\'")}')"
-            title="Ver foto">`
-        : `<div class="rounded-circle bg-secondary bg-opacity-10 border border-secondary border-opacity-25 shadow-sm d-flex align-items-center justify-content-center text-secondary fw-bold fs-5" style="width:46px; height:46px;">${initials}</div>`;
+        ? `<img src="${std.profile_photo_url}" class="rounded-circle object-fit-cover shadow-sm border border-secondary border-opacity-25" style="width:40px; height:40px;">`
+        : `<div class="rounded-circle bg-secondary bg-opacity-10 text-secondary fw-bold shadow-sm border border-secondary border-opacity-25 d-flex align-items-center justify-content-center" style="width:40px; height:40px;">${initials}</div>`;
 
       const isP = std.is_present;
       const statusBadge = isP
-        ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
-        : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
+        ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1" id="badge_global_${idx}">Presente</span>`
+        : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1" id="badge_global_${idx}">Faltou</span>`;
 
       return `
-    <div class="p-3 mb-2 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-sm shadow-inner w-100">
+    <div class="p-3 mb-2 rounded-4 bg-secondary bg-opacity-10 border border-secondary border-opacity-10 shadow-sm w-100 mx-auto" style="width: calc(100% - 16px) !important;">
         <div class="d-flex w-100 align-items-center">
             <div class="me-3 flex-shrink-0">${avatarHtml}</div>
-            
-            <div class="flex-grow-1" style="min-width: 0;">
-                <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.95rem;">${std.full_name}</h6>
-                <div class="status-container-${idx} mt-1 small" style="font-size: 0.75rem;">${statusBadge}</div>
+            <div class="flex-grow-1 text-truncate">
+                <h6 class="fw-bold text-body m-0 text-truncate" style="font-size: 0.9rem;">${studentName}</h6>
+                <div class="mt-1" style="font-size: 0.75rem;">${statusBadge}</div>
             </div>
-            
             <div class="ms-2 flex-shrink-0">
-                <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                    <input class="form-check-input m-0 shadow-none" type="checkbox" ${isP ? "checked" : ""} onchange="updateAttendance(${idx}, this.checked)" style="cursor: pointer; width: 44px; height: 24px;">
+                <div class="form-check form-switch m-0 p-0">
+                    <input class="form-check-input m-0 shadow-none border-secondary" type="checkbox" ${isP ? "checked" : ""} onchange="window.updateGlobalAttendance(${idx}, this.checked)" style="width: 44px; height: 24px; cursor: pointer;">
                 </div>
             </div>
         </div>
-        
-        <div id="just-box-${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
-            <div class="bg-danger bg-opacity-10 p-3 rounded-4 border border-danger border-opacity-10 shadow-inner w-100">
-                <label class="form-label small fw-bold text-danger text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Motivo da Ausência</label>
-                <div class="d-flex flex-column gap-2 w-100">
-                    <select class="form-control shadow-none border-0 text-body bg-body fw-medium w-100" onchange="updateAbsenceType(${idx}, this.value)" style="height: 38px; border-radius: 8px; font-size: 0.8rem;">
-                        <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>S/ Justificativa</option>
-                        <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
-                        <option value="RECURRENT" ${std.absence_type === "RECURRENT" ? "selected" : ""}>Falta Recorrente</option>
-                    </select>
-                    <input type="text" class="form-control shadow-none border-0 text-body bg-body fw-medium w-100" value="${std.justification || ""}" onchange="updateJustification(${idx}, this.value)" placeholder="Descreva o motivo (opcional)..." style="height: 38px; border-radius: 8px; font-size: 0.8rem;">
-                </div>
+        <div id="just_box_global_${idx}" class="mt-3 w-100 ${isP ? "d-none" : ""}">
+            <div class="bg-danger bg-opacity-10 p-2 rounded-3 w-100 border border-danger border-opacity-10">
+                <select class="form-select form-select-sm border-0 shadow-none mb-2 fw-medium text-body" onchange="window.updateGlobalAbsenceType(${idx}, this.value)">
+                    <option value="UNJUSTIFIED" ${std.absence_type === "UNJUSTIFIED" ? "selected" : ""}>S/ Justificativa</option>
+                    <option value="JUSTIFIED" ${std.absence_type === "JUSTIFIED" ? "selected" : ""}>Falta Justificada</option>
+                </select>
+                <input type="text" class="form-control form-control-sm border-0 shadow-none fw-medium text-body" value="${std.justification || ""}" onchange="window.updateGlobalJustification(${idx}, this.value)" placeholder="Descreva o motivo...">
             </div>
         </div>
     </div>`;
     })
     .join("");
 
-  container.html(`<div class="d-flex flex-column w-100">${unifiedRows}</div>`);
+  container.html(`<div class="d-flex flex-column pt-3">${rows}</div>`);
 };
 
-window.updateAttendance = (idx, isPresent) => {
-  diarioState.currentStudents[idx].is_present = isPresent;
-
-  const badgeHtml = isPresent
-    ? `<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-1 status-label-${idx}">Presente</span>`
-    : `<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2 py-1 status-label-${idx}">Faltou</span>`;
-
-  $(`.status-container-${idx}`).html(badgeHtml);
-
+window.updateGlobalAttendance = (idx, isPresent) => {
+  diarioState.globalAttendance[idx].is_present = isPresent;
   if (isPresent) {
-    $(`#just-box-${idx}`).addClass("d-none");
+    $(`#badge_global_${idx}`).removeClass("bg-danger-subtle text-danger border-danger").addClass("bg-success-subtle text-success border-success").text("Presente");
+    $(`#just_box_global_${idx}`).addClass("d-none");
   } else {
-    $(`#just-box-${idx}`).removeClass("d-none");
+    $(`#badge_global_${idx}`).removeClass("bg-success-subtle text-success border-success").addClass("bg-danger-subtle text-danger border-danger").text("Faltou");
+    $(`#just_box_global_${idx}`).removeClass("d-none");
   }
 };
 
-window.updateJustification = (idx, val) => {
-  diarioState.currentStudents[idx].justification = val;
+window.updateGlobalJustification = (idx, val) => {
+  diarioState.globalAttendance[idx].justification = val;
 };
 
-window.updateAbsenceType = (idx, val) => {
-  diarioState.currentStudents[idx].absence_type = val;
+window.updateGlobalAbsenceType = (idx, val) => {
+  diarioState.globalAttendance[idx].absence_type = val;
 };
 
+// =========================================================
+// 5. SALVAMENTO E DELEÇÃO MÚLTIPLA
+// =========================================================
 window.salvarDiario = async (btn) => {
   const date = $("#diario_date").val();
-  const content = $("#diario_content").summernote("code");
+  const $select = $("#diario_session_select");
+
+  let selectedSessions = [];
+  if ($select[0].selectize) {
+    let rawVal = $select[0].selectize.getValue();
+    if (Array.isArray(rawVal)) selectedSessions = rawVal;
+    else if (typeof rawVal === "string" && rawVal.trim() !== "") selectedSessions = rawVal.split(",");
+  }
+
+  if (!date || selectedSessions.length === 0) return window.alertDefault("Selecione a data e pelo menos um encontro.", "warning");
+
+  const students = diarioState.globalAttendance || [];
+  if (students.length === 0) {
+    return window.alertDefault("Atenção: Você não pode registrar encontros para uma turma sem alunos.", "error");
+  }
+
   btn = $(btn);
-
-  if (!date) return window.alertDefault("Selecione a data do encontro.", "warning");
-  if ($("#date-msg").hasClass("text-danger")) return window.alertDefault("Data bloqueada para registro.", "error");
-
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   try {
-    const res = await window.ajaxValidator({
-      validator: "saveClassDiary",
-      token: defaultApp.userInfo.token,
-      class_id: diarioState.classId,
-      phase_id: diarioState.phaseId,
-      session_id: diarioState.sessionId,
-      date: date,
-      content: content,
-      attendance_json: JSON.stringify(diarioState.currentStudents),
+    const promises = selectedSessions.map((val) => {
+      const content = $(`#editor_${val}`).summernote("code");
+      const isNew = val.startsWith("NEW");
+
+      return window.ajaxValidator({
+        validator: "saveClassDiary",
+        token: defaultApp.userInfo.token,
+        class_id: diarioState.classId,
+        phase_id: diarioState.phaseId,
+        session_id: isNew ? null : val,
+        date: date,
+        content: content,
+        attendance_json: JSON.stringify(diarioState.globalAttendance),
+      });
     });
 
-    if (res.status) {
-      window.alertDefault("Diário salvo com sucesso!", "success");
+    const results = await Promise.all(promises);
+    const hasError = results.find((r) => !r.status);
+
+    if (!hasError) {
+      window.alertDefault("Diário(s) atualizado(s) com sucesso!", "success");
       $("#modalSession").modal("hide");
       getHistory();
     } else {
-      throw new Error(res.alert || res.msg || "O servidor recusou o salvamento do diário.");
+      throw new Error(hasError.alert || "Falha ao salvar um ou mais encontros do lote.");
     }
   } catch (e) {
-    const errorMessage = e.message || "Falha na comunicação com o servidor ao salvar o diário.";
-    window.alertErrorWithSupport(`Salvar Diário`, errorMessage);
+    window.alertErrorWithSupport(`Salvar Diários`, e.message);
   } finally {
     window.setButton(false, btn);
   }
 };
 
 window.deleteSession = (sessionId) => {
-  Swal.fire({
-    title: "Excluir Diário?",
-    text: "O registro será movido para a lixeira do sistema.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Sim, excluir",
-    cancelButtonText: "Cancelar",
-  }).then(async (r) => {
+  Swal.fire({ title: "Excluir Encontro?", text: "O registro será movido para a lixeira.", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Sim, excluir" }).then(async (r) => {
     if (r.isConfirmed) {
       try {
-        const res = await window.ajaxValidator({
-          validator: "deleteClassDiary",
-          token: window.defaultApp.userInfo.token,
-          session_id: sessionId,
-        });
-
+        const res = await window.ajaxValidator({ validator: "deleteClassDiary", token: window.defaultApp.userInfo.token, session_id: sessionId });
         if (res.status) {
-          window.alertDefault("Registro de encontro removido.", "success");
-          if (typeof getHistory === "function") window.getHistory();
-        } else {
-          throw new Error(res.alert || res.msg || "O servidor não permitiu excluir este registro.");
-        }
+          window.alertDefault("Encontro removido.", "success");
+          const $select = $("#diario_session_select")[0].selectize;
+          if ($select) {
+            $select.removeItem(sessionId.toString());
+            $select.removeOption(sessionId.toString());
+          }
+          getHistory();
+        } else throw new Error(res.alert);
       } catch (e) {
-        const errorMessage = e.message || "Falha de conexão ao tentar excluir o diário.";
-        window.alertErrorWithSupport(`Excluir Diário/Sessão`, errorMessage);
+        window.alertErrorWithSupport(`Excluir Diário`, e.message);
       }
     }
   });

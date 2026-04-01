@@ -105,60 +105,64 @@
 
                     <div class="d-flex flex-column flex-lg-row w-100 gap-3 gap-lg-0 wrapper-diario">
 
-                        <div id="pane-editor" class="d-flex flex-column" style="flex-basis: 60%; min-width: 30%;">
+                        <div id="pane-editor-global" class="d-flex flex-column" style="flex-basis: 60%; min-width: 30%;">
                             <div class="card border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 h-100 overflow-hidden shadow-inner">
                                 <div class="card-header bg-transparent border-0 pt-4 px-4 pb-3">
                                     <div class="row align-items-center">
                                         <div class="col-md-7">
                                             <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" for="diario_date" style="letter-spacing: 0.5px;">
-                                                <i class="far fa-calendar-check opacity-50 me-1"></i> Data e Hora do Encontro
+                                                <i class="far fa-calendar-check opacity-50 me-1"></i> Data do Encontro
                                             </label>
                                             <div class="input-group bg-white shadow-sm rounded-4 overflow-hidden border-0">
-                                                <input type="text" id="diario_date" class="form-control fw-bold border-0 text-body shadow-none px-4 bg-transparent" placeholder="Toque para selecionar..." readonly style="height: 52px; cursor: pointer;">
+                                                <input type="text" id="diario_date" class="form-control fw-bold border-0 text-body shadow-none px-4 bg-transparent" placeholder="Selecione..." readonly style="height: 52px; cursor: pointer;">
                                                 <span class="input-group-text border-0 bg-transparent px-3 pe-4" id="date-status-icon"></span>
                                             </div>
 
-                                            <div id="session_select_container" class="mt-2 d-none" style="position: relative; z-index: 1050;">
-                                                <select id="diario_session_select" class="form-select bg-primary bg-opacity-10 shadow-sm rounded-4 border-0 fw-bold text-primary px-3 mt-2" style="height: 48px; font-size: 0.9rem; cursor: pointer;">
-                                                </select>
+                                            <div id="session_select_container" class="mt-3 d-none" style="position: relative; z-index: 1050;">
+                                                <label class="form-label small fw-bold text-uppercase text-muted mb-2 ms-1" style="letter-spacing: 0.5px;">
+                                                    <i class="fas fa-layer-group opacity-50 me-1"></i> Encontros Selecionados
+                                                </label>
+                                                <select id="diario_session_select" multiple class="form-control border-0 shadow-sm rounded-4 text-body fw-bold"></select>
                                             </div>
 
                                             <small id="date-msg" class="d-block mt-2 fw-bold text-truncate text-body ms-2" style="font-size: 0.75rem;"></small>
                                         </div>
                                         <div class="col-md-5 text-end d-none d-md-block mt-4">
                                             <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill fw-bold">
-                                                <i class="fas fa-magic me-1"></i> Preenchimento Inteligente
+                                                <i class="fas fa-magic me-1"></i> Preenchimento Dinâmico
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="card-body p-3 p-md-4 pt-0 d-flex flex-column">
-                                    <div class="summernote-wrapper flex-grow-1">
-                                        <textarea id="diario_content" class="w-100 form-control border-0 bg-white rounded-4 shadow-none fw-medium text-body p-3"></textarea>
+                                <div class="card-body p-3 p-md-4 pt-0 d-flex flex-column overflow-auto" style="max-height: 60vh;">
+                                    <div id="accordions_container" class="w-100">
+                                        <div class="text-center py-5 text-muted opacity-50" id="empty-accordion-msg">
+                                            <span class="material-symbols-outlined fs-1">view_day</span>
+                                            <p class="mt-2 fw-medium text-body">Selecione uma data para preencher os diários.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="resizer d-none d-lg-flex mx-1" id="dragMe"></div>
+                        <div class="resizer d-none d-lg-flex mx-1" id="dragMe" style="width: 12px; cursor: col-resize; z-index: 10;"></div>
 
-                        <div id="pane-attendance" class="d-flex flex-column" style="flex-basis: 40%; min-width: 25%;">
+                        <div id="pane-attendance-global" class="d-flex flex-column" style="flex-basis: 40%; min-width: 25%;">
                             <div class="card border-0 shadow-sm rounded-4 bg-secondary bg-opacity-10 h-100 d-flex flex-column shadow-inner">
                                 <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="m-0 fw-bold text-body d-flex align-items-center">
-                                            <i class="fas fa-user-check me-2 text-success opacity-75"></i>Frequência
+                                            <i class="fas fa-user-check me-2 text-success opacity-75"></i>Frequência Unificada
                                         </h6>
                                         <span class="badge bg-secondary bg-opacity-10 text-muted fw-bold border border-secondary border-opacity-10 rounded-pill px-2 py-1" style="font-size: 0.7rem;">Padrão: Presente</span>
                                     </div>
                                 </div>
-
-                                <div class="card-body p-0 attendance-scroll bg-transparent" style="max-height: 480px; overflow-y: auto; overflow-x: hidden;">
-                                    <div id="lista-alunos" class="p-0">
+                                <div class="card-body p-0 attendance-scroll bg-transparent" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden;">
+                                    <div id="attendance_list_global" class="p-0">
                                         <div class="text-center py-5 text-muted opacity-50">
-                                            <span class="material-symbols-outlined spin fs-1">sync</span>
-                                            <p class="mt-2 small mb-0 fw-medium">Carregando lista...</p>
+                                            <span class="material-symbols-outlined fs-1">sync</span>
+                                            <p class="mt-2 small mb-0 fw-medium">Aguardando data...</p>
                                         </div>
                                     </div>
                                 </div>
