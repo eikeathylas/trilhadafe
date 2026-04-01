@@ -32,88 +32,65 @@ const loadProfilesDropdown = async () => {
 const loadProfilePermissions = async (idProfile) => {
   const container = $("#lista-permissoes");
   if (!idProfile) {
-    container.html(`<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-shield-alt fa-3x mb-3"></i><p>Selecione um perfil para visualizar a matriz.</p></div>`);
+    container.html(`<div class="text-center py-5 opacity-50"><i class="fas fa-shield-alt fa-3x mb-3"></i><p>Selecione um perfil para auditoria.</p></div>`);
     return;
   }
-  container.html(`<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 fw-medium text-muted">Carregando permissões...</p></div>`);
+
+  container.html(`<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>`);
 
   try {
     const res = await window.ajaxValidator({ validator: "getProfilePermissions", token: defaultApp.userInfo.token, id_profile: idProfile });
-    if (res.status) {
-      if (res.data.length === 0) {
-        container.html(`<div class="text-center py-5 text-muted opacity-50"><p>Nenhuma matriz de permissões detalhada foi encontrada para este perfil.</p></div>`);
-        return;
-      }
 
-      // Agrupamento de Ações por Módulo Pai
+    if (res.status) {
+      // Agrupamento lógico por Módulo
       const modules = {};
       res.data.forEach((p) => {
         if (!modules[p.module_name]) {
-          modules[p.module_name] = { icon: p.module_icon || "fas fa-cross", actions: [] };
+          modules[p.module_name] = { icon: p.module_icon || "icon-layers", actions: [] };
         }
         modules[p.module_name].actions.push(p);
       });
 
-      let accordionHtml = `<div class="accordion accordion-flush" id="accordionPermissions">`;
-      let mIndex = 0;
+      // CONSTRUÇÃO EM CARDS (SEM TABELAS - UX REFERÊNCIA MOBILE)
+      let cardsHtml = `<div class="row g-3">`;
 
       for (const [moduleName, moduleData] of Object.entries(modules)) {
-        mIndex++;
-        const headingId = `headingPerm${mIndex}`;
-        const collapseId = `collapsePerm${mIndex}`;
-
-        const activeCount = moduleData.actions.filter((a) => a.active).length;
-        const totalCount = moduleData.actions.length;
-        const badgeClass = activeCount === totalCount ? "bg-success" : activeCount > 0 ? "bg-warning" : "bg-secondary";
-
         let actionsHtml = moduleData.actions
-          .map(
-            (p) => `
-              <div class="d-flex align-items-center justify-content-between py-3 border-bottom border-secondary border-opacity-10 transition-all hover-bg-light">
-                  <div class="pe-3">
-                      <h6 class="fw-bold text-body mb-1" style="font-size: 0.9rem;">${p.name}</h6>
-                      <small class="text-muted fw-medium" style="font-size: 0.75rem; line-height: 1.2; display: block;">${p.description || "Configuração de acesso."}</small>
-                  </div>
-                  <span class="badge ${p.active ? "bg-success text-success border-success" : "bg-secondary text-secondary border-secondary"} bg-opacity-10 border border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                      ${p.active ? "Liberado" : "Restrito"}
-                  </span>
-              </div>
-          `,
-          )
+          .map((p) => {
+            const statusClass = p.active ? "bg-success text-success border-success" : "bg-danger text-danger border-danger";
+            const icon = p.active ? "fa-check-circle" : "fa-lock";
+
+            return `
+            <div class="d-flex align-items-center ${statusClass} bg-opacity-10 border border-opacity-25 rounded-3 px-3 py-2 me-2 mb-2 transition-all hover-scale" 
+                 style="font-size: 0.78rem; font-weight: 700; flex: 1 1 auto; min-width: 140px;" title="${p.description}">
+                <i class="fas ${icon} me-2" style="font-size: 0.9rem;"></i>
+                <span>${p.action_name}</span>
+            </div>`;
+          })
           .join("");
 
-        accordionHtml += `
-          <div class="accordion-item bg-transparent border-0 mb-3 bg-white rounded-4 shadow-sm overflow-hidden">
-              <h2 class="accordion-header" id="${headingId}">
-                  <button class="accordion-button collapsed bg-transparent fw-bold text-body shadow-none p-3" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
-                      <div class="d-flex align-items-center w-100 pe-3">
-                          <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
-                              <i class="${moduleData.icon.replace("icon-", "fas fa-")}"></i>
-                          </div>
-                          <div class="flex-grow-1">
-                              <span style="font-size: 0.95rem;">Trilha da fé</span>
-                          </div>
-                          <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass} border border-${badgeClass} border-opacity-25 rounded-pill px-2 py-1 ms-2" style="font-size: 0.7rem;">
-                              ${activeCount}/${totalCount}
-                          </span>
+        cardsHtml += `
+          <div class="col-12 col-xl-6">
+              <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden bg-white">
+                  <div class="card-header bg-light border-0 py-3 px-4 d-flex align-items-center">
+                      <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 38px; height: 38px;">
+                          <i class="${moduleData.icon.replace("icon-", "fas fa-")}" style="font-size: 1rem;"></i>
                       </div>
-                  </button>
-              </h2>
-              <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" data-bs-parent="#accordionPermissions">
-                  <div class="accordion-body pt-0 pb-2 px-4">
-                      ${actionsHtml}
+                      <h6 class="fw-bold m-0 text-body" style="letter-spacing: -0.3px;">${moduleName}</h6>
+                  </div>
+                  <div class="card-body p-4">
+                      <div class="d-flex flex-wrap">
+                          ${actionsHtml}
+                      </div>
                   </div>
               </div>
           </div>`;
       }
-      accordionHtml += `</div>`;
-
-      container.html(accordionHtml);
-    } else {
-      container.html(`<div class="text-center py-5 text-danger opacity-75"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>${res.alert}</p></div>`);
+      cardsHtml += `</div>`;
+      container.html(cardsHtml);
     }
   } catch (e) {
-    container.html(`<div class="text-center py-5 text-danger opacity-75"><p>Falha de comunicação com o servidor.</p></div>`);
+    container.html(`<div class="alert alert-danger rounded-4">Erro ao processar matriz de acesso.</div>`);
   }
 };
 
@@ -414,7 +391,8 @@ const parseAuditDetails = (op, oldData, newData) => {
 
     let oldVal = formatValue(key, oldObj[key]);
     let newVal = formatValue(key, newObj[key]);
-    let translatedKey = translateLogKey(key);
+    // let translatedKey = translateLogKey(key);
+    let translatedKey = formatKey(key);
 
     if (op === "UPDATE" && oldObj[key] != newObj[key] && oldObj[key] !== undefined) {
       hasChanges = true;

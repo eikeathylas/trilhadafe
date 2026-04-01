@@ -270,17 +270,16 @@ INSERT INTO public.profiles (id, title, description, staff, active) VALUES
 
 INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller) VALUES 
 (1,  'dashboard',   'Painel Principal',     'Visão geral e gráficos.', TRUE, 'icon-home', 'DashboardController'),
-(2,  'eventos',     'Eventos e Festas',     'Gestão de calendário.', TRUE, 'icon-ticket', 'EventsController'),
-(3,  'relatorios',  'Relatórios',           'Análise de dados e exportação.', TRUE, 'icon-description', 'ReportsController'),
-(4,  'diario',      'Diário de Classe',     'Área do professor/frequência.', TRUE, 'icon-calendar', 'AcademicController'),
-(5,  'turmas',      'Gestão de Turmas',     'Administração de salas e alunos.', TRUE, 'icon-group', 'AcademicController'),
-(6,  'cursos',      'Cursos e Grades',      'Definição formativa.', TRUE, 'icon-school', 'AcademicController'),
-(7,  'fases',       'Fases da Iniciação',   'Cadastro de fases.', TRUE, 'icon-list', 'AcademicController'),
+(2,  'eventos',     'Calendario',           'Gestão de calendário.', TRUE, 'icon-calendar-day', 'EventsController'),
+(3,  'relatorios',  'Relatórios',           'Análise de dados e exportação.', TRUE, 'icon-file-lines', 'ReportsController'),
+(4,  'diario',      'Diário de Classe',     'Área do professor/frequência.', TRUE, 'icon-chalkboard-user', 'AcademicController'),
+(5,  'turmas',      'Gestão de Turmas',     'Administração de salas e alunos.', TRUE, 'icon-graduation-cap', 'AcademicController'),
+(6,  'cursos',      'Cursos e Grades',      'Definição formativa.', TRUE, 'icon-book', 'AcademicController'),
+(7,  'fases',       'Fases da Iniciação',   'Cadastro de fases.', TRUE, 'icon-book-open', 'AcademicController'),
 (8,  'pessoas',     'Diretório de Pessoas', 'Prontuário único.', TRUE, 'icon-user', 'PeopleController'),
 (9,  'organizacao', 'Organização',          'Estrutura física e dados.', TRUE, 'icon-building', 'OrganizationController'),
 (10, 'usuarios',    'Usuários',             'Gerenciamento de acessos.', TRUE, 'icon-users', 'UsersController'),
-(11, 'ajuda',       'Ajuda e Suporte',      'Base de conhecimento.', TRUE, 'icon-help', 'HelpController'),
-(12, 'dev',         'Painel DEV',           'Gestão do sistema e atualizações.', TRUE, 'icon-code', 'DevController'); -- [NOVO]
+(11, 'ajuda',       'Ajuda e Suporte',      'Base de conhecimento.', TRUE, 'icon-circle-question', 'HelpController');
 
 -- ==========================================================
 -- 3.6.1 SUB-AÇÕES (MICRO-PERMISSÕES)
@@ -402,11 +401,6 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
 (1101, 11, 'ajuda.secretary', 'FAQ Secretaria', 'Manuais de gestão.', FALSE),
 (1102, 11, 'ajuda.professor', 'FAQ Professor',  'Manuais de sala de aula.', FALSE);
-
--- BLOCO 1200: PAINEL DEV [NOVO]
-INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
-(1201, 12, 'dev.versions',    'Gerenciar Atualizações', 'Pode lançar novas Notas de Versão (Atualizações do Sistema).', FALSE),
-(1202, 12, 'dev.logs',        'Visualizar Logs',        'Pode analisar os Logs de Erro estruturados gerados pela plataforma.', FALSE);
 
 
 -- ----------------------------------------------------------

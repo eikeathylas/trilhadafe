@@ -176,7 +176,7 @@
         <span>Diário</span>
     </a>
 
-    <a href="#" class="modern-bottom-nav-item <?= !in_array(basename($_SERVER['PHP_SELF']), ['dashboard.php', 'relatorios.php', 'pessoas.php', 'diario.php']) ? 'active' : '' ?>" onclick="toggleMobileMenu(); return false;" id="btn-mobile-menu">
+    <a href="#" class="modern-bottom-nav-item <?= !in_array(basename($_SERVER['PHP_SELF']), ['dashboard.php', 'eventos.php', 'pessoas.php', 'diario.php']) ? 'active' : '' ?>" onclick="toggleMobileMenu(); return false;" id="btn-mobile-menu">
         <div class="icon-wrapper"><span class="material-symbols-outlined">menu</span></div>
         <span>Menu</span>
     </a>

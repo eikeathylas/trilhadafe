@@ -106,25 +106,25 @@
                         <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                     </div>
 
-                    <div class="px-2 pt-1 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
-                        <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
-                            <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="userTab" role="tablist">
-                                <li class="nav-item">
-                                    <button class="nav-link active fw-bold px-4 rounded-pill" id="acesso-tab" data-bs-toggle="tab" data-bs-target="#tab-acesso" type="button">
-                                        <i class="fas fa-id-badge me-2 opacity-75"></i> Acesso
-                                    </button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link fw-bold px-4 rounded-pill" id="perfil-tab" data-bs-toggle="tab" data-bs-target="#tab-perfil" type="button">
-                                        <i class="fas fa-shield-alt me-2 opacity-75"></i> Perfil de Permissões
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
                     <div class="modal-body p-0 modal-body-scrollable bg-body">
                         <input type="hidden" id="edit_id_user" value="" />
+
+                        <div class="px-2 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
+                            <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
+                                <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="userTab" role="tablist">
+                                    <li class="nav-item">
+                                        <button class="nav-link active fw-bold px-4 rounded-pill" id="acesso-tab" data-bs-toggle="tab" data-bs-target="#tab-acesso" type="button">
+                                            <i class="fas fa-id-badge me-2 opacity-75"></i> Acesso
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link fw-bold px-4 rounded-pill" id="perfil-tab" data-bs-toggle="tab" data-bs-target="#tab-perfil" type="button">
+                                            <i class="fas fa-shield-alt me-2 opacity-75"></i> Perfil de Permissões
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
 
                         <div class="tab-content p-4 p-md-5">
 

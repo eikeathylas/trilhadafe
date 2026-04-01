@@ -234,3 +234,11 @@ O select pode quebrar o layout do menu lateral.
 # 🧭 Interface Global II
 
 Geral -> Ajustar o setButton em todas as telas
+
+Geral -> Lembrar o estado do menu, aberto ou fechado.
+
+Usuário -> Ajustar o modal não está igual a pessoa.
+
+Usuário -> Cada card de telá será um accordion, pode comprimir ou expandir.
+
+Usuário -> Ajustar as cores "const statusClass = p.active ? "bg-success text-success border-success" : "bg-danger text-danger border-danger";"

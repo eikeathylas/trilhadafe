@@ -152,7 +152,7 @@ const formatKey = (key) => {
     address_state: "Unidade Federativa (UF)",
     zip_code: "Código Postal (CEP)",
 
-    is_active: "Estado Operacional",
+    is_active: "Acesso Ativo",
     active: "Status Geral",
     deleted: "Lixeira (Soft Delete)",
     display_name: "Nome Fantasia",
@@ -181,7 +181,6 @@ const formatKey = (key) => {
     relative_id: "ID do Familiar",
     relative_name: "Nome do Familiar",
     force_password_change: "Exigir Redefinição de Senha",
-    status: "Status do Sistema",
     file_name: "Nomenclatura do Arquivo",
     file_path: "Diretório de Armazenamento",
 
@@ -205,6 +204,11 @@ const formatKey = (key) => {
     eucharist: "1ª Eucaristia",
     chrism: "Crisma",
     matrimony: "Casamento na Igreja",
+
+    role_level: "Nível de Permissão",
+    session_date: "Data Ministrada",
+    student_name: "Aluno(a)",
+    status: "Status do Registro",
   };
   return map[kLow] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };

@@ -503,24 +503,31 @@ function fetchProfilesList()
     }
 }
 
-/**
- * Busca a matriz de permissões cruzando features com o perfil selecionado
- */
 function fetchProfilePermissions($id_profile)
 {
     try {
-        $conect = $GLOBALS["local"];
-        $sql = "SELECT f.title as name, f.description,
-                CASE WHEN pf.id_feature IS NOT NULL THEN true ELSE false END as active
-                FROM public.features f
-                LEFT JOIN public.profiles_features pf ON f.id = pf.id_feature AND pf.id_profile = :id_profile
-                ORDER BY f.module, f.title";
+        // CORREÇÃO: Utilizando a conexão com o banco Staff para permissões globais
+        $conect = getStaff();
+
+        $sql = "SELECT 
+                    p.name AS module_name,
+                    p.icon_class AS module_icon,
+                    a.name AS action_name,
+                    a.description,
+                    CASE WHEN pa.id_action IS NOT NULL THEN true ELSE false END as active
+                FROM public.actions a
+                INNER JOIN public.actions p ON a.parent_id = p.id
+                LEFT JOIN public.profiles_actions pa ON a.id = pa.id_action AND pa.id_profile = :id_profile
+                WHERE a.parent_id IS NOT NULL
+                ORDER BY p.id ASC, a.id ASC";
 
         $stmt = $conect->prepare($sql);
-        $stmt->execute([':id_profile' => $id_profile]);
-        return success("Permissões do Perfil", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $stmt->execute([':id_profile' => (int)$id_profile]);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return success("Matriz de Permissões carregada.", $result);
     } catch (Exception $e) {
-        // Fallback de segurança caso a tabela features não exista ou seja diferente
-        return success("Permissões em modo de compatibilidade", []);
+        logSystemError("staff", "security", "fetchProfilePermissions", "sql", $e->getMessage(), ['id_profile' => $id_profile]);
+        return failure("Erro ao carregar matriz de acesso.");
     }
 }
