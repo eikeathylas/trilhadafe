@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="../login/assets/img/favicon.png" type="image/x-icon">
-    <title>Agenda e Eventos - Trilha da Fé</title>
+    <title>Calendário - Trilha da Fé</title>
     <?php include "./assets/components/Head.php"; ?>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css" id="flatpickr-theme-dark" disabled>
@@ -25,7 +25,7 @@
                         <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
                             <i class="fas fa-calendar-days" style="font-size: 1.1rem;"></i>
                         </div>
-                        Agenda e Eventos
+                        Calendário
                     </li>
                 </ol>
             </nav>
@@ -38,7 +38,7 @@
 
 
                     <div class="col-12 d-md-none mb-2 mt-2">
-                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Agenda e Eventos</h5>
+                        <h5 class="fw-bold text-body m-0" style="letter-spacing: -0.5px;">Calendário</h5>
                     </div>
 
 

@@ -52,9 +52,9 @@
                         </a>
                     </li>
                     <li data-slug="eventos">
-                        <a href="eventos.php" class="<?= basename($_SERVER['PHP_SELF']) == 'eventos.php' ? 'active' : '' ?>" data-tooltip="Agenda">
+                        <a href="eventos.php" class="<?= basename($_SERVER['PHP_SELF']) == 'eventos.php' ? 'active' : '' ?>" data-tooltip="Calendário">
                             <span class="material-symbols-outlined icon-only">event</span>
-                            <span class="text-only">Agenda</span>
+                            <span class="text-only">Calendário</span>
                         </a>
                     </li>
                     <li data-slug="relatorios">
@@ -163,7 +163,7 @@
 
     <a href="eventos.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'eventos.php' ? 'active' : '' ?>" data-slug="eventos">
         <div class="icon-wrapper"><span class="material-symbols-outlined">event</span></div>
-        <span>Agenda</span>
+        <span>Calendário</span>
     </a>
 
     <a href="pessoas.php" class="modern-bottom-nav-item <?= basename($_SERVER['PHP_SELF']) == 'pessoas.php' ? 'active' : '' ?>" data-slug="pessoas">

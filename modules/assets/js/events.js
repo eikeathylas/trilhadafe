@@ -123,6 +123,11 @@ const renderTableEvents = (data) => {
   // =========================================================
   let desktopRows = data
     .map((item) => {
+      const days = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+      const dateObj = new Date(item.event_date + "T00:00:00");
+      const dayName = days[dateObj.getDay()];
+
+
       const timeInfo = item.start_time ? `<small class="text-secondary d-block"><i class="far fa-clock me-1 opacity-50"></i> ${item.start_time}</small>` : `<small class="text-secondary d-block"><i class="far fa-clock me-1 opacity-50"></i> Dia todo</small>`;
 
       // Renderiza o switch apenas se puder editar
@@ -159,7 +164,7 @@ const renderTableEvents = (data) => {
                 <div class="small text-secondary text-truncate" style="max-width: 300px;">${item.description || "Sem anotações"}</div>
             </td>
             <td class="align-middle">
-                <div class="fw-bold text-body">${item.date_fmt}</div>
+                <div class="fw-bold text-body">${item.date_fmt} (${dayName})</div>
                 ${canEdit ? timeInfo : ""}
             </td>
             <td class="align-middle text-center" style="width: 220px;">
@@ -179,6 +184,10 @@ const renderTableEvents = (data) => {
   // =========================================================
   let mobileRows = data
     .map((item) => {
+      const days = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+      const dateObj = new Date(item.event_date + "T00:00:00");
+      const dayName = days[dateObj.getDay()];
+
       // Mobile Toggle condicional
       let mobileToggleHtml = `
         <div id="lbl_mob_${item.event_id}">
@@ -194,12 +203,11 @@ const renderTableEvents = (data) => {
       // Mobile Actions condicionais
       let mobActionsHtml = "";
       if (canHistory)
-      mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.events', ${item.event_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
-      mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="editEvent(${item.event_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)
-      mobActionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
-
+        mobActionsHtml += `<button class="btn btn-sm text-danger  bg-danger  bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteEvent(${item.event_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       let mobileFooter = "";
       if (mobActionsHtml !== "") {
@@ -217,7 +225,7 @@ const renderTableEvents = (data) => {
                 <div class="me-3">
                     <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 48px; height: 52px; border-radius: 10px;">
                         <div class="text-uppercase fw-bold bg-danger text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.5rem; height: 16px; letter-spacing: 0.5px;">
-                            ${item.day_week || "DIA"}
+                            ${dayName || "DIA"}
                         </div>
                         <div class="d-flex align-items-center justify-content-center flex-grow-1">
                             <span class="fw-bold text-body lh-1">${item.date_fmt.split("/")[0]}/${item.date_fmt.split("/")[1]}</span>
