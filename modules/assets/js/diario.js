@@ -197,7 +197,6 @@ window.getHistory = async () => {
         const total = dataArray[0]?.total_registros || 0;
         defaultDiary.totalPages = Math.max(1, Math.ceil(total / defaultDiary.rowsPerPage));
 
-        // MÁGICA: Agrupa os retornos do BD por Data
         const grouped = {};
         dataArray.forEach((item) => {
           const dateKey = item.session_date.split(" ")[0];
@@ -268,36 +267,36 @@ const renderTableHistory = (groupedData) => {
         .map((s, idx) => {
           let text = s.description ? s.description.replace(/<[^>]*>?/gm, "").trim() : "";
           text = text.length > 40 ? text.substring(0, 40) + "..." : text || "Sem conteúdo preenchido";
-          return `<div class="mb-1"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-10 me-2" style="font-size:0.65rem;">Encontro ${idx + 1}</span><span class="small text-secondary fw-medium">${text}</span></div>`;
+          return `<div class="mb-1"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-10 me-2 px-2 py-1" style="font-size:0.65rem;">Encontro ${idx + 1}</span><span class="small text-secondary fw-medium">${text}</span></div>`;
         })
         .join("");
 
       let actionsHtml = "";
-      if (canEdit) actionsHtml += `<button class="btn btn-primary btn-sm fw-bold px-3 rounded-pill shadow-sm hover-scale" onclick="openSessionModal(null, '${group.date}', this)"><i class="fas fa-pen me-2"></i> Ver / Editar</button>`;
+      if (canEdit) actionsHtml += `<button class="btn btn-primary btn-sm fw-bold px-4 py-2 rounded-pill shadow-sm hover-scale" onclick="openSessionModal(null, '${group.date}', this)"><i class="fas fa-pen me-2"></i> Ver Diários</button>`;
 
       return `
       <tr>
-        <td class="align-middle ps-3" style="width: 60px;">
-          <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">
-            <span class="material-symbols-outlined" style="font-size: 20px;">calendar_month</span>
+        <td class="align-middle ps-4" style="width: 70px;">
+          <div class="icon-circle bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm" style="width: 48px; height: 48px;">
+            <span class="material-symbols-outlined" style="font-size: 24px;">calendar_month</span>
           </div>
         </td>
-        <td class="align-middle py-3">
-          <div class="fw-bold text-body mb-2" style="font-size: 1rem;"><i class="fas fa-calendar-day opacity-50 me-1"></i> ${dateFmt}</div>
-          ${summaryHtml}
+        <td class="align-middle py-4">
+          <div class="fw-bold text-body mb-3" style="font-size: 1.1rem;"><i class="fas fa-calendar-day opacity-50 me-2"></i> ${dateFmt}</div>
+          <div class="d-flex flex-column gap-1">${summaryHtml}</div>
         </td>
-        <td class="align-middle text-center" style="width: 220px;">
-          <div class="d-flex flex-column align-items-center w-100 px-3">
+        <td class="align-middle text-center" style="width: 240px;">
+          <div class="d-flex flex-column align-items-center w-100 px-4">
             <small class="fw-bold text-muted mb-2 d-flex justify-content-between w-100">
                 <span><i class="fas fa-users opacity-50 me-1"></i> ${present}/${total} presentes</span>
-                <span>${pct}%</span>
+                <span class="text-${progColor.replace("bg-", "")}">${pct}%</span>
             </small>
-            <div class="progress w-100 bg-secondary bg-opacity-10 shadow-inner" style="height: 8px;">
+            <div class="progress w-100 bg-secondary bg-opacity-10 shadow-inner rounded-pill" style="height: 10px;">
               <div class="progress-bar ${progColor} rounded-pill" role="progressbar" style="width: ${pct}%"></div>
             </div>
           </div>
         </td>
-        <td class="text-end align-middle pe-3 text-nowrap" style="width: 140px;">
+        <td class="text-end align-middle pe-4 text-nowrap" style="width: 160px;">
           ${actionsHtml || '<span class="text-muted small opacity-50"><i class="fas fa-lock"></i></span>'}
         </td>
       </tr>`;
@@ -309,9 +308,9 @@ const renderTableHistory = (groupedData) => {
       <table class="table-custom">
           <thead>
               <tr>
-                  <th colspan="2" class="ps-3 text-uppercase small opacity-75">Resumo da Data</th>
-                  <th class="text-center text-uppercase small opacity-75">Quadro de Frequência</th>
-                  <th class="text-end pe-4 text-uppercase small opacity-75">Ações</th>
+                  <th colspan="2" class="ps-4 py-3 text-uppercase small opacity-75">Resumo da Data</th>
+                  <th class="text-center py-3 text-uppercase small opacity-75">Quadro de Frequência</th>
+                  <th class="text-end pe-4 py-3 text-uppercase small opacity-75">Ações</th>
               </tr>
           </thead>
           <tbody>${desktopRows}</tbody>
@@ -332,32 +331,34 @@ const renderTableHistory = (groupedData) => {
       const summaryHtml = group.sessions
         .map((s, idx) => {
           let text = s.description ? s.description.replace(/<[^>]*>?/gm, "").trim() : "";
-          text = text.length > 25 ? text.substring(0, 25) + "..." : text || "Sem conteúdo";
-          return `<div class="mb-1 text-truncate"><span class="badge bg-secondary bg-opacity-10 text-body me-1" style="font-size:0.6rem;">#${idx + 1}</span><span class="small text-secondary">${text}</span></div>`;
+          text = text.length > 30 ? text.substring(0, 30) + "..." : text || "Sem conteúdo";
+          return `<div class="d-flex align-items-center text-truncate"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-10 me-2 px-2 py-1" style="font-size:0.65rem;">#${idx + 1}</span><span class="small text-secondary text-truncate">${text}</span></div>`;
         })
         .join("");
 
       let mobActionsHtml = "";
-      if (canEdit) mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-4 fw-bold px-3 shadow-none w-100 mt-2" onclick="openSessionModal(null, '${group.date}', this)"><i class="fas fa-pen me-2"></i> Abrir Diários</button>`;
+      if (canEdit) mobActionsHtml += `<button class="btn text-primary bg-primary bg-opacity-10 rounded-4 fw-bold px-3 py-2 shadow-none w-100 mt-3" onclick="openSessionModal(null, '${group.date}', this)"><i class="fas fa-pen me-2"></i> Abrir Diários</button>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch position-relative p-3 mb-3 border border-secondary border-opacity-10 rounded-4 shadow-sm">
-          <div class="position-absolute" style="top: 12px; right: 16px;">
-              <span class="badge ${badgeStyle} rounded-pill shadow-sm" style="font-size: 0.7rem;">${pct}% presenças</span>
+      <div class="ios-list-item flex-column align-items-stretch position-relative p-4 mb-4 border border-secondary border-opacity-10 rounded-4 shadow-sm bg-white">
+          <div class="position-absolute" style="top: 16px; right: 16px;">
+              <span class="badge ${badgeStyle} rounded-pill shadow-sm px-2 py-1" style="font-size: 0.75rem;">${pct}%</span>
           </div>
 
-          <div class="d-flex w-100 align-items-start mb-2">
+          <div class="d-flex w-100 align-items-start mt-1">
               <div class="me-3 flex-shrink-0">
-                  <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 48px; height: 52px; border-radius: 8px;">
-                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.5rem; height: 16px;">DATA</div>
-                      <div class="d-flex align-items-center justify-content-center flex-grow-1">
-                          <span class="fw-bold text-body lh-1">${day}/${month}</span>
+                  <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 56px; height: 60px; border-radius: 10px;">
+                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.55rem; height: 18px;">DATA</div>
+                      <div class="d-flex align-items-center justify-content-center flex-grow-1 bg-white">
+                          <span class="fw-bolder text-body lh-1 fs-5">${day}/${month}</span>
                       </div>
                   </div>
               </div>
               <div class="flex-grow-1 pe-4" style="min-width: 0;">
-                  <h6 class="fw-bold text-body m-0 mb-2" style="font-size: 0.95rem;">${group.sessions.length} Encontro(s)</h6>
-                  ${summaryHtml}
+                  <h6 class="fw-bolder text-body m-0 mb-2" style="font-size: 1.05rem;">${group.sessions.length} Encontro(s)</h6>
+                  <div class="d-flex flex-column gap-2 mt-2">
+                      ${summaryHtml}
+                  </div>
               </div>
           </div>
           ${mobActionsHtml}
@@ -383,12 +384,15 @@ window.openSessionModal = async (sessionId = null, dateStr = null, btn) => {
   $("#date-status-icon").empty();
   $("#date-msg").text("");
   $("#session_select_container").addClass("d-none");
+
+  // CORREÇÃO: ID 'empty-accordion-msg' adicionado para permitir a deleção limpa!
   $("#accordions_container").html(`
       <div class="text-center py-5 opacity-50" id="empty-accordion-msg">
           <div class="spinner-border text-primary" role="status"></div>
           <p class="mt-3 fw-medium text-body">Aguardando data...</p>
       </div>
   `);
+
   $("#attendance_list_global").html(`
       <div class="text-center py-5 text-muted opacity-50">
           <span class="material-symbols-outlined fs-1">sync</span>
@@ -471,7 +475,9 @@ window.checkDateLogic = async (dateStr) => {
   $statusIcon.html('<div class="spinner-border spinner-border-sm text-primary" role="status"></div>');
   $msgContainer.text("Validando encontros...").removeClass("text-warning text-danger text-success text-primary");
   $selectContainer.addClass("d-none");
-  $("#accordions_container").html('<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium text-body">Aguardando seleções...</p></div>');
+
+  // CORREÇÃO: ID 'empty-accordion-msg' adicionado!
+  $("#accordions_container").html('<div class="text-center py-5 opacity-50" id="empty-accordion-msg"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 fw-medium text-body">Aguardando seleções...</p></div>');
 
   if ($select[0].selectize) $select[0].selectize.destroy();
   $select.empty();
@@ -489,14 +495,15 @@ window.checkDateLogic = async (dateStr) => {
       } else {
         let options = [];
 
-        // 1. Encontros Existentes
         if (info.sessions && info.sessions.length > 0) {
           info.sessions.forEach((s, idx) => {
-            options.push({ value: s.session_id.toString(), text: `Encontro ${idx + 1} (Salvo)` });
+            const rawDesc = s.description ? s.description.replace(/<[^>]*>?/gm, "").trim() : "";
+            const shortDesc = rawDesc.length > 40 ? rawDesc.substring(0, 40) + "..." : rawDesc;
+            const displayName = shortDesc ? ` - ${shortDesc}` : "";
+            options.push({ value: s.session_id.toString(), text: `Encontro ${idx + 1}${displayName} (Salvo)` });
           });
         }
 
-        // 2. Múltiplos Novos Encontros
         let existingCount = info.sessions ? info.sessions.length : 0;
         options.push({ value: "NEW_1", text: `+ Adicionar Encontro ${existingCount + 1} (Novo)` });
         options.push({ value: "NEW_2", text: `+ Adicionar Encontro ${existingCount + 2} (Novo)` });
@@ -564,6 +571,7 @@ window.renderAccordions = (selectedValues) => {
     }
   });
 
+  // GARANTE a remoção correta do Loader agora que a div tem o ID certo
   $("#empty-accordion-msg").remove();
 
   vals.forEach((val) => {
@@ -574,7 +582,7 @@ window.renderAccordions = (selectedValues) => {
       let template = "";
 
       if (isNew) {
-        let num = val.split("_")[1]; // Pega o número do NEW_X
+        let num = val.split("_")[1];
         title = `Encontro ${info.sessions.length + parseInt(num)} (Novo)`;
         template = info.template || "";
       } else {
@@ -584,17 +592,18 @@ window.renderAccordions = (selectedValues) => {
         template = sessData.description || "";
       }
 
-      // CORREÇÃO: Design limpo, sem texto vazando no título, com margens maiores (mb-4)
+      // CORREÇÃO: Design premium com espaçamentos ampliados (p-4 e py-3) e bordas limpas
       let html = `
-            <div class="accordion-item diario-accordion-item border-0 shadow-sm rounded-4 mb-4 overflow-hidden shadow-inner bg-white" id="accordion_item_${val}" data-session="${val}">
-                <h2 class="accordion-header d-flex align-items-center bg-secondary bg-opacity-10 pe-3" id="heading_${val}">
-                    <button class="accordion-button bg-transparent fw-bold flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${val}" aria-expanded="true" style="box-shadow: none;">
-                        <i class="fas ${isNew ? "fa-plus-circle text-success" : "fa-check-circle text-primary"} me-2"></i> ${title}
+            <div class="accordion-item diario-accordion-item border border-secondary border-opacity-10 shadow-sm rounded-4 mb-4 overflow-hidden bg-white" id="accordion_item_${val}" data-session="${val}">
+                <h2 class="accordion-header d-flex align-items-center bg-secondary bg-opacity-10 pe-2" id="heading_${val}">
+                    <button class="accordion-button bg-transparent fw-bold flex-grow-1 shadow-none py-3 px-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${val}" aria-expanded="true">
+                        <i class="fas ${isNew ? "fa-plus-circle text-success" : "fa-check-circle text-primary"} me-2 fs-5"></i> 
+                        <span style="font-size: 1.05rem;">${title}</span>
                     </button>
-                    ${!isNew ? `<button class="btn btn-sm text-danger hover-scale shadow-none" onclick="deleteSession(${val})" title="Excluir Encontro"><i class="fas fa-trash-can fs-6"></i></button>` : ""}
+                    ${!isNew ? `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 border border-danger border-opacity-10 rounded-circle hover-scale shadow-none me-3 d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSession(${val})" title="Excluir Encontro"><i class="fas fa-trash-can"></i></button>` : ""}
                 </h2>
                 <div id="collapse_${val}" class="accordion-collapse collapse show">
-                    <div class="accordion-body p-3 p-md-4">
+                    <div class="accordion-body p-4 bg-white border-top border-secondary border-opacity-10">
                         <textarea id="editor_${val}" class="w-100 form-control bg-white rounded-3 border-0"></textarea>
                     </div>
                 </div>
