@@ -265,14 +265,18 @@ const renderTableHistory = (groupedData) => {
 
       const summaryHtml = group.sessions
         .map((s, idx) => {
-          let text = s.description ? s.description.replace(/<[^>]*>?/gm, "").trim() : "";
-          text = text.length > 40 ? text.substring(0, 40) + "..." : text || "Sem conteúdo preenchido";
-          return `<div class="mb-1"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-10 me-2 px-2 py-1" style="font-size:0.65rem;">Encontro ${idx + 1}</span><span class="small text-secondary fw-medium">${text}</span></div>`;
+          let text = s.title || "Sem título preenchido";
+          text = text.length > 40 ? text.substring(0, 40) + "..." : text;
+          return `<div class="mb-1 d-flex align-items-center"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-10 me-2 px-2 py-1" style="font-size:0.65rem;">Encontro</span><span class="small text-secondary fw-medium text-truncate">${text}</span></div>`;
         })
         .join("");
 
       let actionsHtml = "";
-      if (canEdit) actionsHtml += `<button class="btn btn-primary btn-sm fw-bold px-4 py-2 rounded-pill shadow-sm hover-scale" onclick="openSessionModal(null, '${group.date}', this)"><i class="fas fa-pen me-2"></i> Ver Diários</button>`;
+      const firstSess = group.sessions[0].session_id;
+      if (allowedSlugs.includes("diario.history"))
+        actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.class_sessions', ${firstSess}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openSessionModal(null, '${group.date}', this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (allowedSlugs.includes("diario.delete")) actionsHtml += `<button class="btn-icon-action text-danger ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSession(${firstSess})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
       <tr>
@@ -297,7 +301,9 @@ const renderTableHistory = (groupedData) => {
           </div>
         </td>
         <td class="text-end align-middle pe-4 text-nowrap" style="width: 160px;">
-          ${actionsHtml || '<span class="text-muted small opacity-50"><i class="fas fa-lock"></i></span>'}
+          <div class="d-flex justify-content-end align-items-center flex-nowrap gap-1">
+            ${actionsHtml || '<span class="text-muted small opacity-50"><i class="fas fa-lock"></i></span>'}
+          </div>
         </td>
       </tr>`;
     })
@@ -322,6 +328,9 @@ const renderTableHistory = (groupedData) => {
       const dateParts = group.date.split("-");
       const day = dateParts[2];
       const month = dateParts[1];
+      const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+      const daysOfWeek = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+      const dayOfWeekStr = daysOfWeek[dateObj.getDay()];
 
       const total = parseInt(group.total_students) || 0;
       const present = parseInt(group.present_count) || 0;
@@ -330,17 +339,23 @@ const renderTableHistory = (groupedData) => {
 
       const summaryHtml = group.sessions
         .map((s, idx) => {
-          let text = s.description ? s.description.replace(/<[^>]*>?/gm, "").trim() : "";
-          text = text.length > 30 ? text.substring(0, 30) + "..." : text || "Sem conteúdo";
-          return `<div class="d-flex align-items-center text-truncate"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-10 me-2 px-2 py-1" style="font-size:0.65rem;">#${idx + 1}</span><span class="small text-secondary text-truncate">${text}</span></div>`;
+          let text = s.title || "Sem conteúdo";
+          text = text.length > 30 ? text.substring(0, 30) + "..." : text;
+          return `<div class="d-flex align-items-center text-truncate"><span class="badge bg-secondary bg-opacity-10 text-body border border-secondary border-opacity-10 me-2 px-2 py-1" style="font-size:0.65rem;">Encontro</span><span class="small text-secondary text-truncate">${text}</span></div>`;
         })
         .join("");
 
       let mobActionsHtml = "";
-      if (canEdit) mobActionsHtml += `<button class="btn text-primary bg-primary bg-opacity-10 rounded-4 fw-bold px-3 py-2 shadow-none w-100 mt-3" onclick="openSessionModal(null, '${group.date}', this)"><i class="fas fa-pen me-2"></i> Abrir Diários</button>`;
+      const firstSess = group.sessions[0].session_id;
+      if (allowedSlugs.includes("diario.history"))
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.class_sessions', ${firstSess}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canEdit)
+        mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openSessionModal(null, '${group.date}', this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
+      if (allowedSlugs.includes("diario.delete"))
+        mobActionsHtml += `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSession(${firstSess})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
       return `
-      <div class="ios-list-item flex-column align-items-stretch position-relative p-4 mb-4 border border-secondary border-opacity-10 rounded-4 shadow-sm bg-white">
+      <div class="ios-list-item flex-column align-items-stretch position-relative p-4 rounded-4 shadow-sm bg-white">
           <div class="position-absolute" style="top: 16px; right: 16px;">
               <span class="badge ${badgeStyle} rounded-pill shadow-sm px-2 py-1" style="font-size: 0.75rem;">${pct}%</span>
           </div>
@@ -348,9 +363,9 @@ const renderTableHistory = (groupedData) => {
           <div class="d-flex w-100 align-items-start mt-1">
               <div class="me-3 flex-shrink-0">
                   <div class="event-date-box d-flex flex-column text-center border border-secondary border-opacity-25 shadow-sm overflow-hidden" style="width: 56px; height: 60px; border-radius: 10px;">
-                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.55rem; height: 18px;">DATA</div>
-                      <div class="d-flex align-items-center justify-content-center flex-grow-1 bg-white">
-                          <span class="fw-bolder text-body lh-1 fs-5">${day}/${month}</span>
+                      <div class="text-uppercase fw-bold bg-primary text-white w-100 d-flex align-items-center justify-content-center" style="font-size: 0.55rem; height: 18px;">${dayOfWeekStr}</div>
+                      <div class="d-flex align-items-center justify-content-center flex-grow-1">
+                          <span class="fw-bolder text-body lh-1">${day}/${month}</span>
                       </div>
                   </div>
               </div>
@@ -361,7 +376,9 @@ const renderTableHistory = (groupedData) => {
                   </div>
               </div>
           </div>
-          ${mobActionsHtml}
+          <div class="d-flex justify-content-end align-items-center pt-2 mt-3 border-top border-secondary border-opacity-10 w-100 flex-nowrap gap-2">
+              ${mobActionsHtml}
+          </div>
       </div>`;
     })
     .join("");
@@ -496,26 +513,24 @@ window.checkDateLogic = async (dateStr) => {
         let options = [];
 
         if (info.sessions && info.sessions.length > 0) {
-          info.sessions.forEach((s, idx) => {
-            const rawDesc = s.description ? s.description.replace(/<[^>]*>?/gm, "").trim() : "";
-            const shortDesc = rawDesc.length > 40 ? rawDesc.substring(0, 40) + "..." : rawDesc;
-            const displayName = shortDesc ? ` - ${shortDesc}` : "";
-            options.push({ value: s.session_id.toString(), text: `Encontro ${idx + 1}${displayName} (Salvo)` });
+          info.sessions.forEach((s) => {
+            options.push({ value: s.session_id.toString(), text: `${s.title} (Salvo)` });
           });
         }
 
-        let existingCount = info.sessions ? info.sessions.length : 0;
-        options.push({ value: "NEW_1", text: `+ Adicionar Encontro ${existingCount + 1} (Novo)` });
-        options.push({ value: "NEW_2", text: `+ Adicionar Encontro ${existingCount + 2} (Novo)` });
-        options.push({ value: "NEW_3", text: `+ Adicionar Encontro ${existingCount + 3} (Novo)` });
+        if (info.new_options && info.new_options.length > 0) {
+          info.new_options.forEach((opt) => {
+            options.push({ value: `NEW_${opt.sequence}`, text: `+ Adicionar ${opt.title}` });
+          });
+        }
 
         options.forEach((opt) => $select.append(new Option(opt.text, opt.value)));
 
         let defaultVals = [];
         if (info.sessions && info.sessions.length > 0) {
           info.sessions.forEach((s) => defaultVals.push(s.session_id.toString()));
-        } else {
-          defaultVals.push("NEW_1");
+        } else if (info.new_options && info.new_options.length > 0) {
+          defaultVals.push(`NEW_${info.new_options[0].sequence}`);
         }
 
         $select.selectize({
@@ -583,27 +598,27 @@ window.renderAccordions = (selectedValues) => {
 
       if (isNew) {
         let num = val.split("_")[1];
-        title = `Encontro ${info.sessions.length + parseInt(num)} (Novo)`;
-        template = info.template || "";
+        let opt = info.new_options.find((o) => o.sequence == num);
+        title = opt ? opt.title : `Encontro ${num} (Novo)`;
+        template = opt ? opt.content : "";
       } else {
         sessData = info.sessions.find((s) => s.session_id == val);
-        let idx = info.sessions.findIndex((s) => s.session_id == val);
-        title = `Encontro ${idx + 1} (Salvo)`;
+        title = sessData ? sessData.title : `Encontro (Salvo)`;
         template = sessData.description || "";
       }
 
-      // CORREÇÃO: Design premium com espaçamentos ampliados (p-4 e py-3) e bordas limpas
+      // CORREÇÃO: Design premium e margens Mobile ajustadas
       let html = `
-            <div class="accordion-item diario-accordion-item border border-secondary border-opacity-10 shadow-sm rounded-4 mb-4 overflow-hidden bg-white" id="accordion_item_${val}" data-session="${val}">
+            <div class="accordion-item diario-accordion-item border border-secondary border-opacity-10 shadow-sm rounded-4 mb-3 overflow-hidden bg-white" id="accordion_item_${val}" data-session="${val}">
                 <h2 class="accordion-header d-flex align-items-center bg-secondary bg-opacity-10 pe-2" id="heading_${val}">
-                    <button class="accordion-button bg-transparent fw-bold flex-grow-1 shadow-none py-3 px-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${val}" aria-expanded="true">
+                    <button class="accordion-button bg-transparent fw-bold flex-grow-1 shadow-none py-2 px-3 py-md-3 px-md-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${val}" aria-expanded="true">
                         <i class="fas ${isNew ? "fa-plus-circle text-success" : "fa-check-circle text-primary"} me-2 fs-5"></i> 
                         <span style="font-size: 1.05rem;">${title}</span>
                     </button>
-                    ${!isNew ? `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 border border-danger border-opacity-10 rounded-circle hover-scale shadow-none me-3 d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSession(${val})" title="Excluir Encontro"><i class="fas fa-trash-can"></i></button>` : ""}
+                    ${!isNew ? `<button class="btn btn-sm text-danger bg-danger bg-opacity-10 border border-danger border-opacity-10 rounded-circle hover-scale shadow-none me-2 me-md-3 d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;" onclick="deleteSession(${val})" title="Excluir Encontro"><i class="fas fa-trash-can"></i></button>` : ""}
                 </h2>
                 <div id="collapse_${val}" class="accordion-collapse collapse show">
-                    <div class="accordion-body p-4 bg-white border-top border-secondary border-opacity-10">
+                    <div class="accordion-body p-2 p-md-4 bg-white border-top border-secondary border-opacity-10">
                         <textarea id="editor_${val}" class="w-100 form-control bg-white rounded-3 border-0"></textarea>
                     </div>
                 </div>
@@ -669,11 +684,12 @@ const renderGlobalStudentsList = () => {
   const rows = students
     .map((std, idx) => {
       const studentName = std.full_name || std.student_name || std.name || "Aluno Registrado";
-      const initials = studentName.substring(0, 2).toUpperCase();
+      const nameParts = studentName.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
       const avatarHtml = std.profile_photo_url
-        ? `<img src="${std.profile_photo_url}" class="rounded-circle object-fit-cover shadow-sm border border-secondary border-opacity-25" style="width:40px; height:40px;">`
-        : `<div class="rounded-circle bg-secondary bg-opacity-10 text-secondary fw-bold shadow-sm border border-secondary border-opacity-25 d-flex align-items-center justify-content-center" style="width:40px; height:40px;">${initials}</div>`;
+        ? `<img src="${std.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 42px; height: 42px; cursor: zoom-in;" onclick="zoomAvatar('${std.profile_photo_url}', '${studentName.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 0.9rem;">${initials}</div>`;
 
       const isP = std.is_present;
       const statusBadge = isP

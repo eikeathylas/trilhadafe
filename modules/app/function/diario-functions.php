@@ -150,7 +150,6 @@ function getDiarioMetadataF($data)
 
         // 3. Busca Feriados (Da Organização da Turma)
         $holidays = [];
-        // [CORREÇÃO] Removido o ID fixo. Usa o ID obtido da turma ($classData['org_id'])
         if ($orgId && $minDate && $maxDate) {
             $sqlHol = "SELECT to_char(event_date, 'YYYY-MM-DD') as date, title 
                        FROM organization.events 
@@ -196,6 +195,7 @@ function checkDateContentF($data)
         $phaseId = $data['phase_id'];
         $dateTime = $data['date'];
         $dateOnly = substr($dateTime, 0, 10);
+        $userId = isset($data['user_id']) ? $data['user_id'] : (function_exists('getAuthUserId') ? getAuthUserId() : null);
 
         // 1. Busca o ID da Organização da Turma
         $stmtOrg = $conect->prepare("SELECT org_id FROM education.classes WHERE class_id = :cid");
@@ -215,14 +215,28 @@ function checkDateContentF($data)
             return success("Data bloqueada.", ['status' => 'BLOCKED', 'reason' => $event['title']]);
         }
 
-        // B. Verifica Aulas Existentes naquela Data
-        $sqlSession = "SELECT session_id, description, content_type, session_date FROM education.class_sessions 
-                       WHERE class_id = :cid AND phase_id = :pid AND CAST(session_date AS DATE) = CAST(:dt AS DATE) AND deleted IS FALSE ORDER BY session_id ASC";
-        $stmtSess = $conect->prepare($sqlSession);
-        $stmtSess->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $dateOnly]);
-        $existingSessions = $stmtSess->fetchAll(PDO::FETCH_ASSOC);
+        // B. Verifica Aulas Existentes e Cria a Cronologia Global deste Professor
+        $sqlAll = "SELECT session_id, session_date, description, content_type 
+                   FROM education.class_sessions 
+                   WHERE class_id = :cid AND phase_id = :pid AND signed_by_user_id = :uid AND deleted IS FALSE 
+                   ORDER BY session_date ASC, session_id ASC";
+        $stmtAll = $conect->prepare($sqlAll);
+        $stmtAll->execute(['cid' => $classId, 'pid' => $phaseId, 'uid' => $userId]);
+        $allSessions = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
 
-        // Se houver, busca as presenças de cada sessão isoladamente
+        $existingSessions = [];
+        $seq = 1;
+        foreach ($allSessions as $sess) {
+            $sessDateOnly = substr($sess['session_date'], 0, 10);
+            if ($sessDateOnly === $dateOnly) {
+                $sess['sequence'] = $seq;
+                $existingSessions[] = $sess;
+            }
+            $seq++;
+        }
+        $next_sequence = count($allSessions) + 1;
+
+        // Se houver sessões para esta data, busca presenças de cada uma
         if (count($existingSessions) > 0) {
             foreach ($existingSessions as &$sess) {
                 $sqlAtt = "SELECT student_id, is_present, justification, absence_type FROM education.attendance WHERE session_id = :sid";
@@ -237,30 +251,53 @@ function checkDateContentF($data)
             }
         }
 
-        // C. Prepara a Sequência da Nova Aula
-        $sqlCount = "SELECT COUNT(*) FROM education.class_sessions 
-                     WHERE class_id = :cid AND phase_id = :pid AND CAST(session_date AS DATE) < CAST(:dt AS DATE) AND deleted IS FALSE";
-        $stmtCount = $conect->prepare($sqlCount);
-        $stmtCount->execute(['cid' => $classId, 'pid' => $phaseId, 'dt' => $dateOnly]);
-        $prevCount = $stmtCount->fetchColumn();
-
-        $meetingNum = $prevCount + count($existingSessions) + 1;
-
-        $sqlPlan = "SELECT cp.content 
+        // C. Prepara Títulos baseados nos Planos de Aula (education.curriculum_plans)
+        $sqlPlans = "SELECT cp.meeting_number, cp.title, cp.content 
                     FROM education.curriculum_plans cp
                     JOIN education.curriculum cur ON cp.curriculum_id = cur.curriculum_id
                     JOIN education.classes c ON c.course_id = cur.course_id
-                    WHERE c.class_id = :cid AND cur.phase_id = :pid AND cp.meeting_number = :num AND cp.deleted IS FALSE
-                    LIMIT 1";
-        $stmtPlan = $conect->prepare($sqlPlan);
-        $stmtPlan->execute(['cid' => $classId, 'pid' => $phaseId, 'num' => $meetingNum]);
-        $template = $stmtPlan->fetchColumn();
+                    WHERE c.class_id = :cid AND cur.phase_id = :pid AND cp.deleted IS FALSE
+                    ORDER BY cp.meeting_number ASC";
+        $stmtPlans = $conect->prepare($sqlPlans);
+        $stmtPlans->execute(['cid' => $classId, 'pid' => $phaseId]);
+        $plansList = $stmtPlans->fetchAll(PDO::FETCH_ASSOC);
+
+        $plans = [];
+        foreach ($plansList as $p) {
+            $plans[$p['meeting_number']] = $p;
+        }
+
+        // Vincula Título para sessões existentes desta data
+        if (count($existingSessions) > 0) {
+            foreach ($existingSessions as &$sess) {
+                $s_seq = $sess['sequence'];
+                $sess['title'] = isset($plans[$s_seq]) ? $plans[$s_seq]['title'] : "Encontro $s_seq";
+            }
+        }
+
+        // Prever as próximas opções
+        $newOptions = [];
+        for ($i = 0; $i < 5; $i++) {
+            $n_seq = $next_sequence + $i;
+            if (isset($plans[$n_seq])) {
+                $newOptions[] = [
+                    'sequence' => $n_seq,
+                    'title' => $plans[$n_seq]['title'],
+                    'content' => $plans[$n_seq]['content']
+                ];
+            } else {
+                $newOptions[] = [
+                    'sequence' => $n_seq,
+                    'title' => "Encontro $n_seq (Novo)",
+                    'content' => ''
+                ];
+            }
+        }
 
         return success("Verificação concluída.", [
             'status' => 'OK',
             'sessions' => $existingSessions,
-            'next_sequence' => $meetingNum,
-            'template' => $template ?: ''
+            'new_options' => $newOptions
         ]);
     } catch (Exception $e) {
         logSystemError("painel", "diario", "checkDateContentF", "sql", $e->getMessage(), $data);
@@ -365,13 +402,46 @@ function getClassHistoryF($data)
 {
     try {
         $conect = $GLOBALS["local"];
+        $userId = isset($data['user_id']) ? $data['user_id'] : (function_exists('getAuthUserId') ? getAuthUserId() : null);
+
+        // Define e Mapeia Sequência Cronológica Absoluta do Professor
+        $sqlAll = "SELECT session_id FROM education.class_sessions 
+                   WHERE class_id = :cid AND phase_id = :pid AND signed_by_user_id = :uid AND deleted IS FALSE 
+                   ORDER BY session_date ASC, session_id ASC";
+        $stmtAll = $conect->prepare($sqlAll);
+        $stmtAll->execute(['cid' => $data['class_id'], 'pid' => $data['phase_id'], 'uid' => $userId]);
+        $allSessions = $stmtAll->fetchAll(PDO::FETCH_COLUMN);
+
+        $sessionSequence = [];
+        $seq = 1;
+        foreach ($allSessions as $sid) {
+            $sessionSequence[$sid] = $seq++;
+        }
+
+        // Resgata Planos de Aula (Currículo)
+        $sqlPlans = "SELECT cp.meeting_number, cp.title 
+                    FROM education.curriculum_plans cp
+                    JOIN education.curriculum cur ON cp.curriculum_id = cur.curriculum_id
+                    JOIN education.classes c ON c.course_id = cur.course_id
+                    WHERE c.class_id = :cid AND cur.phase_id = :pid AND cp.deleted IS FALSE";
+        $stmtPlans = $conect->prepare($sqlPlans);
+        $stmtPlans->execute(['cid' => $data['class_id'], 'pid' => $data['phase_id']]);
+        $plansList = $stmtPlans->fetchAll(PDO::FETCH_ASSOC);
+
+        $plans = [];
+        foreach ($plansList as $p) {
+            $plans[$p['meeting_number']] = $p['title'];
+        }
+
         $params = [
             'cid' => $data['class_id'],
             'pid' => $data['phase_id'],
+            'uid' => $userId,
             'limit' => (int)$data['limit'],
             'offset' => (int)$data['page']
         ];
 
+        // Consulta filtrada e ordenada para a listagem
         $sql = "SELECT 
                     COUNT(*) OVER() as total_registros,
                     sess.session_id,
@@ -380,12 +450,20 @@ function getClassHistoryF($data)
                     (SELECT COUNT(*) FROM education.attendance a WHERE a.session_id = sess.session_id AND a.is_present IS TRUE) as present_count,
                     (SELECT COUNT(*) FROM education.enrollments e WHERE e.class_id = sess.class_id AND e.status = 'ACTIVE') as total_students
                 FROM education.class_sessions sess
-                WHERE sess.class_id = :cid AND sess.phase_id = :pid AND sess.deleted IS FALSE
-                ORDER BY sess.session_date DESC
+                WHERE sess.class_id = :cid AND sess.phase_id = :pid AND sess.signed_by_user_id = :uid AND sess.deleted IS FALSE
+                ORDER BY sess.session_date DESC, sess.session_id DESC
                 LIMIT :limit OFFSET :offset";
         $stmt = $conect->prepare($sql);
         $stmt->execute($params);
-        return success("Histórico carregado.", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Aplica o título correto baseado na sequência da aula daquele professor
+        foreach ($history as &$h) {
+            $s_seq = $sessionSequence[$h['session_id']] ?? 0;
+            $h['title'] = isset($plans[$s_seq]) ? $plans[$s_seq] : "Encontro $s_seq";
+        }
+
+        return success("Histórico carregado.", $history);
     } catch (Exception $e) {
         logSystemError("painel", "diario", "getClassHistoryF", "sql", $e->getMessage(), $data);
         return failure("Erro ao carregar histórico.");
