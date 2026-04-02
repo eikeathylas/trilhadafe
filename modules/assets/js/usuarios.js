@@ -191,21 +191,16 @@ const renderUsers = (data) => {
   // =========================================================
   const desktopRows = data
     .map((item) => {
-      let avatarHtml = "";
-      if (item.img) {
-        avatarHtml = `<img src="${item.img}?v=${new Date().getTime()}" 
-                         class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-                         style="width:42px; height:42px; object-fit:cover; cursor: pointer; transition: transform 0.2s;"
-                         onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${item.img}', '${item.name.replace(/'/g, "\\'")}')"
-                         onmouseover="this.style.transform='scale(1.15)'" 
-                         onmouseout="this.style.transform='scale(1)'"
-                         title="Ver foto">`;
-      } else {
-        const nameParts = item.name.trim().split(" ");
-        const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+      const nameParts = item.name.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
-        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 shadow-sm fw-bold" style="width:42px; height:42px; font-size: 0.9rem;">${initials}</div>`;
-      }
+      let avatarHtml = item.img
+        ? `<img src="${item.img}?v=${new Date().getTime()}" 
+                class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" 
+                style="width: 42px; height: 42px; cursor: zoom-in;"
+                onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${item.img}', '${item.name.replace(/'/g, "\\'")}')"
+                title="Ver foto">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 shadow-sm fw-bold" style="width: 42px; height: 42px; font-size: 0.9rem;">${initials}</div>`;
 
       const profileLabel = getTranslatedProfile(item.main_profile_name);
       const color = getProfileColor(item.main_profile_id);
@@ -267,16 +262,15 @@ const renderUsers = (data) => {
   // =========================================================
   const mobileRows = data
     .map((item) => {
-      let avatarHtml = "";
-      if (item.img) {
-        avatarHtml = `<img src="${item.img}?v=${new Date().getTime()}" 
-                         class="rounded-circle border border-secondary border-opacity-25 shadow-sm" 
-                         style="width:48px; height:48px; object-fit:cover; cursor: pointer;"
-                         onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${item.img}', '${item.name.replace(/'/g, "\\'")}')">`;
-      } else {
-        const initials = item.name.substring(0, 2).toUpperCase();
-        avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 shadow-sm fw-bold fs-5" style="width:48px; height:48px;">${initials}</div>`;
-      }
+      const nameParts = item.name.trim().split(" ");
+      const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+
+      let avatarHtml = item.img
+        ? `<img src="${item.img}?v=${new Date().getTime()}" 
+                class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" 
+                style="width: 48px; height: 48px; cursor: zoom-in;"
+                onclick="if(typeof zoomAvatar === 'function') zoomAvatar('${item.img}', '${item.name.replace(/'/g, "\\'")}')">`
+        : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 shadow-sm fw-bold fs-5" style="width: 48px; height: 48px;">${initials}</div>`;
 
       const profileLabel = getTranslatedProfile(item.main_profile_name);
       const color = getProfileColor(item.main_profile_id);
@@ -327,92 +321,6 @@ const renderUsers = (data) => {
   container.html(desktopHtml + mobileHtml);
 
   _generatePaginationButtons("pagination-usuarios", "currentPage", "totalPages", "changePage", defaultUsers);
-};
-
-const translateLogKey = (key) => {
-  const dict = {
-    full_name: "Nome Completo",
-    email: "E-mail",
-    is_active: "Acesso Ativo",
-    role_level: "Nível de Permissão",
-    is_present: "Situação do Aluno",
-    description: "Anotações / Conteúdo",
-    justification: "Motivo da Falta",
-    student_observation: "Observação sobre o aluno",
-    session_date: "Data Ministrada",
-    student_name: "Aluno(a)",
-    class_name: "Turma",
-    content_type: "Tipo de Conteúdo",
-    status: "Status do Registro",
-  };
-  return dict[key] || key;
-};
-
-const parseAuditDetails = (operation, oldValsStr, newValsStr) => {
-  let oldObj = {};
-  let newObj = {};
-  try {
-    if (oldValsStr && oldValsStr !== "[]") oldObj = JSON.parse(oldValsStr);
-  } catch (e) {}
-  try {
-    if (newValsStr && newValsStr !== "[]") newObj = JSON.parse(newValsStr);
-  } catch (e) {}
-
-  const allKeys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
-  let changesHtml = "";
-
-  allKeys.forEach((key) => {
-    // REGRAS OBRIGATÓRIAS DE OCULTAÇÃO
-    if (key.toLowerCase().endsWith("_id") || key.toLowerCase() === "id") return;
-    if (key === "created_at" || key === "updated_at" || key === "deleted") return;
-
-    let oldVal = oldObj[key];
-    let newVal = newObj[key];
-    let keyName = typeof formatKey === "function" ? formatKey(key) : key;
-
-    if (operation === "UPDATE") {
-      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-        changesHtml += `
-              <div class="row align-items-center py-2 border-bottom border-secondary border-opacity-10">
-                  <div class="col-12 col-md-3 mb-1 mb-md-0 fw-bold text-muted small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                      ${keyName}
-                  </div>
-                  <div class="col-5 col-md-4">
-                      <div class="p-2 bg-danger bg-opacity-10 text-danger rounded-3 text-center d-flex align-items-center justify-content-center h-100 border border-danger border-opacity-10" style="font-size: 0.8rem;">
-                          ${formatValue(oldVal)}
-                      </div>
-                  </div>
-                  <div class="col-2 col-md-1 text-center text-muted">
-                      <i class="fas fa-arrow-right opacity-50 small"></i>
-                  </div>
-                  <div class="col-5 col-md-4">
-                      <div class="p-2 bg-success bg-opacity-10 text-success rounded-3 text-center d-flex align-items-center justify-content-center h-100 border border-success border-opacity-10 fw-medium" style="font-size: 0.8rem;">
-                          ${formatValue(newVal)}
-                      </div>
-                  </div>
-              </div>`;
-      }
-    } else {
-      // INSERT OU DELETE
-      changesHtml += `
-          <div class="row align-items-center py-2 border-bottom border-secondary border-opacity-10">
-              <div class="col-5 col-md-4 fw-bold text-muted small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                  ${keyName}
-              </div>
-              <div class="col-7 col-md-8">
-                  <div class="p-2 bg-secondary bg-opacity-10 text-body rounded-3 fw-medium" style="font-size: 0.8rem;">
-                      ${formatValue(newVal !== undefined ? newVal : oldVal)}
-                  </div>
-              </div>
-          </div>`;
-    }
-  });
-
-  if (!changesHtml && operation === "UPDATE") {
-    changesHtml = '<div class="text-muted small p-2 text-center fst-italic">Nenhuma alteração detectada nos campos mapeados.</div>';
-  }
-
-  return `<div class="mt-1">${changesHtml}</div>`;
 };
 
 const fetchAnosLetivos = async () => {
@@ -581,6 +489,10 @@ window.resetPassword = async (btn) => {
   }
 };
 
+// =========================================================
+// MOTOR DE AUDITORIA AVANÇADA PARA A TIMELINE DO USUÁRIO
+// Consome as funções window.formatKey e window.formatValue do audit.js
+// =========================================================
 window.openHistoryModal = async (id, name, btn) => {
   $("#modalHistoricoUsuario").modal("show");
   $("#lista-historico-timeline").html('<div class="text-center py-5 opacity-50"><div class="spinner-border text-primary"></div><p class="mt-3">Carregando ações...</p></div>');
@@ -593,8 +505,57 @@ window.openHistoryModal = async (id, name, btn) => {
       const groupedLogs = [];
       const logMap = new Map();
 
+      // Utilitários de segurança e validação idênticos ao audit.js
+      const isEmpty = (val) => {
+        if (val === null || val === undefined || val === "" || val === false) return true;
+        if (typeof val === "string") {
+          const v = val.trim();
+          if (v === "null" || v === "false" || v === "") return true;
+          if (v === "{}" || v === "[]") return true;
+          if (v.startsWith("{") && v.endsWith("}")) {
+            try {
+              return Object.keys(JSON.parse(v)).length === 0;
+            } catch (e) {}
+          }
+        }
+        return false;
+      };
+
+      const globalBlacklist = [
+        "updated_at",
+        "created_at",
+        "user_id",
+        "audit_user_id",
+        "deleted",
+        "org_id",
+        "org_id_origin",
+        "link_id",
+        "tie_id",
+        "plan_id",
+        "start_date",
+        "end_date",
+        "person_id",
+        "role_id",
+        "class_id",
+        "course_id",
+        "curriculum_id",
+        "student_id",
+        "session_id",
+        "attendance_id",
+        "signed_by_user_id",
+        "phase_id",
+        "attachment_id",
+        "uploaded_by",
+        "file_path",
+        "syllabus_id",
+      ];
+
+      const isBlockedKey = (k) => {
+        const kLow = k.toLowerCase();
+        return kLow.endsWith("_id") || kLow === "id" || kLow === "deleted" || globalBlacklist.includes(kLow);
+      };
+
       res.data.forEach((log) => {
-        // Agrupa estritamente pela data/hora exata (Transação no banco)
         const groupKey = log.date_fmt;
 
         if (!logMap.has(groupKey)) {
@@ -616,33 +577,233 @@ window.openHistoryModal = async (id, name, btn) => {
           const toggleAttr = `data-bs-toggle="collapse" data-bs-target="#collapseLog${index}" style="cursor: pointer;"`;
           const chevron = `<i class="fas fa-chevron-down text-secondary opacity-50 ms-2 toggle-chevron transition-all" style="font-size: 0.8rem;"></i>`;
 
+          let generalFieldsHTML = "";
+          let attendanceHTML = "";
+          let attCount = 0;
+
+          // Lógica profunda injetada no lugar do antigo parseAuditDetails
+          h.items.forEach((log) => {
+            let oldVal = {},
+              newVal = {};
+            try {
+              oldVal = (typeof log.old_values === "string" ? JSON.parse(log.old_values) : log.old_values) || {};
+            } catch (e) {}
+            try {
+              newVal = (typeof log.new_values === "string" ? JSON.parse(log.new_values) : log.new_values) || {};
+            } catch (e) {}
+
+            const logOp = (log.operation || "").toUpperCase().trim();
+            const isInsert = logOp === "INSERT" || logOp === "ADD VÍNCULO";
+
+            // Detecção de Frequência (Attendance)
+            if (log.table_name === "attendance" || log.title.includes("frequência")) {
+              let valNew = newVal["Presença"] || newVal["presença"] || (newVal.is_present !== undefined ? formatValue(newVal.is_present, "is_present") : null);
+              let valOld = oldVal["Presença"] || oldVal["presença"] || (oldVal.is_present !== undefined ? formatValue(oldVal.is_present, "is_present") : null);
+
+              if (logOp === "UPDATE" && valNew === valOld) return;
+
+              attCount++;
+              let sName = log.student_name || newVal.student_name || oldVal.student_name || "Aluno Indefinido";
+              let stDiff = "";
+
+              if (logOp === "INSERT" || isInsert) {
+                stDiff = valNew || `<span class="badge bg-secondary border border-secondary border-opacity-25 bg-opacity-10 text-secondary">Registrada</span>`;
+              } else if (logOp === "DELETE") {
+                stDiff = `<span class="text-danger fw-bold"><i class="fas fa-trash me-1"></i> Removida</span>`;
+              } else {
+                stDiff = `<span class="opacity-50 text-decoration-line-through me-1">${valOld}</span> <i class="fas fa-chevron-right mx-1 text-secondary opacity-50" style="font-size:0.6rem"></i> ${valNew}`;
+              }
+
+              attendanceHTML += `
+                  <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-10 py-2">
+                      <span class="text-body fw-bold" style="font-size: 0.85rem;">${sName}</span>
+                      <div style="font-size: 0.85rem; display: flex; align-items: center;">${stDiff}</div>
+                  </div>`;
+            } else {
+              // Campos Gerais e Mapeamento de Tabela Diferente no Agrupamento
+              const allKeys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
+
+              let itemTitleHeader = "";
+              if (h.items.length > 1 && log.title !== h.title) {
+                let subTitle = log.title;
+                if (subTitle.includes("frequência para ")) subTitle = subTitle.split("para ")[1];
+                itemTitleHeader = `<div class="fw-bold text-primary small mb-2 mt-3 d-flex align-items-center border-bottom border-primary border-opacity-10 pb-1"><i class="${log.icon || "fas fa-edit"} me-2 opacity-75"></i> ${subTitle}</div>`;
+                generalFieldsHTML += itemTitleHeader;
+              }
+
+              allKeys.forEach((key) => {
+                if (isBlockedKey(key)) return;
+
+                const rawOld = oldVal[key];
+                const rawNew = newVal[key];
+
+                if (isEmpty(rawOld) && isEmpty(rawNew)) return;
+                if (rawOld === rawNew && logOp !== "INSERT") return;
+
+                // Explosão de Sub-Objetos Profundos
+                if (key === "resources_detail" || key === "sacraments_info" || typeof rawOld === "object" || typeof rawNew === "object") {
+                  let pOld = {},
+                    pNew = {};
+                  try {
+                    pOld = typeof rawOld === "string" ? JSON.parse(rawOld) : rawOld || {};
+                  } catch (e) {}
+                  try {
+                    pNew = typeof rawNew === "string" ? JSON.parse(rawNew) : rawNew || {};
+                  } catch (e) {}
+
+                  if (JSON.stringify(pOld) === JSON.stringify(pNew)) return;
+
+                  let subKeys = new Set([...Object.keys(pOld), ...Object.keys(pNew)]);
+                  let changesHTML = "";
+
+                  subKeys.forEach((sk) => {
+                    let vo = pOld[sk];
+                    let vn = pNew[sk];
+
+                    if (typeof vo === "object" || typeof vn === "object") {
+                      if (JSON.stringify(vo) === JSON.stringify(vn)) return;
+                      let lbl = window.formatKey ? window.formatKey(sk) : sk;
+
+                      const getDetails = (obj) => {
+                        if (!obj) return "";
+                        let parts = [];
+                        if (obj.date) {
+                          let p = obj.date.split("-");
+                          let fmtDate = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : obj.date;
+                          parts.push(`<i class="far fa-calendar-alt mx-1"></i> ${fmtDate}`);
+                        }
+                        if (obj.place) parts.push(`<i class="fas fa-map-marker-alt mx-1"></i> ${obj.place}`);
+                        return parts.length > 0 ? ` <span class="opacity-75 fw-normal ms-1">(${parts.join(" | ")})</span>` : "";
+                      };
+
+                      let dNew = getDetails(vn);
+                      let dOld = getDetails(vo);
+
+                      if (logOp === "INSERT" || isInsert) {
+                        if (vn && vn.has) changesHTML += `<div class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-2 text-wrap text-start lh-base d-inline-block" style="font-size:0.8rem;"><i class="fas fa-check me-1"></i> ${lbl}${dNew}</div>`;
+                      } else {
+                        if (vn && vn.has && (!vo || !vo.has)) {
+                          changesHTML += `<div class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-2 text-wrap text-start lh-base d-inline-block" style="font-size:0.8rem;"><i class="fas fa-plus me-1"></i> ${lbl} | Registrado${dNew}</div>`;
+                        } else if ((!vn || !vn.has) && vo && vo.has) {
+                          changesHTML += `<div class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 me-1 mb-2 text-wrap text-start lh-base d-inline-block" style="font-size:0.8rem;"><i class="fas fa-minus me-1"></i> ${lbl} | Removido</div>`;
+                        } else if (vn && vn.has && vo && vo.has) {
+                          changesHTML += `<div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 me-1 mb-2 text-wrap text-start lh-base d-inline-block" style="font-size:0.8rem;"><i class="fas fa-pen me-1"></i> ${lbl} atualizado ${dOld} <i class="fas fa-arrow-right mx-1 opacity-50"></i> ${dNew}</div>`;
+                        }
+                      }
+                    } else {
+                      if (vo !== vn) {
+                        let lbl = window.formatKey ? window.formatKey(sk) : sk;
+                        if (logOp === "INSERT" || isInsert) {
+                          if (vn === true || String(vn) === "true") changesHTML += `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-1"><i class="fas fa-check me-1"></i> ${lbl}</span>`;
+                          else if (vn && vn !== false && String(vn) !== "false") changesHTML += `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 me-1 mb-1">${lbl}: ${vn}</span>`;
+                        } else {
+                          if ((vn === true || String(vn) === "true") && (vo === false || String(vo) === "false" || !vo))
+                            changesHTML += `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-1 mb-1"><i class="fas fa-plus me-1"></i> ${lbl} | Ativado</span>`;
+                          else if ((vn === false || String(vn) === "false" || !vn) && (vo === true || String(vo) === "true"))
+                            changesHTML += `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 me-1 mb-1"><i class="fas fa-minus me-1"></i> ${lbl} | Removido</span>`;
+                          else if (vn !== vo) changesHTML += `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 me-1 mb-1">${lbl} modificado</span>`;
+                        }
+                      }
+                    }
+                  });
+
+                  if (changesHTML === "") return;
+
+                  let keyLabel = window.formatKey ? window.formatKey(key) : key;
+                  if (logOp === "INSERT") {
+                    generalFieldsHTML += `
+                        <div class="col-12 col-md-6 mb-3">
+                            <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fas fa-tag me-1 opacity-50"></i> ${keyLabel}
+                            </div>
+                            <div class="p-2 rounded-3 bg-white border border-secondary border-opacity-10 text-body" style="font-size: 0.85rem;">
+                                ${changesHTML}
+                            </div>
+                        </div>`;
+                  } else {
+                    generalFieldsHTML += `
+                        <div class="col-12 mb-3">
+                            <div class="text-muted fw-bolder mb-2" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;">
+                                <i class="fas fa-exchange-alt me-1 opacity-50"></i> ${keyLabel}
+                            </div>
+                            <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                                <div class="flex-fill p-2 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25 text-secondary d-flex flex-wrap align-items-start" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
+                                    <span class="opacity-75 small"><i class="fas fa-history me-1"></i> Configuração anterior modificada</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-center text-secondary opacity-25 px-1 py-1">
+                                    <i class="fas fa-chevron-right d-none d-md-block"></i>
+                                    <i class="fas fa-chevron-down d-block d-md-none"></i>
+                                </div>
+                                <div class="flex-fill p-2 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 text-primary fw-bold d-flex flex-wrap align-items-start shadow-sm gap-1" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
+                                    ${changesHTML}
+                                </div>
+                            </div>
+                        </div>`;
+                  }
+                  return;
+                }
+
+                let displayOld = window.formatValue ? window.formatValue(rawOld, key) : rawOld;
+                let displayNew = window.formatValue ? window.formatValue(rawNew, key) : rawNew;
+
+                if (displayOld === displayNew) return;
+
+                let fieldLabel = window.formatKey ? window.formatKey(key) : key;
+
+                if (logOp === "INSERT") {
+                  if (isEmpty(rawNew) || String(displayNew).includes("Não informado")) return;
+                  generalFieldsHTML += `
+                      <div class="col-12 col-md-6 mb-3">
+                          <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                          <i class="fas fa-tag me-1 opacity-50"></i> ${fieldLabel}
+                          </div>
+                          <div class="p-2 rounded-3 bg-white border border-secondary border-opacity-10 text-body" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
+                              ${displayNew}
+                          </div>
+                      </div>`;
+                } else {
+                  generalFieldsHTML += `
+                      <div class="col-12 mb-3">
+                          <div class="text-muted fw-bolder mb-2" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;">
+                              <i class="fas fa-exchange-alt me-1 opacity-50"></i> ${fieldLabel}
+                          </div>
+                          <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                              <div class="flex-fill p-2 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger d-flex align-items-start" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
+                                  <div class="opacity-75 w-100"><del>${displayOld}</del></div>
+                              </div>
+                              <div class="d-flex align-items-center justify-content-center text-secondary opacity-25 px-1 py-1">
+                                  <i class="fas fa-chevron-right d-none d-md-block"></i>
+                                  <i class="fas fa-chevron-down d-block d-md-none"></i>
+                              </div>
+                              <div class="flex-fill p-2 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 text-success fw-bold d-flex align-items-start shadow-sm" style="font-size: 0.85rem; max-height: 120px; overflow-y: auto;">
+                                  ${displayNew}
+                              </div>
+                          </div>
+                      </div>`;
+                }
+              });
+            }
+          });
+
           let detailHtml = "";
 
-          // Renderiza itens agrupados
-          if (h.items.length > 1) {
+          if (generalFieldsHTML !== "") {
+            detailHtml += `<div class="row m-0">${generalFieldsHTML}</div>`;
+          }
+
+          if (attendanceHTML !== "") {
             detailHtml += `
-            <div class="text-body fw-bold mb-3 d-flex align-items-center border-bottom border-secondary border-opacity-10 pb-2">
-                <i class="fas fa-layer-group me-2 text-primary opacity-75"></i> Ações Consolidadas
-                <span class="badge bg-primary bg-opacity-10 text-primary ms-2 border border-primary border-opacity-25 px-2 py-1">${h.items.length} modificações</span>
-            </div>
-            <div class="d-flex flex-column gap-3">`;
+                  <div class="${generalFieldsHTML !== "" ? "mt-3 pt-3 border-top border-secondary border-opacity-10" : ""}">
+                      <div class="text-body fw-bold mb-2 d-flex align-items-center">
+                          <i class="fas fa-user-check me-2 text-primary opacity-75"></i> Alterações de Frequência
+                          <span class="badge bg-primary bg-opacity-10 text-primary ms-2">${attCount} modificações</span>
+                      </div>
+                      <div class="d-flex flex-column">${attendanceHTML}</div>
+                  </div>`;
+          }
 
-            h.items.forEach((item) => {
-              let specificTitle = item.title;
-              if (specificTitle.includes("frequência para ")) specificTitle = specificTitle.split("para ")[1];
-
-              detailHtml += `
-              <div class="p-3 bg-white rounded-4 border border-secondary border-opacity-10 shadow-sm">
-                  <div class="fw-bold text-body small mb-2 d-flex align-items-center">
-                      <i class="${item.icon} text-${item.color} me-2 opacity-75"></i> ${specificTitle}
-                  </div>
-                  <div class="ps-1">${parseAuditDetails(item.operation, item.old_values, item.new_values)}</div>
-              </div>`;
-            });
-            detailHtml += `</div>`;
-          } else {
-            // Renderiza item único
-            detailHtml = parseAuditDetails(h.operation, h.old_values, h.new_values);
+          if (detailHtml === "") {
+            detailHtml = `<div class="text-muted small fw-medium fst-italic py-2"><i class="fas fa-info-circle me-1 opacity-50"></i> Nenhuma alteração real detectada nos campos mapeados.</div>`;
           }
 
           const datePart = (h.date_fmt || "").split(" ")[0];
@@ -705,7 +866,6 @@ window.changePage = (p) => {
   loadUsuarios();
 };
 
-// MOTOR DE PAGINAÇÃO INTELIGENTE (Padrão Trilha da Fé)
 const _generatePaginationButtons = (containerClass, currentPageKey, totalPagesKey, funcName, contextObj) => {
   let container = $(`.${containerClass}`);
   container.empty();
