@@ -507,7 +507,7 @@ window.salvarInstituicao = async (btn) => {
   if (!nome) return window.alertDefault("Nome Fantasia é obrigatório.", "warning");
 
   btn = $(btn);
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
   const orgId = $("#org_id").val();
 
   const formData = new FormData();
@@ -584,7 +584,7 @@ window.salvarLocal = async (btn) => {
   if (!nome || !orgId) return window.alertDefault("Nome e vínculo da Entidade são obrigatórios.", "warning");
 
   btn = $(btn);
-  window.setButton(true, btn, " Salvando...");
+  window.setButton(true, btn, " Salvando...");
 
   try {
     const data = {
