@@ -348,71 +348,71 @@ const translateLogKey = (key) => {
   return dict[key] || key;
 };
 
-const parseAuditDetails = (op, oldData, newData) => {
-  let oldObj = {},
-    newObj = {};
+const parseAuditDetails = (operation, oldValsStr, newValsStr) => {
+  let oldObj = {};
+  let newObj = {};
   try {
-    oldObj = typeof oldData === "string" ? JSON.parse(oldData) : oldData || {};
+    if (oldValsStr && oldValsStr !== "[]") oldObj = JSON.parse(oldValsStr);
   } catch (e) {}
   try {
-    newObj = typeof newData === "string" ? JSON.parse(newData) : newData || {};
+    if (newValsStr && newValsStr !== "[]") newObj = JSON.parse(newValsStr);
   } catch (e) {}
 
-  let diffHtml = '<ul class="list-unstyled mb-0 small text-body">';
-  let hasChanges = false;
-  let ignoreList = ["created_at", "updated_at", "id", "user_id", "person_id", "org_id", "class_id", "subject_id", "session_id", "attendance_id", "signed_by_user_id", "signed_at", "deleted"];
+  const allKeys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
+  let changesHtml = "";
 
-  let iterateObj = op === "DELETE" ? oldObj : newObj;
-  if (Object.keys(iterateObj).length === 0 && op === "DELETE") iterateObj = newObj;
+  allKeys.forEach((key) => {
+    // REGRAS OBRIGATÓRIAS DE OCULTAÇÃO
+    if (key.toLowerCase().endsWith("_id") || key.toLowerCase() === "id") return;
+    if (key === "created_at" || key === "updated_at" || key === "deleted") return;
 
-  const isPresent = String(iterateObj["is_present"]).toLowerCase();
-  if (isPresent === "true" || isPresent === "sim" || isPresent === "present" || isPresent === "1") {
-    ignoreList.push("absence_type", "justification", "student_observation");
+    let oldVal = oldObj[key];
+    let newVal = newObj[key];
+    let keyName = typeof formatKey === "function" ? formatKey(key) : key;
+
+    if (operation === "UPDATE") {
+      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+        changesHtml += `
+              <div class="row align-items-center py-2 border-bottom border-secondary border-opacity-10">
+                  <div class="col-12 col-md-3 mb-1 mb-md-0 fw-bold text-muted small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                      ${keyName}
+                  </div>
+                  <div class="col-5 col-md-4">
+                      <div class="p-2 bg-danger bg-opacity-10 text-danger rounded-3 text-center d-flex align-items-center justify-content-center h-100 border border-danger border-opacity-10" style="font-size: 0.8rem;">
+                          ${formatValue(oldVal)}
+                      </div>
+                  </div>
+                  <div class="col-2 col-md-1 text-center text-muted">
+                      <i class="fas fa-arrow-right opacity-50 small"></i>
+                  </div>
+                  <div class="col-5 col-md-4">
+                      <div class="p-2 bg-success bg-opacity-10 text-success rounded-3 text-center d-flex align-items-center justify-content-center h-100 border border-success border-opacity-10 fw-medium" style="font-size: 0.8rem;">
+                          ${formatValue(newVal)}
+                      </div>
+                  </div>
+              </div>`;
+      }
+    } else {
+      // INSERT OU DELETE
+      changesHtml += `
+          <div class="row align-items-center py-2 border-bottom border-secondary border-opacity-10">
+              <div class="col-5 col-md-4 fw-bold text-muted small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                  ${keyName}
+              </div>
+              <div class="col-7 col-md-8">
+                  <div class="p-2 bg-secondary bg-opacity-10 text-body rounded-3 fw-medium" style="font-size: 0.8rem;">
+                      ${formatValue(newVal !== undefined ? newVal : oldVal)}
+                  </div>
+              </div>
+          </div>`;
+    }
+  });
+
+  if (!changesHtml && operation === "UPDATE") {
+    changesHtml = '<div class="text-muted small p-2 text-center fst-italic">Nenhuma alteração detectada nos campos mapeados.</div>';
   }
 
-  const formatValue = (key, val) => {
-    if (val === null || val === undefined || val === "") return '<span class="text-muted fst-italic">Não informado</span>';
-
-    if (key === "is_present") {
-      const v = String(val).toLowerCase();
-      if (v === "true" || v === "sim" || v === "present" || v === "1") return '<span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2"><i class="fas fa-check me-1"></i> Presente</span>';
-      if (v === "false" || v === "não" || v === "absent" || v === "0") return '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 px-2"><i class="fas fa-times me-1"></i> Faltou</span>';
-    }
-
-    if (key === "status") {
-      if (val === "PUBLISHED") return '<span class="badge bg-primary text-white">Publicado</span>';
-      if (val === "DRAFT") return '<span class="badge bg-secondary text-white">Rascunho</span>';
-    }
-    if (key === "content_type" && val === "DOCTRINAL") return "Doutrinário / Catequético";
-    if (key === "session_date" && typeof val === "string") return val.split("T")[0].split("-").reverse().join("/");
-    if (typeof val === "boolean") return val ? "Sim" : "Não";
-
-    return val;
-  };
-
-  for (let key in iterateObj) {
-    if (ignoreList.includes(key)) continue;
-
-    let oldVal = formatValue(key, oldObj[key]);
-    let newVal = formatValue(key, newObj[key]);
-    // let translatedKey = translateLogKey(key);
-    let translatedKey = formatKey(key);
-
-    if (op === "UPDATE" && oldObj[key] != newObj[key] && oldObj[key] !== undefined) {
-      hasChanges = true;
-      diffHtml += `<li class="mb-2 pb-2 border-bottom border-secondary border-opacity-10"><strong class="text-body fw-bold d-block mb-1">${translatedKey}</strong> <del class="text-danger opacity-75">${oldVal}</del> <i class="fas fa-arrow-right mx-2 text-secondary opacity-50" style="font-size:0.7em;"></i> <span class="text-success">${newVal}</span></li>`;
-    } else if (op === "INSERT") {
-      hasChanges = true;
-      diffHtml += `<li class="mb-2"><strong class="text-body fw-bold">${translatedKey}:</strong> <span class="text-body">${newVal}</span></li>`;
-    } else if (op === "DELETE") {
-      hasChanges = true;
-      diffHtml += `<li class="mb-2"><strong class="text-body fw-bold">${translatedKey}:</strong> <span class="text-body">${oldVal !== "-" ? oldVal : newVal}</span></li>`;
-    }
-  }
-  diffHtml += "</ul>";
-
-  if (!hasChanges && newObj.info) return `<p class="mb-0 small text-body">${newObj.info}</p>`;
-  return hasChanges ? diffHtml : '<p class="mb-0 small text-secondary opacity-50">Detalhes não rastreados nesta operação.</p>';
+  return `<div class="mt-1">${changesHtml}</div>`;
 };
 
 const fetchAnosLetivos = async () => {
@@ -590,17 +590,14 @@ window.openHistoryModal = async (id, name, btn) => {
     const res = await window.ajaxValidator({ validator: "getUsuarioHistorico", token: defaultApp.userInfo.token, id_client: defaultApp.userInfo.id_client, id_user: id });
 
     if (res.status && res.data && res.data.length > 0) {
-      // MOTOR DE AGRUPAMENTO (Padrão audit.js)
       const groupedLogs = [];
       const logMap = new Map();
 
       res.data.forEach((log) => {
-        // CORREÇÃO: Agrupa estritamente pela data/hora exata (Transação no banco).
-        // Isso impede que registros da mesma aula sejam separados por terem nomes de alunos diferentes.
+        // Agrupa estritamente pela data/hora exata (Transação no banco)
         const groupKey = log.date_fmt;
 
         if (!logMap.has(groupKey)) {
-          // Ajusta o título do cabeçalho se for um registro em lote
           let groupTitle = log.title;
           if (log.title.includes("frequência para")) groupTitle = "Lançamento de Frequência em Lote";
           if (log.title.includes("aula na")) groupTitle = "Registro de Aula e Frequência";
@@ -619,20 +616,19 @@ window.openHistoryModal = async (id, name, btn) => {
           const toggleAttr = `data-bs-toggle="collapse" data-bs-target="#collapseLog${index}" style="cursor: pointer;"`;
           const chevron = `<i class="fas fa-chevron-down text-secondary opacity-50 ms-2 toggle-chevron transition-all" style="font-size: 0.8rem;"></i>`;
 
-          // Renderização dos detalhes agrupados com Badge e Cards Internos
           let detailHtml = "";
 
+          // Renderiza itens agrupados
           if (h.items.length > 1) {
             detailHtml += `
             <div class="text-body fw-bold mb-3 d-flex align-items-center border-bottom border-secondary border-opacity-10 pb-2">
                 <i class="fas fa-layer-group me-2 text-primary opacity-75"></i> Ações Consolidadas
                 <span class="badge bg-primary bg-opacity-10 text-primary ms-2 border border-primary border-opacity-25 px-2 py-1">${h.items.length} modificações</span>
             </div>
-            <div class="d-flex flex-column gap-2">`;
+            <div class="d-flex flex-column gap-3">`;
 
             h.items.forEach((item) => {
               let specificTitle = item.title;
-              // Limpa o título para exibição interna mais curta
               if (specificTitle.includes("frequência para ")) specificTitle = specificTitle.split("para ")[1];
 
               detailHtml += `
@@ -645,10 +641,10 @@ window.openHistoryModal = async (id, name, btn) => {
             });
             detailHtml += `</div>`;
           } else {
+            // Renderiza item único
             detailHtml = parseAuditDetails(h.operation, h.old_values, h.new_values);
           }
 
-          // Extração de data e horário
           const datePart = (h.date_fmt || "").split(" ")[0];
           const timePart = (h.date_fmt || "").split(" ")[1] ? h.date_fmt.split(" ")[1].substring(0, 5) : "";
 
