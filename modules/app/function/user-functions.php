@@ -368,7 +368,7 @@ function getHistoricoAuditoriaUsuario($data)
         };
 
         foreach ($history as $h) {
-            $dateFmt = date('d/m/Y', strtotime($h['changed_at'])) . ' às ' . date('H:i', strtotime($h['changed_at']));
+            $dateFmt = date('d/m/Y H:i:s', strtotime($h['changed_at']));
             $op = strtoupper($h['operation']);
             $table = strtolower($h['table_name']);
 

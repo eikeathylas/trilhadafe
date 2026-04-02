@@ -51,43 +51,45 @@ const loadProfilePermissions = async (idProfile) => {
         modules[p.module_name].actions.push(p);
       });
 
-      // CONSTRUÇÃO EM CARDS (SEM TABELAS - UX REFERÊNCIA MOBILE)
-      let cardsHtml = `<div class="row g-3">`;
+      // Renderização em Accordion para melhor UX Mobile
+      let accordionHtml = `<div class="accordion accordion-flush" id="accordionPerms">`;
+      let mIdx = 0;
 
       for (const [moduleName, moduleData] of Object.entries(modules)) {
+        mIdx++;
         let actionsHtml = moduleData.actions
           .map((p) => {
+            // Ajuste de cores conforme solicitado
             const statusClass = p.active ? "bg-success text-success border-success" : "bg-danger text-danger border-danger";
             const icon = p.active ? "fa-check-circle" : "fa-lock";
 
             return `
-            <div class="d-flex align-items-center ${statusClass} bg-opacity-10 border border-opacity-25 rounded-3 px-3 py-2 me-2 mb-2 transition-all hover-scale" 
-                 style="font-size: 0.78rem; font-weight: 700; flex: 1 1 auto; min-width: 140px;" title="${p.description}">
-                <i class="fas ${icon} me-2" style="font-size: 0.9rem;"></i>
-                <span>${p.action_name}</span>
-            </div>`;
+              <div class="d-flex align-items-center ${statusClass} bg-opacity-10 border border-opacity-25 rounded-3 px-3 py-2 me-2 mb-2 transition-all hover-scale" 
+                  style="font-size: 0.78rem; font-weight: 700; flex: 1 1 auto; min-width: 140px;" title="${p.description}">
+                  <i class="fas ${icon} me-2"></i> ${p.action_name}
+              </div>`;
           })
           .join("");
 
-        cardsHtml += `
-          <div class="col-12 col-xl-6">
-              <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden bg-white">
-                  <div class="card-header bg-light border-0 py-3 px-4 d-flex align-items-center">
-                      <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 38px; height: 38px;">
-                          <i class="${moduleData.icon.replace("icon-", "fas fa-")}" style="font-size: 1rem;"></i>
+        accordionHtml += `
+          <div class="accordion-item bg-transparent border-0 mb-3 shadow-sm rounded-4 overflow-hidden">
+              <h2 class="accordion-header">
+                  <button class="accordion-button collapsed fw-bold text-body bg-white py-3 px-4 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapseM${mIdx}">
+                      <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                          <i class="${moduleData.icon.replace("icon-", "fas fa-")}" style="font-size: 0.9rem;"></i>
                       </div>
-                      <h6 class="fw-bold m-0 text-body" style="letter-spacing: -0.3px;">${moduleName}</h6>
-                  </div>
-                  <div class="card-body p-4">
-                      <div class="d-flex flex-wrap">
-                          ${actionsHtml}
-                      </div>
+                      ${moduleName}
+                  </button>
+              </h2>
+              <div id="collapseM${mIdx}" class="accordion-collapse collapse" data-bs-parent="#accordionPerms">
+                  <div class="accordion-body bg-white p-4 pt-0">
+                      <div class="d-flex flex-wrap">${actionsHtml}</div>
                   </div>
               </div>
           </div>`;
       }
-      cardsHtml += `</div>`;
-      container.html(cardsHtml);
+      accordionHtml += `</div>`;
+      container.html(accordionHtml);
     }
   } catch (e) {
     container.html(`<div class="alert alert-danger rounded-4">Erro ao processar matriz de acesso.</div>`);
@@ -199,7 +201,9 @@ const renderUsers = (data) => {
                          onmouseout="this.style.transform='scale(1)'"
                          title="Ver foto">`;
       } else {
-        const initials = item.name.substring(0, 2).toUpperCase();
+        const nameParts = item.name.trim().split(" ");
+        const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
+
         avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 shadow-sm fw-bold" style="width:42px; height:42px; font-size: 0.9rem;">${initials}</div>`;
       }
 
@@ -586,13 +590,67 @@ window.openHistoryModal = async (id, name, btn) => {
     const res = await window.ajaxValidator({ validator: "getUsuarioHistorico", token: defaultApp.userInfo.token, id_client: defaultApp.userInfo.id_client, id_user: id });
 
     if (res.status && res.data && res.data.length > 0) {
-      const html = res.data
+      // MOTOR DE AGRUPAMENTO (Padrão audit.js)
+      const groupedLogs = [];
+      const logMap = new Map();
+
+      res.data.forEach((log) => {
+        // CORREÇÃO: Agrupa estritamente pela data/hora exata (Transação no banco).
+        // Isso impede que registros da mesma aula sejam separados por terem nomes de alunos diferentes.
+        const groupKey = log.date_fmt;
+
+        if (!logMap.has(groupKey)) {
+          // Ajusta o título do cabeçalho se for um registro em lote
+          let groupTitle = log.title;
+          if (log.title.includes("frequência para")) groupTitle = "Lançamento de Frequência em Lote";
+          if (log.title.includes("aula na")) groupTitle = "Registro de Aula e Frequência";
+
+          const group = { ...log, title: groupTitle, items: [] };
+          groupedLogs.push(group);
+          logMap.set(groupKey, group);
+        }
+        logMap.get(groupKey).items.push(log);
+      });
+
+      const html = groupedLogs
         .map((h, index) => {
-          const isLast = index === res.data.length - 1;
+          const isLast = index === groupedLogs.length - 1;
           const lineHtml = !isLast ? `<div class="position-absolute border-start border-2 border-secondary border-opacity-10" style="left: 17px; top: 36px; bottom: -12px; z-index: 1;"></div>` : ``;
           const toggleAttr = `data-bs-toggle="collapse" data-bs-target="#collapseLog${index}" style="cursor: pointer;"`;
           const chevron = `<i class="fas fa-chevron-down text-secondary opacity-50 ms-2 toggle-chevron transition-all" style="font-size: 0.8rem;"></i>`;
-          const detailHtml = parseAuditDetails(h.operation, h.old_values, h.new_values);
+
+          // Renderização dos detalhes agrupados com Badge e Cards Internos
+          let detailHtml = "";
+
+          if (h.items.length > 1) {
+            detailHtml += `
+            <div class="text-body fw-bold mb-3 d-flex align-items-center border-bottom border-secondary border-opacity-10 pb-2">
+                <i class="fas fa-layer-group me-2 text-primary opacity-75"></i> Ações Consolidadas
+                <span class="badge bg-primary bg-opacity-10 text-primary ms-2 border border-primary border-opacity-25 px-2 py-1">${h.items.length} modificações</span>
+            </div>
+            <div class="d-flex flex-column gap-2">`;
+
+            h.items.forEach((item) => {
+              let specificTitle = item.title;
+              // Limpa o título para exibição interna mais curta
+              if (specificTitle.includes("frequência para ")) specificTitle = specificTitle.split("para ")[1];
+
+              detailHtml += `
+              <div class="p-3 bg-white rounded-4 border border-secondary border-opacity-10 shadow-sm">
+                  <div class="fw-bold text-body small mb-2 d-flex align-items-center">
+                      <i class="${item.icon} text-${item.color} me-2 opacity-75"></i> ${specificTitle}
+                  </div>
+                  <div class="ps-1">${parseAuditDetails(item.operation, item.old_values, item.new_values)}</div>
+              </div>`;
+            });
+            detailHtml += `</div>`;
+          } else {
+            detailHtml = parseAuditDetails(h.operation, h.old_values, h.new_values);
+          }
+
+          // Extração de data e horário
+          const datePart = (h.date_fmt || "").split(" ")[0];
+          const timePart = (h.date_fmt || "").split(" ")[1] ? h.date_fmt.split(" ")[1].substring(0, 5) : "";
 
           return `
           <div class="d-flex position-relative mb-0 pb-4 transition-all hover-bg-light rounded-4" ${toggleAttr}>
@@ -612,8 +670,8 @@ window.openHistoryModal = async (id, name, btn) => {
                           </div>
                       </div>
                       <div class="text-end pe-1">
-                          <div class="fw-bold text-body" style="font-size: 0.8rem;">${(h.date_fmt || "").split(" ")[0]}</div>
-                          <div class="text-secondary opacity-75" style="font-size: 0.7rem;">${(h.date_fmt || "").split(" ")[1] || ""}</div>
+                          <div class="fw-bold text-body" style="font-size: 0.8rem;">${datePart}</div>
+                          <div class="text-secondary opacity-75" style="font-size: 0.7rem;"><i class="far fa-clock me-1"></i>${timePart}</div>
                       </div>
                   </div>
                   

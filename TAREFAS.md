@@ -144,69 +144,24 @@ education.curriculum_plans
 
 ---
 
-# 👤 Tela: Usuários
 
-## [ ] Melhorar auditoria de usuários
-
-**Objetivo**
-
-Tornar o sistema de auditoria mais detalhado.
-
-**Informações esperadas no log**
-
-- usuário responsável pela ação
-- data e hora
-- tipo de ação realizada
-- entidade afetada
-- alteração executada
-
-**Referência**
-
-Seguir o mesmo padrão do **LOG de registros do sistema**.
+## [ ] Ao invés de DATA ser o dia da semana igual a calendario
 
 ---
 
-## [ ] Ajustar abas do modal de usuários
 
-**Objetivo**
+## [ ] Ajuste o zoomavatar, manter o padrão igual pessoa
 
-Melhorar a organização das abas dentro do modal de edição de usuário.
 
-Possíveis melhorias:
+const nameParts = item.full_name.trim().split(" ");
+const initials = (nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "")).toUpperCase();
 
-- reorganização lógica das informações
-- melhor separação entre permissões e dados do usuário
-- padronização visual igual pessoas, "modern-tabs-wrapper" dentro de "modal-body"
+const avatarHtml = item.profile_photo_url
+    ? `<img src="${item.profile_photo_url}?v=${new Date().getTime()}" class="rounded-circle border border-secondary border-opacity-25 shadow-sm object-fit-cover" style="width: 42px; height: 42px; cursor: zoom-in;" onclick="zoomAvatar('${item.profile_photo_url}', '${item.full_name.replace(/'/g, "\\'")}')">`
+    : `<div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-bold shadow-sm" style="width: 42px; height: 42px; font-size: 0.9rem;">${initials}</div>`;
 
----
-
-## [ ] Listar ações disponíveis por tela
-
-**Objetivo**
-
-Exibir claramente quais ações cada usuário pode executar em cada tela do sistema.
-
-**Exemplo de visualização**
-
-| Tela    | Permissões                     |
-| ------- | ------------------------------ |
-| Pessoas | Ver / Criar / Editar / Deletar |
-| Turmas  | Ver / Criar / Editar           |
-| Diário  | Ver / Registrar encontro       |
 
 ---
-
-## [ ] Melhorar modal de usuários no mobile
-
-**Objetivo**
-
-Ajustar responsividade e espaçamento do modal em dispositivos móveis.
-
-**Melhorias esperadas**
-
-- melhorar espaçamento entre campos
-- evitar quebra de layout
-- melhorar leitura e navegação
 
 ---
 
@@ -228,6 +183,8 @@ O select pode quebrar o layout do menu lateral.
 - aplicar truncamento de texto quando necessário
 - manter estabilidade do layout
 
+## [ ] Lembrar o estado do menu, aberto ou fechado.
+
 
 
 
@@ -235,10 +192,4 @@ O select pode quebrar o layout do menu lateral.
 
 Geral -> Ajustar o setButton em todas as telas
 
-Geral -> Lembrar o estado do menu, aberto ou fechado.
-
-Usuário -> Ajustar o modal não está igual a pessoa.
-
-Usuário -> Cada card de telá será um accordion, pode comprimir ou expandir.
-
-Usuário -> Ajustar as cores "const statusClass = p.active ? "bg-success text-success border-success" : "bg-danger text-danger border-danger";"
+Geral -> 

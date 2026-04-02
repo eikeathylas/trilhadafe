@@ -244,3 +244,26 @@
     overflow-y: visible !important;
   }
 }
+
+/* Trava e truncamento do Select de Paróquias na Sidebar */
+.sidebar-only select,
+.sidebar-only .selectize-input,
+.sidebar-only .selectize-dropdown-content {
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.sidebar-only .selectize-input {
+  max-height: 48px !important; /* Limite de altura definido */
+  display: flex !important;
+  align-items: center !important;
+}
+
+.sidebar-only .selectize-input > .item {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 90% !important;
+}

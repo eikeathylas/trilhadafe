@@ -105,34 +105,33 @@
                     <button type="button" class="btn-close btn-close-white shadow-none position-absolute end-0 me-4 hover-scale" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body p-0 bg-body">
-                    <input type="hidden" id="person_id">
-
-                    <div class="px-2 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
-                        <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
-                            <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="pessoaTab" role="tablist">
-                                <li class="nav-item">
-                                    <button class="nav-link active fw-bold px-4 rounded-pill" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button"><i class="fas fa-id-card me-2 opacity-75"></i> Pessoal</button>
-                                </li>
-                                <li class="nav-item" data-slug="pessoas.tab_contact">
-                                    <button class="nav-link fw-bold px-4 rounded-pill" id="contato-tab" data-bs-toggle="tab" data-bs-target="#tab-contato" type="button"><i class="fas fa-address-book me-2 opacity-75"></i> Contato</button>
-                                </li>
-                                <li class="nav-item" data-slug="pessoas.tab_family">
-                                    <button class="nav-link fw-bold px-4 rounded-pill" id="familia-tab" data-bs-toggle="tab" data-bs-target="#tab-familia" type="button"><i class="fas fa-users me-2 opacity-75"></i> Família</button>
-                                </li>
-                                <li class="nav-item" data-slug="pessoas.tab_sacraments">
-                                    <button class="nav-link fw-bold px-4 rounded-pill" id="sacramentos-tab" data-bs-toggle="tab" data-bs-target="#tab-sacramentos" type="button"><i class="fas fa-cross me-2 opacity-75"></i> Sacramentos</button>
-                                </li>
-                                <li class="nav-item" data-slug="pessoas.tab_attachments">
-                                    <button class="nav-link fw-bold px-4 rounded-pill" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#tab-anexos" type="button"><i class="fas fa-paperclip me-2 opacity-75"></i> Anexos</button>
-                                </li>
-                                <li class="nav-item" data-slug="pessoas.tab_godparents">
-                                    <button class="nav-link fw-bold px-4 rounded-pill" id="padrinhamento-tab" data-bs-toggle="tab" data-bs-target="#tab-padrinhamento" type="button"><i class="fas fa-dove me-2 opacity-75"></i> Padrinhamento</button>
-                                </li>
-                            </ul>
-                        </div>
+                <div class="px-2 pb-1 border-bottom border-secondary border-opacity-10 shadow-sm text-center sticky-top" style="z-index: 1080 !important; top: 0;">
+                    <div class="modern-tabs-wrapper" style="overflow-x: auto; white-space: nowrap;">
+                        <ul class="nav nav-pills gap-2 flex-nowrap justify-content-md-center px-4" id="pessoaTab" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active fw-bold px-4 rounded-pill" id="dados-tab" data-bs-toggle="tab" data-bs-target="#tab-dados" type="button"><i class="fas fa-id-card me-2 opacity-75"></i> Pessoal</button>
+                            </li>
+                            <li class="nav-item" data-slug="pessoas.tab_contact">
+                                <button class="nav-link fw-bold px-4 rounded-pill" id="contato-tab" data-bs-toggle="tab" data-bs-target="#tab-contato" type="button"><i class="fas fa-address-book me-2 opacity-75"></i> Contato</button>
+                            </li>
+                            <li class="nav-item" data-slug="pessoas.tab_family">
+                                <button class="nav-link fw-bold px-4 rounded-pill" id="familia-tab" data-bs-toggle="tab" data-bs-target="#tab-familia" type="button"><i class="fas fa-users me-2 opacity-75"></i> Família</button>
+                            </li>
+                            <li class="nav-item" data-slug="pessoas.tab_sacraments">
+                                <button class="nav-link fw-bold px-4 rounded-pill" id="sacramentos-tab" data-bs-toggle="tab" data-bs-target="#tab-sacramentos" type="button"><i class="fas fa-cross me-2 opacity-75"></i> Sacramentos</button>
+                            </li>
+                            <li class="nav-item" data-slug="pessoas.tab_attachments">
+                                <button class="nav-link fw-bold px-4 rounded-pill" id="anexos-tab" data-bs-toggle="tab" data-bs-target="#tab-anexos" type="button"><i class="fas fa-paperclip me-2 opacity-75"></i> Anexos</button>
+                            </li>
+                            <li class="nav-item" data-slug="pessoas.tab_godparents">
+                                <button class="nav-link fw-bold px-4 rounded-pill" id="padrinhamento-tab" data-bs-toggle="tab" data-bs-target="#tab-padrinhamento" type="button"><i class="fas fa-dove me-2 opacity-75"></i> Padrinhamento</button>
+                            </li>
+                        </ul>
                     </div>
+                </div>
 
+                <div class="modal-body p-0 modal-body-scrollable bg-body">
+                    <input type="hidden" id="person_id">
                     <div class="tab-content p-4 p-md-5">
 
                         <div class="tab-pane fade show active" id="tab-dados">

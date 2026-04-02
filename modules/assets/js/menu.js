@@ -116,8 +116,10 @@ const configureProfile = () => {
     // if (screen && screen !== "index" && screen !== "dashboard" && !defaults.screensAllowed.includes(screen)) {
     if (!defaults.screensAllowed.includes(screen)) {
       if (href == defaults.pageActive) {
-        // window.location.href = defaults.screensAllowed.includes('diario') ? 'diario.php' : 'eventos.php'
-        window.logOut();
+        if (!defaults.screensAllowed.includes("diario") && !defaults.screensAllowed.includes("eventos")) {
+          window.logOut();
+        }
+        window.location.href = defaults.screensAllowed.includes("diario") ? "diario.php" : "eventos.php";
       }
       $(this).remove();
     }
@@ -203,16 +205,27 @@ $(document).ready(function () {
   });
 
   // --- TOGGLE SIDEBAR (DESKTOP) ---
-  $(".menu-btn-only").click(function () {
-    const sidebar = $("#sidebar-only");
-    const mainContent = $(".main-only");
+  const sidebar = $("#sidebar-only");
+  const mainContent = $(".main-only");
 
+  // Restaura o estado salvo no localStorage ao inicializar
+  if (localStorage.getItem("tf_sidebar_state") === "closed") {
+    sidebar.addClass("active-only");
+    mainContent.addClass("active-only");
+    $("ul.sub-menu-only").hide();
+    $(".nav-only li").removeClass("active-only");
+  }
+
+  $(".menu-btn-only").click(function () {
     sidebar.toggleClass("active-only");
     mainContent.toggleClass("active-only");
 
     if (sidebar.hasClass("active-only")) {
       $("ul.sub-menu-only").slideUp();
       $(".nav-only li").removeClass("active-only");
+      localStorage.setItem("tf_sidebar_state", "closed");
+    } else {
+      localStorage.setItem("tf_sidebar_state", "open");
     }
   });
 

@@ -274,10 +274,10 @@ INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, co
 (3,  'relatorios',  'Relatórios',           'Análise de dados e exportação.', TRUE, 'icon-file-lines', 'ReportsController'),
 (4,  'diario',      'Diário de Classe',     'Área do professor/frequência.', TRUE, 'icon-chalkboard-user', 'AcademicController'),
 (5,  'turmas',      'Gestão de Turmas',     'Administração de salas e alunos.', TRUE, 'icon-graduation-cap', 'AcademicController'),
-(6,  'cursos',      'Cursos e Grades',      'Definição formativa.', TRUE, 'icon-book', 'AcademicController'),
+(6,  'cursos',      'Cursos e Planejamento',      'Definição formativa.', TRUE, 'icon-book', 'AcademicController'),
 (7,  'fases',       'Fases da Iniciação',   'Cadastro de fases.', TRUE, 'icon-book-open', 'AcademicController'),
 (8,  'pessoas',     'Diretório de Pessoas', 'Prontuário único.', TRUE, 'icon-user', 'PeopleController'),
-(9,  'organizacao', 'Organização',          'Estrutura física e dados.', TRUE, 'icon-building', 'OrganizationController'),
+(9,  'organizacao', 'Entidades',          'Estrutura física e dados.', TRUE, 'icon-building', 'OrganizationController'),
 (10, 'usuarios',    'Usuários',             'Gerenciamento de acessos.', TRUE, 'icon-users', 'UsersController'),
 (11, 'ajuda',       'Ajuda e Suporte',      'Base de conhecimento.', TRUE, 'icon-circle-question', 'HelpController');
 
