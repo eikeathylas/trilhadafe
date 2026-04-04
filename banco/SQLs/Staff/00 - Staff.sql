@@ -270,9 +270,9 @@ INSERT INTO public.profiles (id, title, description, staff, active) VALUES
 
 INSERT INTO public.actions (id, slug, name, description, is_menu, icon_class, controller) VALUES 
 (1,  'dashboard',   'Painel Principal',     'Visão geral e gráficos.', TRUE, 'icon-home', 'DashboardController'),
-(2,  'eventos',     'Calendario',           'Gestão de calendário.', TRUE, 'icon-calendar-day', 'EventsController'),
+(2,  'eventos',     'Calendário',           'Gestão de calendário.', TRUE, 'icon-calendar-day', 'EventsController'),
 (3,  'relatorios',  'Relatórios',           'Análise de dados e exportação.', TRUE, 'icon-file-lines', 'ReportsController'),
-(4,  'diario',      'Diário de Classe',     'Área do professor/frequência.', TRUE, 'icon-chalkboard-user', 'AcademicController'),
+(4,  'diario',      'Diário de Encontros',     'Área do professor/frequência.', TRUE, 'icon-chalkboard-user', 'AcademicController'),
 (5,  'turmas',      'Gestão de Turmas',     'Administração de salas e alunos.', TRUE, 'icon-graduation-cap', 'AcademicController'),
 (6,  'cursos',      'Cursos e Planejamento',      'Definição formativa.', TRUE, 'icon-book', 'AcademicController'),
 (7,  'fases',       'Fases da Iniciação',   'Cadastro de fases.', TRUE, 'icon-book-open', 'AcademicController'),
@@ -395,7 +395,8 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 (1005, 10, 'usuarios.save',    'Salvar Usuário',           'Gravar no banco.', FALSE),
 (1006, 10, 'usuarios.actions', 'Histórico de ações',       'O que o usuário fez.', FALSE),
 (1007, 10, 'usuarios.history', 'Histórico de alterações',  'O que mudaram no usuário.', FALSE),
-(1008, 10, 'usuarios.delete',  'Excluir Usuário',          'Revogar acesso.', FALSE);
+(1008, 10, 'usuarios.delete',  'Excluir Usuário',          'Revogar acesso.', FALSE),
+(1009, 10, 'usuarios.password','Alterar Senha',          'Permite alterar a senha do usuário.', FALSE);
 
 -- BLOCO 1100: AJUDA
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
@@ -432,7 +433,7 @@ WHERE id IN (
     -- Paróquia (Gestão total)
     901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912,
     -- Usuários (Pode criar novos coordenadores/catequistas)
-    1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008,
+    1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009,
     -- Ajuda
     1101, 1102
 );

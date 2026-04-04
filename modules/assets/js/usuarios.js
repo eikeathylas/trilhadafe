@@ -346,9 +346,10 @@ window.openCreateModal = () => {
   if ($("#edit_years")[0]?.selectize) $("#edit_years")[0].selectize.clear();
   if ($("#edit_person_id")[0]?.selectize) $("#edit_person_id")[0].selectize.clear();
 
-  $("#div_select_person").show();
-  $("#div_input_name").hide();
-  $("#div_reset_password").hide();
+  // Controle de visibilidade forçado para classes Bootstrap
+  $("#div_select_person").removeClass("d-none").addClass("d-block");
+  $("#div_input_name").removeClass("d-block").addClass("d-none");
+  $("#div_reset_password").removeClass("d-block d-flex").addClass("d-none");
 
   $('#userTab a[href="#tab-acesso"]').tab("show");
   $("#lista-permissoes").html(`<div class="text-center py-5 text-muted opacity-50"><i class="fas fa-shield-alt fa-3x mb-3"></i><p>Selecione um perfil para visualizar a matriz.</p></div>`);
@@ -386,9 +387,11 @@ window.openEditModal = async (id, btn) => {
         vinculos.forEach((v) => sl.addItem(v.year_id || v));
       }
 
-      $("#div_select_person").hide();
-      $("#div_input_name").show();
-      $("#div_reset_password").show();
+      // Controle de visibilidade forçado para classes Bootstrap
+      $("#div_select_person").removeClass("d-block").addClass("d-none");
+      $("#div_input_name").removeClass("d-none").addClass("d-block");
+      // A div do password deve voltar a ser visível, porém o Bootstrap costuma aplicar display flex em cards complexos.
+      $("#div_reset_password").removeClass("d-none").addClass("d-block");
 
       $('#userTab a[href="#tab-acesso"]').tab("show");
 

@@ -257,7 +257,11 @@ const renderTableHistory = (groupedData) => {
   const desktopRows = groupedData
     .map((group) => {
       const dateParts = group.date.split("-");
-      const dateFmt = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+      const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+      const daysOfWeek = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+      const dayOfWeekStr = daysOfWeek[dateObj.getDay()];
+
+      const dateFmt = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} (${dayOfWeekStr})`;
       const total = parseInt(group.total_students) || 0;
       const present = parseInt(group.present_count) || 0;
       const pct = total > 0 ? Math.round((present / total) * 100) : 0;
