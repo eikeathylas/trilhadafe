@@ -214,7 +214,7 @@ const renderUsers = (data) => {
       let actionsHtml = "";
       if (canHistory)
         actionsHtml += `<button class="btn-icon-action text-info ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openHistoryModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', this)" title="Auditoria de Cadastro"><i class="fas fa-clipboard-list" style="font-size: 0.85rem;"></i></button>`;
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('security.users', ${item.id})" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('security.users', ${item.id})" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openEditModal(${item.id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteUsuario(${item.id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
@@ -283,7 +283,7 @@ const renderUsers = (data) => {
       if (canHistory)
         mobActionsHtml += `<button class="btn btn-sm text-info bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openHistoryModal(${item.id}, '${item.name.replace(/'/g, "\\'")}', this)" title="Auditoria"><i class="fas fa-clipboard-list" style="font-size: 0.85rem;"></i></button>`;
       if (canHistory)
-        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('security.users', ${item.id})" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('security.users', ${item.id})" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
         mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openEditModal(${item.id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)

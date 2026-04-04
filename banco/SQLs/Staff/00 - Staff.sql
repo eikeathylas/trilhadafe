@@ -374,15 +374,15 @@ INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VAL
 -- BLOCO 900: ORGANIZAÇÃO (MINHA PARÓQUIA)
 INSERT INTO public.actions (id, parent_id, slug, name, description, is_menu) VALUES 
 (901, 9, 'organizacao.create',       'Criar Diocese',          'Criar Diocese.', FALSE),
-(902, 9, 'organizacao.view',         'Ver Dados da Diocese',   'Pode ler as informações gerais da Diocese.', FALSE),
+(902, 9, 'organizacao.history',         'Histórico de alterações da Diocese',   'Pode ler as informações gerais da Diocese.', FALSE),
 (903, 9, 'organizacao.edit',         'Editar Dados',           'Pode alterar configurações da Diocese.', FALSE),
 (904, 9, 'organizacao.save',         'Salvar a Diocese',       'Pode gravar configurações vitais da Diocese.', FALSE),
 (905, 9, 'organizacao.create_paroc', 'Criar Paróquia',         'Criar Paróquia.', FALSE),
-(906, 9, 'organizacao.view_paroc',   'Ver Dados de Paróquia',  'Pode ler as informações gerais de Paróquia.', FALSE),
+(906, 9, 'organizacao.history_paroc',   'Histórico de alterações de Paróquia',  'Pode ler as informações gerais de Paróquia.', FALSE),
 (907, 9, 'organizacao.edit_paroc',   'Editar Dados de Paróquia', 'Pode alterar configurações de Paróquia.', FALSE),
 (908, 9, 'organizacao.save_paroc',   'Salvar Paróquia',        'Pode gravar configurações vitais de Paróquia.', FALSE),
 (909, 9, 'organizacao.create_loc',   'Criar Locais',           'Criar Locais.', FALSE),
-(910, 9, 'organizacao.view_loc',     'Ver Dados de Locais',    'Pode ler as informações gerais de Locais.', FALSE),
+(910, 9, 'organizacao.history_loc',     'Histórico de alterações de Locais',    'Pode ler as informações gerais de Locais.', FALSE),
 (911, 9, 'organizacao.edit_loc',     'Editar Dados de Locais', 'Pode alterar configurações de Locais.', FALSE),
 (912, 9, 'organizacao.save_loc',     'Salvar Locais',          'Pode gravar configurações vitais de Locais.', FALSE);
 

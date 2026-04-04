@@ -86,7 +86,7 @@ const renderTableDiocese = (data) => {
     }
   } catch (e) {}
 
-  const canHistory = allowedSlugs.includes("organizacao.view");
+  const canHistory = allowedSlugs.includes("organizacao.history");
   const canEdit = allowedSlugs.includes("organizacao.edit");
   const canDelete = allowedSlugs.includes("organizacao.save");
 
@@ -94,7 +94,7 @@ const renderTableDiocese = (data) => {
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
@@ -128,7 +128,7 @@ const renderTableDiocese = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
       let mobActionsHtml = "";
       if (canHistory)
-        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
         mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)
@@ -204,7 +204,7 @@ const renderTableOrgs = (data) => {
     }
   } catch (e) {}
 
-  const canHistory = allowedSlugs.includes("organizacao.view_paroc");
+  const canHistory = allowedSlugs.includes("organizacao.history_paroc");
   const canEdit = allowedSlugs.includes("organizacao.edit_paroc");
   const canDelete = allowedSlugs.includes("organizacao.save_paroc");
 
@@ -212,7 +212,7 @@ const renderTableOrgs = (data) => {
     .map((item) => {
       const isActive = item.is_active === true || item.is_active === "t";
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteOrg(${item.org_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
@@ -246,7 +246,7 @@ const renderTableOrgs = (data) => {
       const isActive = item.is_active === true || item.is_active === "t";
       let mobActionsHtml = "";
       if (canHistory)
-        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.organizations', ${item.org_id}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
         mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="modalInstituicao(${item.org_id}, this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)
@@ -331,7 +331,7 @@ const renderTableLocais = (data) => {
     }
   } catch (e) {}
   const canEdit = allowedSlugs.includes("organizacao.edit_loc");
-  const canHistory = allowedSlugs.includes("organizacao.view_loc");
+  const canHistory = allowedSlugs.includes("organizacao.history_loc");
   const canDelete = allowedSlugs.includes("organizacao.save_loc");
 
   const desktopRows = data
@@ -357,7 +357,7 @@ const renderTableLocais = (data) => {
       if (resObj.whiteboard) icons += window.getResourceIcon("whiteboard");
 
       let actionsHtml = "";
-      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+      if (canHistory) actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary" style="width: 32px; height: 32px; padding: 0;" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete) actionsHtml += `<button class="btn-icon-action text-danger" style="width: 32px; height: 32px; padding: 0;" onclick="deleteLoc(${item.location_id})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
@@ -412,7 +412,7 @@ const renderTableLocais = (data) => {
 
       let mobActionsHtml = "";
       if (canHistory)
-        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('organization.locations', ${item.location_id}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
         mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0 ms-1" style="width: 32px; height: 32px; padding: 0;" onclick='editarLocalObj(JSON.parse(decodeURIComponent("${itemStr}")), this)' title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (canDelete)

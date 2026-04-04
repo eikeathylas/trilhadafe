@@ -278,7 +278,7 @@ const renderTableHistory = (groupedData) => {
       let actionsHtml = "";
       const firstSess = group.sessions[0].session_id;
       if (allowedSlugs.includes("diario.history"))
-        actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.class_sessions', ${firstSess}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        actionsHtml += `<button class="btn-icon-action text-warning" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.class_sessions', ${firstSess}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit) actionsHtml += `<button class="btn-icon-action text-primary ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="openSessionModal(null, '${group.date}', this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (allowedSlugs.includes("diario.delete")) actionsHtml += `<button class="btn-icon-action text-danger ms-1" style="width: 32px; height: 32px; padding: 0;" onclick="deleteSession(${firstSess})" title="Excluir"><i class="fas fa-trash-can" style="font-size: 0.85rem;"></i></button>`;
 
@@ -352,7 +352,7 @@ const renderTableHistory = (groupedData) => {
       let mobActionsHtml = "";
       const firstSess = group.sessions[0].session_id;
       if (allowedSlugs.includes("diario.history"))
-        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.class_sessions', ${firstSess}, this)" title="Log"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
+        mobActionsHtml += `<button class="btn btn-sm text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openAudit('education.class_sessions', ${firstSess}, this)" title="Histórico"><i class="fas fa-history" style="font-size: 0.85rem;"></i></button>`;
       if (canEdit)
         mobActionsHtml += `<button class="btn btn-sm text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center hover-scale shadow-none flex-shrink-0" style="width: 32px; height: 32px; padding: 0;" onclick="openSessionModal(null, '${group.date}', this)" title="Editar"><i class="fas fa-pen" style="font-size: 0.85rem;"></i></button>`;
       if (allowedSlugs.includes("diario.delete"))
