@@ -1,322 +1,184 @@
+# 🗺️ ROADMAP ESTRATÉGICO — TRILHA DA FÉ
 
-# 🗺️ 5 — NOVAS TELAS
+## 📍 VISÃO GERAL DO PRODUTO
 
----
-
-## Tela: Mapa
-
-Funcionalidades:
-
-[ ] Exibir paróquias no mapa
-
-[ ] Exibir pontos de doação
-
-Possível integração:
-
-- Google Maps
-- OpenStreetMap
-
-Objetivo:
-
-Criar visualização geográfica da igreja.
+O **Trilha da Fé** é um ERP Eclesiástico e plataforma de gestão paroquial em formato SaaS (Multi-tenant).
+Ele foi projetado para ser o ecossistema digital central de uma Diocese ou Paróquia. Seu objetivo é unificar a secretaria paroquial (sacramentos), a gestão financeira (dízimo e livro caixa), a administração de eventos (quermesses cashless), a organização pastoral (missas e catequese) e a comunicação com os fiéis (Portal e App).
 
 ---
 
-## Tela: Avisos
+## 📦 ESTADO ATUAL DO SISTEMA
 
-Sistema de comunicação interno.
+### 🟢 Módulos Implementados (Backend + UI Ativos)
 
-Hierarquia:
+- **Gestão de Pessoas (CRM):** Prontuário único integrando alunos, clero e familiares, com suporte a upload de anexos.
+- **Educação / Catequese:** Gestão de turmas, matrículas, matriz curricular, e Diário de Classe Eletrônico.
+- **Segurança e Auditoria:** Controle de acesso, perfis dinâmicos e motor de rastreamento de logs contínuo (Audit Trail).
 
-Pároco
+### 🟡 Módulos Parcialmente Implementados (Prontos no Banco, sem Interface)
 
-- pode enviar para todos
-- pode enviar para grupos
+O banco de dados já possui a fundação arquitetural para:
 
-Secretaria
+- **Comunicação interna e Avisos:** Tabelas de posts, notificações direcionadas e leitura.
+- **Sacramentos (Batismo/Casamento):** Estrutura relacional para Livros de Tombo, certidões e averbações.
+- **Financeiro & Dízimo:** Contas, categorias, fluxo de caixa e gestão de dizimistas.
+- **Agenda Pastoral:** Missas e Intenções.
+- **Festas e Eventos:** Ingressos, produtos, PDVs e sistema Cashless.
 
-- pode enviar para todos
-- pode enviar para grupos
+### 🔴 Módulos Ainda Inexistentes (Lacunas Estruturais a serem criadas)
 
-Professor
-
-- pode enviar apenas para alunos da turma
-
-Possíveis canais:
-
-- sistema
-- push
-- email
-- app
-
----
-
-## Tela: Portal dos Pais
-
-Funcionalidades:
-
-[ ] acompanhar progresso do filho
-
-[ ] ver conteúdos da aula
-
-[ ] ver presença
-
-[ ] receber avisos
-
-[ ] receber notificações
+- **Assistente IA (GuIA):** Requer integração com LLMs e base de conhecimento.
+- **Módulo Cáritas:** Extensão do CRM atual para gestão de assistidos e doações sociais continuadas.
+- **Geolocalização (Mapa):** Integração de coordenadas com APIs externas.
+- **Portal dos Pais / Portal do Fiel:** Ecossistema voltado para o usuário final (leitura).
+- **Loja / E-commerce:** PDV e controle de estoque de artigos religiosos.
 
 ---
 
-## Tela: Blog / Portal
+## 🚀 ROADMAP DE EVOLUÇÃO
 
-Funcionalidades:
+### 📌 VERSÃO 1 — BASE OPERACIONAL E UX (Curto Prazo)
 
-[ ] publicar eventos
+**Foco:** Refinar a experiência das telas atuais e ativar o módulo básico de Comunicação para engajar alunos e professores.
 
-[ ] notícias da igreja
+#### 🎛️ Módulo: Interface e Usabilidade
 
-[ ] agenda paroquial
+- [ ] **Ajustar abas do modal de usuários**
+  - _Descrição:_ Reorganizar informações no padrão "modern-tabs-wrapper".
+  - _Objetivo:_ Padronizar a usabilidade com a tela de Pessoas.
+  - _Complexidade:_ Baixa
 
-[ ] integração com mapa
+- [ ] **Ajustar Calendário Global (antiga Agenda)**
+  - _Descrição:_ Renomear telas e calcular dias da semana dinamicamente no mobile.
+  - _Objetivo:_ Clareza semântica e interface mobile fluida.
+  - _Complexidade:_ Baixa
 
-Objetivo:
+- [ ] **Listar ações disponíveis por tela**
+  - _Descrição:_ Matriz visual de permissões por usuário no perfil.
+  - _Objetivo:_ Transparência e segurança na delegação de acessos.
+  - _Complexidade:_ Média
 
-Transformar sistema em CMS da paróquia.
+#### 📢 Módulo: Avisos e Comunicação Interna
 
----
-
-# 🤖 6 — ASSISTENTE IA
-
-Nome do assistente:
-
-GuIA
-
-Significado:
-
-G → Guia  
-u → Unificado  
-I → Inteligência  
-A → Artificial
-
-Frase oficial:
-
-GuIA: O companheiro digital da sua jornada espiritual.
+- [ ] **Sistema Hierárquico de Avisos**
+  - _Descrição:_ Interface para disparar notificações (Push/Sistema/Email). Regras de hierarquia: Pároco/Secretaria (Todos/Grupos) e Professor (Apenas Turma).
+  - _Objetivo:_ Eliminar ruído no WhatsApp e centralizar a comunicação oficial da Igreja.
+  - _Complexidade:_ Média
 
 ---
 
-## Funções
+### 📌 VERSÃO 2 — SECRETARIA E ECOSSISTEMA ACADÊMICO (Médio Prazo)
 
-[ ] responder dúvidas do sistema
+**Foco:** Substituir o papel da secretaria paroquial, ativando os módulos de cartório e integrando os pais ao sistema.
 
-[ ] ajudar navegação
+#### 🏛️ Módulo: Sacramentos (Cartório Paroquial)
 
-[ ] explicar telas
+- [ ] **Gestão de Batismo**
+  - _Descrição:_ Inscrição, registro nos Livros de Tombo, autorizações, negativas e emissão de certidões em PDF. Envio automático para Cúria.
+  - _Objetivo:_ Digitalizar o arquivo paroquial com busca rápida.
+  - _Complexidade:_ Alta
 
-[ ] informar eventos
+- [ ] **Gestão de Casamento (Matrimônio)**
+  - _Descrição:_ Cadastro dos noivos, processo matrimonial, transferências online, licenças, registro no livro e notificações de casamento.
+  - _Objetivo:_ Acelerar e digitalizar o trâmite canônico.
+  - _Complexidade:_ Alta
 
-[ ] suporte ao usuário
+- [ ] **Central de Consultas Unificada**
+  - _Descrição:_ Pesquisa global indexada de batismos, crismas e casamentos entre paróquias e clero diocesano.
+  - _Objetivo:_ Facilitar o trabalho do secretário na busca de registros.
+  - _Complexidade:_ Média
 
-Tecnologia prevista:
+#### 👨‍👩‍👧 Módulo: Portal dos Pais
 
-- processamento de linguagem natural
-- base de conhecimento do sistema
-
----
-
-# ⛪ 7 — MÓDULOS ERP ECLESIÁSTICOS
-
-Referência funcional:
-
-https://sigepa.com.br
-
----
-
-## Batismo
-
-[ ] inscrição do batizando
-
-[ ] registro de batismo
-
-[ ] certidão de batismo
-
-[ ] autorizações
-
-[ ] negativas
-
-[ ] certificados de preparação
-
-[ ] gerador de livro de batismo
-
-[ ] envio para cúria
-
-[ ] relatórios
+- [ ] **Painel da Família**
+  - _Descrição:_ Acesso restrito aos responsáveis para acompanhar progresso, ver conteúdos aplicados, verificar presença e receber notificações/avisos.
+  - _Objetivo:_ Transparência pedagógica na catequese e engajamento familiar.
+  - _Complexidade:_ Alta
 
 ---
 
-## Casamento
+### 📌 VERSÃO 3 — GESTÃO FINANCEIRA E LITÚRGICA (Longo Prazo)
 
-[ ] cadastro dos noivos
+**Foco:** Garantir a sustentabilidade, transparência e organização contábil/pastoral da Igreja.
 
-[ ] processo matrimonial
+#### 💰 Módulo: Dízimo
 
-[ ] dispensas e licenças
+- [ ] **Ecossistema do Dizimista**
+  - _Descrição:_ Cadastro de dizimistas, registro de contribuições e gerador de carnês.
+  - _Objetivo:_ Previsibilidade de receita.
+  - _Complexidade:_ Alta
 
-[ ] transferência online
+- [ ] **Portal do Dizimista (App)**
+  - _Descrição:_ Contribuição via App, envio de comprovante, carteira de dizimista e notificações de aniversário natalício/casamento.
+  - _Objetivo:_ Fidelizar o doador e facilitar a contribuição digital.
+  - _Complexidade:_ Alta
 
-[ ] notificação de casamento
+#### 📊 Módulo: Tesouraria Corporativa
 
-[ ] registro de casamento
+- [ ] **Financeiro Global**
+  - _Descrição:_ Cadastro de contas, plano de contas, lançamentos avulsos, livro caixa integrado e gerador de recibos.
+  - _Objetivo:_ Eliminar o uso de planilhas externas para a contabilidade paroquial.
+  - _Complexidade:_ Alta
 
-[ ] livro de casamento
+#### ⛪ Módulo: Agenda de Missas
 
-[ ] envio para cúria
-
----
-
-## Catequese
-
-[ ] cadastro catequizando
-
-[ ] cadastro catequista
-
-[ ] cadastro de turmas
-
-[ ] formação de turmas
-
-[ ] registro de crisma
-
-[ ] envio para cúria
-
-[ ] relatórios
+- [ ] **Controle Litúrgico e Intenções**
+  - _Descrição:_ Agendamento de missas, cadastro de intenções (saúde, falecimento) e geração de relatórios de leitura para o altar.
+  - _Objetivo:_ Organizar o roteiro do padre e a arrecadação das intenções.
+  - _Complexidade:_ Média
 
 ---
 
-## Agenda de Missas
+### 📌 VERSÃO 4 — PLATAFORMA COMPLETA E IA (Visão de Futuro)
 
-[ ] cadastro de intenções
+**Foco:** Escalabilidade comunitária, ecossistema do fiel e tecnologias de ponta.
 
-[ ] agendamento de missas
+#### 🎪 Módulo: Festa (Eventos e Quermesses)
 
-[ ] relatórios
+- [ ] **Gestão de Quermesses Cashless**
+  - _Descrição:_ Vendas em eventos, integração com maquininhas, gestão de barraqueiros e controle financeiro das barracas.
+  - _Objetivo:_ Eliminar perdas financeiras com fichas de papel em eventos da padroeira.
+  - _Complexidade:_ Muito Alta
 
----
+#### 🛍️ Módulo: Loja Paroquial
 
-## Dízimo
+- [ ] **PDV e Estoque Lojinha**
+  - _Descrição:_ Cadastro de produtos/clientes, controle de estoque, registro de vendas e relatórios de saída.
+  - _Objetivo:_ Integrar a receita da lojinha no fluxo de caixa global.
+  - _Complexidade:_ Alta
 
-[ ] cadastro de dizimistas
+#### 🌐 Módulo: Blog, Portal e Mapa
 
-[ ] registro de contribuições
+- [ ] **Portal da Paróquia (CMS)**
+  - _Descrição:_ Publicação de notícias, agenda paroquial e publicação de eventos abertos à comunidade.
+  - _Objetivo:_ O Trilha da Fé servir também como o Site oficial da paróquia.
+  - _Complexidade:_ Média
 
-[ ] contribuição via app
+- [ ] **Mapa de Organizações**
+  - _Descrição:_ Exibir paróquias e pontos de doação integrados via Google Maps ou OpenStreetMap. Entidades e locais com geolocalização | Cadastro de pessoa com geolocalização
+  - _Objetivo:_ Criar visualização geográfica da presença da Igreja.
+  - _Complexidade:_ Média
 
-[ ] envio de comprovante
+#### 🤝 Módulo: Cáritas (Ação Social)
 
-[ ] notificações automáticas
+- [ ] **Gestão de Assistência Social**
+  - _Descrição:_ Cadastro de assistidos e gestão de distribuição de cestas básicas/doações contínuas.
+  - _Objetivo:_ Profissionalizar e mapear a caridade paroquial.
+  - _Complexidade:_ Média
 
-Tipos:
+#### 🤖 Módulo: Assistente IA (GuIA)
 
-- aniversário
-- aniversário de casamento
+- [ ] **GuIA: O companheiro digital da sua jornada espiritual.**
+  - _Descrição:_ IA baseada em Processamento de Linguagem Natural treinada na base de conhecimento do sistema. Significado: G → Guia  |  u → Unificado  |  I → Inteligência  |  A → Artificial
+  - _Objetivo:_ Responder dúvidas operacionais, ajudar na navegação, explicar telas, informar eventos e dar suporte ao usuário.
+  - _Complexidade:_ Muito Alta
 
-[ ] gerador de carnê
-
-[ ] carteira de dizimista
-
-[ ] mapa do dízimo
-
-[ ] relatórios
-
----
-
-## Financeiro
-
-[ ] plano de contas
-
-[ ] cadastro de contas
-
-[ ] lançamentos
-
-[ ] livro caixa
-
-[ ] gerador de recibos
-
-[ ] bingos
-
-[ ] rifas
 
 ---
 
-## Loja
+## 🔮 RECURSOS FUTUROS
 
-[ ] cadastro de produtos
-
-[ ] cadastro de clientes
-
-[ ] controle de estoque
-
-[ ] registro de vendas
-
-[ ] relatórios
-
----
-
-## Central de Consultas
-
-Pesquisa unificada de:
-
-- batismos
-- casamentos
-- crismas
-- negativas
-
-Integração com:
-
-- paróquias
-- clero diocesano
-
----
-
-## Cáritas
-
-[ ] cadastro de assistidos
-
-[ ] gestão de assistência social
-
----
-
-## Festa
-
-[ ] gestão de eventos
-
-[ ] gestão de barraqueiros
-
-[ ] vendas em eventos
-
-[ ] integração com maquininhas
-
----
-
-# 🧠 8 — AUDITORIA DO SISTEMA
-
-Criar prompt para IA analisar:
-
-- banco de dados
-- funcionalidades existentes
-- telas existentes
-
-Objetivo:
-
-Identificar:
-
-✔ funcionalidades já implementadas  
-✔ funcionalidades incompletas  
-✔ funcionalidades ausentes
-
----
-
-# 🔮 9 — RECURSOS FUTUROS
-
-## Edição inline
+### Edição inline
 
 Implementar edição direta na interface.
 
