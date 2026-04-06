@@ -303,7 +303,7 @@ COMMENT ON TABLE security.users IS 'Tabela de acesso ao sistema (login) local do
 CREATE TABLE security.privacy_consents (
     consent_id SERIAL PRIMARY KEY,
     person_id INT NOT NULL REFERENCES people.persons(person_id) ON DELETE CASCADE,
-    accepted_by_user_id INT REFERENCES security.users(user_id),
+    accepted_by_user_id INT,
     
     consent_type VARCHAR(50) NOT NULL DEFAULT 'IMAGE_RIGHTS', -- IMAGE_RIGHTS, DATA_PROCESSING
     terms_version VARCHAR(20) NOT NULL,
@@ -513,7 +513,7 @@ CREATE TABLE education.registration_requests (
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'PENDING',
     rejection_reason TEXT,
-    processed_by_user_id INT REFERENCES security.users(user_id),
+    processed_by_user_id INT,
     created_student_id INT REFERENCES people.persons(person_id),
     
     deleted BOOLEAN DEFAULT FALSE,
@@ -544,7 +544,7 @@ CREATE TABLE education.enrollment_history (
     action_type VARCHAR(50) NOT NULL,
     action_date DATE DEFAULT CURRENT_DATE,
     observation TEXT,
-    created_by_user_id INT REFERENCES security.users(user_id),
+    created_by_user_id INT,
     
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -561,7 +561,7 @@ CREATE TABLE education.class_sessions (
     content_type VARCHAR(50) DEFAULT 'DOCTRINAL',
     status VARCHAR(20) DEFAULT 'PUBLISHED',
     
-    signed_by_user_id INT REFERENCES security.users(user_id),
+    signed_by_user_id INT,
     signed_at TIMESTAMP,
     
     deleted BOOLEAN DEFAULT FALSE,
@@ -620,7 +620,7 @@ CREATE TABLE education.certificates (
     class_id INT REFERENCES education.classes(class_id),
     
     issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    issued_by_user_id INT REFERENCES security.users(user_id),
+    issued_by_user_id INT,
     pdf_url VARCHAR(255),
     is_valid BOOLEAN DEFAULT TRUE,
     
@@ -870,7 +870,7 @@ CREATE TABLE finance.transactions (
     gateway_webhook_status JSONB,    
     
     is_reconciled BOOLEAN DEFAULT FALSE,
-    created_by_user_id INT REFERENCES security.users(user_id), 
+    created_by_user_id INT, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 COMMENT ON TABLE finance.transactions IS 'Movimentações financeiras (O Livro Caixa). Suporta Integrações de Pagamento.';
@@ -963,7 +963,7 @@ CREATE TABLE events_commerce.tickets (
     
     checkin_status BOOLEAN DEFAULT FALSE,
     checkin_date TIMESTAMP,
-    validated_by_user_id INT REFERENCES security.users(user_id),
+    validated_by_user_id INT,
     
     deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -979,7 +979,7 @@ CREATE TABLE events_commerce.donations_in_kind (
     unit_measure VARCHAR(20), 
     
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    received_by_user_id INT REFERENCES security.users(user_id),
+    received_by_user_id INT,
     deleted BOOLEAN DEFAULT FALSE
 );
 
@@ -1038,7 +1038,7 @@ CREATE TABLE events_commerce.transactions (
     church_fee_amount NUMERIC(15,2) DEFAULT 0.00, 
     vendor_net_amount NUMERIC(15,2) DEFAULT 0.00, 
     
-    operator_user_id INT REFERENCES security.users(user_id), 
+    operator_user_id INT, 
     transaction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -1107,7 +1107,7 @@ CREATE TABLE communication.banners (
 CREATE TABLE communication.notifications (
     notification_id SERIAL PRIMARY KEY,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
-    created_by_user_id INT REFERENCES security.users(user_id), 
+    created_by_user_id INT, 
     
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
@@ -1187,7 +1187,7 @@ CREATE TABLE social.distributions (
     dist_id BIGSERIAL PRIMARY KEY,
     family_id INT NOT NULL REFERENCES social.assisted_families(family_id) ON DELETE CASCADE,
     org_id INT NOT NULL REFERENCES organization.organizations(org_id) ON DELETE CASCADE,
-    delivered_by_user_id INT REFERENCES security.users(user_id),
+    delivered_by_user_id INT,
     
     item_type VARCHAR(100) NOT NULL, -- Ex: Cesta Básica, Remédio
     quantity NUMERIC(10,2) DEFAULT 1,
